@@ -16,7 +16,7 @@
 env "local" {
   src = "ent://ent/schema"
   dev = "docker://postgres/16/dev"
-  url = "postgres://user:pass@localhost:5432/colight_dev?sslmode=disable"
+  url = "postgres://user:pass@localhost:5532/colight_dev?sslmode=disable"
   migration {
     dir = "file://migrations"
   }
@@ -166,7 +166,7 @@ services:
   postgres:
     image: postgres:16
     ports:
-      - "5432:5432"
+      - "5532:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass

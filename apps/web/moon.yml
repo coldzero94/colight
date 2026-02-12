@@ -1,0 +1,24 @@
+language: node
+type: application
+
+tasks:
+  dev:
+    command: pnpm run dev
+    options:
+      persistent: true
+    local: true
+  build:
+    command: pnpm run build
+    deps:
+      - "~:lint"
+      - "~:typecheck"
+  test:
+    command: pnpm run test
+  lint:
+    command: pnpm run lint
+  typecheck:
+    command: pnpm exec tsc --noEmit
+  generate-client:
+    command: pnpm run generate:client
+    deps:
+      - "protocol:generate"

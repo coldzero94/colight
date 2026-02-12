@@ -56,35 +56,63 @@ docs/            # Plan, develop, phase guides, research
 
 ## Commands
 
+**⚠️ CRITICAL: Always use `moon` from project root for ALL operations.**
+
+This includes:
+- Running dev servers
+- Building projects
+- Running tests
+- Code generation
+- Database operations
+- **Even when testing or verifying steps**
+
+❌ **NEVER do this:**
 ```bash
-# moon (from project root — preferred)
-moon run :lint                # Lint all projects
-moon run :test                # Test all projects
-moon run backend:dev          # Run Go server
-moon run web:dev              # Run Next.js dev
-moon run protocol:generate    # TypeSpec → OpenAPI
-moon run backend:generate-api # OpenAPI → Go server code
-moon run web:generate-client  # OpenAPI → TS client
+cd apps/backend && go run ./cmd/api
+cd apps/backend && go test ./...
+cd apps/web && pnpm run dev
+```
 
-# Backend (apps/backend — direct)
-air                           # Dev server (hot reload)
-go build -o bin/api ./cmd/api # Build binary
-go generate ./ent             # Generate Ent code
-oapi-codegen -config oapi-codegen.yaml ../../packages/protocol/tsp-output/openapi/openapi.yaml  # OpenAPI → Go
-atlas migrate diff <name> --dir file://migrations --to ent://ent/schema --dev-url "docker://postgres/16/dev?search_path=public"  # Create migration
-atlas migrate apply --dir file://migrations --url "$DATABASE_URL"  # Apply migration
-go run ./scripts/seed.go all  # Seed data
-go test ./...                 # Tests
-golangci-lint run ./...       # Lint
+✅ **ALWAYS do this:**
+```bash
+moon run backend:dev
+moon run backend:test
+moon run web:dev
+```
 
-# Frontend (apps/web — direct)
-pnpm run dev                  # Dev server
-pnpm run build                # Build
-pnpm run test                 # Tests
-pnpm run lint                 # Lint
+```bash
+# Development (all commands from project root)
+moon run :dev                     # Start all dev servers (backend + frontend, parallel)
+moon run backend:dev              # Start Go API server only (port 9000)
+moon run web:dev                  # Start Next.js only (port 4000)
 
-# Protocol (packages/protocol — direct)
-pnpm run generate             # TypeSpec → OpenAPI
+# Code Generation
+moon run protocol:generate        # TypeSpec → OpenAPI
+moon run backend:generate-api     # OpenAPI → Go server code
+moon run web:generate-client      # OpenAPI → TS client
+moon run backend:generate-ent     # Regenerate Ent code
+
+# Database Migrations
+moon run backend:migrate-diff -- name=<description>   # Create migration
+moon run backend:migrate-apply                        # Apply migrations
+moon run backend:seed                                 # Insert seed data
+
+# Testing & Quality
+moon run :test                    # Run all tests
+moon run :lint                    # Lint all projects
+moon run backend:test             # Go tests only
+moon run web:test                 # Next.js tests only
+moon run web:typecheck            # TypeScript type check
+
+# Build
+moon run :build                   # Build all projects
+moon run backend:build            # Build Go binary
+moon run web:build                # Build Next.js
+
+# Direct Commands (reference only - prefer moon)
+# Backend: cd apps/backend && air (or go run ./cmd/api)
+# Frontend: cd apps/web && pnpm run dev
+# Database: docker compose up -d
 ```
 
 ## Phase Progress

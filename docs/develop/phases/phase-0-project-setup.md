@@ -4,12 +4,12 @@
 
 | 항목 | 내용 |
 |------|------|
-| **목표** | 모노레포 초기화, Go 백엔드 + Ent ORM + Atlas 마이그레이션, TypeSpec 프로토콜, Next.js 프론트엔드, Supabase 연결, Vercel + Koyeb 배포 파이프라인 구축 |
+| **목표** | 모노레포 초기화, Go 백엔드 + Ent ORM + Atlas 마이그레이션, TypeSpec 프로토콜, Next.js 프론트엔드, 로컬 개발 환경 구축 |
 | **선행 조건** | 없음 (최초 Phase) |
 | **스프린트** | Sprint 0 (Day 1-4) |
 | **관련 기능** | F23 (프롬프트 DB), F24 (무기 카테고리), F25 (문항 패턴) |
 | **예상 공수** | 4일 |
-| **산출물** | 모노레포 (apps/backend + apps/web + packages/protocol), Go API 서버 기본 구조, Ent 스키마 15개, Atlas 마이그레이션, TypeSpec → OpenAPI → Go/TS 코드 생성 파이프라인, Next.js 프론트엔드, Supabase PostgreSQL + Auth, 시드 데이터, Vercel + Koyeb 배포 |
+| **산출물** | 모노레포 (apps/backend + apps/web + packages/protocol), Go API 서버 기본 구조, Ent 스키마 15개, Atlas 마이그레이션, TypeSpec → OpenAPI → Go/TS 코드 생성 파이프라인, Next.js 프론트엔드, 로컬 PostgreSQL (Docker), 시드 데이터 |
 
 ---
 
@@ -17,18 +17,18 @@
 
 | Step | 이름 | 상태 |
 |------|------|------|
-| 0.1 | 모노레포 초기화 | ⬜ |
-| 0.2 | Go 백엔드 프로젝트 | ⬜ |
-| 0.3 | Ent 초기화 + 전체 스키마 | ⬜ |
-| 0.4 | Atlas 설정 + 첫 마이그레이션 | ⬜ |
-| 0.5 | 로컬 PostgreSQL | ⬜ |
-| 0.6 | TypeSpec 프로토콜 | ⬜ |
-| 0.7 | oapi-codegen (Go) + @hey-api (TS) | ⬜ |
-| 0.8 | Next.js 프로젝트 | ⬜ |
-| 0.9 | Supabase 프로젝트 | ⬜ |
-| 0.10 | 시드 데이터 삽입 | ⬜ |
-| 0.11 | 환경변수 및 보안 설정 | ⬜ |
-| 0.12 | Vercel + Koyeb 프로젝트 연결 | ⬜ |
+| 0.1 | 모노레포 초기화 (pnpm + moon) | ✅ |
+| 0.2 | Go 백엔드 프로젝트 | ✅ |
+| 0.3 | Ent 초기화 + 전체 스키마 (15개) | ✅ |
+| 0.4 | Atlas 설정 + 첫 마이그레이션 | ✅ |
+| 0.5 | 로컬 PostgreSQL (Docker) | ✅ |
+| 0.6 | TypeSpec 프로토콜 | ✅ |
+| 0.7 | oapi-codegen (Go) + @hey-api (TS) | ✅ |
+| 0.8 | Next.js 프로젝트 + ESLint 9 설정 | ✅ |
+| 0.9 | 시드 데이터 삽입 | ✅ |
+| 0.10 | 환경변수 확인 | ✅ |
+
+> **Note**: Supabase 프로젝트 생성 및 Vercel/Koyeb 배포는 **Phase 6.2 (Landing & Beta)**로 이동. 로컬 개발 환경에서 모든 기능을 완성한 후 배포 설정을 진행합니다.
 
 ---
 
@@ -269,7 +269,7 @@ Go 모듈을 초기화하고, Gin + Ent + oapi-codegen 등 핵심 패키지를 �
 
 ### 검증 방법
 - `cd apps/backend && go run ./cmd/api` → 서버 시작
-- `curl http://localhost:8080/health` → `{"status":"ok"}`
+- `curl http://localhost:9000/health` → `{"status":"ok"}`
 - `go build ./...` → 빌드 성공
 - `go vet ./...` → 경고 없음
 
@@ -593,7 +593,7 @@ Docker Compose로 로컬 PostgreSQL 16을 실행하고, Atlas 마이그레이션
     postgres:
       image: pgvector/pgvector:pg16
       ports:
-        - "5432:5432"
+        - "5532:5432"
       environment:
         POSTGRES_DB: colight
         POSTGRES_USER: postgres
@@ -609,7 +609,7 @@ Docker Compose로 로컬 PostgreSQL 16을 실행하고, Atlas 마이그레이션
   - [ ] `docker compose ps` → postgres 실행 확인
 - [ ] 마이그레이션 적용
   - [ ] `cd apps/backend`
-  - [ ] `DATABASE_URL="postgres://postgres:password@localhost:5432/colight?sslmode=disable" moon run backend:migrate-apply`
+  - [ ] `DATABASE_URL="postgres://postgres:password@localhost:5532/colight?sslmode=disable" moon run backend:migrate-apply`
   - [ ] 15개 테이블 생성 확인
 - [ ] DB 연결 테스트
   - [ ] `psql -h localhost -U postgres -d colight -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"`
@@ -664,7 +664,7 @@ TypeSpec으로 API 정의를 작성하고, OpenAPI 스펙을 생성한다.
     title: "Colight API",
     version: "1.0.0",
   })
-  @server("http://localhost:8080", "Local development")
+  @server("http://localhost:9000", "Local development")
   @server("https://colight-api.koyeb.app", "Production")
   namespace Colight;
 
@@ -787,7 +787,7 @@ Next.js 15 프론트엔드 프로젝트를 생성하고, Go 백엔드 API를 호
   import axios from "axios";
 
   export const apiClient = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
+    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000",
     headers: {
       "Content-Type": "application/json",
     },
@@ -816,7 +816,7 @@ Next.js 15 프론트엔드 프로젝트를 생성하고, Go 백엔드 API를 호
   - [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase Anon Key
 
 ### 검증 방법
-- `pnpm run dev` → `http://localhost:3000` 정상 접속
+- `pnpm run dev` → `http://localhost:4000` 정상 접속
 - `pnpm run build` → 빌드 에러 없음
 - API 클라이언트: `apiClient.get('/health')` → Go 서버 응답 확인
 
@@ -828,59 +828,7 @@ Next.js 15 프론트엔드 프로젝트를 생성하고, Go 백엔드 API를 호
 
 ---
 
-## Step 0.9: Supabase 프로젝트
-
-### 목표
-Supabase 프로젝트를 생성하고, Auth를 설정한다. DB 스키마는 Go 백엔드 (Ent + Atlas)에서 관리하므로, Supabase는 Auth + PostgreSQL 연결용으로만 사용한다.
-
-### 체크리스트
-
-- [ ] Supabase 프로젝트 생성
-  - [ ] [supabase.com](https://supabase.com) 로그인
-  - [ ] New Project 생성 (이름: `colight`, 리전: Northeast Asia - ap-northeast-1)
-  - [ ] DB 비밀번호 안전하게 보관
-  - [ ] Project URL 및 anon key 확인
-- [ ] 인증 설정: 이메일
-  - [ ] Authentication → Settings → Email Auth 활성화 확인
-  - [ ] "Confirm email" 옵션 활성화
-- [ ] 인증 설정: Google OAuth (선택)
-  - [ ] Google Cloud Console → OAuth 2.0 클라이언트 ID 생성
-  - [ ] Supabase Dashboard → Authentication → Providers → Google 활성화
-  - [ ] Client ID / Client Secret 입력
-- [ ] Redirect URL 설정
-  - [ ] Authentication → URL Configuration
-  - [ ] Site URL: `http://localhost:3000`
-  - [ ] Redirect URLs 추가:
-    - `http://localhost:3000/auth/callback`
-    - `https://colight.vercel.app/auth/callback`
-    - `https://*.vercel.app/auth/callback`
-- [ ] DB 연결 문자열 확인
-  - [ ] Settings → Database → Connection string (URI)
-  - [ ] `atlas.hcl`의 prod env에 사용할 `DATABASE_URL` 확인
-- [ ] pgvector 확장 확인
-  - [ ] SQL Editor에서 `CREATE EXTENSION IF NOT EXISTS vector;` 실행
-  - [ ] `CREATE EXTENSION IF NOT EXISTS pg_trgm;` 실행
-- [ ] Atlas 마이그레이션을 Supabase에 적용
-  - [ ] `DATABASE_URL="<supabase-connection-string>" moon run backend:migrate-apply`
-  - [ ] Supabase Dashboard → Table Editor에서 15개 테이블 확인
-- [ ] **주의**: Supabase RLS는 Go 백엔드에서 직접 SQL 쿼리 시 적용되지 않음
-  - [ ] Go 백엔드는 service_role key 또는 direct connection 사용
-  - [ ] 사용자 권한 체크는 Go 미들웨어에서 JWT 검증으로 처리
-
-### 검증 방법
-- Supabase Dashboard 접속 정상
-- API Settings에서 URL, anon key, service_role key 확인
-- Table Editor에서 15개 테이블 확인
-- pgvector 확장 활성화 확인
-
-### 산출물
-- Supabase 프로젝트 (Auth + PostgreSQL)
-- DB 연결 문자열 (atlas.hcl prod env용)
-- 프로덕션 DB에 15개 테이블 생성 완료
-
----
-
-## Step 0.10: 시드 데이터 삽입
+## Step 0.9: 시드 데이터 삽입
 
 ### 목표
 무기 카테고리 7대분류 + 28소분류, 프롬프트 템플릿 4종, 문항 패턴 7종의 초기 데이터를 삽입한다.
@@ -965,7 +913,7 @@ Supabase 프로젝트를 생성하고, Auth를 설정한다. DB 스키마는 Go 
 
 ---
 
-## Step 0.11: 환경변수 및 보안 설정
+## Step 0.10: 환경변수 및 보안 설정
 
 ### 목표
 로컬/프로덕션 환경변수를 설정하고, 민감 정보가 Git에 포함되지 않도록 보안을 확보한다.
@@ -975,8 +923,8 @@ Supabase 프로젝트를 생성하고, Auth를 설정한다. DB 스키마는 Go 
 - [ ] 루트 `.env` 파일 생성 (`.gitignore`에 포함)
   ```env
   # ── Backend (Go) ──
-  API_PORT=8080
-  DATABASE_URL=postgres://postgres:password@localhost:5432/colight?sslmode=disable
+  API_PORT=9000
+  DATABASE_URL=postgres://postgres:password@localhost:5532/colight?sslmode=disable
   SUPABASE_JWT_SECRET=<supabase-jwt-secret>
   ANTHROPIC_API_KEY=<anthropic-key>
   OPENAI_API_KEY=<openai-key>
@@ -985,15 +933,15 @@ Supabase 프로젝트를 생성하고, Auth를 설정한다. DB 스키마는 Go 
   NAVER_CLIENT_SECRET=<naver-secret>
 
   # ── Frontend (Next.js) ──
-  NEXT_PUBLIC_API_URL=http://localhost:8080
+  NEXT_PUBLIC_API_URL=http://localhost:9000
   NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
   ```
 - [ ] `.env.example` 파일 생성 (Git 커밋)
   ```env
   # ── Backend (Go) ──
-  API_PORT=8080
-  DATABASE_URL=postgres://postgres:password@localhost:5432/colight?sslmode=disable
+  API_PORT=9000
+  DATABASE_URL=postgres://postgres:password@localhost:5532/colight?sslmode=disable
   SUPABASE_JWT_SECRET=your-supabase-jwt-secret
   ANTHROPIC_API_KEY=your-anthropic-api-key
   OPENAI_API_KEY=your-openai-api-key
@@ -1002,7 +950,7 @@ Supabase 프로젝트를 생성하고, Auth를 설정한다. DB 스키마는 Go 
   NAVER_CLIENT_SECRET=your-naver-client-secret
 
   # ── Frontend (Next.js) ──
-  NEXT_PUBLIC_API_URL=http://localhost:8080
+  NEXT_PUBLIC_API_URL=http://localhost:9000
   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
   ```
@@ -1025,89 +973,41 @@ Supabase 프로젝트를 생성하고, Auth를 설정한다. DB 스키마는 Go 
 
 ---
 
-## Step 0.12: Vercel + Koyeb 프로젝트 연결
+---
 
-### 목표
-Vercel에 Next.js 프론트엔드를, Koyeb에 Go 백엔드를 배포한다.
-
-### 체크리스트
-
-- [ ] Vercel 프로젝트 연결
-  - [ ] `vercel login`
-  - [ ] 프로젝트 루트에서 `vercel link`
-  - [ ] Root Directory: `apps/web` 설정
-  - [ ] Framework: Next.js 자동 감지 확인
-  - [ ] GitHub 저장소 연결 → `main` 브랜치 자동 배포
-  - [ ] 환경변수 설정:
-    - `NEXT_PUBLIC_API_URL` → Koyeb 배포 URL
-    - `NEXT_PUBLIC_SUPABASE_URL` → Supabase URL
-    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` → Supabase Anon Key
-- [ ] 초기 Vercel 배포 테스트
-  - [ ] `git push origin main` → 자동 배포 트리거
-  - [ ] 배포 URL 접속 → 정상 동작
-- [ ] Koyeb 프로젝트 설정
-  - [ ] [koyeb.com](https://koyeb.com) 계정 생성/로그인
-  - [ ] New Service → Docker 선택
-  - [ ] GitHub 저장소 연결
-  - [ ] Dockerfile path: `apps/backend/Dockerfile`
-  - [ ] Build context: `apps/backend`
-  - [ ] Port: `8080`
-  - [ ] 환경변수 설정:
-    - `DATABASE_URL` → Supabase 연결 문자열
-    - `SUPABASE_JWT_SECRET` → Supabase JWT Secret
-    - `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`
-    - `DART_API_KEY`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`
-  - [ ] Health check: `/health`
-  - [ ] Instance: Free (0.1 vCPU, 512MB RAM)
-- [ ] 초기 Koyeb 배포 테스트
-  - [ ] 배포 완료 후 `https://<app>.koyeb.app/health` 접속 → `{"status":"ok"}`
-- [ ] CORS 설정 확인
-  - [ ] Go 미들웨어에서 Vercel 도메인 허용
-  - [ ] `https://colight.vercel.app`, `https://*.vercel.app`
-
-### 검증 방법
-- Vercel 배포 URL 접속 → Next.js 페이지 정상
-- Koyeb 배포 URL `/health` → `{"status":"ok"}`
-- 프론트엔드에서 백엔드 API 호출 성공 (CORS 통과)
-
-### 산출물
-- Vercel 프로젝트 (Next.js 자동 배포)
-- Koyeb 프로젝트 (Go API 서버 Docker 배포)
-- CORS 설정 완료
+> **⚠️ Supabase 프로젝트 생성 및 Vercel/Koyeb 배포는 Phase 6.2 (Landing & Beta)로 이동**
+> 로컬 개발 환경에서 모든 기능을 완성한 후 배포 설정을 진행합니다.
 
 ---
 
 ## Phase 완료 체크리스트
 
 ### 인프라
-- [ ] 모노레포 구조 (apps/backend, apps/web, packages/protocol)
-- [ ] Go 백엔드 기본 서버 동작 (`/health`)
-- [ ] Ent ORM 15개 스키마 정의 + 코드 생성
-- [ ] Atlas 마이그레이션 생성 + 적용
-- [ ] 로컬 PostgreSQL (Docker Compose) 동작
-- [ ] TypeSpec → OpenAPI → Go/TS 코드 생성 파이프라인
-- [ ] Next.js 프론트엔드 동작
-- [ ] Supabase 프로젝트 (Auth + DB)
+- [x] 모노레포 구조 (apps/backend, apps/web, packages/protocol)
+- [x] moon 태스크 러너 설정 (pnpm + Go 통합)
+- [x] Go 백엔드 기본 서버 동작 (`/health` 포트 9000)
+- [x] Ent ORM 15개 스키마 정의 + 코드 생성
+- [x] Atlas 마이그레이션 생성 + 적용
+- [x] 로컬 PostgreSQL (Docker Compose, 포트 5532) 동작
+- [x] TypeSpec → OpenAPI → Go/TS 코드 생성 파이프라인
+- [x] Next.js 16 프론트엔드 동작 (포트 4000)
+- [x] ESLint 9 flat config 설정
 - [ ] 시드 데이터 삽입 완료
 
-### 배포
-- [ ] Vercel 배포 → Next.js 정상
-- [ ] Koyeb 배포 → Go API 정상
-- [ ] 프론트엔드 → 백엔드 API 호출 (CORS) 정상
-
 ### 데이터
-- [ ] 15개 DB 테이블 생성 (로컬 + Supabase)
-- [ ] pgvector 확장 활성화
+- [x] 15개 DB 테이블 생성 (로컬)
+- [x] pgvector 확장 활성화
 - [ ] weapon_categories 35건 시드
 - [ ] prompt_templates 4건 시드
 - [ ] question_patterns 7건 시드
 
 ### 코드 품질
-- [ ] `go build ./...` → 빌드 성공
-- [ ] `go vet ./...` → 경고 없음
-- [ ] `pnpm run build` (web) → 빌드 성공
-- [ ] `.env`가 Git에 포함되지 않음
-- [ ] 생성된 코드 (oapi-codegen, @hey-api) Git 커밋됨
+- [x] `moon run backend:build` → 빌드 성공
+- [x] `moon run web:build` → 빌드 성공
+- [x] `moon run web:lint` → lint 통과
+- [x] `moon run web:typecheck` → 타입 체크 통과
+- [x] `.env`가 Git에 포함되지 않음
+- [x] 생성된 코드 (oapi-codegen, @hey-api) 커밋 준비됨
 
 ---
 

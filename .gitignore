@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
+.env*.local
+
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+
+# Vercel
+.vercel/
+
+# Supabase
+supabase/.temp/
+
+# Go backend
+apps/backend/tmp/
+apps/backend/bin/
+apps/backend/api
+apps/backend/build-errors.log
+*.test
+*.out
+coverage.txt
+coverage.html
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*-error-*.log
+
+# Moon cache
+.moon/cache/
+.moon/docker/
+
+# Proto toolchain
+.proto/
+
+# TypeSpec (tsp-output is committed for code review)
+# packages/protocol/tsp-output/
+
+# Test coverage
+coverage/
+.nyc_output/

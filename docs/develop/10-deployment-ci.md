@@ -560,7 +560,7 @@ func (c *Config) IsProduction() bool  { return c.Env == EnvProduction }
 |------|-------------|---------|------------|
 | 로그 레벨 | DEBUG | INFO | INFO |
 | 로그 포맷 | Text (읽기 쉬운) | JSON | JSON |
-| CORS | `localhost:3000` | `*.vercel.app` | `colight.kr` |
+| CORS | `localhost:4000` | `*.vercel.app` | `colight.kr` |
 | GIN_MODE | debug | release | release |
 | AI 호출 | Mock 가능 | 실제 API | 실제 API |
 | Rate Limit | 비활성화 | 완화 | 활성화 |
@@ -579,7 +579,7 @@ docker run -d \
 
 # 2. 마이그레이션 적용
 cd apps/backend
-atlas migrate apply --url "postgres://colight:colight@localhost:5432/colight_dev?sslmode=disable" --dir file://migrations
+atlas migrate apply --url "postgres://colight:colight@localhost:5532/colight_dev?sslmode=disable" --dir file://migrations
 
 # 3. 시드 데이터
 go run ./scripts/seed.go

@@ -128,7 +128,7 @@ using TypeSpec.Rest;
   title: "Colight API",
   version: "1.0.0",
 })
-@server("http://localhost:8080", "Development server")
+@server("http://localhost:9000", "Development server")
 namespace Colight;
 ```
 
@@ -613,7 +613,7 @@ import { createClient as createSupabaseClient } from '@/lib/supabase/client';
 const supabase = createSupabaseClient();
 
 export const apiClient = createClient({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000',
   headers: async () => {
     const { data: { session } } = await supabase.auth.getSession();
     return {
