@@ -1,0 +1,664 @@
+# Phase 6.1: 프리미엄 & 마무리
+
+> **⚠️ 아키텍처 변경 사항**: 이 문서의 코드 예시 중 서버 사이드 로직(API Routes, Supabase 직접 쿼리, RLS 정책)은 Go 백엔드로 구현합니다. 프론트엔드 코드(컴포넌트, hooks)는 그대로 참고하세요.
+>
+> - `createClient` from `@/lib/supabase/server` → Go 백엔드 API 호출 (생성된 SDK 사용)
+> - `src/app/api/usage/route.ts` → Go 백엔드 `internal/controller/usage_controller.go`
+> - Supabase RLS 정책 → Go 미들웨어 JWT 검증 + 서비스 레이어 권한 체크
+> - Supabase 직접 쿼리 → Ent ORM 쿼리 (`internal/service/`)
+>
+> **⚠️ 마이그레이션 참고**: `usage_tracking` 테이블은 Ent 스키마로 정의하고 Atlas로 마이그레이션합니다 (Supabase SQL 마이그레이션이 아닌).
+
+## Overview
+
+| 항목 | 내용 |
+|------|------|
+| **목표** | 프리미엄 사용량 제한 시스템을 구축하고, 전체 앱의 에러 처리/빈 상태/반응형/성능을 점검하여 베타 출시 품질을 확보한다 |
+| **선행 조건** | Phase 6 (첨삭 코칭) 완료, 핵심 코칭 파이프라인(문항 분석 → 초안 → 에디터 → 첨삭) 전체 동작 |
+| **스프린트** | Sprint 5 |
+| **관련 기능** | Freemium 모델 (04-business-roadmap.md), 전체 UX 품질 |
+| **예상 공수** | 2일 (Day 3-4) |
+| **산출물** | 사용량 추적, 페이월 UI, 에러 처리 강화, 빈 상태 UI, 반응형, 성능 최적화 |
+
+---
+
+## Progress
+
+| Step | 이름 | 상태 |
+|------|------|------|
+| 6.1.1 | 사용량 추적 | ⬜ 대기 |
+| 6.1.2 | 페이월 UI | ⬜ 대기 |
+| 6.1.3 | 에러 처리 점검 | ⬜ 대기 |
+| 6.1.4 | 빈 상태 점검 | ⬜ 대기 |
+| 6.1.5 | 모바일 반응형 | ⬜ 대기 |
+| 6.1.6 | 성능 최적화 | ⬜ 대기 |
+
+---
+
+## Step 6.1.1: 사용량 추적
+
+### 목표
+
+무료 사용자의 기능 사용량을 추적하고, 제한에 도달하면 기능을 차단하는 시스템을 구현한다. 비즈니스 로드맵의 Freemium 전략에 맞춰 무료 제한을 설정한다.
+
+### 무료 사용량 제한
+
+| 기능 | 무료 제한 | 유료 제한 | 추적 단위 |
+|------|----------|----------|----------|
+| 경험 등록 | 3개 (총) | 무제한 | 총 누적 |
+| 기업 분석 | 1회/일 | 무제한 | 일별 |
+| 문항 분석 | 1회/일 | 무제한 | 일별 |
+| 초안 코칭 | 1회/일 | 무제한 | 일별 |
+| 첨삭 코칭 | 1회/일 (무료 한도 내) | 5회/자소서 | 일별 |
+
+### 체크리스트
+
+- [ ] `user_profiles` 테이블에 `plan` 컬럼 추가 (`free` / `starter` / `pro` / `season`)
+- [ ] `usage_tracking` 테이블 생성 (또는 `user_profiles`에 JSONB 컬럼)
+- [ ] 사용량 추적 미들웨어 구현 (`src/lib/usage/tracker.ts`)
+- [ ] 각 API 엔드포인트에 사용량 체크 로직 추가
+- [ ] 사용량 초과 시 403 + 업그레이드 유도 메시지 반환
+- [ ] 일별 사용량 자정 리셋 로직 (Supabase Edge Function 또는 앱 내 체크)
+- [ ] 사용량 현황 조회 API
+
+### DB 스키마 변경
+
+```sql
+-- user_profiles에 plan 컬럼 추가
+ALTER TABLE public.user_profiles
+  ADD COLUMN plan text DEFAULT 'free'
+    CHECK (plan IN ('free', 'starter', 'pro', 'season'));
+
+-- 사용량 추적 테이블
+CREATE TABLE public.usage_tracking (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  feature text NOT NULL,      -- 'experience', 'analysis', 'question_analysis', 'draft', 'review'
+  used_at timestamptz DEFAULT now(),
+  metadata jsonb DEFAULT '{}'
+);
+
+CREATE INDEX idx_usage_user_feature_date
+  ON public.usage_tracking(user_id, feature, used_at);
+
+-- RLS
+ALTER TABLE public.usage_tracking ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own usage"
+  ON public.usage_tracking FOR SELECT
+  USING (auth.uid() = user_id);
+```
+
+### 사용량 추적 유틸리티
+
+```typescript
+// src/lib/usage/tracker.ts
+import { createClient } from '@/lib/supabase/server';
+
+const FREE_LIMITS = {
+  experience: { type: 'total', limit: 3 },
+  analysis: { type: 'daily', limit: 1 },
+  question_analysis: { type: 'daily', limit: 1 },
+  draft: { type: 'daily', limit: 1 },
+  review: { type: 'daily', limit: 1 },
+} as const;
+
+type Feature = keyof typeof FREE_LIMITS;
+
+export async function checkUsageLimit(
+  userId: string,
+  feature: Feature
+): Promise<{ allowed: boolean; used: number; limit: number; remaining: number }> {
+  const supabase = await createClient();
+
+  // 사용자 플랜 확인
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('plan')
+    .eq('id', userId)
+    .single();
+
+  // 유료 사용자는 무제한
+  if (profile?.plan !== 'free') {
+    return { allowed: true, used: 0, limit: Infinity, remaining: Infinity };
+  }
+
+  const config = FREE_LIMITS[feature];
+  let query = supabase
+    .from('usage_tracking')
+    .select('id', { count: 'exact' })
+    .eq('user_id', userId)
+    .eq('feature', feature);
+
+  // 일별 제한의 경우 오늘 날짜만 필터
+  if (config.type === 'daily') {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    query = query.gte('used_at', today.toISOString());
+  }
+
+  const { count } = await query;
+  const used = count || 0;
+  const remaining = Math.max(0, config.limit - used);
+
+  return {
+    allowed: used < config.limit,
+    used,
+    limit: config.limit,
+    remaining,
+  };
+}
+
+export async function trackUsage(userId: string, feature: Feature, metadata?: object) {
+  const supabase = await createClient();
+  await supabase.from('usage_tracking').insert({
+    user_id: userId,
+    feature,
+    metadata: metadata || {},
+  });
+}
+```
+
+### API 엔드포인트에 적용 예시
+
+```typescript
+// 각 API route에서 사용량 체크
+const usage = await checkUsageLimit(user.id, 'draft');
+if (!usage.allowed) {
+  return Response.json({
+    error: 'USAGE_LIMIT_EXCEEDED',
+    message: '오늘의 무료 사용 횟수를 초과했습니다',
+    used: usage.used,
+    limit: usage.limit,
+    upgrade_url: '/pricing',
+  }, { status: 403 });
+}
+
+// 정상 처리 후 사용량 기록
+await trackUsage(user.id, 'draft', { cover_letter_id: '...' });
+```
+
+### API 엔드포인트
+
+| Method | Path | Request | Response |
+|--------|------|---------|----------|
+| `GET` | `/api/usage` | - | `{ plan, features: { [key]: { used, limit, remaining } } }` |
+
+### 검증 방법
+
+- [ ] 무료 사용자: 경험 4번째 등록 시 403 + 업그레이드 유도
+- [ ] 무료 사용자: 하루 2번째 분석 요청 시 403
+- [ ] 유료 사용자: 제한 없이 사용 가능
+- [ ] 사용량 조회 API 정상 동작
+- [ ] 일별 제한이 자정 이후 리셋 확인
+- [ ] RLS: 본인 사용량만 조회 가능
+
+### 산출물
+
+- `supabase/migrations/YYYYMMDD_add_usage_tracking.sql`
+- `src/lib/usage/tracker.ts`
+- `src/lib/usage/limits.ts` (제한 설정 상수)
+- `src/app/api/usage/route.ts`
+- 기존 API routes에 사용량 체크 로직 추가
+
+---
+
+## Step 6.1.2: 페이월 UI
+
+### 목표
+
+사용량 제한에 도달한 사용자에게 업그레이드를 유도하는 페이월 모달과 블러 처리된 프리미엄 미리보기를 구현한다.
+
+### 체크리스트
+
+- [ ] 페이월 모달 컴포넌트 구현 (`PaywallModal`)
+- [ ] 블러 처리된 프리미엄 미리보기 (분석 결과 일부 흐릿하게)
+- [ ] 업그레이드 CTA 버튼 (가격표 페이지 또는 결제 모달로 이동)
+- [ ] 사용량 현황 표시 ("오늘 1/1 사용 완료")
+- [ ] 토스트 기반 알림 (사용량 80% 도달 시 경고)
+- [ ] 가격표 페이지 구현 (`/pricing`)
+- [ ] 결제 기능은 Phase 9에서 구현, 현재는 CTA만
+
+### 프론트엔드 컴포넌트
+
+| 컴포넌트 | 위치 | Props | 설명 |
+|----------|------|-------|------|
+| `PaywallModal` | `src/components/paywall/paywall-modal.tsx` | `feature: string, usage: Usage, onClose: fn` | 페이월 모달 |
+| `BlurredPreview` | `src/components/paywall/blurred-preview.tsx` | `children: ReactNode` | 프리미엄 콘텐츠 블러 처리 래퍼 |
+| `UsageBadge` | `src/components/paywall/usage-badge.tsx` | `used: number, limit: number, feature: string` | 사용량 배지 (헤더 또는 사이드바) |
+| `PricingPage` | `src/app/(main)/pricing/page.tsx` | - | 가격표 페이지 |
+| `PricingCard` | `src/components/paywall/pricing-card.tsx` | `plan: Plan` | 가격 카드 (무료/스타터/프로/시즌패스) |
+
+### 페이월 모달 레이아웃
+
+```
+┌──────────────────────────────────────────────┐
+│                    ×                          │
+│                                              │
+│  🔒 오늘의 무료 분석을 모두 사용했어요           │
+│                                              │
+│  오늘 사용: 1/1회                             │
+│  (매일 자정에 초기화됩니다)                     │
+│                                              │
+│  ┌────────────────────────────────────────┐  │
+│  │  스타터 10회권 - 4,900원                │  │
+│  │  • 기업 분석 10회                       │  │
+│  │  • AI 코칭 10회                        │  │
+│  │  [ 시작하기 ]                           │  │
+│  └────────────────────────────────────────┘  │
+│                                              │
+│  ┌────────────────────────────────────────┐  │
+│  │  프로 30회권 - 12,900원  ⭐ 인기         │  │
+│  │  • 기업 분석 30회                       │  │
+│  │  • AI 코칭 30회                        │  │
+│  │  • 경험 무제한                          │  │
+│  │  [ 시작하기 ]                           │  │
+│  └────────────────────────────────────────┘  │
+│                                              │
+│  나중에 할게요                                 │
+└──────────────────────────────────────────────┘
+```
+
+### 블러 처리 미리보기
+
+```typescript
+// src/components/paywall/blurred-preview.tsx
+'use client';
+
+export function BlurredPreview({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      <div className="blur-sm pointer-events-none select-none">
+        {children}
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+        <div className="text-center p-4">
+          <p className="text-lg font-semibold">프리미엄 기능입니다</p>
+          <p className="text-sm text-gray-500 mt-1">업그레이드하면 전체 결과를 확인할 수 있어요</p>
+          <Button className="mt-3" asChild>
+            <Link href="/pricing">업그레이드</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### 검증 방법
+
+- [ ] 사용량 초과 시 페이월 모달 자동 표시
+- [ ] 모달에 현재 사용량 / 제한 표시
+- [ ] 블러 처리된 프리미엄 미리보기 정상 렌더링
+- [ ] CTA 버튼 → 가격표 페이지 이동
+- [ ] "나중에 할게요" 클릭 시 모달 닫힘
+- [ ] 사용량 배지가 사이드바/헤더에 표시
+- [ ] 가격표 페이지에 4개 플랜 정상 표시
+
+### 산출물
+
+- `src/components/paywall/paywall-modal.tsx`
+- `src/components/paywall/blurred-preview.tsx`
+- `src/components/paywall/usage-badge.tsx`
+- `src/components/paywall/pricing-card.tsx`
+- `src/app/(main)/pricing/page.tsx`
+
+---
+
+## Step 6.1.3: 에러 처리 점검
+
+### 목표
+
+모든 API 라우트와 페이지에 일관된 에러 처리가 적용되어 있는지 점검하고, 누락된 부분을 보완한다. 사용자에게 친화적인 에러 메시지를 표시한다.
+
+### 체크리스트
+
+- [ ] 모든 API 라우트에 try-catch + 일관된 에러 응답 형식 적용
+- [ ] 모든 `(main)/*/` 라우트에 `error.tsx` 존재 확인
+- [ ] 모든 `(main)/*/` 라우트에 `loading.tsx` 존재 확인
+- [ ] 토스트 기반 에러 알림 (sonner)
+- [ ] AI API 실패 시 재시도 안내 (retry 버튼)
+- [ ] 네트워크 에러 감지 + 오프라인 배너
+- [ ] Supabase 연결 실패 시 메시지
+- [ ] 404 페이지 커스터마이징 (`src/app/not-found.tsx`)
+- [ ] 500 에러 페이지 커스터마이징 (`src/app/global-error.tsx`)
+
+### 에러 응답 형식 (API)
+
+```typescript
+// src/lib/errors.ts
+export class AppError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public status: number = 500,
+    public details?: unknown
+  ) {
+    super(message);
+  }
+}
+
+// 일관된 에러 응답
+export function errorResponse(error: unknown) {
+  if (error instanceof AppError) {
+    return Response.json(
+      { error: error.code, message: error.message, details: error.details },
+      { status: error.status }
+    );
+  }
+
+  console.error('Unexpected error:', error);
+  return Response.json(
+    { error: 'INTERNAL_ERROR', message: '서버에 문제가 발생했습니다' },
+    { status: 500 }
+  );
+}
+```
+
+### 에러 페이지 목록
+
+| 경로 | 파일 | 설명 |
+|------|------|------|
+| `src/app/not-found.tsx` | 글로벌 404 | "페이지를 찾을 수 없습니다" |
+| `src/app/global-error.tsx` | 글로벌 500 | "서버에 문제가 발생했습니다" |
+| `src/app/(main)/dashboard/error.tsx` | 대시보드 에러 | 대시보드 로드 실패 |
+| `src/app/(main)/experiences/error.tsx` | 경험 에러 | 경험 관련 에러 |
+| `src/app/(main)/analysis/error.tsx` | 분석 에러 | 기업 분석 에러 |
+| `src/app/(main)/coaching/error.tsx` | 코칭 에러 | 코칭 관련 에러 |
+| `src/app/(main)/coaching/[id]/edit/error.tsx` | 에디터 에러 | 에디터 로드 실패 |
+
+### 검증 방법
+
+- [ ] 모든 API 라우트: 의도적 에러 발생 시 일관된 JSON 에러 응답
+- [ ] 존재하지 않는 URL 접근 시 커스텀 404 표시
+- [ ] 서버 에러 발생 시 커스텀 500 표시
+- [ ] AI API 타임아웃 시 재시도 버튼 표시
+- [ ] 네트워크 끊김 시 오프라인 배너 표시
+- [ ] 에러 발생 시 토스트 알림 표시
+
+### 산출물
+
+- `src/lib/errors.ts`
+- `src/app/not-found.tsx`
+- `src/app/global-error.tsx`
+- 각 라우트별 `error.tsx`, `loading.tsx` 누락분 보완
+
+---
+
+## Step 6.1.4: 빈 상태 점검
+
+### 목표
+
+데이터가 없는 모든 목록 페이지에 적절한 빈 상태 UI를 제공하여, 사용자가 다음 행동을 할 수 있도록 안내한다.
+
+### 체크리스트
+
+- [ ] 경험 목록 (`/experiences`): "아직 등록한 경험이 없어요" + 경험 등록 CTA
+- [ ] 기업 분석 목록 (`/analysis`): "아직 분석한 기업이 없어요" + URL 입력 CTA
+- [ ] 코칭 메인 (`/coaching`): "아직 코칭 이력이 없어요" + 코칭 시작 CTA
+- [ ] 대시보드 (`/dashboard`): 첫 사용자 온보딩 가이드
+- [ ] 경험 추천 (코칭 내): "매칭되는 경험이 없습니다" + 경험 등록 유도
+- [ ] 첨삭 이력: "아직 첨삭 이력이 없어요"
+
+### 빈 상태 UI 패턴
+
+```typescript
+// src/components/ui/empty-state.tsx
+interface EmptyStateProps {
+  icon: React.ReactNode;      // 일러스트 또는 아이콘
+  title: string;              // "아직 등록한 경험이 없어요"
+  description: string;        // "경험을 등록하면 AI가 자동으로 역량을 분류해드려요"
+  action?: {
+    label: string;            // "경험 등록하기"
+    href: string;             // "/experiences/new"
+  };
+}
+
+export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="text-gray-300 mb-4">{icon}</div>
+      <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+      <p className="text-sm text-gray-500 mt-1 max-w-sm">{description}</p>
+      {action && (
+        <Button asChild className="mt-4">
+          <Link href={action.href}>{action.label}</Link>
+        </Button>
+      )}
+    </div>
+  );
+}
+```
+
+### 검증 방법
+
+- [ ] 각 목록 페이지에서 데이터 0건일 때 빈 상태 UI 표시
+- [ ] CTA 버튼 클릭 시 올바른 페이지로 이동
+- [ ] 빈 상태 UI가 목록 UI와 같은 컨테이너 내에 표시 (레이아웃 일관성)
+- [ ] 모바일에서도 빈 상태 UI 정상 표시
+
+### 산출물
+
+- `src/components/ui/empty-state.tsx`
+- 각 페이지에 빈 상태 적용
+
+---
+
+## Step 6.1.5: 모바일 반응형
+
+### 목표
+
+모든 페이지를 375px (iPhone SE), 768px (iPad) 기준으로 반응형 테스트하고, 주요 레이아웃 이슈를 수정한다.
+
+### 체크리스트
+
+- [ ] 사이드바 → 햄버거 메뉴 (768px 이하)
+- [ ] 테이블 → 카드 레이아웃 (768px 이하)
+- [ ] 에디터 + 사이드 패널 → 단일 컬럼 + 토글/바텀시트 (768px 이하)
+- [ ] 레이더 차트 크기 조정 (모바일에서 가독성)
+- [ ] 폼 입력 영역 모바일 최적화 (터치 타겟 48px)
+- [ ] 모달 크기 모바일 대응 (전체 화면 또는 바텀시트)
+- [ ] 글자 크기 가독성 확인 (최소 14px)
+- [ ] 가로 스크롤 발생하지 않도록 확인
+
+### 반응형 브레이크포인트
+
+| 브레이크포인트 | Tailwind | 디바이스 | 레이아웃 변경 |
+|--------------|----------|---------|-------------|
+| < 640px | `sm:` 미만 | 모바일 (375px) | 단일 컬럼, 햄버거, 카드 |
+| 640~767px | `sm:` ~ `md:` | 태블릿 세로 | 일부 2컬럼 |
+| 768~1023px | `md:` ~ `lg:` | 태블릿 가로 | 사이드바 + 메인 |
+| ≥ 1024px | `lg:` | 데스크탑 | 전체 레이아웃 |
+
+### 주요 수정 대상
+
+```
+1. Main Layout (사이드바)
+   Desktop: 사이드바(240px) + 콘텐츠
+   Mobile: 햄버거 → Drawer 사이드바
+
+2. 분석 결과 페이지
+   Desktop: 결과 카드 2~3컬럼 그리드
+   Mobile: 단일 컬럼 스택
+
+3. 에디터 페이지
+   Desktop: 에디터(70%) + 사이드패널(30%)
+   Mobile: 에디터 전체폭 + 사이드패널은 바텀시트(Sheet)
+
+4. 첨삭 결과 (레이더 차트)
+   Desktop: 차트(50%) + 점수(50%) 나란히
+   Mobile: 차트 → 점수 수직 스택
+
+5. 경험 목록
+   Desktop: 카드 그리드 (3컬럼)
+   Tablet: 카드 그리드 (2컬럼)
+   Mobile: 카드 리스트 (1컬럼)
+```
+
+### 사이드바 → 햄버거 전환
+
+```typescript
+// src/components/layout/sidebar.tsx
+'use client';
+
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Menu } from 'lucide-react';
+
+export function Sidebar() {
+  return (
+    <>
+      {/* 데스크탑 사이드바 */}
+      <aside className="hidden md:flex w-60 flex-col border-r">
+        <SidebarContent />
+      </aside>
+
+      {/* 모바일 햄버거 */}
+      <div className="md:hidden">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-60 p-0">
+            <SidebarContent />
+          </SheetContent>
+        </Sheet>
+      </div>
+    </>
+  );
+}
+```
+
+### 검증 방법
+
+- [ ] Chrome DevTools: 375px (iPhone SE) 에서 전체 페이지 확인
+- [ ] Chrome DevTools: 768px (iPad) 에서 전체 페이지 확인
+- [ ] 가로 스크롤 없음 확인
+- [ ] 터치 타겟 최소 44×44px
+- [ ] 모달/시트가 화면을 벗어나지 않음
+- [ ] 사이드바 햄버거 토글 정상 동작
+- [ ] 에디터 페이지 모바일에서 사용 가능
+
+### 산출물
+
+- `src/components/layout/sidebar.tsx` 수정 (반응형)
+- 각 페이지 반응형 스타일 수정
+- 테이블 → 카드 전환 컴포넌트
+
+---
+
+## Step 6.1.6: 성능 최적화
+
+### 목표
+
+Lighthouse Performance 점수 70점 이상을 달성하고, 주요 번들 크기를 최적화한다.
+
+### 체크리스트
+
+- [ ] Lighthouse 측정 (현재 점수 기록)
+- [ ] Tiptap 에디터 lazy load (`next/dynamic`, ssr: false)
+- [ ] Recharts 레이더 차트 lazy load (`next/dynamic`, ssr: false)
+- [ ] 이미지 최적화 (`next/image` 사용, WebP 포맷)
+- [ ] 번들 분석 (`@next/bundle-analyzer`)
+- [ ] 불필요한 클라이언트 컴포넌트 서버 컴포넌트로 전환
+- [ ] React Query 캐싱 설정 최적화 (staleTime, gcTime)
+- [ ] Suspense 경계 적용 (병렬 데이터 로딩)
+- [ ] 폰트 최적화 (`next/font`)
+
+### Lazy Load 대상
+
+```typescript
+// 무거운 컴포넌트 lazy load
+import dynamic from 'next/dynamic';
+
+// Tiptap 에디터 (~150KB)
+const TiptapEditor = dynamic(
+  () => import('@/components/coaching/tiptap-editor').then(m => m.TiptapEditor),
+  { ssr: false, loading: () => <EditorSkeleton /> }
+);
+
+// Recharts 레이더 차트 (~120KB)
+const ScoreRadarChart = dynamic(
+  () => import('@/components/coaching/score-radar-chart').then(m => m.ScoreRadarChart),
+  { ssr: false, loading: () => <ChartSkeleton /> }
+);
+```
+
+### 번들 분석
+
+```bash
+# package.json에 추가
+npm install --save-dev @next/bundle-analyzer
+
+# next.config.ts에 추가
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+# 분석 실행
+ANALYZE=true npm run build
+```
+
+### 성능 목표
+
+| 지표 | 목표 | 측정 방법 |
+|------|------|----------|
+| Lighthouse Performance | ≥ 70 | Chrome DevTools Lighthouse |
+| First Contentful Paint | ≤ 2.0s | Lighthouse |
+| Largest Contentful Paint | ≤ 3.0s | Lighthouse |
+| Time to Interactive | ≤ 4.0s | Lighthouse |
+| 메인 번들 크기 | ≤ 200KB (gzip) | Bundle Analyzer |
+
+### React Query 캐싱 설정
+
+```typescript
+// src/lib/query-client.ts
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,     // 5분간 fresh
+      gcTime: 30 * 60 * 1000,        // 30분 후 GC
+      refetchOnWindowFocus: false,    // 포커스 시 재요청 X
+      retry: 1,                      // 1회 재시도
+    },
+  },
+});
+```
+
+### 검증 방법
+
+- [ ] Lighthouse Performance ≥ 70 달성
+- [ ] Tiptap/Recharts lazy load 후 초기 번들에 미포함 확인
+- [ ] 이미지에 `next/image` 사용 + WebP 서빙 확인
+- [ ] 번들 분석 결과: 메인 번들 200KB 이하 (gzip)
+- [ ] 폰트 프리로드 적용 확인
+
+### 산출물
+
+- 각 페이지 lazy load 적용
+- `next.config.ts` 번들 분석 설정
+- React Query 캐싱 최적화
+- Lighthouse 리포트 스크린샷
+
+---
+
+## Phase 완료 체크리스트
+
+- [ ] 무료 사용자: 경험 3개 / 분석 1회/일 / 코칭 1회/일 제한 동작
+- [ ] 사용량 초과 시 페이월 모달 표시 + 업그레이드 CTA
+- [ ] 블러 처리된 프리미엄 미리보기 동작
+- [ ] 모든 API 라우트에 일관된 에러 처리 적용
+- [ ] 모든 페이지에 `loading.tsx` + `error.tsx` 존재
+- [ ] 모든 목록 페이지에 빈 상태 UI 적용
+- [ ] 404/500 커스텀 에러 페이지 동작
+- [ ] 모바일 375px: 사이드바→햄버거, 테이블→카드, 레이아웃 정상
+- [ ] 태블릿 768px: 레이아웃 정상
+- [ ] Lighthouse Performance ≥ 70
+- [ ] Tiptap/Recharts lazy load 적용
+- [ ] 토스트 에러 알림 동작
+
+---
+
+## 다음 Phase
+
+**[Phase 6.2: 랜딩 & 베타](./phase-6.2-landing-beta.md)** — 랜딩 페이지, 법적 페이지, Vercel 프로덕션 배포, 베타 사용자 모집

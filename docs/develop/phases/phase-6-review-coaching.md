@@ -1,0 +1,513 @@
+# Phase 6: 첨삭 코칭
+
+> **⚠️ 아키텍처 변경 사항**: 이 문서의 코드 예시 중 서버 사이드 로직(API Routes, Supabase 직접 쿼리, Vercel AI SDK)은 Go 백엔드로 구현합니다. 프론트엔드 코드(컴포넌트, hooks, Recharts)는 그대로 참고하세요.
+>
+> - `createClient` from `@/lib/supabase/server` → Go 백엔드 API 호출 (생성된 SDK 사용)
+> - `generateObject` from `ai` (Vercel AI SDK) → Anthropic Go SDK (`internal/infrastructure/anthropic/`)
+> - `anthropic` from `@ai-sdk/anthropic` → Go 네이티브 Anthropic SDK
+> - 첨삭 API → Go 백엔드 `internal/controller/review_controller.go`
+> - Supabase 직접 쿼리 → Ent ORM 쿼리 (`internal/service/`)
+
+## Overview
+
+| 항목 | 내용 |
+|------|------|
+| **목표** | 작성된 자소서를 AI가 4개 차원(구체성, 직무적합성, 기업맞춤도, 진정성)으로 평가하고, 구체적인 개선 제안을 제공한다 |
+| **선행 조건** | Phase 5.2 (코칭 에디터) 완료, `cover_letters` + `cover_letter_versions`에 편집된 자소서 존재, Claude Sonnet 4.5 API 키 설정 |
+| **스프린트** | Sprint 5 |
+| **관련 기능** | F14 (첨삭 코칭) |
+| **예상 공수** | 2일 (Day 1-2) |
+| **산출물** | 첨삭 API, 4축 레이더 차트, 차원별 피드백 UI, 라인별 제안, 반복 코칭 |
+
+---
+
+## Progress
+
+| Step | 이름 | 상태 |
+|------|------|------|
+| 6.1 | 첨삭 API | ⬜ 대기 |
+| 6.2 | 결과 UI | ⬜ 대기 |
+| 6.3 | 반복 코칭 | ⬜ 대기 |
+
+---
+
+## Step 6.1: 첨삭 API
+
+### 목표
+
+자소서 전문을 Claude Sonnet 4.5에 입력하여 4개 차원별 0~100점 평가, 차원별 좋은점/개선점 피드백, 라인 단위 구체적 수정 제안을 포함하는 구조화된 첨삭 결과를 반환하는 API를 구현한다.
+
+### 체크리스트
+
+- [ ] `POST /api/coaching/review` 엔드포인트 구현
+- [ ] 인증 확인 (Supabase Auth)
+- [ ] 입력 검증 (Zod: cover_letter_id, content, question_text, company context)
+- [ ] `prompt_templates`에서 `coaching_review` 프롬프트 로드
+- [ ] 기업 분석 결과 + 문항 분석 결과 로드 (맥락 주입)
+- [ ] Claude Sonnet 4.5 호출 (`generateObject` 또는 `streamText`)
+- [ ] 응답 JSON 스키마 검증 + 파싱
+- [ ] `coaching_sessions` 저장 (session_type = 'review')
+- [ ] `cover_letter_versions.feedback` 컬럼에 결과 저장
+- [ ] 토큰 사용량 / 비용 로깅
+- [ ] 에러 처리
+
+### API 엔드포인트
+
+| Method | Path | Request | Response |
+|--------|------|---------|----------|
+| `POST` | `/api/coaching/review` | `{ cover_letter_id, content }` | `{ scores, overall, per_dimension_feedback, specific_suggestions }` |
+
+### Request Body
+
+```typescript
+{
+  cover_letter_id: string;   // UUID - 자소서 ID
+  content: string;           // 현재 자소서 내용 (에디터에서)
+}
+```
+
+### Response Body
+
+```typescript
+{
+  scores: {
+    specificity: number;       // 구체성 (0~100)
+    job_fit: number;           // 직무적합성 (0~100)
+    company_fit: number;       // 기업맞춤도 (0~100)
+    authenticity: number;      // 진정성 (0~100)
+  };
+  overall: number;             // 종합 점수 (4개 평균, 0~100)
+  per_dimension_feedback: [
+    {
+      dimension: string;       // 차원명 (예: "구체성")
+      score: number;           // 해당 차원 점수
+      good: string[];          // 잘한 점 (1~3개)
+      improve: string[];       // 개선할 점 (1~3개)
+    }
+  ];
+  specific_suggestions: [
+    {
+      line_ref: string;        // 원문 참조 구간 (예: "3번째 문장")
+      original: string;        // 원문 발췌
+      suggested: string;       // 수정 제안
+      reason: string;          // 수정 이유
+      dimension: string;       // 관련 차원 (specificity/job_fit/company_fit/authenticity)
+    }
+  ];
+}
+```
+
+### 프롬프트 설계
+
+```
+당신은 한국 대기업 자소서 첨삭 전문가입니다.
+다음 자소서를 4개 차원으로 평가하고 구체적인 개선 제안을 해주세요.
+
+## 평가 기준
+
+### 1. 구체성 (Specificity) - 0~100점
+- 추상적 표현 대신 구체적 수치, 사례, 상황이 포함되어 있는가?
+- "열심히 했다" → "3주간 매일 2시간씩 추가 학습하여" 수준의 구체성
+- 행동의 과정이 단계별로 서술되어 있는가?
+- 결과가 측정 가능한 형태로 제시되어 있는가?
+
+### 2. 직무적합성 (Job Fit) - 0~100점
+- 지원 직무({{position}})에 필요한 역량을 보여주는가?
+- 직무 관련 키워드({{job_keywords}})가 자연스럽게 포함되어 있는가?
+- 경험이 지원 직무와 연결되는 논리가 명확한가?
+
+### 3. 기업맞춤도 (Company Fit) - 0~100점
+- 기업 인재상({{talent_keywords}})에 부합하는 태도/행동이 드러나는가?
+- 기업 핵심가치({{values_keywords}})가 자연스럽게 녹아 있는가?
+- 기업명을 바꿔도 통하는 범용적 내용이 아닌, 이 기업에 맞춤화되어 있는가?
+
+### 4. 진정성 (Authenticity) - 0~100점
+- 실제 경험에 기반한 것처럼 느껴지는가? (날짜, 장소, 인물 등 디테일)
+- AI가 작성한 것 같은 패턴(과도한 수사, 비인간적 완벽함)이 없는가?
+- 지원자만의 고유한 시각/성찰이 드러나는가?
+- 감정이나 고민이 자연스럽게 녹아 있는가?
+
+## 기업 맥락
+- 기업명: {{company_name}}
+- 직무: {{position}}
+- 인재상: {{talent_keywords}}
+- 핵심가치: {{values_keywords}}
+
+## 자소서 문항
+"{{question_text}}"
+
+## 자소서 전문
+{{content}}
+
+## 출력 형식
+JSON으로 응답해주세요. (스키마 설명 ...)
+```
+
+### 구현 코드 구조
+
+```typescript
+// src/app/api/coaching/review/route.ts
+import { createClient } from '@/lib/supabase/server';
+import { anthropic } from '@/lib/ai/providers';
+import { loadPrompt } from '@/lib/ai/prompts';
+import { generateObject } from 'ai';
+
+export async function POST(request: Request) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const body = await request.json();
+
+  // cover_letter + application + analysis 로드
+  const { data: coverLetter } = await supabase
+    .from('cover_letters')
+    .select(`
+      *,
+      applications!inner (
+        company_name, position,
+        company_analyses (result)
+      )
+    `)
+    .eq('id', body.cover_letter_id)
+    .single();
+
+  const analysis = coverLetter.applications.company_analyses[0]?.result;
+
+  // 프롬프트 로드 + 변수 치환
+  const prompt = await loadPrompt('coaching_review', {
+    company_name: coverLetter.applications.company_name,
+    position: coverLetter.applications.position,
+    talent_keywords: analysis?.talent_keywords?.join(', ') || '',
+    values_keywords: analysis?.values_keywords?.join(', ') || '',
+    job_keywords: analysis?.job_keywords?.join(', ') || '',
+    question_text: coverLetter.question_text,
+    content: body.content,
+  });
+
+  // Claude Sonnet 4.5 호출
+  const result = await generateObject({
+    model: anthropic('claude-sonnet-4-5-20250929'),
+    prompt,
+    schema: reviewResponseSchema,
+  });
+
+  // 결과 저장 (cover_letter_versions.feedback)
+  await supabase
+    .from('cover_letter_versions')
+    .update({ feedback: result.object })
+    .eq('cover_letter_id', body.cover_letter_id)
+    .order('version_number', { ascending: false })
+    .limit(1);
+
+  // 코칭 세션 저장
+  await supabase.from('coaching_sessions').insert({
+    cover_letter_id: body.cover_letter_id,
+    session_type: 'review',
+    messages: [
+      { role: 'system', content: prompt },
+      { role: 'assistant', content: JSON.stringify(result.object) },
+    ],
+  });
+
+  return Response.json(result.object);
+}
+```
+
+### 검증 방법
+
+- [ ] 유효한 자소서 입력 시 4개 차원 점수 + 피드백 반환 확인
+- [ ] `scores`의 각 값이 0~100 범위인지 확인
+- [ ] `overall`이 4개 점수의 평균인지 확인
+- [ ] `per_dimension_feedback`이 4개 차원 모두 포함하는지 확인
+- [ ] `specific_suggestions`가 최소 3개 이상 존재하는지 확인
+- [ ] `cover_letter_versions.feedback`에 결과 저장 확인
+- [ ] `coaching_sessions` 레코드 생성 확인 (session_type = 'review')
+- [ ] 인증 없는 요청 시 401 반환
+- [ ] 응답 시간 15초 이내
+
+### 산출물
+
+- `src/app/api/coaching/review/route.ts`
+- `src/lib/ai/coaching.ts` (첨삭 로직 추가)
+- `supabase/seed.sql` (`coaching_review` 프롬프트 템플릿 추가)
+
+---
+
+## Step 6.2: 결과 UI
+
+### 목표
+
+첨삭 결과를 4축 레이더 차트, 차원별 확장 카드, 에디터 내 라인별 수정 제안 하이라이트로 직관적으로 표시한다.
+
+### 체크리스트
+
+- [ ] 4축 레이더 차트 구현 (Recharts RadarChart)
+- [ ] 종합 점수 표시 (큰 숫자 + 등급 라벨)
+- [ ] 차원별 피드백 카드 (접기/펼치기)
+- [ ] 각 카드에 점수 + 좋은점 + 개선점 표시
+- [ ] 라인별 수정 제안 목록 구현
+- [ ] 수정 제안 클릭 시 에디터 해당 위치 하이라이트
+- [ ] "수정 적용" 버튼 (제안된 텍스트로 자동 교체)
+- [ ] 첨삭 결과 패널 (에디터 페이지와 통합 또는 별도 모달)
+
+### 프론트엔드 컴포넌트
+
+| 컴포넌트 | 위치 | Props | 설명 |
+|----------|------|-------|------|
+| `ReviewResult` | `src/components/coaching/review-result.tsx` | `review: ReviewResponse` | 첨삭 결과 래퍼 |
+| `ScoreRadarChart` | `src/components/coaching/score-radar-chart.tsx` | `scores: Scores` | 4축 레이더 차트 (Recharts) |
+| `OverallScore` | `src/components/coaching/overall-score.tsx` | `score: number` | 종합 점수 표시 (숫자 + 등급) |
+| `DimensionCard` | `src/components/coaching/dimension-card.tsx` | `feedback: DimensionFeedback` | 차원별 피드백 카드 (접기/펼치기) |
+| `SuggestionList` | `src/components/coaching/suggestion-list.tsx` | `suggestions: Suggestion[], onApply: fn` | 라인별 수정 제안 목록 |
+| `SuggestionItem` | `src/components/coaching/suggestion-item.tsx` | `suggestion: Suggestion, onApply: fn` | 개별 수정 제안 (원문 → 수정안) |
+
+### 레이더 차트 구현
+
+```typescript
+// src/components/coaching/score-radar-chart.tsx
+'use client';
+
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer,
+} from 'recharts';
+
+interface ScoreRadarChartProps {
+  scores: {
+    specificity: number;
+    job_fit: number;
+    company_fit: number;
+    authenticity: number;
+  };
+  previousScores?: typeof scores;  // 이전 점수 (비교용)
+}
+
+export function ScoreRadarChart({ scores, previousScores }: ScoreRadarChartProps) {
+  const data = [
+    { dimension: '구체성', score: scores.specificity, prev: previousScores?.specificity },
+    { dimension: '직무적합', score: scores.job_fit, prev: previousScores?.job_fit },
+    { dimension: '기업맞춤', score: scores.company_fit, prev: previousScores?.company_fit },
+    { dimension: '진정성', score: scores.authenticity, prev: previousScores?.authenticity },
+  ];
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <RadarChart data={data}>
+        <PolarGrid />
+        <PolarAngleAxis dataKey="dimension" />
+        <PolarRadiusAxis angle={90} domain={[0, 100]} />
+        {previousScores && (
+          <Radar
+            name="이전"
+            dataKey="prev"
+            stroke="#94a3b8"
+            fill="#94a3b8"
+            fillOpacity={0.1}
+            strokeDasharray="5 5"
+          />
+        )}
+        <Radar
+          name="현재"
+          dataKey="score"
+          stroke="#3b82f6"
+          fill="#3b82f6"
+          fillOpacity={0.2}
+        />
+      </RadarChart>
+    </ResponsiveContainer>
+  );
+}
+```
+
+### 등급 기준
+
+| 점수 | 등급 | 색상 | 라벨 |
+|------|------|------|------|
+| 90~100 | S | `text-green-600` | "합격 수준" |
+| 75~89 | A | `text-blue-600` | "우수" |
+| 60~74 | B | `text-amber-600` | "양호 (개선 여지 있음)" |
+| 40~59 | C | `text-orange-600` | "보완 필요" |
+| 0~39 | D | `text-red-600` | "대폭 수정 필요" |
+
+### UI 레이아웃
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  📝 첨삭 결과                                                     │
+│                                                                  │
+│  ┌─────────────────────┬────────────────────────────────────────┐│
+│  │                     │                                        ││
+│  │   [레이더 차트]      │  종합 점수                              ││
+│  │                     │                                        ││
+│  │    구체성            │      72점                              ││
+│  │   78 ╱╲             │      등급: B (양호)                    ││
+│  │     ╱    ╲  직무적합 │                                        ││
+│  │    ╱  ● ●  ╲ 68    │  구체성: 78  ████████░░ +12↑           ││
+│  │   ╱        ╲        │  직무적합: 68  ███████░░░               ││
+│  │  진정성 70   기업 72 │  기업맞춤: 72  ███████░░░               ││
+│  │                     │  진정성: 70  ███████░░░                 ││
+│  └─────────────────────┴────────────────────────────────────────┘│
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────────┐│
+│  │ ▼ 구체성 (78점)                                    ████████ ││
+│  │                                                              ││
+│  │ ✅ 잘한 점                                                   ││
+│  │ • 프로젝트 기간(3주)과 팀 규모(4명)를 구체적으로 명시          ││
+│  │ • 문제 해결 과정을 단계별로 서술                               ││
+│  │                                                              ││
+│  │ 🔧 개선할 점                                                  ││
+│  │ • 결과 수치가 부족 → "매출 20% 증가" 같은 정량적 성과 추가     ││
+│  │ • 본인의 구체적 행동과 팀원의 행동을 더 명확히 구분             ││
+│  └──────────────────────────────────────────────────────────────┘│
+│  ▶ 직무적합성 (68점) ...                                         │
+│  ▶ 기업맞춤도 (72점) ...                                         │
+│  ▶ 진정성 (70점) ...                                             │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────────┐│
+│  │ 💡 구체적 수정 제안 (5건)                                     ││
+│  │                                                              ││
+│  │ ┌────────────────────────────────────────────────────────┐   ││
+│  │ │ 📍 3번째 문장 (구체성)                                  │   ││
+│  │ │ 원문: "많은 노력을 기울여 문제를 해결했습니다"            │   ││
+│  │ │ 제안: "매일 2시간씩 추가 학습하며 API 설계를 3차례        │   ││
+│  │ │       수정하여 응답 시간을 40% 개선했습니다"              │   ││
+│  │ │ 이유: 추상적 표현을 구체적 수치와 행동으로 교체           │   ││
+│  │ │                                         [✅ 적용]        │   ││
+│  │ └────────────────────────────────────────────────────────┘   ││
+│  │                                                              ││
+│  │ ┌────────────────────────────────────────────────────────┐   ││
+│  │ │ 📍 5번째 문장 (기업맞춤)                                │   ││
+│  │ │ 원문: "이 경험을 통해 성장했습니다"                      │   ││
+│  │ │ 제안: "이 경험은 삼성전자가 추구하는 '도전정신'과         │   ││
+│  │ │       맞닿아 있으며..."                                  │   ││
+│  │ │ 이유: 기업 인재상과 직접 연결하여 맞춤도 향상             │   ││
+│  │ │                                         [✅ 적용]        │   ││
+│  │ └────────────────────────────────────────────────────────┘   ││
+│  └──────────────────────────────────────────────────────────────┘│
+│                                                                  │
+│  [ 🔄 수정 후 재첨삭 ]                                            │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Recharts Lazy Loading
+
+```typescript
+// Recharts 번들이 크므로 lazy load
+import dynamic from 'next/dynamic';
+
+const ScoreRadarChart = dynamic(
+  () => import('@/components/coaching/score-radar-chart').then(mod => mod.ScoreRadarChart),
+  {
+    loading: () => <div className="h-[300px] animate-pulse bg-gray-100 rounded" />,
+    ssr: false,
+  }
+);
+```
+
+### 검증 방법
+
+- [ ] 레이더 차트에 4개 차원 점수가 정상 표시
+- [ ] 이전 점수가 있을 때 점선 오버레이로 비교 표시
+- [ ] 종합 점수 + 등급 라벨 정상 표시
+- [ ] 차원별 카드 접기/펼치기 동작
+- [ ] 수정 제안 "적용" 클릭 시 에디터 내용 자동 교체
+- [ ] 레이더 차트 반응형 (작은 화면에서도 가독성 유지)
+- [ ] Recharts lazy load → Lighthouse 성능 영향 최소화
+
+### 산출물
+
+- `src/components/coaching/review-result.tsx`
+- `src/components/coaching/score-radar-chart.tsx`
+- `src/components/coaching/overall-score.tsx`
+- `src/components/coaching/dimension-card.tsx`
+- `src/components/coaching/suggestion-list.tsx`
+- `src/components/coaching/suggestion-item.tsx`
+
+---
+
+## Step 6.3: 반복 코칭
+
+### 목표
+
+수정 후 재첨삭을 요청하여 이전 점수와 현재 점수를 비교하는 반복 코칭 루프를 구현한다. 사용자가 개선 과정을 시각적으로 확인할 수 있도록 점수 변화를 표시한다.
+
+### 체크리스트
+
+- [ ] "수정 후 재첨삭" 버튼 구현 (에디터 페이지)
+- [ ] 이전 첨삭 결과 로드 (cover_letter_versions.feedback)
+- [ ] 재첨삭 시 이전 점수와 현재 점수 비교 표시
+- [ ] 레이더 차트에 이전/현재 점수 오버레이
+- [ ] 차원별 점수 변화 표시 (↑ 상승 / ↓ 하락 / → 유지)
+- [ ] 첨삭 이력 타임라인 (v1: 초안 → v2: 1차 첨삭 → v3: 2차 첨삭)
+- [ ] 최대 5회 첨삭 제한 (프리미엄 기능)
+
+### 점수 비교 표시
+
+```typescript
+// 점수 변화 표시 로직
+function ScoreChange({ current, previous }: { current: number; previous?: number }) {
+  if (!previous) return null;
+
+  const diff = current - previous;
+  if (diff > 0) return <span className="text-green-600">+{diff} ↑</span>;
+  if (diff < 0) return <span className="text-red-600">{diff} ↓</span>;
+  return <span className="text-gray-400">→ 동일</span>;
+}
+```
+
+### 첨삭 이력 타임라인
+
+```
+┌────────────────────────────────────────────────────────┐
+│  📊 첨삭 이력                                           │
+│                                                        │
+│  v1 초안        → v2 1차 첨삭      → v3 2차 첨삭       │
+│  (14:30)          (15:12)             (16:05)          │
+│                                                        │
+│  종합 52점       종합 68점 (+16)     종합 78점 (+10)    │
+│  ●───────────────●───────────────────●                 │
+│                                                        │
+│  구체성 45→72(+27) 직무 60→68(+8) 기업 55→78(+23)      │
+└────────────────────────────────────────────────────────┘
+```
+
+### 검증 방법
+
+- [ ] "재첨삭" 클릭 시 현재 에디터 내용으로 새 첨삭 API 호출
+- [ ] 이전 첨삭 점수가 레이더 차트에 점선으로 표시
+- [ ] 차원별 점수 변화 (↑↓→) 표시
+- [ ] 첨삭 이력 타임라인에 모든 버전 표시
+- [ ] 점수가 개선되었을 때 시각적 보상 (색상, 애니메이션)
+- [ ] 첨삭 횟수 제한 (무료: 1회, 유료: 5회)
+
+### 산출물
+
+- `src/components/coaching/score-comparison.tsx`
+- `src/components/coaching/review-timeline.tsx`
+- 에디터 페이지에 "재첨삭" 버튼 통합
+
+---
+
+## Phase 완료 체크리스트
+
+- [ ] 에디터에서 "첨삭 요청" → API 호출 → 결과 표시 전체 흐름 동작
+- [ ] 4축 레이더 차트 (Recharts) 정상 렌더링
+- [ ] 종합 점수 + 등급 라벨 정상 표시
+- [ ] 차원별 피드백 카드 접기/펼치기 동작
+- [ ] 라인별 수정 제안 → "적용" → 에디터 내용 자동 교체
+- [ ] 재첨삭 시 이전/현재 점수 비교 표시
+- [ ] 첨삭 이력 타임라인 정상 표시
+- [ ] `coaching_sessions` (review) + `cover_letter_versions.feedback` 저장 확인
+- [ ] Claude API 비용: ~65원/건 이내 확인
+- [ ] Recharts lazy load 적용
+
+---
+
+## 다음 Phase
+
+**[Phase 6.1: 프리미엄 & 마무리](./phase-6.1-freemium-polish.md)** — 사용량 제한, 페이월, 에러 처리, 반응형, 성능 최적화
