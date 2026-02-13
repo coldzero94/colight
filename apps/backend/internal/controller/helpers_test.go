@@ -20,7 +20,7 @@ func TestToAuthTokens(t *testing.T) {
 
 	assert.Equal(t, "access-123", result["access_token"])
 	assert.Equal(t, "refresh-456", result["refresh_token"])
-	assert.Equal(t, int64(3600), result["expires_in"])
+	assert.Equal(t, int32(3600), result["expires_in"])
 }
 
 func TestParseDate_ValidDate(t *testing.T) {

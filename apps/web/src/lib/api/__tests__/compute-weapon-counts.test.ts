@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 // Import only the pure function, mock the api-client dependency
 vi.mock("@/lib/api-client", () => ({

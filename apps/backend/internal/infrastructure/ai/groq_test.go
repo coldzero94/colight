@@ -54,13 +54,10 @@ func TestGroqProvider_Call_Success(t *testing.T) {
 			Model: "llama-3.3-70b-versatile",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		require.NoError(t, json.NewEncoder(w).Encode(resp))
 	})
 	defer server.Close()
 
-	// Override the URL by replacing the client
-	origCall := provider.Call
-	_ = origCall
 	// Use a custom transport to redirect requests to test server
 	provider.client = &http.Client{
 		Transport: &rewriteTransport{base: server.Client().Transport, target: server.URL},
@@ -98,7 +95,7 @@ func TestGroqProvider_Call_NoSystemPrompt(t *testing.T) {
 			},
 			Model: "llama-3.3-70b-versatile",
 		}
-		json.NewEncoder(w).Encode(resp)
+		require.NoError(t, json.NewEncoder(w).Encode(resp))
 	})
 	defer server.Close()
 
@@ -116,7 +113,7 @@ func TestGroqProvider_Call_NoSystemPrompt(t *testing.T) {
 func TestGroqProvider_Call_HTTPError(t *testing.T) {
 	provider, server := newTestGroqServer(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusTooManyRequests)
-		w.Write([]byte(`{"error":"rate limited"}`))
+		_, _ = w.Write([]byte(`{"error":"rate limited"}`))
 	})
 	defer server.Close()
 
@@ -132,7 +129,7 @@ func TestGroqProvider_Call_HTTPError(t *testing.T) {
 func TestGroqProvider_Call_EmptyResponse(t *testing.T) {
 	provider, server := newTestGroqServer(t, func(w http.ResponseWriter, _ *http.Request) {
 		resp := groqResponse{Choices: nil}
-		json.NewEncoder(w).Encode(resp)
+		require.NoError(t, json.NewEncoder(w).Encode(resp))
 	})
 	defer server.Close()
 
@@ -163,7 +160,7 @@ func TestGroqProvider_Call_JSONMode(t *testing.T) {
 				}{Content: "{}"}},
 			},
 		}
-		json.NewEncoder(w).Encode(resp)
+		require.NoError(t, json.NewEncoder(w).Encode(resp))
 	})
 	defer server.Close()
 
