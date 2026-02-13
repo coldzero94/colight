@@ -81,6 +81,20 @@ func TestWeaponTaggingController_Tag(t *testing.T) {
 		SetIcon("🔥").
 		SaveX(context.Background())
 
+	// Create prompt template
+	_ = client.PromptTemplate.Create().
+		SetCategory("experience_classify").
+		SetSubCategory("weapon_tagging").
+		SetName("Test Weapon Tagging").
+		SetSystemPrompt("Analyze and classify weapons").
+		SetUserPromptTemplate("Experience: {{experience_text}}\n\nWeapons: {{weapon_categories}}").
+		SetModel("gemini-2.0-flash").
+		SetTemperature(0.2).
+		SetMaxTokens(2000).
+		SetVersion(1).
+		SetIsActive(true).
+		SaveX(context.Background())
+
 	// Create experience
 	exp := client.Experience.Create().
 		SetUserID(user.ID).

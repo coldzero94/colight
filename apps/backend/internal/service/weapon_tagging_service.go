@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experienceweapon"
+	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 	"github.com/google/uuid"
 )
@@ -90,28 +93,46 @@ func (s *WeaponTaggingService) TagExperience(ctx context.Context, experienceID u
 
 	weaponList := s.formatWeaponList(weapons)
 
-	// 4. Call AI with prompt
-	prompt := fmt.Sprintf(`Analyze this experience and classify it into weapon categories.
+	// 4. Load prompt template from DB
+	promptTemplate, err := s.entClient.PromptTemplate.Query().
+		Where(
+			prompttemplate.CategoryEQ("experience_classify"),
+			prompttemplate.SubCategoryEQ("weapon_tagging"),
+			prompttemplate.IsActiveEQ(true),
+		).
+		Order(prompttemplate.ByVersion(sql.OrderDesc())).
+		First(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load prompt template: %w", err)
+	}
 
-Experience:
-%s
-
-Available Weapons:
-%s
-
-Return JSON with primary_weapon and secondary_weapons (array). Each weapon should have: code, confidence (0-1), reasoning.`, experienceText, weaponList)
-
-	aiResp, err := s.aiClient.Call(ctx, ai.LLMRequest{
-		UserPrompt:  prompt,
-		Temperature: 0.2,
-		MaxTokens:   2000,
-		JSONMode:    true,
+	// 5. Substitute variables in user prompt
+	userPrompt := s.substituteVariables(promptTemplate.UserPromptTemplate, map[string]string{
+		"experience_text":   experienceText,
+		"weapon_categories": weaponList,
 	})
+
+	// 6. Call AI with DB-loaded prompt
+	startTime := time.Now()
+	aiResp, err := s.aiClient.Call(ctx, ai.LLMRequest{
+		SystemPrompt: promptTemplate.SystemPrompt,
+		UserPrompt:   userPrompt,
+		Temperature:  promptTemplate.Temperature,
+		MaxTokens:    promptTemplate.MaxTokens,
+		JSONMode:     true,
+	})
+	latencyMs := int(time.Since(startTime).Milliseconds())
 	if err != nil {
 		return nil, fmt.Errorf("AI tagging failed: %w", err)
 	}
 
-	// 5. Parse AI response
+	// 7. Update prompt usage stats
+	_ = s.entClient.PromptTemplate.UpdateOneID(promptTemplate.ID).
+		SetUsageCount(promptTemplate.UsageCount + 1).
+		SetAvgLatencyMs((promptTemplate.AvgLatencyMs*promptTemplate.UsageCount + latencyMs) / (promptTemplate.UsageCount + 1)).
+		Exec(ctx)
+
+	// 8. Parse AI response
 	var aiResult aiWeaponResponse
 	if err := json.Unmarshal([]byte(aiResp.Content), &aiResult); err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
@@ -234,6 +255,16 @@ Return JSON with primary_weapon and secondary_weapons (array). Each weapon shoul
 	}
 
 	return result, nil
+}
+
+// substituteVariables replaces {{variable}} placeholders in template
+func (s *WeaponTaggingService) substituteVariables(template string, vars map[string]string) string {
+	result := template
+	for key, value := range vars {
+		placeholder := "{{" + key + "}}"
+		result = strings.ReplaceAll(result, placeholder, value)
+	}
+	return result
 }
 
 // buildExperienceText combines all STAR fields into a single text for AI analysis

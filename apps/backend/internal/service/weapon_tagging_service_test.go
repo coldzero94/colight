@@ -8,6 +8,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experienceweapon"
+	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/weaponcategory"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 	"github.com/coby/colight/apps/backend/testutil"
@@ -71,6 +72,29 @@ func ensureWeaponCategories(t *testing.T, client *ent.Client) {
 				SetIcon(w.icon).
 				SaveX(ctx)
 		}
+	}
+
+	// Ensure prompt template exists
+	promptExists, _ := client.PromptTemplate.Query().
+		Where(
+			prompttemplate.CategoryEQ("experience_classify"),
+			prompttemplate.SubCategoryEQ("weapon_tagging"),
+		).
+		Exist(ctx)
+
+	if !promptExists {
+		client.PromptTemplate.Create().
+			SetCategory("experience_classify").
+			SetSubCategory("weapon_tagging").
+			SetName("Test Weapon Tagging").
+			SetSystemPrompt("Analyze and classify weapons").
+			SetUserPromptTemplate("Experience: {{experience_text}}\n\nWeapons: {{weapon_categories}}").
+			SetModel("gemini-2.0-flash").
+			SetTemperature(0.2).
+			SetMaxTokens(2000).
+			SetVersion(1).
+			SetIsActive(true).
+			SaveX(ctx)
 	}
 }
 
@@ -403,4 +427,55 @@ func TestRetagExperience_DeleteOnlyAITags(t *testing.T) {
 	assert.False(t, foundAI, "Old AI weapon should be deleted")
 	assert.True(t, foundUser, "User-modified weapon should be preserved")
 	assert.True(t, foundNew, "New AI weapon should be created")
+}
+
+func TestTagExperience_LoadsPromptFromDB(t *testing.T) {
+	mockAI := &MockLLMProvider{
+		response: ai.LLMResponse{
+			Content: `{
+				"primary_weapon": {
+					"code": "W01",
+					"confidence": 0.9,
+					"reasoning": "Test"
+				},
+				"secondary_weapons": []
+			}`,
+		},
+	}
+
+	svc, client := newTestWeaponTaggingService(t, mockAI)
+	ctx := context.Background()
+	userID := createTestUserForWeapon(t, client)
+	ensureWeaponCategories(t, client) // This creates the prompt template
+
+	// Get the prompt template created by helper
+	prompt, err2 := client.PromptTemplate.Query().
+		Where(
+			prompttemplate.CategoryEQ("experience_classify"),
+			prompttemplate.SubCategoryEQ("weapon_tagging"),
+		).
+		First(ctx)
+	require.NoError(t, err2)
+
+	initialUsageCount := prompt.UsageCount
+
+	exp := client.Experience.Create().
+		SetUserID(userID).
+		SetTitle("Test Experience").
+		SetCategory("프로젝트").
+		SetContent("This is a detailed experience content for testing").
+		SetStarSituation("Situation").
+		SetStarTask("Task").
+		SetStarAction("Action").
+		SetStarResult("Result").
+		SaveX(ctx)
+
+	// Execute tagging
+	_, err := svc.TagExperience(ctx, exp.ID, userID)
+	require.NoError(t, err)
+
+	// Verify prompt was loaded (check usage stats updated)
+	updatedPrompt, err := client.PromptTemplate.Get(ctx, prompt.ID)
+	require.NoError(t, err)
+	assert.Equal(t, initialUsageCount+1, updatedPrompt.UsageCount, "Prompt usage count should be incremented by 1")
 }
