@@ -5,13 +5,13 @@ import { WeaponBadge } from "../weapon-badge";
 describe("WeaponBadge", () => {
   it("renders correct color for each weapon code W01-W07", () => {
     const weapons = [
-      { code: "W01", expectedText: "위기극복", icon: "🔥" },
+      { code: "W01", expectedText: "위기극복", icon: "🛡️" },
       { code: "W02", expectedText: "리더십", icon: "👑" },
       { code: "W03", expectedText: "팀워크/협업", icon: "🤝" },
       { code: "W04", expectedText: "도전정신", icon: "🚀" },
-      { code: "W05", expectedText: "문제해결", icon: "🧩" },
+      { code: "W05", expectedText: "문제해결", icon: "🔧" },
       { code: "W06", expectedText: "소통/설득", icon: "💬" },
-      { code: "W07", expectedText: "성장/학습", icon: "📚" },
+      { code: "W07", expectedText: "성장/학습", icon: "📈" },
     ];
 
     weapons.forEach((w) => {
@@ -32,13 +32,13 @@ describe("WeaponBadge", () => {
 
   it("renders correct icon for each weapon code", () => {
     const iconMap = {
-      W01: "🔥",
+      W01: "🛡️",
       W02: "👑",
       W03: "🤝",
       W04: "🚀",
-      W05: "🧩",
+      W05: "🔧",
       W06: "💬",
-      W07: "📚",
+      W07: "📈",
     };
 
     Object.entries(iconMap).forEach(([code, icon]) => {

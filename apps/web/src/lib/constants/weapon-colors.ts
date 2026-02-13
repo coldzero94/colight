@@ -1,8 +1,9 @@
 // Weapon category color and icon mappings
+// Weapon icons match seed.go (source of truth)
 export const WEAPON_CONFIG = {
   W01: {
     name: "위기극복",
-    icon: "🔥",
+    icon: "🛡️",
     bgColor: "bg-red-100",
     textColor: "text-red-700",
     borderColor: "border-red-200",
@@ -30,7 +31,7 @@ export const WEAPON_CONFIG = {
   },
   W05: {
     name: "문제해결",
-    icon: "🧩",
+    icon: "🔧",
     bgColor: "bg-blue-100",
     textColor: "text-blue-700",
     borderColor: "border-blue-200",
@@ -44,7 +45,7 @@ export const WEAPON_CONFIG = {
   },
   W07: {
     name: "성장/학습",
-    icon: "📚",
+    icon: "📈",
     bgColor: "bg-indigo-100",
     textColor: "text-indigo-700",
     borderColor: "border-indigo-200",
