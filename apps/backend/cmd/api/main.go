@@ -55,6 +55,11 @@ func main() {
 
 	companyDataService := service.NewCompanyDataService()
 
+	var companyAnalysisService *service.CompanyAnalysisService
+	if aiProvider != nil {
+		companyAnalysisService = service.NewCompanyAnalysisService(db, aiProvider, companyDataService)
+	}
+
 	// Controllers
 	authCtrl := controller.NewAuthController(authService, cfg)
 	adminCtrl := controller.NewAdminController(db)
@@ -71,6 +76,11 @@ func main() {
 	}
 
 	companyDataCtrl := controller.NewCompanyDataController(companyDataService)
+
+	var companyAnalysisCtrl *controller.CompanyAnalysisController
+	if companyAnalysisService != nil {
+		companyAnalysisCtrl = controller.NewCompanyAnalysisController(companyAnalysisService)
+	}
 
 	// Router
 	r := gin.Default()
@@ -116,6 +126,11 @@ func main() {
 
 		// Company data (DART + News crawling)
 		protected.GET("/company-data", companyDataCtrl.GetCompanyData)
+
+		// Company analysis (AI-powered talent profile analysis)
+		if companyAnalysisCtrl != nil {
+			protected.POST("/analyze-company", companyAnalysisCtrl.AnalyzeCompany)
+		}
 	}
 
 	// Admin routes (require authentication + admin role)
