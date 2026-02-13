@@ -4,19 +4,20 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/generative-ai-go/genai"
-	"google.golang.org/api/option"
+	"google.golang.org/genai"
 )
 
-// GeminiProvider implements LLMProvider for Google Gemini
+// GeminiProvider implements LLMProvider for Google Gemini (official SDK)
 type GeminiProvider struct {
 	client *genai.Client
 	model  string
 }
 
-// NewGeminiProvider creates a new Gemini provider
+// NewGeminiProvider creates a new Gemini provider using official google.golang.org/genai SDK
 func NewGeminiProvider(ctx context.Context, apiKey string) (*GeminiProvider, error) {
-	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{
+		APIKey: apiKey,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Gemini client: %w", err)
 	}
@@ -29,29 +30,32 @@ func NewGeminiProvider(ctx context.Context, apiKey string) (*GeminiProvider, err
 
 // Call sends a request to Gemini and returns the response
 func (g *GeminiProvider) Call(ctx context.Context, req LLMRequest) (LLMResponse, error) {
-	// Build messages
-	parts := []genai.Part{}
-	if req.SystemPrompt != "" {
-		parts = append(parts, genai.Text(req.SystemPrompt+"\n\n"))
-	}
-	parts = append(parts, genai.Text(req.UserPrompt))
+	// Build content array
+	var contents []*genai.Content
 
-	// Configure model
-	model := g.client.GenerativeModel(g.model)
+	// Combine system and user prompts (new SDK uses Text function)
+	promptText := req.UserPrompt
+	if req.SystemPrompt != "" {
+		promptText = req.SystemPrompt + "\n\n" + req.UserPrompt
+	}
+
+	contents = genai.Text(promptText)
+
+	// Build generate options
+	opts := &genai.GenerateContentConfig{}
 	if req.Temperature > 0 {
 		temp := float32(req.Temperature)
-		model.Temperature = &temp
+		opts.Temperature = &temp
 	}
 	if req.MaxTokens > 0 {
-		maxTokens := int32(req.MaxTokens)
-		model.MaxOutputTokens = &maxTokens
+		opts.MaxOutputTokens = int32(req.MaxTokens)
 	}
 	if req.JSONMode {
-		model.ResponseMIMEType = "application/json"
+		opts.ResponseMIMEType = "application/json"
 	}
 
-	// Generate content
-	resp, err := model.GenerateContent(ctx, parts...)
+	// Generate content using new SDK
+	resp, err := g.client.Models.GenerateContent(ctx, g.model, contents, opts)
 	if err != nil {
 		return LLMResponse{}, fmt.Errorf("Gemini API call failed: %w", err)
 	}
@@ -63,8 +67,8 @@ func (g *GeminiProvider) Call(ctx context.Context, req LLMRequest) (LLMResponse,
 
 	content := ""
 	for _, part := range resp.Candidates[0].Content.Parts {
-		if txt, ok := part.(genai.Text); ok {
-			content += string(txt)
+		if part.Text != "" {
+			content += part.Text
 		}
 	}
 
@@ -82,9 +86,4 @@ func (g *GeminiProvider) Call(ctx context.Context, req LLMRequest) (LLMResponse,
 		OutputTokens: outputTokens,
 		Model:        g.model,
 	}, nil
-}
-
-// Close closes the Gemini client
-func (g *GeminiProvider) Close() error {
-	return g.client.Close()
 }

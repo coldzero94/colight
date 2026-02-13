@@ -18,8 +18,10 @@ import (
 
 // WeaponTaggingService handles AI-powered weapon classification for experiences
 type WeaponTaggingService struct {
-	entClient *ent.Client
-	aiClient  ai.LLMProvider
+	entClient      *ent.Client
+	aiClient       ai.LLMProvider
+	promptCache    *ent.PromptTemplate
+	promptCachedAt time.Time
 }
 
 // NewWeaponTaggingService creates a new WeaponTaggingService
@@ -93,17 +95,28 @@ func (s *WeaponTaggingService) TagExperience(ctx context.Context, experienceID u
 
 	weaponList := s.formatWeaponList(weapons)
 
-	// 4. Load prompt template from DB
-	promptTemplate, err := s.entClient.PromptTemplate.Query().
-		Where(
-			prompttemplate.CategoryEQ("experience_classify"),
-			prompttemplate.SubCategoryEQ("weapon_tagging"),
-			prompttemplate.IsActiveEQ(true),
-		).
-		Order(prompttemplate.ByVersion(sql.OrderDesc())).
-		First(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load prompt template: %w", err)
+	// 4. Load prompt template from DB (with 5min cache)
+	var promptTemplate *ent.PromptTemplate
+	now := time.Now()
+	cacheValid := s.promptCache != nil && now.Sub(s.promptCachedAt) < 5*time.Minute
+
+	if cacheValid {
+		promptTemplate = s.promptCache
+	} else {
+		pt, err := s.entClient.PromptTemplate.Query().
+			Where(
+				prompttemplate.CategoryEQ("experience_classify"),
+				prompttemplate.SubCategoryEQ("weapon_tagging"),
+				prompttemplate.IsActiveEQ(true),
+			).
+			Order(prompttemplate.ByVersion(sql.OrderDesc())).
+			First(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load prompt template: %w", err)
+		}
+		promptTemplate = pt
+		s.promptCache = pt
+		s.promptCachedAt = now
 	}
 
 	// 5. Substitute variables in user prompt

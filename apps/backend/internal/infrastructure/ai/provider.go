@@ -53,9 +53,6 @@ func (p *AIProvider) Light() LLMProvider {
 
 // Close closes all AI clients
 func (p *AIProvider) Close() error {
-	// Close Gemini client if it's a GeminiProvider
-	if gp, ok := p.light.(*GeminiProvider); ok {
-		return gp.Close()
-	}
+	// New Gemini SDK (google.golang.org/genai) doesn't require explicit Close()
 	return nil
 }
