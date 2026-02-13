@@ -22,7 +22,7 @@ func (Experience) Mixin() []ent.Mixin {
 func (Experience) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}).
-			Comment("References auth.users(id)"),
+			Comment("References user_profiles(id)"),
 		field.String("title").
 			NotEmpty().
 			MaxLen(200).

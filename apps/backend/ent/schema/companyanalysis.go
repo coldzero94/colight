@@ -22,7 +22,7 @@ func (CompanyAnalysis) Mixin() []ent.Mixin {
 func (CompanyAnalysis) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}).
-			Comment("References auth.users(id)"),
+			Comment("References user_profiles(id)"),
 		field.String("company_name").
 			NotEmpty().
 			MaxLen(100).

@@ -25,7 +25,7 @@ type ExperienceUsage struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Record creation timestamp
 	CreatedAt time.Time `json:"created_at,omitempty"`
-	// References auth.users(id)
+	// References user_profiles(id)
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// Which question this experience was used for
 	QuestionText string `json:"question_text,omitempty"`

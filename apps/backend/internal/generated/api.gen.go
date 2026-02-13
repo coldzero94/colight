@@ -14,17 +14,251 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
+	"github.com/oapi-codegen/runtime"
 	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
 )
+
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
+// Defines values for AdminAdminUserListItemAuthProvider.
+const (
+	AdminAdminUserListItemAuthProviderEmail AdminAdminUserListItemAuthProvider = "email"
+	AdminAdminUserListItemAuthProviderNaver AdminAdminUserListItemAuthProvider = "naver"
+)
+
+// Defines values for AdminAdminUserListItemRole.
+const (
+	AdminAdminUserListItemRoleAdmin AdminAdminUserListItemRole = "admin"
+	AdminAdminUserListItemRoleUser  AdminAdminUserListItemRole = "user"
+)
+
+// Defines values for AdminUpdateRoleRequestRole.
+const (
+	AdminUpdateRoleRequestRoleAdmin AdminUpdateRoleRequestRole = "admin"
+	AdminUpdateRoleRequestRoleUser  AdminUpdateRoleRequestRole = "user"
+)
+
+// Defines values for AuthUserInfoAuthProvider.
+const (
+	AuthUserInfoAuthProviderEmail AuthUserInfoAuthProvider = "email"
+	AuthUserInfoAuthProviderNaver AuthUserInfoAuthProvider = "naver"
+)
+
+// Defines values for AuthUserInfoRole.
+const (
+	AuthUserInfoRoleAdmin AuthUserInfoRole = "admin"
+	AuthUserInfoRoleUser  AuthUserInfoRole = "user"
+)
+
+// Defines values for AdminAPIListUsersParamsRole.
+const (
+	AdminAPIListUsersParamsRoleAdmin AdminAPIListUsersParamsRole = "admin"
+	AdminAPIListUsersParamsRoleUser  AdminAPIListUsersParamsRole = "user"
+)
+
+// AdminAdminUserListItem defines model for Admin.AdminUserListItem.
+type AdminAdminUserListItem struct {
+	AuthProvider    AdminAdminUserListItemAuthProvider `json:"auth_provider"`
+	CreatedAt       time.Time                          `json:"created_at"`
+	Email           *string                            `json:"email,omitempty"`
+	ExperienceCount int32                              `json:"experience_count"`
+	Id              string                             `json:"id"`
+	LastLoginAt     *time.Time                         `json:"last_login_at,omitempty"`
+	Nickname        *string                            `json:"nickname,omitempty"`
+	Role            AdminAdminUserListItemRole         `json:"role"`
+}
+
+// AdminAdminUserListItemAuthProvider defines model for AdminAdminUserListItem.AuthProvider.
+type AdminAdminUserListItemAuthProvider string
+
+// AdminAdminUserListItemRole defines model for AdminAdminUserListItem.Role.
+type AdminAdminUserListItemRole string
+
+// AdminPromptTemplateDetail defines model for Admin.PromptTemplateDetail.
+type AdminPromptTemplateDetail struct {
+	Category           string  `json:"category"`
+	Id                 string  `json:"id"`
+	IsActive           bool    `json:"is_active"`
+	MaxTokens          int32   `json:"max_tokens"`
+	ModelName          string  `json:"model_name"`
+	Name               string  `json:"name"`
+	SubCategory        string  `json:"sub_category"`
+	SystemPrompt       string  `json:"system_prompt"`
+	Temperature        float32 `json:"temperature"`
+	UsageCount         int32   `json:"usage_count"`
+	UserPromptTemplate string  `json:"user_prompt_template"`
+	Version            int32   `json:"version"`
+}
+
+// AdminSystemStats defines model for Admin.SystemStats.
+type AdminSystemStats struct {
+	ActiveUsersToday      int32 `json:"active_users_today"`
+	EmailAuthUsers        int32 `json:"email_auth_users"`
+	NaverAuthUsers        int32 `json:"naver_auth_users"`
+	TotalAnalyses         int32 `json:"total_analyses"`
+	TotalCoachingSessions int32 `json:"total_coaching_sessions"`
+	TotalExperiences      int32 `json:"total_experiences"`
+	TotalUsers            int32 `json:"total_users"`
+}
+
+// AdminUpdatePromptRequest defines model for Admin.UpdatePromptRequest.
+type AdminUpdatePromptRequest struct {
+	IsActive           *bool    `json:"is_active,omitempty"`
+	MaxTokens          *int32   `json:"max_tokens,omitempty"`
+	SystemPrompt       *string  `json:"system_prompt,omitempty"`
+	Temperature        *float32 `json:"temperature,omitempty"`
+	UserPromptTemplate *string  `json:"user_prompt_template,omitempty"`
+}
+
+// AdminUpdateRoleRequest defines model for Admin.UpdateRoleRequest.
+type AdminUpdateRoleRequest struct {
+	Role AdminUpdateRoleRequestRole `json:"role"`
+}
+
+// AdminUpdateRoleRequestRole defines model for AdminUpdateRoleRequest.Role.
+type AdminUpdateRoleRequestRole string
+
+// AuthAuthResponse defines model for Auth.AuthResponse.
+type AuthAuthResponse struct {
+	Tokens AuthAuthTokens `json:"tokens"`
+	User   AuthUserInfo   `json:"user"`
+}
+
+// AuthAuthTokens defines model for Auth.AuthTokens.
+type AuthAuthTokens struct {
+	AccessToken  string `json:"access_token"`
+	ExpiresIn    int32  `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+// AuthLoginRequest defines model for Auth.LoginRequest.
+type AuthLoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// AuthSignupRequest defines model for Auth.SignupRequest.
+type AuthSignupRequest struct {
+	Email    string  `json:"email"`
+	Nickname *string `json:"nickname,omitempty"`
+	Password string  `json:"password"`
+}
+
+// AuthUserInfo defines model for Auth.UserInfo.
+type AuthUserInfo struct {
+	AuthProvider        AuthUserInfoAuthProvider `json:"auth_provider"`
+	CreatedAt           time.Time                `json:"created_at"`
+	Email               *string                  `json:"email,omitempty"`
+	Id                  string                   `json:"id"`
+	Nickname            *string                  `json:"nickname,omitempty"`
+	OnboardingCompleted bool                     `json:"onboarding_completed"`
+	Role                AuthUserInfoRole         `json:"role"`
+}
+
+// AuthUserInfoAuthProvider defines model for AuthUserInfo.AuthProvider.
+type AuthUserInfoAuthProvider string
+
+// AuthUserInfoRole defines model for AuthUserInfo.Role.
+type AuthUserInfoRole string
+
+// CommonErrorDetail defines model for Common.ErrorDetail.
+type CommonErrorDetail struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// AdminAPIListPromptsParams defines parameters for AdminAPIListPrompts.
+type AdminAPIListPromptsParams struct {
+	Category *string `form:"category,omitempty" json:"category,omitempty"`
+}
+
+// AdminAPIListUsersParams defines parameters for AdminAPIListUsers.
+type AdminAPIListUsersParams struct {
+	Limit  *int32                       `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int32                       `form:"offset,omitempty" json:"offset,omitempty"`
+	Role   *AdminAPIListUsersParamsRole `form:"role,omitempty" json:"role,omitempty"`
+	Search *string                      `form:"search,omitempty" json:"search,omitempty"`
+}
+
+// AdminAPIListUsersParamsRole defines parameters for AdminAPIListUsers.
+type AdminAPIListUsersParamsRole string
+
+// AuthAPINaverCallbackParams defines parameters for AuthAPINaverCallback.
+type AuthAPINaverCallbackParams struct {
+	Code  string `form:"code" json:"code"`
+	State string `form:"state" json:"state"`
+}
+
+// AuthAPIRefreshJSONBody defines parameters for AuthAPIRefresh.
+type AuthAPIRefreshJSONBody struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+// AdminAPIUpdatePromptJSONRequestBody defines body for AdminAPIUpdatePrompt for application/json ContentType.
+type AdminAPIUpdatePromptJSONRequestBody = AdminUpdatePromptRequest
+
+// AdminAPIUpdateUserRoleJSONRequestBody defines body for AdminAPIUpdateUserRole for application/json ContentType.
+type AdminAPIUpdateUserRoleJSONRequestBody = AdminUpdateRoleRequest
+
+// AuthAPILoginJSONRequestBody defines body for AuthAPILogin for application/json ContentType.
+type AuthAPILoginJSONRequestBody = AuthLoginRequest
+
+// AuthAPIRefreshJSONRequestBody defines body for AuthAPIRefresh for application/json ContentType.
+type AuthAPIRefreshJSONRequestBody AuthAPIRefreshJSONBody
+
+// AuthAPISignupJSONRequestBody defines body for AuthAPISignup for application/json ContentType.
+type AuthAPISignupJSONRequestBody = AuthSignupRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
 	// (GET /health)
 	HealthCheck(c *gin.Context)
+
+	// (GET /v1/admin/prompts)
+	AdminAPIListPrompts(c *gin.Context, params AdminAPIListPromptsParams)
+
+	// (PUT /v1/admin/prompts/{id})
+	AdminAPIUpdatePrompt(c *gin.Context, id string)
+
+	// (GET /v1/admin/stats)
+	AdminAPIGetStats(c *gin.Context)
+
+	// (GET /v1/admin/users)
+	AdminAPIListUsers(c *gin.Context, params AdminAPIListUsersParams)
+
+	// (GET /v1/admin/users/{id})
+	AdminAPIGetUser(c *gin.Context, id string)
+
+	// (PUT /v1/admin/users/{id}/role)
+	AdminAPIUpdateUserRole(c *gin.Context, id string)
+
+	// (POST /v1/auth/login)
+	AuthAPILogin(c *gin.Context)
+
+	// (POST /v1/auth/logout)
+	AuthAPILogout(c *gin.Context)
+
+	// (GET /v1/auth/me)
+	AuthAPIMe(c *gin.Context)
+
+	// (GET /v1/auth/naver/callback)
+	AuthAPINaverCallback(c *gin.Context, params AuthAPINaverCallbackParams)
+
+	// (GET /v1/auth/naver/login)
+	AuthAPINaverLogin(c *gin.Context)
+
+	// (POST /v1/auth/refresh)
+	AuthAPIRefresh(c *gin.Context)
+
+	// (POST /v1/auth/signup)
+	AuthAPISignup(c *gin.Context)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -47,6 +281,309 @@ func (siw *ServerInterfaceWrapper) HealthCheck(c *gin.Context) {
 	}
 
 	siw.Handler.HealthCheck(c)
+}
+
+// AdminAPIListPrompts operation middleware
+func (siw *ServerInterfaceWrapper) AdminAPIListPrompts(c *gin.Context) {
+
+	var err error
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AdminAPIListPromptsParams
+
+	// ------------- Optional query parameter "category" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "category", c.Request.URL.Query(), &params.Category)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter category: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AdminAPIListPrompts(c, params)
+}
+
+// AdminAPIUpdatePrompt operation middleware
+func (siw *ServerInterfaceWrapper) AdminAPIUpdatePrompt(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AdminAPIUpdatePrompt(c, id)
+}
+
+// AdminAPIGetStats operation middleware
+func (siw *ServerInterfaceWrapper) AdminAPIGetStats(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AdminAPIGetStats(c)
+}
+
+// AdminAPIListUsers operation middleware
+func (siw *ServerInterfaceWrapper) AdminAPIListUsers(c *gin.Context) {
+
+	var err error
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AdminAPIListUsersParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "limit", c.Request.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter limit: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "offset", c.Request.URL.Query(), &params.Offset)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter offset: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "role" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "role", c.Request.URL.Query(), &params.Role)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter role: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "search" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "search", c.Request.URL.Query(), &params.Search)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter search: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AdminAPIListUsers(c, params)
+}
+
+// AdminAPIGetUser operation middleware
+func (siw *ServerInterfaceWrapper) AdminAPIGetUser(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AdminAPIGetUser(c, id)
+}
+
+// AdminAPIUpdateUserRole operation middleware
+func (siw *ServerInterfaceWrapper) AdminAPIUpdateUserRole(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AdminAPIUpdateUserRole(c, id)
+}
+
+// AuthAPILogin operation middleware
+func (siw *ServerInterfaceWrapper) AuthAPILogin(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AuthAPILogin(c)
+}
+
+// AuthAPILogout operation middleware
+func (siw *ServerInterfaceWrapper) AuthAPILogout(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AuthAPILogout(c)
+}
+
+// AuthAPIMe operation middleware
+func (siw *ServerInterfaceWrapper) AuthAPIMe(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AuthAPIMe(c)
+}
+
+// AuthAPINaverCallback operation middleware
+func (siw *ServerInterfaceWrapper) AuthAPINaverCallback(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AuthAPINaverCallbackParams
+
+	// ------------- Required query parameter "code" -------------
+
+	if paramValue := c.Query("code"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument code is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "code", c.Request.URL.Query(), &params.Code)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter code: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "state" -------------
+
+	if paramValue := c.Query("state"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument state is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "state", c.Request.URL.Query(), &params.State)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter state: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AuthAPINaverCallback(c, params)
+}
+
+// AuthAPINaverLogin operation middleware
+func (siw *ServerInterfaceWrapper) AuthAPINaverLogin(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AuthAPINaverLogin(c)
+}
+
+// AuthAPIRefresh operation middleware
+func (siw *ServerInterfaceWrapper) AuthAPIRefresh(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AuthAPIRefresh(c)
+}
+
+// AuthAPISignup operation middleware
+func (siw *ServerInterfaceWrapper) AuthAPISignup(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AuthAPISignup(c)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -77,6 +614,19 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/health", wrapper.HealthCheck)
+	router.GET(options.BaseURL+"/v1/admin/prompts", wrapper.AdminAPIListPrompts)
+	router.PUT(options.BaseURL+"/v1/admin/prompts/:id", wrapper.AdminAPIUpdatePrompt)
+	router.GET(options.BaseURL+"/v1/admin/stats", wrapper.AdminAPIGetStats)
+	router.GET(options.BaseURL+"/v1/admin/users", wrapper.AdminAPIListUsers)
+	router.GET(options.BaseURL+"/v1/admin/users/:id", wrapper.AdminAPIGetUser)
+	router.PUT(options.BaseURL+"/v1/admin/users/:id/role", wrapper.AdminAPIUpdateUserRole)
+	router.POST(options.BaseURL+"/v1/auth/login", wrapper.AuthAPILogin)
+	router.POST(options.BaseURL+"/v1/auth/logout", wrapper.AuthAPILogout)
+	router.GET(options.BaseURL+"/v1/auth/me", wrapper.AuthAPIMe)
+	router.GET(options.BaseURL+"/v1/auth/naver/callback", wrapper.AuthAPINaverCallback)
+	router.GET(options.BaseURL+"/v1/auth/naver/login", wrapper.AuthAPINaverLogin)
+	router.POST(options.BaseURL+"/v1/auth/refresh", wrapper.AuthAPIRefresh)
+	router.POST(options.BaseURL+"/v1/auth/signup", wrapper.AuthAPISignup)
 }
 
 type HealthCheckRequestObject struct {
@@ -97,11 +647,950 @@ func (response HealthCheck200JSONResponse) VisitHealthCheckResponse(w http.Respo
 	return json.NewEncoder(w).Encode(response)
 }
 
+type AdminAPIListPromptsRequestObject struct {
+	Params AdminAPIListPromptsParams
+}
+
+type AdminAPIListPromptsResponseObject interface {
+	VisitAdminAPIListPromptsResponse(w http.ResponseWriter) error
+}
+
+type AdminAPIListPrompts200JSONResponse struct {
+	Data []AdminPromptTemplateDetail `json:"data"`
+}
+
+func (response AdminAPIListPrompts200JSONResponse) VisitAdminAPIListPromptsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListPrompts400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIListPrompts400JSONResponse) VisitAdminAPIListPromptsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListPrompts401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIListPrompts401JSONResponse) VisitAdminAPIListPromptsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListPrompts403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIListPrompts403JSONResponse) VisitAdminAPIListPromptsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListPrompts404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIListPrompts404JSONResponse) VisitAdminAPIListPromptsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListPrompts409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIListPrompts409JSONResponse) VisitAdminAPIListPromptsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListPrompts500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIListPrompts500JSONResponse) VisitAdminAPIListPromptsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdatePromptRequestObject struct {
+	Id   string `json:"id"`
+	Body *AdminAPIUpdatePromptJSONRequestBody
+}
+
+type AdminAPIUpdatePromptResponseObject interface {
+	VisitAdminAPIUpdatePromptResponse(w http.ResponseWriter) error
+}
+
+type AdminAPIUpdatePrompt200JSONResponse struct {
+	Data AdminPromptTemplateDetail `json:"data"`
+}
+
+func (response AdminAPIUpdatePrompt200JSONResponse) VisitAdminAPIUpdatePromptResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdatePrompt400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIUpdatePrompt400JSONResponse) VisitAdminAPIUpdatePromptResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdatePrompt401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIUpdatePrompt401JSONResponse) VisitAdminAPIUpdatePromptResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdatePrompt403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIUpdatePrompt403JSONResponse) VisitAdminAPIUpdatePromptResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdatePrompt404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIUpdatePrompt404JSONResponse) VisitAdminAPIUpdatePromptResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdatePrompt409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIUpdatePrompt409JSONResponse) VisitAdminAPIUpdatePromptResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdatePrompt500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIUpdatePrompt500JSONResponse) VisitAdminAPIUpdatePromptResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetStatsRequestObject struct {
+}
+
+type AdminAPIGetStatsResponseObject interface {
+	VisitAdminAPIGetStatsResponse(w http.ResponseWriter) error
+}
+
+type AdminAPIGetStats200JSONResponse struct {
+	Data AdminSystemStats `json:"data"`
+}
+
+func (response AdminAPIGetStats200JSONResponse) VisitAdminAPIGetStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetStats400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIGetStats400JSONResponse) VisitAdminAPIGetStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetStats401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIGetStats401JSONResponse) VisitAdminAPIGetStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetStats403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIGetStats403JSONResponse) VisitAdminAPIGetStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetStats404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIGetStats404JSONResponse) VisitAdminAPIGetStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetStats409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIGetStats409JSONResponse) VisitAdminAPIGetStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetStats500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIGetStats500JSONResponse) VisitAdminAPIGetStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListUsersRequestObject struct {
+	Params AdminAPIListUsersParams
+}
+
+type AdminAPIListUsersResponseObject interface {
+	VisitAdminAPIListUsersResponse(w http.ResponseWriter) error
+}
+
+type AdminAPIListUsers200JSONResponse struct {
+	Count int32                    `json:"count"`
+	Data  []AdminAdminUserListItem `json:"data"`
+}
+
+func (response AdminAPIListUsers200JSONResponse) VisitAdminAPIListUsersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListUsers400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIListUsers400JSONResponse) VisitAdminAPIListUsersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListUsers401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIListUsers401JSONResponse) VisitAdminAPIListUsersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListUsers403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIListUsers403JSONResponse) VisitAdminAPIListUsersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListUsers404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIListUsers404JSONResponse) VisitAdminAPIListUsersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListUsers409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIListUsers409JSONResponse) VisitAdminAPIListUsersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIListUsers500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIListUsers500JSONResponse) VisitAdminAPIListUsersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetUserRequestObject struct {
+	Id string `json:"id"`
+}
+
+type AdminAPIGetUserResponseObject interface {
+	VisitAdminAPIGetUserResponse(w http.ResponseWriter) error
+}
+
+type AdminAPIGetUser200JSONResponse struct {
+	Data AdminAdminUserListItem `json:"data"`
+}
+
+func (response AdminAPIGetUser200JSONResponse) VisitAdminAPIGetUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetUser400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIGetUser400JSONResponse) VisitAdminAPIGetUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetUser401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIGetUser401JSONResponse) VisitAdminAPIGetUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetUser403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIGetUser403JSONResponse) VisitAdminAPIGetUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetUser404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIGetUser404JSONResponse) VisitAdminAPIGetUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetUser409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIGetUser409JSONResponse) VisitAdminAPIGetUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIGetUser500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIGetUser500JSONResponse) VisitAdminAPIGetUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdateUserRoleRequestObject struct {
+	Id   string `json:"id"`
+	Body *AdminAPIUpdateUserRoleJSONRequestBody
+}
+
+type AdminAPIUpdateUserRoleResponseObject interface {
+	VisitAdminAPIUpdateUserRoleResponse(w http.ResponseWriter) error
+}
+
+type AdminAPIUpdateUserRole200JSONResponse struct {
+	Data AdminAdminUserListItem `json:"data"`
+}
+
+func (response AdminAPIUpdateUserRole200JSONResponse) VisitAdminAPIUpdateUserRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdateUserRole400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIUpdateUserRole400JSONResponse) VisitAdminAPIUpdateUserRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdateUserRole401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIUpdateUserRole401JSONResponse) VisitAdminAPIUpdateUserRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdateUserRole403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIUpdateUserRole403JSONResponse) VisitAdminAPIUpdateUserRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdateUserRole404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIUpdateUserRole404JSONResponse) VisitAdminAPIUpdateUserRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdateUserRole409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIUpdateUserRole409JSONResponse) VisitAdminAPIUpdateUserRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AdminAPIUpdateUserRole500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AdminAPIUpdateUserRole500JSONResponse) VisitAdminAPIUpdateUserRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPILoginRequestObject struct {
+	Body *AuthAPILoginJSONRequestBody
+}
+
+type AuthAPILoginResponseObject interface {
+	VisitAuthAPILoginResponse(w http.ResponseWriter) error
+}
+
+type AuthAPILogin200JSONResponse struct {
+	Data AuthAuthResponse `json:"data"`
+}
+
+func (response AuthAPILogin200JSONResponse) VisitAuthAPILoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPILogin400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPILogin400JSONResponse) VisitAuthAPILoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPILogin401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPILogin401JSONResponse) VisitAuthAPILoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPILogin403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPILogin403JSONResponse) VisitAuthAPILoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPILogin404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPILogin404JSONResponse) VisitAuthAPILoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPILogin409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPILogin409JSONResponse) VisitAuthAPILoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPILogin500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPILogin500JSONResponse) VisitAuthAPILoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPILogoutRequestObject struct {
+}
+
+type AuthAPILogoutResponseObject interface {
+	VisitAuthAPILogoutResponse(w http.ResponseWriter) error
+}
+
+type AuthAPILogout200JSONResponse struct {
+	Success bool `json:"success"`
+}
+
+func (response AuthAPILogout200JSONResponse) VisitAuthAPILogoutResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIMeRequestObject struct {
+}
+
+type AuthAPIMeResponseObject interface {
+	VisitAuthAPIMeResponse(w http.ResponseWriter) error
+}
+
+type AuthAPIMe200JSONResponse struct {
+	Data AuthUserInfo `json:"data"`
+}
+
+func (response AuthAPIMe200JSONResponse) VisitAuthAPIMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIMe400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPIMe400JSONResponse) VisitAuthAPIMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIMe401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPIMe401JSONResponse) VisitAuthAPIMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIMe403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPIMe403JSONResponse) VisitAuthAPIMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIMe404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPIMe404JSONResponse) VisitAuthAPIMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIMe409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPIMe409JSONResponse) VisitAuthAPIMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIMe500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPIMe500JSONResponse) VisitAuthAPIMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPINaverCallbackRequestObject struct {
+	Params AuthAPINaverCallbackParams
+}
+
+type AuthAPINaverCallbackResponseObject interface {
+	VisitAuthAPINaverCallbackResponse(w http.ResponseWriter) error
+}
+
+type AuthAPINaverCallback204Response struct {
+}
+
+func (response AuthAPINaverCallback204Response) VisitAuthAPINaverCallbackResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type AuthAPINaverLoginRequestObject struct {
+}
+
+type AuthAPINaverLoginResponseObject interface {
+	VisitAuthAPINaverLoginResponse(w http.ResponseWriter) error
+}
+
+type AuthAPINaverLogin204Response struct {
+}
+
+func (response AuthAPINaverLogin204Response) VisitAuthAPINaverLoginResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type AuthAPIRefreshRequestObject struct {
+	Body *AuthAPIRefreshJSONRequestBody
+}
+
+type AuthAPIRefreshResponseObject interface {
+	VisitAuthAPIRefreshResponse(w http.ResponseWriter) error
+}
+
+type AuthAPIRefresh200JSONResponse struct {
+	Data AuthAuthTokens `json:"data"`
+}
+
+func (response AuthAPIRefresh200JSONResponse) VisitAuthAPIRefreshResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIRefresh400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPIRefresh400JSONResponse) VisitAuthAPIRefreshResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIRefresh401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPIRefresh401JSONResponse) VisitAuthAPIRefreshResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIRefresh403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPIRefresh403JSONResponse) VisitAuthAPIRefreshResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIRefresh404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPIRefresh404JSONResponse) VisitAuthAPIRefreshResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIRefresh409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPIRefresh409JSONResponse) VisitAuthAPIRefreshResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPIRefresh500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPIRefresh500JSONResponse) VisitAuthAPIRefreshResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPISignupRequestObject struct {
+	Body *AuthAPISignupJSONRequestBody
+}
+
+type AuthAPISignupResponseObject interface {
+	VisitAuthAPISignupResponse(w http.ResponseWriter) error
+}
+
+type AuthAPISignup201JSONResponse struct {
+	Data AuthAuthResponse `json:"data"`
+}
+
+func (response AuthAPISignup201JSONResponse) VisitAuthAPISignupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPISignup400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPISignup400JSONResponse) VisitAuthAPISignupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPISignup401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPISignup401JSONResponse) VisitAuthAPISignupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPISignup403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPISignup403JSONResponse) VisitAuthAPISignupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPISignup404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPISignup404JSONResponse) VisitAuthAPISignupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPISignup409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPISignup409JSONResponse) VisitAuthAPISignupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthAPISignup500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response AuthAPISignup500JSONResponse) VisitAuthAPISignupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
 	// (GET /health)
 	HealthCheck(ctx context.Context, request HealthCheckRequestObject) (HealthCheckResponseObject, error)
+
+	// (GET /v1/admin/prompts)
+	AdminAPIListPrompts(ctx context.Context, request AdminAPIListPromptsRequestObject) (AdminAPIListPromptsResponseObject, error)
+
+	// (PUT /v1/admin/prompts/{id})
+	AdminAPIUpdatePrompt(ctx context.Context, request AdminAPIUpdatePromptRequestObject) (AdminAPIUpdatePromptResponseObject, error)
+
+	// (GET /v1/admin/stats)
+	AdminAPIGetStats(ctx context.Context, request AdminAPIGetStatsRequestObject) (AdminAPIGetStatsResponseObject, error)
+
+	// (GET /v1/admin/users)
+	AdminAPIListUsers(ctx context.Context, request AdminAPIListUsersRequestObject) (AdminAPIListUsersResponseObject, error)
+
+	// (GET /v1/admin/users/{id})
+	AdminAPIGetUser(ctx context.Context, request AdminAPIGetUserRequestObject) (AdminAPIGetUserResponseObject, error)
+
+	// (PUT /v1/admin/users/{id}/role)
+	AdminAPIUpdateUserRole(ctx context.Context, request AdminAPIUpdateUserRoleRequestObject) (AdminAPIUpdateUserRoleResponseObject, error)
+
+	// (POST /v1/auth/login)
+	AuthAPILogin(ctx context.Context, request AuthAPILoginRequestObject) (AuthAPILoginResponseObject, error)
+
+	// (POST /v1/auth/logout)
+	AuthAPILogout(ctx context.Context, request AuthAPILogoutRequestObject) (AuthAPILogoutResponseObject, error)
+
+	// (GET /v1/auth/me)
+	AuthAPIMe(ctx context.Context, request AuthAPIMeRequestObject) (AuthAPIMeResponseObject, error)
+
+	// (GET /v1/auth/naver/callback)
+	AuthAPINaverCallback(ctx context.Context, request AuthAPINaverCallbackRequestObject) (AuthAPINaverCallbackResponseObject, error)
+
+	// (GET /v1/auth/naver/login)
+	AuthAPINaverLogin(ctx context.Context, request AuthAPINaverLoginRequestObject) (AuthAPINaverLoginResponseObject, error)
+
+	// (POST /v1/auth/refresh)
+	AuthAPIRefresh(ctx context.Context, request AuthAPIRefreshRequestObject) (AuthAPIRefreshResponseObject, error)
+
+	// (POST /v1/auth/signup)
+	AuthAPISignup(ctx context.Context, request AuthAPISignupRequestObject) (AuthAPISignupResponseObject, error)
 }
 
 type StrictHandlerFunc = strictgin.StrictGinHandlerFunc
@@ -141,15 +1630,420 @@ func (sh *strictHandler) HealthCheck(ctx *gin.Context) {
 	}
 }
 
+// AdminAPIListPrompts operation middleware
+func (sh *strictHandler) AdminAPIListPrompts(ctx *gin.Context, params AdminAPIListPromptsParams) {
+	var request AdminAPIListPromptsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminAPIListPrompts(ctx, request.(AdminAPIListPromptsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminAPIListPrompts")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AdminAPIListPromptsResponseObject); ok {
+		if err := validResponse.VisitAdminAPIListPromptsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminAPIUpdatePrompt operation middleware
+func (sh *strictHandler) AdminAPIUpdatePrompt(ctx *gin.Context, id string) {
+	var request AdminAPIUpdatePromptRequestObject
+
+	request.Id = id
+
+	var body AdminAPIUpdatePromptJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminAPIUpdatePrompt(ctx, request.(AdminAPIUpdatePromptRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminAPIUpdatePrompt")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AdminAPIUpdatePromptResponseObject); ok {
+		if err := validResponse.VisitAdminAPIUpdatePromptResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminAPIGetStats operation middleware
+func (sh *strictHandler) AdminAPIGetStats(ctx *gin.Context) {
+	var request AdminAPIGetStatsRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminAPIGetStats(ctx, request.(AdminAPIGetStatsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminAPIGetStats")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AdminAPIGetStatsResponseObject); ok {
+		if err := validResponse.VisitAdminAPIGetStatsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminAPIListUsers operation middleware
+func (sh *strictHandler) AdminAPIListUsers(ctx *gin.Context, params AdminAPIListUsersParams) {
+	var request AdminAPIListUsersRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminAPIListUsers(ctx, request.(AdminAPIListUsersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminAPIListUsers")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AdminAPIListUsersResponseObject); ok {
+		if err := validResponse.VisitAdminAPIListUsersResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminAPIGetUser operation middleware
+func (sh *strictHandler) AdminAPIGetUser(ctx *gin.Context, id string) {
+	var request AdminAPIGetUserRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminAPIGetUser(ctx, request.(AdminAPIGetUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminAPIGetUser")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AdminAPIGetUserResponseObject); ok {
+		if err := validResponse.VisitAdminAPIGetUserResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminAPIUpdateUserRole operation middleware
+func (sh *strictHandler) AdminAPIUpdateUserRole(ctx *gin.Context, id string) {
+	var request AdminAPIUpdateUserRoleRequestObject
+
+	request.Id = id
+
+	var body AdminAPIUpdateUserRoleJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminAPIUpdateUserRole(ctx, request.(AdminAPIUpdateUserRoleRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminAPIUpdateUserRole")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AdminAPIUpdateUserRoleResponseObject); ok {
+		if err := validResponse.VisitAdminAPIUpdateUserRoleResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AuthAPILogin operation middleware
+func (sh *strictHandler) AuthAPILogin(ctx *gin.Context) {
+	var request AuthAPILoginRequestObject
+
+	var body AuthAPILoginJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AuthAPILogin(ctx, request.(AuthAPILoginRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AuthAPILogin")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AuthAPILoginResponseObject); ok {
+		if err := validResponse.VisitAuthAPILoginResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AuthAPILogout operation middleware
+func (sh *strictHandler) AuthAPILogout(ctx *gin.Context) {
+	var request AuthAPILogoutRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AuthAPILogout(ctx, request.(AuthAPILogoutRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AuthAPILogout")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AuthAPILogoutResponseObject); ok {
+		if err := validResponse.VisitAuthAPILogoutResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AuthAPIMe operation middleware
+func (sh *strictHandler) AuthAPIMe(ctx *gin.Context) {
+	var request AuthAPIMeRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AuthAPIMe(ctx, request.(AuthAPIMeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AuthAPIMe")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AuthAPIMeResponseObject); ok {
+		if err := validResponse.VisitAuthAPIMeResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AuthAPINaverCallback operation middleware
+func (sh *strictHandler) AuthAPINaverCallback(ctx *gin.Context, params AuthAPINaverCallbackParams) {
+	var request AuthAPINaverCallbackRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AuthAPINaverCallback(ctx, request.(AuthAPINaverCallbackRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AuthAPINaverCallback")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AuthAPINaverCallbackResponseObject); ok {
+		if err := validResponse.VisitAuthAPINaverCallbackResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AuthAPINaverLogin operation middleware
+func (sh *strictHandler) AuthAPINaverLogin(ctx *gin.Context) {
+	var request AuthAPINaverLoginRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AuthAPINaverLogin(ctx, request.(AuthAPINaverLoginRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AuthAPINaverLogin")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AuthAPINaverLoginResponseObject); ok {
+		if err := validResponse.VisitAuthAPINaverLoginResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AuthAPIRefresh operation middleware
+func (sh *strictHandler) AuthAPIRefresh(ctx *gin.Context) {
+	var request AuthAPIRefreshRequestObject
+
+	var body AuthAPIRefreshJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AuthAPIRefresh(ctx, request.(AuthAPIRefreshRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AuthAPIRefresh")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AuthAPIRefreshResponseObject); ok {
+		if err := validResponse.VisitAuthAPIRefreshResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AuthAPISignup operation middleware
+func (sh *strictHandler) AuthAPISignup(ctx *gin.Context) {
+	var request AuthAPISignupRequestObject
+
+	var body AuthAPISignupJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AuthAPISignup(ctx, request.(AuthAPISignupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AuthAPISignup")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AuthAPISignupResponseObject); ok {
+		if err := validResponse.VisitAuthAPISignupResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

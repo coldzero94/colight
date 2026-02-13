@@ -1,6 +1,9 @@
 import "@typespec/http";
 import "@typespec/rest";
 import "@typespec/openapi3";
+import "./src/common/errors.tsp";
+import "./src/auth/auth.tsp";
+import "./src/admin/admin.tsp";
 
 using Http;
 using Rest;

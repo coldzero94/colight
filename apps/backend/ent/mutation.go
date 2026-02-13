@@ -13962,7 +13962,13 @@ type UserProfileMutation struct {
 	id                       *uuid.UUID
 	created_at               *time.Time
 	updated_at               *time.Time
-	user_id                  *uuid.UUID
+	email                    *string
+	password_hash            *string
+	naver_id                 *string
+	auth_provider            *userprofile.AuthProvider
+	role                     *userprofile.Role
+	email_verified           *bool
+	last_login_at            *time.Time
 	nickname                 *string
 	target_job               *string
 	target_industry          *string
@@ -14172,40 +14178,308 @@ func (m *UserProfileMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// SetUserID sets the "user_id" field.
-func (m *UserProfileMutation) SetUserID(u uuid.UUID) {
-	m.user_id = &u
+// SetEmail sets the "email" field.
+func (m *UserProfileMutation) SetEmail(s string) {
+	m.email = &s
 }
 
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *UserProfileMutation) UserID() (r uuid.UUID, exists bool) {
-	v := m.user_id
+// Email returns the value of the "email" field in the mutation.
+func (m *UserProfileMutation) Email() (r string, exists bool) {
+	v := m.email
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldUserID returns the old "user_id" field's value of the UserProfile entity.
+// OldEmail returns the old "email" field's value of the UserProfile entity.
 // If the UserProfile object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserProfileMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *UserProfileMutation) OldEmail(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+		return v, errors.New("OldEmail is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
+		return v, errors.New("OldEmail requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+		return v, fmt.Errorf("querying old value for OldEmail: %w", err)
 	}
-	return oldValue.UserID, nil
+	return oldValue.Email, nil
 }
 
-// ResetUserID resets all changes to the "user_id" field.
-func (m *UserProfileMutation) ResetUserID() {
-	m.user_id = nil
+// ClearEmail clears the value of the "email" field.
+func (m *UserProfileMutation) ClearEmail() {
+	m.email = nil
+	m.clearedFields[userprofile.FieldEmail] = struct{}{}
+}
+
+// EmailCleared returns if the "email" field was cleared in this mutation.
+func (m *UserProfileMutation) EmailCleared() bool {
+	_, ok := m.clearedFields[userprofile.FieldEmail]
+	return ok
+}
+
+// ResetEmail resets all changes to the "email" field.
+func (m *UserProfileMutation) ResetEmail() {
+	m.email = nil
+	delete(m.clearedFields, userprofile.FieldEmail)
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (m *UserProfileMutation) SetPasswordHash(s string) {
+	m.password_hash = &s
+}
+
+// PasswordHash returns the value of the "password_hash" field in the mutation.
+func (m *UserProfileMutation) PasswordHash() (r string, exists bool) {
+	v := m.password_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPasswordHash returns the old "password_hash" field's value of the UserProfile entity.
+// If the UserProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserProfileMutation) OldPasswordHash(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPasswordHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPasswordHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPasswordHash: %w", err)
+	}
+	return oldValue.PasswordHash, nil
+}
+
+// ClearPasswordHash clears the value of the "password_hash" field.
+func (m *UserProfileMutation) ClearPasswordHash() {
+	m.password_hash = nil
+	m.clearedFields[userprofile.FieldPasswordHash] = struct{}{}
+}
+
+// PasswordHashCleared returns if the "password_hash" field was cleared in this mutation.
+func (m *UserProfileMutation) PasswordHashCleared() bool {
+	_, ok := m.clearedFields[userprofile.FieldPasswordHash]
+	return ok
+}
+
+// ResetPasswordHash resets all changes to the "password_hash" field.
+func (m *UserProfileMutation) ResetPasswordHash() {
+	m.password_hash = nil
+	delete(m.clearedFields, userprofile.FieldPasswordHash)
+}
+
+// SetNaverID sets the "naver_id" field.
+func (m *UserProfileMutation) SetNaverID(s string) {
+	m.naver_id = &s
+}
+
+// NaverID returns the value of the "naver_id" field in the mutation.
+func (m *UserProfileMutation) NaverID() (r string, exists bool) {
+	v := m.naver_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNaverID returns the old "naver_id" field's value of the UserProfile entity.
+// If the UserProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserProfileMutation) OldNaverID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNaverID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNaverID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNaverID: %w", err)
+	}
+	return oldValue.NaverID, nil
+}
+
+// ClearNaverID clears the value of the "naver_id" field.
+func (m *UserProfileMutation) ClearNaverID() {
+	m.naver_id = nil
+	m.clearedFields[userprofile.FieldNaverID] = struct{}{}
+}
+
+// NaverIDCleared returns if the "naver_id" field was cleared in this mutation.
+func (m *UserProfileMutation) NaverIDCleared() bool {
+	_, ok := m.clearedFields[userprofile.FieldNaverID]
+	return ok
+}
+
+// ResetNaverID resets all changes to the "naver_id" field.
+func (m *UserProfileMutation) ResetNaverID() {
+	m.naver_id = nil
+	delete(m.clearedFields, userprofile.FieldNaverID)
+}
+
+// SetAuthProvider sets the "auth_provider" field.
+func (m *UserProfileMutation) SetAuthProvider(up userprofile.AuthProvider) {
+	m.auth_provider = &up
+}
+
+// AuthProvider returns the value of the "auth_provider" field in the mutation.
+func (m *UserProfileMutation) AuthProvider() (r userprofile.AuthProvider, exists bool) {
+	v := m.auth_provider
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAuthProvider returns the old "auth_provider" field's value of the UserProfile entity.
+// If the UserProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserProfileMutation) OldAuthProvider(ctx context.Context) (v userprofile.AuthProvider, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAuthProvider is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAuthProvider requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAuthProvider: %w", err)
+	}
+	return oldValue.AuthProvider, nil
+}
+
+// ResetAuthProvider resets all changes to the "auth_provider" field.
+func (m *UserProfileMutation) ResetAuthProvider() {
+	m.auth_provider = nil
+}
+
+// SetRole sets the "role" field.
+func (m *UserProfileMutation) SetRole(u userprofile.Role) {
+	m.role = &u
+}
+
+// Role returns the value of the "role" field in the mutation.
+func (m *UserProfileMutation) Role() (r userprofile.Role, exists bool) {
+	v := m.role
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRole returns the old "role" field's value of the UserProfile entity.
+// If the UserProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserProfileMutation) OldRole(ctx context.Context) (v userprofile.Role, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRole is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRole requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRole: %w", err)
+	}
+	return oldValue.Role, nil
+}
+
+// ResetRole resets all changes to the "role" field.
+func (m *UserProfileMutation) ResetRole() {
+	m.role = nil
+}
+
+// SetEmailVerified sets the "email_verified" field.
+func (m *UserProfileMutation) SetEmailVerified(b bool) {
+	m.email_verified = &b
+}
+
+// EmailVerified returns the value of the "email_verified" field in the mutation.
+func (m *UserProfileMutation) EmailVerified() (r bool, exists bool) {
+	v := m.email_verified
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmailVerified returns the old "email_verified" field's value of the UserProfile entity.
+// If the UserProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserProfileMutation) OldEmailVerified(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmailVerified is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmailVerified requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmailVerified: %w", err)
+	}
+	return oldValue.EmailVerified, nil
+}
+
+// ResetEmailVerified resets all changes to the "email_verified" field.
+func (m *UserProfileMutation) ResetEmailVerified() {
+	m.email_verified = nil
+}
+
+// SetLastLoginAt sets the "last_login_at" field.
+func (m *UserProfileMutation) SetLastLoginAt(t time.Time) {
+	m.last_login_at = &t
+}
+
+// LastLoginAt returns the value of the "last_login_at" field in the mutation.
+func (m *UserProfileMutation) LastLoginAt() (r time.Time, exists bool) {
+	v := m.last_login_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastLoginAt returns the old "last_login_at" field's value of the UserProfile entity.
+// If the UserProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserProfileMutation) OldLastLoginAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastLoginAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastLoginAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastLoginAt: %w", err)
+	}
+	return oldValue.LastLoginAt, nil
+}
+
+// ClearLastLoginAt clears the value of the "last_login_at" field.
+func (m *UserProfileMutation) ClearLastLoginAt() {
+	m.last_login_at = nil
+	m.clearedFields[userprofile.FieldLastLoginAt] = struct{}{}
+}
+
+// LastLoginAtCleared returns if the "last_login_at" field was cleared in this mutation.
+func (m *UserProfileMutation) LastLoginAtCleared() bool {
+	_, ok := m.clearedFields[userprofile.FieldLastLoginAt]
+	return ok
+}
+
+// ResetLastLoginAt resets all changes to the "last_login_at" field.
+func (m *UserProfileMutation) ResetLastLoginAt() {
+	m.last_login_at = nil
+	delete(m.clearedFields, userprofile.FieldLastLoginAt)
 }
 
 // SetNickname sets the "nickname" field.
@@ -14924,15 +15198,33 @@ func (m *UserProfileMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserProfileMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 16)
 	if m.created_at != nil {
 		fields = append(fields, userprofile.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, userprofile.FieldUpdatedAt)
 	}
-	if m.user_id != nil {
-		fields = append(fields, userprofile.FieldUserID)
+	if m.email != nil {
+		fields = append(fields, userprofile.FieldEmail)
+	}
+	if m.password_hash != nil {
+		fields = append(fields, userprofile.FieldPasswordHash)
+	}
+	if m.naver_id != nil {
+		fields = append(fields, userprofile.FieldNaverID)
+	}
+	if m.auth_provider != nil {
+		fields = append(fields, userprofile.FieldAuthProvider)
+	}
+	if m.role != nil {
+		fields = append(fields, userprofile.FieldRole)
+	}
+	if m.email_verified != nil {
+		fields = append(fields, userprofile.FieldEmailVerified)
+	}
+	if m.last_login_at != nil {
+		fields = append(fields, userprofile.FieldLastLoginAt)
 	}
 	if m.nickname != nil {
 		fields = append(fields, userprofile.FieldNickname)
@@ -14967,8 +15259,20 @@ func (m *UserProfileMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case userprofile.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case userprofile.FieldUserID:
-		return m.UserID()
+	case userprofile.FieldEmail:
+		return m.Email()
+	case userprofile.FieldPasswordHash:
+		return m.PasswordHash()
+	case userprofile.FieldNaverID:
+		return m.NaverID()
+	case userprofile.FieldAuthProvider:
+		return m.AuthProvider()
+	case userprofile.FieldRole:
+		return m.Role()
+	case userprofile.FieldEmailVerified:
+		return m.EmailVerified()
+	case userprofile.FieldLastLoginAt:
+		return m.LastLoginAt()
 	case userprofile.FieldNickname:
 		return m.Nickname()
 	case userprofile.FieldTargetJob:
@@ -14996,8 +15300,20 @@ func (m *UserProfileMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldCreatedAt(ctx)
 	case userprofile.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case userprofile.FieldUserID:
-		return m.OldUserID(ctx)
+	case userprofile.FieldEmail:
+		return m.OldEmail(ctx)
+	case userprofile.FieldPasswordHash:
+		return m.OldPasswordHash(ctx)
+	case userprofile.FieldNaverID:
+		return m.OldNaverID(ctx)
+	case userprofile.FieldAuthProvider:
+		return m.OldAuthProvider(ctx)
+	case userprofile.FieldRole:
+		return m.OldRole(ctx)
+	case userprofile.FieldEmailVerified:
+		return m.OldEmailVerified(ctx)
+	case userprofile.FieldLastLoginAt:
+		return m.OldLastLoginAt(ctx)
 	case userprofile.FieldNickname:
 		return m.OldNickname(ctx)
 	case userprofile.FieldTargetJob:
@@ -15035,12 +15351,54 @@ func (m *UserProfileMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdatedAt(v)
 		return nil
-	case userprofile.FieldUserID:
-		v, ok := value.(uuid.UUID)
+	case userprofile.FieldEmail:
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetUserID(v)
+		m.SetEmail(v)
+		return nil
+	case userprofile.FieldPasswordHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPasswordHash(v)
+		return nil
+	case userprofile.FieldNaverID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNaverID(v)
+		return nil
+	case userprofile.FieldAuthProvider:
+		v, ok := value.(userprofile.AuthProvider)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAuthProvider(v)
+		return nil
+	case userprofile.FieldRole:
+		v, ok := value.(userprofile.Role)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRole(v)
+		return nil
+	case userprofile.FieldEmailVerified:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmailVerified(v)
+		return nil
+	case userprofile.FieldLastLoginAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastLoginAt(v)
 		return nil
 	case userprofile.FieldNickname:
 		v, ok := value.(string)
@@ -15148,6 +15506,18 @@ func (m *UserProfileMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *UserProfileMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(userprofile.FieldEmail) {
+		fields = append(fields, userprofile.FieldEmail)
+	}
+	if m.FieldCleared(userprofile.FieldPasswordHash) {
+		fields = append(fields, userprofile.FieldPasswordHash)
+	}
+	if m.FieldCleared(userprofile.FieldNaverID) {
+		fields = append(fields, userprofile.FieldNaverID)
+	}
+	if m.FieldCleared(userprofile.FieldLastLoginAt) {
+		fields = append(fields, userprofile.FieldLastLoginAt)
+	}
 	if m.FieldCleared(userprofile.FieldNickname) {
 		fields = append(fields, userprofile.FieldNickname)
 	}
@@ -15177,6 +15547,18 @@ func (m *UserProfileMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *UserProfileMutation) ClearField(name string) error {
 	switch name {
+	case userprofile.FieldEmail:
+		m.ClearEmail()
+		return nil
+	case userprofile.FieldPasswordHash:
+		m.ClearPasswordHash()
+		return nil
+	case userprofile.FieldNaverID:
+		m.ClearNaverID()
+		return nil
+	case userprofile.FieldLastLoginAt:
+		m.ClearLastLoginAt()
+		return nil
 	case userprofile.FieldNickname:
 		m.ClearNickname()
 		return nil
@@ -15206,8 +15588,26 @@ func (m *UserProfileMutation) ResetField(name string) error {
 	case userprofile.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
-	case userprofile.FieldUserID:
-		m.ResetUserID()
+	case userprofile.FieldEmail:
+		m.ResetEmail()
+		return nil
+	case userprofile.FieldPasswordHash:
+		m.ResetPasswordHash()
+		return nil
+	case userprofile.FieldNaverID:
+		m.ResetNaverID()
+		return nil
+	case userprofile.FieldAuthProvider:
+		m.ResetAuthProvider()
+		return nil
+	case userprofile.FieldRole:
+		m.ResetRole()
+		return nil
+	case userprofile.FieldEmailVerified:
+		m.ResetEmailVerified()
+		return nil
+	case userprofile.FieldLastLoginAt:
+		m.ResetLastLoginAt()
 		return nil
 	case userprofile.FieldNickname:
 		m.ResetNickname()

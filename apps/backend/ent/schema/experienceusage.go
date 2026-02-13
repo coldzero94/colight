@@ -24,7 +24,7 @@ func (ExperienceUsage) Mixin() []ent.Mixin {
 func (ExperienceUsage) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}).
-			Comment("References auth.users(id)"),
+			Comment("References user_profiles(id)"),
 		field.Text("question_text").
 			Optional().
 			Comment("Which question this experience was used for"),

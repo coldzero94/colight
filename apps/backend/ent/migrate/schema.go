@@ -567,7 +567,13 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "user_id", Type: field.TypeUUID, Unique: true},
+		{Name: "email", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "password_hash", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "naver_id", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "auth_provider", Type: field.TypeEnum, Enums: []string{"email", "naver"}, Default: "email"},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"user", "admin"}, Default: "user"},
+		{Name: "email_verified", Type: field.TypeBool, Default: false},
+		{Name: "last_login_at", Type: field.TypeTime, Nullable: true},
 		{Name: "nickname", Type: field.TypeString, Nullable: true, Size: 50},
 		{Name: "target_job", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "target_industry", Type: field.TypeString, Nullable: true, Size: 100},
@@ -583,9 +589,19 @@ var (
 		PrimaryKey: []*schema.Column{UserProfilesColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "userprofile_user_id",
-				Unique:  false,
+				Name:    "userprofile_email",
+				Unique:  true,
 				Columns: []*schema.Column{UserProfilesColumns[3]},
+			},
+			{
+				Name:    "userprofile_naver_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserProfilesColumns[5]},
+			},
+			{
+				Name:    "userprofile_role",
+				Unique:  false,
+				Columns: []*schema.Column{UserProfilesColumns[7]},
 			},
 		},
 	}

@@ -3,6 +3,8 @@ info:
   title: Colight API
   version: 0.0.0
 tags:
+  - name: Auth
+  - name: Admin
   - name: System
 paths:
   /health:
@@ -23,7 +25,1245 @@ paths:
                   - status
       tags:
         - System
-components: {}
+  /v1/admin/prompts:
+    get:
+      operationId: AdminAPI_listPrompts
+      description: List prompt templates
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Admin.PromptTemplateDetail'
+                required:
+                  - data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+  /v1/admin/prompts/{id}:
+    put:
+      operationId: AdminAPI_updatePrompt
+      description: Update prompt template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Admin.PromptTemplateDetail'
+                required:
+                  - data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Admin.UpdatePromptRequest'
+      security:
+        - BearerAuth: []
+  /v1/admin/stats:
+    get:
+      operationId: AdminAPI_getStats
+      description: Get system statistics
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Admin.SystemStats'
+                required:
+                  - data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+  /v1/admin/users:
+    get:
+      operationId: AdminAPI_listUsers
+      description: List users with pagination and filters
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+          explode: false
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+          explode: false
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - user
+              - admin
+          explode: false
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Admin.AdminUserListItem'
+                  count:
+                    type: integer
+                    format: int32
+                required:
+                  - data
+                  - count
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+  /v1/admin/users/{id}:
+    get:
+      operationId: AdminAPI_getUser
+      description: Get user details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Admin.AdminUserListItem'
+                required:
+                  - data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+  /v1/admin/users/{id}/role:
+    put:
+      operationId: AdminAPI_updateUserRole
+      description: Update user role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Admin.AdminUserListItem'
+                required:
+                  - data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Admin.UpdateRoleRequest'
+      security:
+        - BearerAuth: []
+  /v1/auth/login:
+    post:
+      operationId: AuthAPI_login
+      description: Email login
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Auth.AuthResponse'
+                required:
+                  - data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Auth.LoginRequest'
+  /v1/auth/logout:
+    post:
+      operationId: AuthAPI_logout
+      description: Logout
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required:
+                  - success
+      tags:
+        - Auth
+      security:
+        - BearerAuth: []
+  /v1/auth/me:
+    get:
+      operationId: AuthAPI_me
+      description: Get current user info
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Auth.UserInfo'
+                required:
+                  - data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Auth
+      security:
+        - BearerAuth: []
+  /v1/auth/naver/callback:
+    get:
+      operationId: AuthAPI_naverCallback
+      description: Naver OAuth callback — exchanges code for tokens
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          explode: false
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          explode: false
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+        - Auth
+  /v1/auth/naver/login:
+    get:
+      operationId: AuthAPI_naverLogin
+      description: Naver OAuth start — redirects to Naver login page
+      parameters: []
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+        - Auth
+  /v1/auth/refresh:
+    post:
+      operationId: AuthAPI_refresh
+      description: Refresh JWT tokens
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Auth.AuthTokens'
+                required:
+                  - data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+              required:
+                - refresh_token
+  /v1/auth/signup:
+    post:
+      operationId: AuthAPI_signup
+      description: Email signup
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Auth.AuthResponse'
+                required:
+                  - data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Auth.SignupRequest'
+components:
+  schemas:
+    Admin.AdminUserListItem:
+      type: object
+      required:
+        - id
+        - role
+        - auth_provider
+        - experience_count
+        - created_at
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        nickname:
+          type: string
+        role:
+          type: string
+          enum:
+            - user
+            - admin
+        auth_provider:
+          type: string
+          enum:
+            - email
+            - naver
+        experience_count:
+          type: integer
+          format: int32
+        last_login_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+    Admin.PromptTemplateDetail:
+      type: object
+      required:
+        - id
+        - category
+        - sub_category
+        - name
+        - system_prompt
+        - user_prompt_template
+        - model_name
+        - temperature
+        - max_tokens
+        - version
+        - is_active
+        - usage_count
+      properties:
+        id:
+          type: string
+        category:
+          type: string
+        sub_category:
+          type: string
+        name:
+          type: string
+        system_prompt:
+          type: string
+        user_prompt_template:
+          type: string
+        model_name:
+          type: string
+        temperature:
+          type: number
+          format: float
+        max_tokens:
+          type: integer
+          format: int32
+        version:
+          type: integer
+          format: int32
+        is_active:
+          type: boolean
+        usage_count:
+          type: integer
+          format: int32
+    Admin.SystemStats:
+      type: object
+      required:
+        - total_users
+        - active_users_today
+        - total_experiences
+        - total_coaching_sessions
+        - total_analyses
+        - naver_auth_users
+        - email_auth_users
+      properties:
+        total_users:
+          type: integer
+          format: int32
+        active_users_today:
+          type: integer
+          format: int32
+        total_experiences:
+          type: integer
+          format: int32
+        total_coaching_sessions:
+          type: integer
+          format: int32
+        total_analyses:
+          type: integer
+          format: int32
+        naver_auth_users:
+          type: integer
+          format: int32
+        email_auth_users:
+          type: integer
+          format: int32
+    Admin.UpdatePromptRequest:
+      type: object
+      properties:
+        system_prompt:
+          type: string
+        user_prompt_template:
+          type: string
+        temperature:
+          type: number
+          format: float
+        max_tokens:
+          type: integer
+          format: int32
+        is_active:
+          type: boolean
+    Admin.UpdateRoleRequest:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum:
+            - user
+            - admin
+    Auth.AuthResponse:
+      type: object
+      required:
+        - user
+        - tokens
+      properties:
+        user:
+          $ref: '#/components/schemas/Auth.UserInfo'
+        tokens:
+          $ref: '#/components/schemas/Auth.AuthTokens'
+    Auth.AuthTokens:
+      type: object
+      required:
+        - access_token
+        - refresh_token
+        - expires_in
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_in:
+          type: integer
+          format: int32
+    Auth.LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    Auth.SignupRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        nickname:
+          type: string
+    Auth.UserInfo:
+      type: object
+      required:
+        - id
+        - role
+        - auth_provider
+        - onboarding_completed
+        - created_at
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        nickname:
+          type: string
+        role:
+          type: string
+          enum:
+            - user
+            - admin
+        auth_provider:
+          type: string
+          enum:
+            - email
+            - naver
+        onboarding_completed:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    Common.ErrorDetail:
+      type: object
+      required:
+        - message
+        - code
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: Bearer
 servers:
   - url: https://colight-api.koyeb.app
     description: Production

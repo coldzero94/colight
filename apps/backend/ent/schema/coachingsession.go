@@ -22,7 +22,7 @@ func (CoachingSession) Mixin() []ent.Mixin {
 func (CoachingSession) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}).
-			Comment("References auth.users(id)"),
+			Comment("References user_profiles(id)"),
 		field.Enum("session_type").
 			Values("question_analysis", "draft", "review", "enhance").
 			Comment("Session type"),

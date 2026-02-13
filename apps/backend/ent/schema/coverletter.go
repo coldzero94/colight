@@ -22,7 +22,7 @@ func (CoverLetter) Mixin() []ent.Mixin {
 func (CoverLetter) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}).
-			Comment("References auth.users(id)"),
+			Comment("References user_profiles(id)"),
 		field.String("company_name").
 			Optional().
 			MaxLen(100).

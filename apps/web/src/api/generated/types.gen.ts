@@ -4,6 +4,91 @@ export type ClientOptions = {
     baseURL: 'https://colight-api.koyeb.app' | 'http://localhost:9000' | (string & {});
 };
 
+export type AdminAdminUserListItem = {
+    id: string;
+    email?: string;
+    nickname?: string;
+    role: 'user' | 'admin';
+    auth_provider: 'email' | 'naver';
+    experience_count: number;
+    last_login_at?: string;
+    created_at: string;
+};
+
+export type AdminPromptTemplateDetail = {
+    id: string;
+    category: string;
+    sub_category: string;
+    name: string;
+    system_prompt: string;
+    user_prompt_template: string;
+    model_name: string;
+    temperature: number;
+    max_tokens: number;
+    version: number;
+    is_active: boolean;
+    usage_count: number;
+};
+
+export type AdminSystemStats = {
+    total_users: number;
+    active_users_today: number;
+    total_experiences: number;
+    total_coaching_sessions: number;
+    total_analyses: number;
+    naver_auth_users: number;
+    email_auth_users: number;
+};
+
+export type AdminUpdatePromptRequest = {
+    system_prompt?: string;
+    user_prompt_template?: string;
+    temperature?: number;
+    max_tokens?: number;
+    is_active?: boolean;
+};
+
+export type AdminUpdateRoleRequest = {
+    role: 'user' | 'admin';
+};
+
+export type AuthAuthResponse = {
+    user: AuthUserInfo;
+    tokens: AuthAuthTokens;
+};
+
+export type AuthAuthTokens = {
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+};
+
+export type AuthLoginRequest = {
+    email: string;
+    password: string;
+};
+
+export type AuthSignupRequest = {
+    email: string;
+    password: string;
+    nickname?: string;
+};
+
+export type AuthUserInfo = {
+    id: string;
+    email?: string;
+    nickname?: string;
+    role: 'user' | 'admin';
+    auth_provider: 'email' | 'naver';
+    onboarding_completed: boolean;
+    created_at: string;
+};
+
+export type CommonErrorDetail = {
+    message: string;
+    code: string;
+};
+
 export type HealthCheckData = {
     body?: never;
     path?: never;
@@ -21,3 +106,662 @@ export type HealthCheckResponses = {
 };
 
 export type HealthCheckResponse = HealthCheckResponses[keyof HealthCheckResponses];
+
+export type AdminApiListPromptsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        category?: string;
+    };
+    url: '/v1/admin/prompts';
+};
+
+export type AdminApiListPromptsErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type AdminApiListPromptsError = AdminApiListPromptsErrors[keyof AdminApiListPromptsErrors];
+
+export type AdminApiListPromptsResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        data: Array<AdminPromptTemplateDetail>;
+    };
+};
+
+export type AdminApiListPromptsResponse = AdminApiListPromptsResponses[keyof AdminApiListPromptsResponses];
+
+export type AdminApiUpdatePromptData = {
+    body: AdminUpdatePromptRequest;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/admin/prompts/{id}';
+};
+
+export type AdminApiUpdatePromptErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type AdminApiUpdatePromptError = AdminApiUpdatePromptErrors[keyof AdminApiUpdatePromptErrors];
+
+export type AdminApiUpdatePromptResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        data: AdminPromptTemplateDetail;
+    };
+};
+
+export type AdminApiUpdatePromptResponse = AdminApiUpdatePromptResponses[keyof AdminApiUpdatePromptResponses];
+
+export type AdminApiGetStatsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/admin/stats';
+};
+
+export type AdminApiGetStatsErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type AdminApiGetStatsError = AdminApiGetStatsErrors[keyof AdminApiGetStatsErrors];
+
+export type AdminApiGetStatsResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        data: AdminSystemStats;
+    };
+};
+
+export type AdminApiGetStatsResponse = AdminApiGetStatsResponses[keyof AdminApiGetStatsResponses];
+
+export type AdminApiListUsersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        limit?: number;
+        offset?: number;
+        role?: 'user' | 'admin';
+        search?: string;
+    };
+    url: '/v1/admin/users';
+};
+
+export type AdminApiListUsersErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type AdminApiListUsersError = AdminApiListUsersErrors[keyof AdminApiListUsersErrors];
+
+export type AdminApiListUsersResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        data: Array<AdminAdminUserListItem>;
+        count: number;
+    };
+};
+
+export type AdminApiListUsersResponse = AdminApiListUsersResponses[keyof AdminApiListUsersResponses];
+
+export type AdminApiGetUserData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/admin/users/{id}';
+};
+
+export type AdminApiGetUserErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type AdminApiGetUserError = AdminApiGetUserErrors[keyof AdminApiGetUserErrors];
+
+export type AdminApiGetUserResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        data: AdminAdminUserListItem;
+    };
+};
+
+export type AdminApiGetUserResponse = AdminApiGetUserResponses[keyof AdminApiGetUserResponses];
+
+export type AdminApiUpdateUserRoleData = {
+    body: AdminUpdateRoleRequest;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/admin/users/{id}/role';
+};
+
+export type AdminApiUpdateUserRoleErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type AdminApiUpdateUserRoleError = AdminApiUpdateUserRoleErrors[keyof AdminApiUpdateUserRoleErrors];
+
+export type AdminApiUpdateUserRoleResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        data: AdminAdminUserListItem;
+    };
+};
+
+export type AdminApiUpdateUserRoleResponse = AdminApiUpdateUserRoleResponses[keyof AdminApiUpdateUserRoleResponses];
+
+export type AuthApiLoginData = {
+    body: AuthLoginRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/auth/login';
+};
+
+export type AuthApiLoginErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type AuthApiLoginError = AuthApiLoginErrors[keyof AuthApiLoginErrors];
+
+export type AuthApiLoginResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        data: AuthAuthResponse;
+    };
+};
+
+export type AuthApiLoginResponse = AuthApiLoginResponses[keyof AuthApiLoginResponses];
+
+export type AuthApiLogoutData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/auth/logout';
+};
+
+export type AuthApiLogoutResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        success: boolean;
+    };
+};
+
+export type AuthApiLogoutResponse = AuthApiLogoutResponses[keyof AuthApiLogoutResponses];
+
+export type AuthApiMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/auth/me';
+};
+
+export type AuthApiMeErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type AuthApiMeError = AuthApiMeErrors[keyof AuthApiMeErrors];
+
+export type AuthApiMeResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        data: AuthUserInfo;
+    };
+};
+
+export type AuthApiMeResponse = AuthApiMeResponses[keyof AuthApiMeResponses];
+
+export type AuthApiNaverCallbackData = {
+    body?: never;
+    path?: never;
+    query: {
+        code: string;
+        state: string;
+    };
+    url: '/v1/auth/naver/callback';
+};
+
+export type AuthApiNaverCallbackResponses = {
+    /**
+     * There is no content to send for this request, but the headers may be useful.
+     */
+    204: void;
+};
+
+export type AuthApiNaverCallbackResponse = AuthApiNaverCallbackResponses[keyof AuthApiNaverCallbackResponses];
+
+export type AuthApiNaverLoginData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/auth/naver/login';
+};
+
+export type AuthApiNaverLoginResponses = {
+    /**
+     * There is no content to send for this request, but the headers may be useful.
+     */
+    204: void;
+};
+
+export type AuthApiNaverLoginResponse = AuthApiNaverLoginResponses[keyof AuthApiNaverLoginResponses];
+
+export type AuthApiRefreshData = {
+    body: {
+        refresh_token: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/auth/refresh';
+};
+
+export type AuthApiRefreshErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type AuthApiRefreshError = AuthApiRefreshErrors[keyof AuthApiRefreshErrors];
+
+export type AuthApiRefreshResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        data: AuthAuthTokens;
+    };
+};
+
+export type AuthApiRefreshResponse = AuthApiRefreshResponses[keyof AuthApiRefreshResponses];
+
+export type AuthApiSignupData = {
+    body: AuthSignupRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/auth/signup';
+};
+
+export type AuthApiSignupErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type AuthApiSignupError = AuthApiSignupErrors[keyof AuthApiSignupErrors];
+
+export type AuthApiSignupResponses = {
+    /**
+     * The request has succeeded and a new resource has been created as a result.
+     */
+    201: {
+        data: AuthAuthResponse;
+    };
+};
+
+export type AuthApiSignupResponse = AuthApiSignupResponses[keyof AuthApiSignupResponses];

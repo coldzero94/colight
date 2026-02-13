@@ -23,8 +23,20 @@ type UserProfile struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Record last update timestamp
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// References auth.users(id)
-	UserID uuid.UUID `json:"user_id,omitempty"`
+	// Email address
+	Email *string `json:"email,omitempty"`
+	// bcrypt hashed password (email auth only)
+	PasswordHash *string `json:"-"`
+	// Naver OAuth user ID
+	NaverID *string `json:"naver_id,omitempty"`
+	// Authentication provider
+	AuthProvider userprofile.AuthProvider `json:"auth_provider,omitempty"`
+	// User role
+	Role userprofile.Role `json:"role,omitempty"`
+	// Whether email is verified
+	EmailVerified bool `json:"email_verified,omitempty"`
+	// Last login timestamp
+	LastLoginAt *time.Time `json:"last_login_at,omitempty"`
 	// Display name
 	Nickname string `json:"nickname,omitempty"`
 	// Target job position
@@ -123,15 +135,15 @@ func (*UserProfile) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case userprofile.FieldOnboardingCompleted:
+		case userprofile.FieldEmailVerified, userprofile.FieldOnboardingCompleted:
 			values[i] = new(sql.NullBool)
 		case userprofile.FieldGraduationYear, userprofile.FieldExperienceYears:
 			values[i] = new(sql.NullInt64)
-		case userprofile.FieldNickname, userprofile.FieldTargetJob, userprofile.FieldTargetIndustry, userprofile.FieldEducationLevel:
+		case userprofile.FieldEmail, userprofile.FieldPasswordHash, userprofile.FieldNaverID, userprofile.FieldAuthProvider, userprofile.FieldRole, userprofile.FieldNickname, userprofile.FieldTargetJob, userprofile.FieldTargetIndustry, userprofile.FieldEducationLevel:
 			values[i] = new(sql.NullString)
-		case userprofile.FieldCreatedAt, userprofile.FieldUpdatedAt:
+		case userprofile.FieldCreatedAt, userprofile.FieldUpdatedAt, userprofile.FieldLastLoginAt:
 			values[i] = new(sql.NullTime)
-		case userprofile.FieldID, userprofile.FieldUserID:
+		case userprofile.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -166,11 +178,51 @@ func (_m *UserProfile) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
 			}
-		case userprofile.FieldUserID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field user_id", values[i])
-			} else if value != nil {
-				_m.UserID = *value
+		case userprofile.FieldEmail:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field email", values[i])
+			} else if value.Valid {
+				_m.Email = new(string)
+				*_m.Email = value.String
+			}
+		case userprofile.FieldPasswordHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field password_hash", values[i])
+			} else if value.Valid {
+				_m.PasswordHash = new(string)
+				*_m.PasswordHash = value.String
+			}
+		case userprofile.FieldNaverID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field naver_id", values[i])
+			} else if value.Valid {
+				_m.NaverID = new(string)
+				*_m.NaverID = value.String
+			}
+		case userprofile.FieldAuthProvider:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field auth_provider", values[i])
+			} else if value.Valid {
+				_m.AuthProvider = userprofile.AuthProvider(value.String)
+			}
+		case userprofile.FieldRole:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field role", values[i])
+			} else if value.Valid {
+				_m.Role = userprofile.Role(value.String)
+			}
+		case userprofile.FieldEmailVerified:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field email_verified", values[i])
+			} else if value.Valid {
+				_m.EmailVerified = value.Bool
+			}
+		case userprofile.FieldLastLoginAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_login_at", values[i])
+			} else if value.Valid {
+				_m.LastLoginAt = new(time.Time)
+				*_m.LastLoginAt = value.Time
 			}
 		case userprofile.FieldNickname:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -287,8 +339,31 @@ func (_m *UserProfile) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("user_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.UserID))
+	if v := _m.Email; v != nil {
+		builder.WriteString("email=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("password_hash=<sensitive>")
+	builder.WriteString(", ")
+	if v := _m.NaverID; v != nil {
+		builder.WriteString("naver_id=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("auth_provider=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AuthProvider))
+	builder.WriteString(", ")
+	builder.WriteString("role=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Role))
+	builder.WriteString(", ")
+	builder.WriteString("email_verified=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EmailVerified))
+	builder.WriteString(", ")
+	if v := _m.LastLoginAt; v != nil {
+		builder.WriteString("last_login_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("nickname=")
 	builder.WriteString(_m.Nickname)

@@ -3,6 +3,7 @@
 package userprofile
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -19,8 +20,20 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// FieldUserID holds the string denoting the user_id field in the database.
-	FieldUserID = "user_id"
+	// FieldEmail holds the string denoting the email field in the database.
+	FieldEmail = "email"
+	// FieldPasswordHash holds the string denoting the password_hash field in the database.
+	FieldPasswordHash = "password_hash"
+	// FieldNaverID holds the string denoting the naver_id field in the database.
+	FieldNaverID = "naver_id"
+	// FieldAuthProvider holds the string denoting the auth_provider field in the database.
+	FieldAuthProvider = "auth_provider"
+	// FieldRole holds the string denoting the role field in the database.
+	FieldRole = "role"
+	// FieldEmailVerified holds the string denoting the email_verified field in the database.
+	FieldEmailVerified = "email_verified"
+	// FieldLastLoginAt holds the string denoting the last_login_at field in the database.
+	FieldLastLoginAt = "last_login_at"
 	// FieldNickname holds the string denoting the nickname field in the database.
 	FieldNickname = "nickname"
 	// FieldTargetJob holds the string denoting the target_job field in the database.
@@ -98,7 +111,13 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
-	FieldUserID,
+	FieldEmail,
+	FieldPasswordHash,
+	FieldNaverID,
+	FieldAuthProvider,
+	FieldRole,
+	FieldEmailVerified,
+	FieldLastLoginAt,
 	FieldNickname,
 	FieldTargetJob,
 	FieldTargetIndustry,
@@ -125,6 +144,14 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	EmailValidator func(string) error
+	// PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
+	PasswordHashValidator func(string) error
+	// NaverIDValidator is a validator for the "naver_id" field. It is called by the builders before save.
+	NaverIDValidator func(string) error
+	// DefaultEmailVerified holds the default value on creation for the "email_verified" field.
+	DefaultEmailVerified bool
 	// NicknameValidator is a validator for the "nickname" field. It is called by the builders before save.
 	NicknameValidator func(string) error
 	// TargetJobValidator is a validator for the "target_job" field. It is called by the builders before save.
@@ -140,6 +167,58 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// AuthProvider defines the type for the "auth_provider" enum field.
+type AuthProvider string
+
+// AuthProviderEmail is the default value of the AuthProvider enum.
+const DefaultAuthProvider = AuthProviderEmail
+
+// AuthProvider values.
+const (
+	AuthProviderEmail AuthProvider = "email"
+	AuthProviderNaver AuthProvider = "naver"
+)
+
+func (ap AuthProvider) String() string {
+	return string(ap)
+}
+
+// AuthProviderValidator is a validator for the "auth_provider" field enum values. It is called by the builders before save.
+func AuthProviderValidator(ap AuthProvider) error {
+	switch ap {
+	case AuthProviderEmail, AuthProviderNaver:
+		return nil
+	default:
+		return fmt.Errorf("userprofile: invalid enum value for auth_provider field: %q", ap)
+	}
+}
+
+// Role defines the type for the "role" enum field.
+type Role string
+
+// RoleUser is the default value of the Role enum.
+const DefaultRole = RoleUser
+
+// Role values.
+const (
+	RoleUser  Role = "user"
+	RoleAdmin Role = "admin"
+)
+
+func (r Role) String() string {
+	return string(r)
+}
+
+// RoleValidator is a validator for the "role" field enum values. It is called by the builders before save.
+func RoleValidator(r Role) error {
+	switch r {
+	case RoleUser, RoleAdmin:
+		return nil
+	default:
+		return fmt.Errorf("userprofile: invalid enum value for role field: %q", r)
+	}
+}
 
 // OrderOption defines the ordering options for the UserProfile queries.
 type OrderOption func(*sql.Selector)
@@ -159,9 +238,39 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByUserID orders the results by the user_id field.
-func ByUserID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+// ByEmail orders the results by the email field.
+func ByEmail(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEmail, opts...).ToFunc()
+}
+
+// ByPasswordHash orders the results by the password_hash field.
+func ByPasswordHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPasswordHash, opts...).ToFunc()
+}
+
+// ByNaverID orders the results by the naver_id field.
+func ByNaverID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNaverID, opts...).ToFunc()
+}
+
+// ByAuthProvider orders the results by the auth_provider field.
+func ByAuthProvider(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAuthProvider, opts...).ToFunc()
+}
+
+// ByRole orders the results by the role field.
+func ByRole(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRole, opts...).ToFunc()
+}
+
+// ByEmailVerified orders the results by the email_verified field.
+func ByEmailVerified(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEmailVerified, opts...).ToFunc()
+}
+
+// ByLastLoginAt orders the results by the last_login_at field.
+func ByLastLoginAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastLoginAt, opts...).ToFunc()
 }
 
 // ByNickname orders the results by the nickname field.

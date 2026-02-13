@@ -41,17 +41,125 @@ func (_u *UserProfileUpdate) SetUpdatedAt(v time.Time) *UserProfileUpdate {
 	return _u
 }
 
-// SetUserID sets the "user_id" field.
-func (_u *UserProfileUpdate) SetUserID(v uuid.UUID) *UserProfileUpdate {
-	_u.mutation.SetUserID(v)
+// SetEmail sets the "email" field.
+func (_u *UserProfileUpdate) SetEmail(v string) *UserProfileUpdate {
+	_u.mutation.SetEmail(v)
 	return _u
 }
 
-// SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (_u *UserProfileUpdate) SetNillableUserID(v *uuid.UUID) *UserProfileUpdate {
+// SetNillableEmail sets the "email" field if the given value is not nil.
+func (_u *UserProfileUpdate) SetNillableEmail(v *string) *UserProfileUpdate {
 	if v != nil {
-		_u.SetUserID(*v)
+		_u.SetEmail(*v)
 	}
+	return _u
+}
+
+// ClearEmail clears the value of the "email" field.
+func (_u *UserProfileUpdate) ClearEmail() *UserProfileUpdate {
+	_u.mutation.ClearEmail()
+	return _u
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (_u *UserProfileUpdate) SetPasswordHash(v string) *UserProfileUpdate {
+	_u.mutation.SetPasswordHash(v)
+	return _u
+}
+
+// SetNillablePasswordHash sets the "password_hash" field if the given value is not nil.
+func (_u *UserProfileUpdate) SetNillablePasswordHash(v *string) *UserProfileUpdate {
+	if v != nil {
+		_u.SetPasswordHash(*v)
+	}
+	return _u
+}
+
+// ClearPasswordHash clears the value of the "password_hash" field.
+func (_u *UserProfileUpdate) ClearPasswordHash() *UserProfileUpdate {
+	_u.mutation.ClearPasswordHash()
+	return _u
+}
+
+// SetNaverID sets the "naver_id" field.
+func (_u *UserProfileUpdate) SetNaverID(v string) *UserProfileUpdate {
+	_u.mutation.SetNaverID(v)
+	return _u
+}
+
+// SetNillableNaverID sets the "naver_id" field if the given value is not nil.
+func (_u *UserProfileUpdate) SetNillableNaverID(v *string) *UserProfileUpdate {
+	if v != nil {
+		_u.SetNaverID(*v)
+	}
+	return _u
+}
+
+// ClearNaverID clears the value of the "naver_id" field.
+func (_u *UserProfileUpdate) ClearNaverID() *UserProfileUpdate {
+	_u.mutation.ClearNaverID()
+	return _u
+}
+
+// SetAuthProvider sets the "auth_provider" field.
+func (_u *UserProfileUpdate) SetAuthProvider(v userprofile.AuthProvider) *UserProfileUpdate {
+	_u.mutation.SetAuthProvider(v)
+	return _u
+}
+
+// SetNillableAuthProvider sets the "auth_provider" field if the given value is not nil.
+func (_u *UserProfileUpdate) SetNillableAuthProvider(v *userprofile.AuthProvider) *UserProfileUpdate {
+	if v != nil {
+		_u.SetAuthProvider(*v)
+	}
+	return _u
+}
+
+// SetRole sets the "role" field.
+func (_u *UserProfileUpdate) SetRole(v userprofile.Role) *UserProfileUpdate {
+	_u.mutation.SetRole(v)
+	return _u
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (_u *UserProfileUpdate) SetNillableRole(v *userprofile.Role) *UserProfileUpdate {
+	if v != nil {
+		_u.SetRole(*v)
+	}
+	return _u
+}
+
+// SetEmailVerified sets the "email_verified" field.
+func (_u *UserProfileUpdate) SetEmailVerified(v bool) *UserProfileUpdate {
+	_u.mutation.SetEmailVerified(v)
+	return _u
+}
+
+// SetNillableEmailVerified sets the "email_verified" field if the given value is not nil.
+func (_u *UserProfileUpdate) SetNillableEmailVerified(v *bool) *UserProfileUpdate {
+	if v != nil {
+		_u.SetEmailVerified(*v)
+	}
+	return _u
+}
+
+// SetLastLoginAt sets the "last_login_at" field.
+func (_u *UserProfileUpdate) SetLastLoginAt(v time.Time) *UserProfileUpdate {
+	_u.mutation.SetLastLoginAt(v)
+	return _u
+}
+
+// SetNillableLastLoginAt sets the "last_login_at" field if the given value is not nil.
+func (_u *UserProfileUpdate) SetNillableLastLoginAt(v *time.Time) *UserProfileUpdate {
+	if v != nil {
+		_u.SetLastLoginAt(*v)
+	}
+	return _u
+}
+
+// ClearLastLoginAt clears the value of the "last_login_at" field.
+func (_u *UserProfileUpdate) ClearLastLoginAt() *UserProfileUpdate {
+	_u.mutation.ClearLastLoginAt()
 	return _u
 }
 
@@ -456,6 +564,31 @@ func (_u *UserProfileUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *UserProfileUpdate) check() error {
+	if v, ok := _u.mutation.Email(); ok {
+		if err := userprofile.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "UserProfile.email": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.PasswordHash(); ok {
+		if err := userprofile.PasswordHashValidator(v); err != nil {
+			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "UserProfile.password_hash": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.NaverID(); ok {
+		if err := userprofile.NaverIDValidator(v); err != nil {
+			return &ValidationError{Name: "naver_id", err: fmt.Errorf(`ent: validator failed for field "UserProfile.naver_id": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.AuthProvider(); ok {
+		if err := userprofile.AuthProviderValidator(v); err != nil {
+			return &ValidationError{Name: "auth_provider", err: fmt.Errorf(`ent: validator failed for field "UserProfile.auth_provider": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Role(); ok {
+		if err := userprofile.RoleValidator(v); err != nil {
+			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "UserProfile.role": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Nickname(); ok {
 		if err := userprofile.NicknameValidator(v); err != nil {
 			return &ValidationError{Name: "nickname", err: fmt.Errorf(`ent: validator failed for field "UserProfile.nickname": %w`, err)}
@@ -494,8 +627,38 @@ func (_u *UserProfileUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(userprofile.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.UserID(); ok {
-		_spec.SetField(userprofile.FieldUserID, field.TypeUUID, value)
+	if value, ok := _u.mutation.Email(); ok {
+		_spec.SetField(userprofile.FieldEmail, field.TypeString, value)
+	}
+	if _u.mutation.EmailCleared() {
+		_spec.ClearField(userprofile.FieldEmail, field.TypeString)
+	}
+	if value, ok := _u.mutation.PasswordHash(); ok {
+		_spec.SetField(userprofile.FieldPasswordHash, field.TypeString, value)
+	}
+	if _u.mutation.PasswordHashCleared() {
+		_spec.ClearField(userprofile.FieldPasswordHash, field.TypeString)
+	}
+	if value, ok := _u.mutation.NaverID(); ok {
+		_spec.SetField(userprofile.FieldNaverID, field.TypeString, value)
+	}
+	if _u.mutation.NaverIDCleared() {
+		_spec.ClearField(userprofile.FieldNaverID, field.TypeString)
+	}
+	if value, ok := _u.mutation.AuthProvider(); ok {
+		_spec.SetField(userprofile.FieldAuthProvider, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Role(); ok {
+		_spec.SetField(userprofile.FieldRole, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.EmailVerified(); ok {
+		_spec.SetField(userprofile.FieldEmailVerified, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.LastLoginAt(); ok {
+		_spec.SetField(userprofile.FieldLastLoginAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastLoginAtCleared() {
+		_spec.ClearField(userprofile.FieldLastLoginAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.Nickname(); ok {
 		_spec.SetField(userprofile.FieldNickname, field.TypeString, value)
@@ -835,17 +998,125 @@ func (_u *UserProfileUpdateOne) SetUpdatedAt(v time.Time) *UserProfileUpdateOne 
 	return _u
 }
 
-// SetUserID sets the "user_id" field.
-func (_u *UserProfileUpdateOne) SetUserID(v uuid.UUID) *UserProfileUpdateOne {
-	_u.mutation.SetUserID(v)
+// SetEmail sets the "email" field.
+func (_u *UserProfileUpdateOne) SetEmail(v string) *UserProfileUpdateOne {
+	_u.mutation.SetEmail(v)
 	return _u
 }
 
-// SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (_u *UserProfileUpdateOne) SetNillableUserID(v *uuid.UUID) *UserProfileUpdateOne {
+// SetNillableEmail sets the "email" field if the given value is not nil.
+func (_u *UserProfileUpdateOne) SetNillableEmail(v *string) *UserProfileUpdateOne {
 	if v != nil {
-		_u.SetUserID(*v)
+		_u.SetEmail(*v)
 	}
+	return _u
+}
+
+// ClearEmail clears the value of the "email" field.
+func (_u *UserProfileUpdateOne) ClearEmail() *UserProfileUpdateOne {
+	_u.mutation.ClearEmail()
+	return _u
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (_u *UserProfileUpdateOne) SetPasswordHash(v string) *UserProfileUpdateOne {
+	_u.mutation.SetPasswordHash(v)
+	return _u
+}
+
+// SetNillablePasswordHash sets the "password_hash" field if the given value is not nil.
+func (_u *UserProfileUpdateOne) SetNillablePasswordHash(v *string) *UserProfileUpdateOne {
+	if v != nil {
+		_u.SetPasswordHash(*v)
+	}
+	return _u
+}
+
+// ClearPasswordHash clears the value of the "password_hash" field.
+func (_u *UserProfileUpdateOne) ClearPasswordHash() *UserProfileUpdateOne {
+	_u.mutation.ClearPasswordHash()
+	return _u
+}
+
+// SetNaverID sets the "naver_id" field.
+func (_u *UserProfileUpdateOne) SetNaverID(v string) *UserProfileUpdateOne {
+	_u.mutation.SetNaverID(v)
+	return _u
+}
+
+// SetNillableNaverID sets the "naver_id" field if the given value is not nil.
+func (_u *UserProfileUpdateOne) SetNillableNaverID(v *string) *UserProfileUpdateOne {
+	if v != nil {
+		_u.SetNaverID(*v)
+	}
+	return _u
+}
+
+// ClearNaverID clears the value of the "naver_id" field.
+func (_u *UserProfileUpdateOne) ClearNaverID() *UserProfileUpdateOne {
+	_u.mutation.ClearNaverID()
+	return _u
+}
+
+// SetAuthProvider sets the "auth_provider" field.
+func (_u *UserProfileUpdateOne) SetAuthProvider(v userprofile.AuthProvider) *UserProfileUpdateOne {
+	_u.mutation.SetAuthProvider(v)
+	return _u
+}
+
+// SetNillableAuthProvider sets the "auth_provider" field if the given value is not nil.
+func (_u *UserProfileUpdateOne) SetNillableAuthProvider(v *userprofile.AuthProvider) *UserProfileUpdateOne {
+	if v != nil {
+		_u.SetAuthProvider(*v)
+	}
+	return _u
+}
+
+// SetRole sets the "role" field.
+func (_u *UserProfileUpdateOne) SetRole(v userprofile.Role) *UserProfileUpdateOne {
+	_u.mutation.SetRole(v)
+	return _u
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (_u *UserProfileUpdateOne) SetNillableRole(v *userprofile.Role) *UserProfileUpdateOne {
+	if v != nil {
+		_u.SetRole(*v)
+	}
+	return _u
+}
+
+// SetEmailVerified sets the "email_verified" field.
+func (_u *UserProfileUpdateOne) SetEmailVerified(v bool) *UserProfileUpdateOne {
+	_u.mutation.SetEmailVerified(v)
+	return _u
+}
+
+// SetNillableEmailVerified sets the "email_verified" field if the given value is not nil.
+func (_u *UserProfileUpdateOne) SetNillableEmailVerified(v *bool) *UserProfileUpdateOne {
+	if v != nil {
+		_u.SetEmailVerified(*v)
+	}
+	return _u
+}
+
+// SetLastLoginAt sets the "last_login_at" field.
+func (_u *UserProfileUpdateOne) SetLastLoginAt(v time.Time) *UserProfileUpdateOne {
+	_u.mutation.SetLastLoginAt(v)
+	return _u
+}
+
+// SetNillableLastLoginAt sets the "last_login_at" field if the given value is not nil.
+func (_u *UserProfileUpdateOne) SetNillableLastLoginAt(v *time.Time) *UserProfileUpdateOne {
+	if v != nil {
+		_u.SetLastLoginAt(*v)
+	}
+	return _u
+}
+
+// ClearLastLoginAt clears the value of the "last_login_at" field.
+func (_u *UserProfileUpdateOne) ClearLastLoginAt() *UserProfileUpdateOne {
+	_u.mutation.ClearLastLoginAt()
 	return _u
 }
 
@@ -1263,6 +1534,31 @@ func (_u *UserProfileUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *UserProfileUpdateOne) check() error {
+	if v, ok := _u.mutation.Email(); ok {
+		if err := userprofile.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "UserProfile.email": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.PasswordHash(); ok {
+		if err := userprofile.PasswordHashValidator(v); err != nil {
+			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "UserProfile.password_hash": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.NaverID(); ok {
+		if err := userprofile.NaverIDValidator(v); err != nil {
+			return &ValidationError{Name: "naver_id", err: fmt.Errorf(`ent: validator failed for field "UserProfile.naver_id": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.AuthProvider(); ok {
+		if err := userprofile.AuthProviderValidator(v); err != nil {
+			return &ValidationError{Name: "auth_provider", err: fmt.Errorf(`ent: validator failed for field "UserProfile.auth_provider": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Role(); ok {
+		if err := userprofile.RoleValidator(v); err != nil {
+			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "UserProfile.role": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Nickname(); ok {
 		if err := userprofile.NicknameValidator(v); err != nil {
 			return &ValidationError{Name: "nickname", err: fmt.Errorf(`ent: validator failed for field "UserProfile.nickname": %w`, err)}
@@ -1318,8 +1614,38 @@ func (_u *UserProfileUpdateOne) sqlSave(ctx context.Context) (_node *UserProfile
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(userprofile.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.UserID(); ok {
-		_spec.SetField(userprofile.FieldUserID, field.TypeUUID, value)
+	if value, ok := _u.mutation.Email(); ok {
+		_spec.SetField(userprofile.FieldEmail, field.TypeString, value)
+	}
+	if _u.mutation.EmailCleared() {
+		_spec.ClearField(userprofile.FieldEmail, field.TypeString)
+	}
+	if value, ok := _u.mutation.PasswordHash(); ok {
+		_spec.SetField(userprofile.FieldPasswordHash, field.TypeString, value)
+	}
+	if _u.mutation.PasswordHashCleared() {
+		_spec.ClearField(userprofile.FieldPasswordHash, field.TypeString)
+	}
+	if value, ok := _u.mutation.NaverID(); ok {
+		_spec.SetField(userprofile.FieldNaverID, field.TypeString, value)
+	}
+	if _u.mutation.NaverIDCleared() {
+		_spec.ClearField(userprofile.FieldNaverID, field.TypeString)
+	}
+	if value, ok := _u.mutation.AuthProvider(); ok {
+		_spec.SetField(userprofile.FieldAuthProvider, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Role(); ok {
+		_spec.SetField(userprofile.FieldRole, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.EmailVerified(); ok {
+		_spec.SetField(userprofile.FieldEmailVerified, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.LastLoginAt(); ok {
+		_spec.SetField(userprofile.FieldLastLoginAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastLoginAtCleared() {
+		_spec.ClearField(userprofile.FieldLastLoginAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.Nickname(); ok {
 		_spec.SetField(userprofile.FieldNickname, field.TypeString, value)

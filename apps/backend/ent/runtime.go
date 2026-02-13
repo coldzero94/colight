@@ -674,28 +674,44 @@ func init() {
 	userprofile.DefaultUpdatedAt = userprofileDescUpdatedAt.Default.(func() time.Time)
 	// userprofile.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	userprofile.UpdateDefaultUpdatedAt = userprofileDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// userprofileDescEmail is the schema descriptor for email field.
+	userprofileDescEmail := userprofileFields[0].Descriptor()
+	// userprofile.EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	userprofile.EmailValidator = userprofileDescEmail.Validators[0].(func(string) error)
+	// userprofileDescPasswordHash is the schema descriptor for password_hash field.
+	userprofileDescPasswordHash := userprofileFields[1].Descriptor()
+	// userprofile.PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
+	userprofile.PasswordHashValidator = userprofileDescPasswordHash.Validators[0].(func(string) error)
+	// userprofileDescNaverID is the schema descriptor for naver_id field.
+	userprofileDescNaverID := userprofileFields[2].Descriptor()
+	// userprofile.NaverIDValidator is a validator for the "naver_id" field. It is called by the builders before save.
+	userprofile.NaverIDValidator = userprofileDescNaverID.Validators[0].(func(string) error)
+	// userprofileDescEmailVerified is the schema descriptor for email_verified field.
+	userprofileDescEmailVerified := userprofileFields[5].Descriptor()
+	// userprofile.DefaultEmailVerified holds the default value on creation for the email_verified field.
+	userprofile.DefaultEmailVerified = userprofileDescEmailVerified.Default.(bool)
 	// userprofileDescNickname is the schema descriptor for nickname field.
-	userprofileDescNickname := userprofileFields[1].Descriptor()
+	userprofileDescNickname := userprofileFields[7].Descriptor()
 	// userprofile.NicknameValidator is a validator for the "nickname" field. It is called by the builders before save.
 	userprofile.NicknameValidator = userprofileDescNickname.Validators[0].(func(string) error)
 	// userprofileDescTargetJob is the schema descriptor for target_job field.
-	userprofileDescTargetJob := userprofileFields[2].Descriptor()
+	userprofileDescTargetJob := userprofileFields[8].Descriptor()
 	// userprofile.TargetJobValidator is a validator for the "target_job" field. It is called by the builders before save.
 	userprofile.TargetJobValidator = userprofileDescTargetJob.Validators[0].(func(string) error)
 	// userprofileDescTargetIndustry is the schema descriptor for target_industry field.
-	userprofileDescTargetIndustry := userprofileFields[3].Descriptor()
+	userprofileDescTargetIndustry := userprofileFields[9].Descriptor()
 	// userprofile.TargetIndustryValidator is a validator for the "target_industry" field. It is called by the builders before save.
 	userprofile.TargetIndustryValidator = userprofileDescTargetIndustry.Validators[0].(func(string) error)
 	// userprofileDescEducationLevel is the schema descriptor for education_level field.
-	userprofileDescEducationLevel := userprofileFields[4].Descriptor()
+	userprofileDescEducationLevel := userprofileFields[10].Descriptor()
 	// userprofile.EducationLevelValidator is a validator for the "education_level" field. It is called by the builders before save.
 	userprofile.EducationLevelValidator = userprofileDescEducationLevel.Validators[0].(func(string) error)
 	// userprofileDescExperienceYears is the schema descriptor for experience_years field.
-	userprofileDescExperienceYears := userprofileFields[6].Descriptor()
+	userprofileDescExperienceYears := userprofileFields[12].Descriptor()
 	// userprofile.DefaultExperienceYears holds the default value on creation for the experience_years field.
 	userprofile.DefaultExperienceYears = userprofileDescExperienceYears.Default.(int)
 	// userprofileDescOnboardingCompleted is the schema descriptor for onboarding_completed field.
-	userprofileDescOnboardingCompleted := userprofileFields[7].Descriptor()
+	userprofileDescOnboardingCompleted := userprofileFields[13].Descriptor()
 	// userprofile.DefaultOnboardingCompleted holds the default value on creation for the onboarding_completed field.
 	userprofile.DefaultOnboardingCompleted = userprofileDescOnboardingCompleted.Default.(bool)
 	// userprofileDescID is the schema descriptor for id field.

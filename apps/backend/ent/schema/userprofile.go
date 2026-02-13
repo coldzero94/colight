@@ -5,7 +5,6 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"github.com/google/uuid"
 )
 
 type UserProfile struct {
@@ -20,9 +19,40 @@ func (UserProfile) Mixin() []ent.Mixin {
 
 func (UserProfile) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("user_id", uuid.UUID{}).
-			Unique().
-			Comment("References auth.users(id)"),
+		// --- Auth fields ---
+		field.String("email").
+			Optional().
+			Nillable().
+			MaxLen(255).
+			Comment("Email address"),
+		field.String("password_hash").
+			Optional().
+			Nillable().
+			MaxLen(255).
+			Sensitive().
+			Comment("bcrypt hashed password (email auth only)"),
+		field.String("naver_id").
+			Optional().
+			Nillable().
+			MaxLen(255).
+			Comment("Naver OAuth user ID"),
+		field.Enum("auth_provider").
+			Values("email", "naver").
+			Default("email").
+			Comment("Authentication provider"),
+		field.Enum("role").
+			Values("user", "admin").
+			Default("user").
+			Comment("User role"),
+		field.Bool("email_verified").
+			Default(false).
+			Comment("Whether email is verified"),
+		field.Time("last_login_at").
+			Optional().
+			Nillable().
+			Comment("Last login timestamp"),
+
+		// --- Profile fields ---
 		field.String("nickname").
 			Optional().
 			MaxLen(50).
@@ -65,6 +95,8 @@ func (UserProfile) Edges() []ent.Edge {
 
 func (UserProfile) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("user_id"),
+		index.Fields("email").Unique(),
+		index.Fields("naver_id").Unique(),
+		index.Fields("role"),
 	}
 }

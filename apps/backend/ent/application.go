@@ -25,7 +25,7 @@ type Application struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Record last update timestamp
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// References auth.users(id)
+	// References user_profiles(id)
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// Company name
 	CompanyName string `json:"company_name,omitempty"`

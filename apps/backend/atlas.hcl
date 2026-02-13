@@ -1,6 +1,6 @@
 env "local" {
   src = "ent://ent/schema"
-  dev = "docker://postgres/16/dev?search_path=public"
+  dev = "postgres://postgres:password@localhost:5532/atlasdev?sslmode=disable"
 
   migration {
     dir = "file://migrations"

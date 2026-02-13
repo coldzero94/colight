@@ -7,14 +7,16 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
+	"github.com/coby/colight/apps/backend/ent/userprofile"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: go run seed.go [all|weapons|prompts|patterns]")
+		fmt.Println("Usage: go run seed.go [all|admin|weapons|prompts|patterns]")
 		os.Exit(1)
 	}
 
@@ -40,6 +42,9 @@ func main() {
 	switch command {
 	case "all":
 		log.Println("Seeding all data...")
+		if err := seedAdmin(ctx, client); err != nil {
+			log.Fatalf("failed seeding admin: %v", err)
+		}
 		if err := seedWeaponCategories(ctx, client); err != nil {
 			log.Fatalf("failed seeding weapon categories: %v", err)
 		}
@@ -50,6 +55,12 @@ func main() {
 			log.Fatalf("failed seeding question patterns: %v", err)
 		}
 		log.Println("✅ All seed data inserted successfully")
+
+	case "admin":
+		if err := seedAdmin(ctx, client); err != nil {
+			log.Fatalf("failed seeding admin: %v", err)
+		}
+		log.Println("✅ Admin account seeded successfully")
 
 	case "weapons":
 		if err := seedWeaponCategories(ctx, client); err != nil {
@@ -71,7 +82,7 @@ func main() {
 
 	default:
 		fmt.Printf("Unknown command: %s\n", command)
-		fmt.Println("Usage: go run seed.go [all|weapons|prompts|patterns]")
+		fmt.Println("Usage: go run seed.go [all|admin|weapons|prompts|patterns]")
 		os.Exit(1)
 	}
 }
@@ -782,5 +793,42 @@ func seedQuestionPatterns(ctx context.Context, client *ent.Client) error {
 	}
 	log.Println("✓ Inserted 7 question patterns")
 
+	return nil
+}
+
+// seedAdmin inserts the default admin account
+func seedAdmin(ctx context.Context, client *ent.Client) error {
+	log.Println("Seeding admin account...")
+
+	// Check if admin already exists
+	exists, err := client.UserProfile.Query().
+		Where(userprofile.RoleEQ(userprofile.RoleAdmin)).
+		Exist(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check admin: %w", err)
+	}
+	if exists {
+		log.Println("⚠️  Admin account already exists, skipping")
+		return nil
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte("admin-password-change-me"), 12)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	_, err = client.UserProfile.Create().
+		SetEmail("admin@colight.kr").
+		SetPasswordHash(string(hash)).
+		SetNickname("관리자").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleAdmin).
+		SetEmailVerified(true).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create admin: %w", err)
+	}
+
+	log.Println("✓ Inserted admin account (admin@colight.kr)")
 	return nil
 }
