@@ -16,7 +16,7 @@ docs/            # Plan, develop, phase guides, research
 - **Code generation pipeline**: TypeSpec → OpenAPI → Go server (oapi-codegen) + TS client (@hey-api/openapi-ts)
 - **Source of truth**: Ent schemas for DB (`02-data-structure.md` is canonical), TypeSpec for API
 - **Generated code is committed** — do not manually edit `internal/generated/` or `src/api/generated/`
-- **Auth**: Supabase Auth on frontend only, Go backend verifies JWT (no Supabase SDK on backend)
+- **Auth**: Go backend handles Naver OAuth 2.0 + Email/Password directly, JWT (HMAC-SHA256) for access/refresh tokens
 - **Migrations**: Atlas (not Supabase CLI)
 - **AI prompts**: loaded from `prompt_templates` table — never hardcode
 - **AI models**: Claude Sonnet 4.5 (analysis/coaching), GPT-4.1 mini (parsing/tagging), text-embedding-3-small (embeddings)
@@ -29,7 +29,7 @@ docs/            # Plan, develop, phase guides, research
 - **Styling**: Tailwind CSS only — no CSS Modules
 - **State**: React Query (server), Zustand (client, minimal), React Hook Form + Zod (forms)
 - **Commit format**: `Phase X.Y: description`
-- **Deploy**: Koyeb (Go), Vercel (Next.js), Supabase (PostgreSQL + Auth)
+- **Deploy**: Koyeb (Go), Vercel (Next.js), Supabase (PostgreSQL only)
 
 ## Phase Completion Rules
 

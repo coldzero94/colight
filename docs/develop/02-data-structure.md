@@ -1,7 +1,7 @@
 # 데이터 구조
 
-> 작성일: 2026-02-11
-> PostgreSQL (Supabase) + pgvector + Ent ORM
+> 작성일: 2026-02-11 (2026-02-13 인증 아키텍처 변경 반영)
+> PostgreSQL + pgvector + Ent ORM
 
 ---
 
@@ -128,6 +128,10 @@ func (TimestampMixin) Fields() []ent.Field {
 
 ### 3.1 UserProfile (사용자 프로필)
 
+> **⚠️ Phase 1 변경**: Supabase Auth 제거, 자체 인증으로 전환.
+> `user_id` (Supabase auth.users 참조) 제거 → `id` (BaseMixin PK)가 곧 user_id.
+> 인증 필드 추가: email, password_hash, naver_id, auth_provider, role, email_verified, last_login_at.
+
 ```go
 // apps/backend/ent/schema/userprofile.go
 package schema
@@ -137,7 +141,6 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"github.com/google/uuid"
 )
 
 type UserProfile struct {
@@ -152,9 +155,40 @@ func (UserProfile) Mixin() []ent.Mixin {
 
 func (UserProfile) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("user_id", uuid.UUID{}).
-			Unique().
-			Comment("References auth.users(id)"),
+		// --- 인증 필드 ---
+		field.String("email").
+			Optional().
+			Nillable().
+			MaxLen(255).
+			Comment("Email address"),
+		field.String("password_hash").
+			Optional().
+			Nillable().
+			MaxLen(255).
+			Sensitive().
+			Comment("bcrypt hashed password (email auth only)"),
+		field.String("naver_id").
+			Optional().
+			Nillable().
+			MaxLen(255).
+			Comment("Naver OAuth user ID"),
+		field.Enum("auth_provider").
+			Values("email", "naver").
+			Default("email").
+			Comment("Authentication provider"),
+		field.Enum("role").
+			Values("user", "admin").
+			Default("user").
+			Comment("User role"),
+		field.Bool("email_verified").
+			Default(false).
+			Comment("Whether email is verified"),
+		field.Time("last_login_at").
+			Optional().
+			Nillable().
+			Comment("Last login timestamp"),
+
+		// --- 프로필 필드 ---
 		field.String("nickname").
 			Optional().
 			MaxLen(50).
@@ -197,7 +231,9 @@ func (UserProfile) Edges() []ent.Edge {
 
 func (UserProfile) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("user_id"),
+		index.Fields("email").Unique(),
+		index.Fields("naver_id").Unique(),
+		index.Fields("role"),
 	}
 }
 ```
@@ -232,7 +268,7 @@ func (Experience) Mixin() []ent.Mixin {
 func (Experience) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}).
-			Comment("References auth.users(id)"),
+			Comment("References user_profiles(id)"),
 		field.String("title").
 			NotEmpty().
 			MaxLen(200).
@@ -473,7 +509,7 @@ func (ExperienceUsage) Mixin() []ent.Mixin {
 func (ExperienceUsage) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}).
-			Comment("References auth.users(id)"),
+			Comment("References user_profiles(id)"),
 		field.Text("question_text").
 			Optional().
 			Comment("Which question this experience was used for"),
@@ -927,7 +963,7 @@ func (Application) Mixin() []ent.Mixin {
 func (Application) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}).
-			Comment("References auth.users(id)"),
+			Comment("References user_profiles(id)"),
 		field.String("company_name").
 			NotEmpty().
 			MaxLen(100).
@@ -1013,7 +1049,7 @@ func (CompanyAnalysis) Mixin() []ent.Mixin {
 func (CompanyAnalysis) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}).
-			Comment("References auth.users(id)"),
+			Comment("References user_profiles(id)"),
 		field.String("company_name").
 			NotEmpty().
 			MaxLen(100).
@@ -1090,7 +1126,7 @@ func (CoverLetter) Mixin() []ent.Mixin {
 func (CoverLetter) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}).
-			Comment("References auth.users(id)"),
+			Comment("References user_profiles(id)"),
 		field.String("company_name").
 			Optional().
 			MaxLen(100).
@@ -1237,7 +1273,7 @@ func (CoachingSession) Mixin() []ent.Mixin {
 func (CoachingSession) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}).
-			Comment("References auth.users(id)"),
+			Comment("References user_profiles(id)"),
 		field.Enum("session_type").
 			Values("question_analysis", "draft", "review", "enhance").
 			Comment("Session type"),
@@ -1299,34 +1335,37 @@ func (CoachingSession) Indexes() []ent.Index {
 
 ---
 
-## 4. Supabase Auth 연동
+## 4. 인증 아키텍처
 
-### users 테이블
+> **변경 (2026-02-13)**: Supabase Auth를 제거하고 Go 백엔드에서 직접 인증을 처리합니다.
+> 상세 구현은 `docs/develop/phases/phase-1.3-backend-auth.md` 참조.
 
-- `auth.users` 테이블은 **Supabase Auth가 관리** — Ent 스키마에 포함하지 않음
-- 사용자 가입 시 Supabase webhook → Go 백엔드 → `user_profiles` 레코드 자동 생성
+### 인증 방식
+
+- **Naver OAuth 2.0**: Go 백엔드에서 직접 OAuth 흐름 처리
+- **Email/Password**: bcrypt 해싱, Go 백엔드에서 직접 처리
+- **JWT 토큰**: Go 백엔드에서 HMAC-SHA256으로 발급/검증 (access + refresh)
 
 ### Go 백엔드 인증 흐름
 
-```
-클라이언트 → Supabase Auth → JWT 발급
-클라이언트 → Go API (Authorization: Bearer <JWT>)
+```text
+[Naver OAuth]
+클라이언트 → Go API /v1/auth/naver/login → Naver 인증 → 콜백 → JWT 발급
+
+[Email/Password]
+클라이언트 → Go API /v1/auth/login → bcrypt 검증 → JWT 발급
+
+[API 호출]
+클라이언트 → Go API (Authorization: Bearer <access_token>)
 Go 미들웨어 → JWT 검증 → user_id 추출 → context에 주입
 서비스 레이어 → context에서 user_id 읽어서 쿼리 필터링
 ```
 
 ### user_id 참조 방식
 
-- 모든 사용자 데이터 테이블에 `user_id UUID` 필드 포함
-- Ent 스키마에서는 `field.UUID("user_id", uuid.UUID{})` 로 정의
-- DB 레벨 FK는 Atlas 마이그레이션에서 raw SQL로 `auth.users(id)` 참조 추가
-
-```sql
--- Atlas migration에서 수동 추가
-ALTER TABLE user_profiles
-  ADD CONSTRAINT fk_user_profiles_user_id
-  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-```
+- `user_profiles` 테이블이 사용자 엔티티의 PK를 직접 소유 (BaseMixin의 UUID id)
+- 다른 테이블의 `user_id`는 `user_profiles(id)`를 참조
+- Ent Edge 관계로 FK가 자동 생성됨 (별도 raw SQL 불필요)
 
 ---
 
@@ -1505,7 +1544,6 @@ apps/backend/scripts/
 
 ```mermaid
 erDiagram
-    auth_users ||--|| UserProfile : "1:1"
     UserProfile ||--o{ Experience : "has many"
     UserProfile ||--o{ Application : "has many"
     UserProfile ||--o{ CompanyAnalysis : "has many"

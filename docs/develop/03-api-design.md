@@ -79,6 +79,8 @@ packages/protocol/
 │   │   └── coaching.tsp        # 코칭 엔드포인트
 │   ├── matching/
 │   │   └── matching.tsp        # 경험 매칭
+│   ├── admin/
+│   │   └── admin.tsp            # 어드민 API
 │   └── application/
 │       └── application.tsp     # 지원 관리
 ├── tsp-output/
@@ -540,21 +542,36 @@ func InternalError() generated.ErrorDetail {
 
 ## 6. 인증 흐름
 
+> **변경 (2026-02-13)**: Supabase Auth 제거. Go 백엔드에서 Naver OAuth + Email/Password 직접 처리.
+> 상세 구현: `docs/develop/phases/phase-1.3-backend-auth.md`
+
 ### 전체 흐름
 
 ```mermaid
 sequenceDiagram
     participant C as Client (Next.js)
-    participant S as Supabase Auth
     participant A as Go API Server
+    participant N as Naver OAuth
     participant DB as Database
 
-    Note over C,S: 로그인
-    C->>S: Supabase Auth 로그인
-    S-->>C: JWT 토큰 발급
+    Note over C,N: Naver 로그인
+    C->>A: GET /v1/auth/naver/login
+    A-->>C: 302 → Naver 인증 페이지
+    C->>N: Naver 로그인
+    N-->>A: GET /v1/auth/naver/callback?code=xxx
+    A->>N: POST /oauth2.0/token (code → access_token)
+    A->>N: GET /v1/nid/me (사용자 정보)
+    A->>DB: findOrCreate user_profiles
+    A->>A: JWT 발급 (access + refresh)
+    A-->>C: 302 → /auth/callback?access_token=xxx&refresh_token=yyy
+
+    Note over C,A: Email 로그인
+    C->>A: POST /v1/auth/login {email, password}
+    A->>DB: 사용자 조회 + bcrypt 검증
+    A-->>C: {access_token, refresh_token}
 
     Note over C,A: API 호출
-    C->>A: GET /v1/experiences<br/>Authorization: Bearer <jwt>
+    C->>A: GET /v1/experiences<br/>Authorization: Bearer <access_token>
     A->>A: JWT 검증 (미들웨어)
     A->>A: user_id 추출 → context
     A->>DB: 데이터 조회 (user_id 필터)
@@ -572,7 +589,7 @@ import (
     "github.com/golang-jwt/jwt/v5"
 )
 
-func AuthMiddleware(supabaseJWTSecret string) gin.HandlerFunc {
+func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
     return func(c *gin.Context) {
         tokenString := extractBearerToken(c.GetHeader("Authorization"))
         if tokenString == "" {
@@ -585,7 +602,7 @@ func AuthMiddleware(supabaseJWTSecret string) gin.HandlerFunc {
             return
         }
 
-        claims, err := validateSupabaseJWT(tokenString, supabaseJWTSecret)
+        claims, err := validateJWT(tokenString, jwtSecret)
         if err != nil {
             c.AbortWithStatusJSON(401, gin.H{
                 "error": gin.H{
@@ -607,21 +624,21 @@ func AuthMiddleware(supabaseJWTSecret string) gin.HandlerFunc {
 
 ```typescript
 // apps/web/src/lib/api-client.ts
-import { createClient } from '@/api/generated';
-import { createClient as createSupabaseClient } from '@/lib/supabase/client';
+import axios from "axios";
+import { useAuthStore } from "@/stores/auth-store";
 
-const supabase = createSupabaseClient();
+export const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000",
+  headers: { "Content-Type": "application/json" },
+});
 
-export const apiClient = createClient({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000',
-  headers: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    return {
-      Authorization: session?.access_token
-        ? `Bearer ${session.access_token}`
-        : '',
-    };
-  },
+// Request interceptor — 토큰 자동 첨부
+apiClient.interceptors.request.use((config) => {
+  const { accessToken } = useAuthStore.getState();
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
 });
 ```
 
@@ -757,13 +774,14 @@ func (c *CoachingController) StreamDraft(ctx *gin.Context) {
 ```typescript
 // apps/web/src/components/coaching/coaching-chat.tsx
 import { useChat } from '@ai-sdk/react';
+import { useAuthStore } from '@/stores/auth-store';
 
 function CoachingChat() {
+  const { accessToken } = useAuthStore();
   const { messages, input, handleSubmit, isLoading } = useChat({
     api: `${process.env.NEXT_PUBLIC_API_URL}/v1/coaching/draft`,
-    headers: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      return { Authorization: `Bearer ${session?.access_token}` };
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
     },
   });
 
@@ -785,14 +803,29 @@ Base URL: `/v1`
 
 ### 9.1 인증 (Auth)
 
-> **참고**: 인증(회원가입/로그인)은 프론트엔드에서 Supabase Auth SDK를 직접 사용합니다. Go 백엔드는 JWT 검증만 수행하므로, 아래 인증 엔드포인트는 Supabase Auth 콜백 처리용입니다.
+> **변경 (2026-02-13)**: Go 백엔드에서 Naver OAuth + Email/Password 인증을 직접 처리합니다.
+> 상세: `docs/develop/phases/phase-1.2-api-definition.md`
 
 | 메서드 | 엔드포인트 | 설명 | 인증 |
 |--------|-----------|------|------|
-| `POST` | `/v1/auth/signup` | 회원가입 | 불필요 |
-| `POST` | `/v1/auth/login` | 로그인 | 불필요 |
+| `GET` | `/v1/auth/naver/login` | Naver OAuth 시작 (302 → Naver) | 불필요 |
+| `GET` | `/v1/auth/naver/callback` | Naver OAuth 콜백 처리 | 불필요 |
+| `POST` | `/v1/auth/signup` | Email 회원가입 | 불필요 |
+| `POST` | `/v1/auth/login` | Email 로그인 | 불필요 |
+| `POST` | `/v1/auth/refresh` | 토큰 갱신 | 불필요 |
+| `GET` | `/v1/auth/me` | 현재 사용자 정보 | 필요 |
 | `POST` | `/v1/auth/logout` | 로그아웃 | 필요 |
-| `GET` | `/v1/auth/callback` | OAuth 콜백 | 불필요 |
+
+### 9.1.1 어드민 (Admin)
+
+| 메서드 | 엔드포인트 | 설명 | 인증 |
+|--------|-----------|------|------|
+| `GET` | `/v1/admin/stats` | 시스템 통계 | 어드민 |
+| `GET` | `/v1/admin/users` | 사용자 목록 | 어드민 |
+| `GET` | `/v1/admin/users/:id` | 사용자 상세 | 어드민 |
+| `PUT` | `/v1/admin/users/:id/role` | 역할 변경 | 어드민 |
+| `GET` | `/v1/admin/prompts` | 프롬프트 목록 | 어드민 |
+| `PUT` | `/v1/admin/prompts/:id` | 프롬프트 수정 | 어드민 |
 
 ### 9.2 경험 관리 (Experiences)
 
