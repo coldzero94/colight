@@ -125,15 +125,15 @@ func (s *WeaponTaggingService) TagExperience(ctx context.Context, experienceID u
 		"weapon_categories": weaponList,
 	})
 
-	// 6. Call AI with DB-loaded prompt
+	// 6. Call AI with DB-loaded prompt (with retry for transient errors)
 	startTime := time.Now()
-	aiResp, err := s.aiClient.Call(ctx, ai.LLMRequest{
+	aiResp, err := ai.CallWithRetry(ctx, s.aiClient, ai.LLMRequest{
 		SystemPrompt: promptTemplate.SystemPrompt,
 		UserPrompt:   userPrompt,
 		Temperature:  promptTemplate.Temperature,
 		MaxTokens:    promptTemplate.MaxTokens,
 		JSONMode:     true,
-	})
+	}, ai.DefaultRetryConfig())
 	latencyMs := int(time.Since(startTime).Milliseconds())
 	if err != nil {
 		return nil, fmt.Errorf("AI tagging failed: %w", err)
@@ -151,7 +151,20 @@ func (s *WeaponTaggingService) TagExperience(ctx context.Context, experienceID u
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
-	// 6. Validate weapon codes
+	// 9. Validate AI response structure
+	if aiResult.PrimaryWeapon.Code == "" {
+		return nil, fmt.Errorf("AI response missing primary weapon code")
+	}
+	if aiResult.PrimaryWeapon.Confidence < 0 || aiResult.PrimaryWeapon.Confidence > 1 {
+		return nil, fmt.Errorf("invalid confidence for primary weapon: %f (must be 0-1)", aiResult.PrimaryWeapon.Confidence)
+	}
+	for i, sw := range aiResult.SecondaryWeapons {
+		if sw.Confidence < 0 || sw.Confidence > 1 {
+			return nil, fmt.Errorf("invalid confidence for secondary weapon %d: %f (must be 0-1)", i, sw.Confidence)
+		}
+	}
+
+	// 10. Validate weapon codes
 	validCodes := make(map[string]bool)
 	for _, w := range weapons {
 		validCodes[w.Code] = true
