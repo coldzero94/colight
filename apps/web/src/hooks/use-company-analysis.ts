@@ -1,0 +1,31 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { analyzeCompany, getCompanyData } from "@/lib/api/analysis";
+
+export function useCompanyData(companyName: string | null) {
+  return useQuery({
+    queryKey: ["company-data", companyName],
+    queryFn: () => getCompanyData(companyName!),
+    enabled: !!companyName,
+  });
+}
+
+export function useAnalyzeCompany() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (companyName: string) => analyzeCompany(companyName),
+    onSuccess: (data, companyName) => {
+      // Cache the analysis result
+      queryClient.setQueryData(["company-analysis", companyName], data);
+    },
+  });
+}
+
+export function useCompanyAnalysis(companyName: string | null) {
+  return useQuery({
+    queryKey: ["company-analysis", companyName],
+    queryFn: () => analyzeCompany(companyName!),
+    enabled: !!companyName,
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours (server has 365-day cache)
+  });
+}
