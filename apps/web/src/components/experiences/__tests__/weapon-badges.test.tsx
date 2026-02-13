@@ -31,7 +31,8 @@ describe("WeaponBadges", () => {
     const primaryBadge = screen.getByTestId("primary-weapon");
     expect(primaryBadge).toBeInTheDocument();
     expect(primaryBadge).toHaveTextContent("위기극복");
-    expect(primaryBadge.className).toContain("bg-gray-900");
+    expect(primaryBadge.className).toContain("border-2"); // Thicker border for primary
+    expect(screen.getByText("(주)")).toBeInTheDocument(); // Primary label
   });
 
   it("renders secondary weapons as smaller badges", () => {
@@ -40,6 +41,6 @@ describe("WeaponBadges", () => {
     const secondaryBadges = screen.getAllByTestId("secondary-weapon");
     expect(secondaryBadges).toHaveLength(1);
     expect(secondaryBadges[0]).toHaveTextContent("팀워크/협업");
-    expect(secondaryBadges[0].className).toContain("bg-gray-100");
+    expect(secondaryBadges[0].className).toContain("border"); // Regular border for secondary
   });
 });
