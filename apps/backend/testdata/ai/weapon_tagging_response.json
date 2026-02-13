@@ -1,0 +1,22 @@
+{
+  "primary_weapon": {
+    "code": "W01",
+    "name": "위기극복",
+    "confidence": 0.92,
+    "reasoning": "지원자가 프로젝트 위기 상황에서 팀을 이끌고 문제를 극복한 경험이 핵심입니다."
+  },
+  "secondary_weapons": [
+    {
+      "code": "W04",
+      "name": "도전정신",
+      "confidence": 0.71,
+      "reasoning": "새로운 기술 스택을 도입하여 문제를 해결하려는 도전적인 태도가 드러납니다."
+    },
+    {
+      "code": "W05",
+      "name": "문제해결",
+      "confidence": 0.65,
+      "reasoning": "체계적인 분석을 통해 근본 원인을 파악하고 해결책을 제시한 점이 해당됩니다."
+    }
+  ]
+}

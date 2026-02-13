@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { EmptyState } from "@/components/common/empty-state";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { ExperienceList } from "@/components/experiences/experience-list";
 import { ViewToggle } from "@/components/experiences/view-toggle";
 import { SortSelect } from "@/components/experiences/sort-select";
+import { WeaponFilterTabs } from "@/components/experiences/weapon-filter-tabs";
 import { useExperiences } from "@/hooks/use-experiences";
+import { computeWeaponCounts } from "@/lib/api/experiences";
+import {
+  WEAPON_CONFIG,
+  type WeaponCode,
+} from "@/lib/constants/weapon-colors";
 
 export default function ExperiencesPage() {
   const router = useRouter();
@@ -24,11 +30,27 @@ export default function ExperiencesPage() {
     return "grid";
   });
 
-  const { data: experiences, isLoading } = useExperiences({
+  // Fetch all experiences (unfiltered by weapon) for counts
+  const { data: allExperiences, isLoading: isLoadingAll } = useExperiences({
     sort: sort as "latest" | "oldest" | "title",
     category: category || undefined,
-    weapon: weapon || undefined,
   });
+
+  // Fetch filtered experiences when weapon filter is active
+  const { data: filteredExperiences, isLoading: isLoadingFiltered } =
+    useExperiences({
+      sort: sort as "latest" | "oldest" | "title",
+      category: category || undefined,
+      weapon: weapon || undefined,
+    });
+
+  const isLoading = isLoadingAll || (weapon && isLoadingFiltered);
+  const experiences = weapon ? filteredExperiences : allExperiences;
+
+  const weaponCounts = useMemo(
+    () => computeWeaponCounts(allExperiences || []),
+    [allExperiences]
+  );
 
   useEffect(() => {
     localStorage.setItem("exp-view", viewMode);
@@ -40,6 +62,16 @@ export default function ExperiencesPage() {
     router.push(`/experiences?${params.toString()}`);
   };
 
+  const handleWeaponChange = (newWeapon: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (newWeapon) {
+      params.set("weapon", newWeapon);
+    } else {
+      params.delete("weapon");
+    }
+    router.push(`/experiences?${params.toString()}`);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
@@ -48,7 +80,7 @@ export default function ExperiencesPage() {
     );
   }
 
-  if (!experiences || experiences.length === 0) {
+  if (!allExperiences || allExperiences.length === 0) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -79,6 +111,12 @@ export default function ExperiencesPage() {
         </button>
       </div>
 
+      <WeaponFilterTabs
+        counts={weaponCounts}
+        activeWeapon={weapon || null}
+        onChange={handleWeaponChange}
+      />
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <SortSelect value={sort} onChange={handleSortChange} />
@@ -86,7 +124,19 @@ export default function ExperiencesPage() {
         <ViewToggle mode={viewMode} onChange={setViewMode} />
       </div>
 
-      <ExperienceList experiences={experiences} viewMode={viewMode} />
+      {!experiences || experiences.length === 0 ? (
+        <EmptyState
+          icon={<span>🔍</span>}
+          title={`아직 ${WEAPON_CONFIG[weapon as WeaponCode]?.name || ""} 역량의 경험이 없습니다`}
+          description="다른 무기를 선택하거나 경험을 등록해보세요."
+          action={{
+            label: "전체 보기",
+            onClick: () => handleWeaponChange(null),
+          }}
+        />
+      ) : (
+        <ExperienceList experiences={experiences} viewMode={viewMode} />
+      )}
     </div>
   );
 }

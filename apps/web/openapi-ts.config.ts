@@ -6,5 +6,6 @@ export default defineConfig({
   plugins: [
     "@hey-api/typescript",
     "@hey-api/client-axios",
+    "zod",
   ],
 });

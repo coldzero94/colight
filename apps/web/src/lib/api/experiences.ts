@@ -126,6 +126,24 @@ export interface WeaponTagResponse {
   }>;
 }
 
+export function computeWeaponCounts(
+  experiences: Experience[]
+): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const exp of experiences) {
+    if (!exp.weapons) continue;
+    const seen = new Set<string>();
+    for (const w of exp.weapons) {
+      const code = w.weapon_code.substring(0, 3);
+      if (!seen.has(code)) {
+        counts[code] = (counts[code] || 0) + 1;
+        seen.add(code);
+      }
+    }
+  }
+  return counts;
+}
+
 export async function tagExperience(id: string): Promise<WeaponTagResponse> {
   const { data } = await apiClient.post<WeaponTagResponse>(
     `/v1/experiences/${id}/tag`
