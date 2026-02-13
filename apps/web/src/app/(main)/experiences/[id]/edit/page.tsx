@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { ExperienceForm } from "@/components/experiences/experience-form";
@@ -64,12 +65,12 @@ export default function EditExperiencePage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <button
-          onClick={() => router.push(`/experiences/${id}`)}
+        <Link
+          href={`/experiences/${id}`}
           className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
         >
           ← 경험 상세
-        </button>
+        </Link>
         <h1 className="mt-2 text-2xl font-bold text-gray-900">경험 수정</h1>
       </div>
       <ExperienceForm

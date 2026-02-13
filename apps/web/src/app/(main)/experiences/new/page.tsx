@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { ExperienceForm } from "@/components/experiences/experience-form";
 import { useCreateExperience } from "@/hooks/use-experiences";
@@ -40,12 +41,12 @@ export default function NewExperiencePage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <button
-          onClick={() => router.push("/experiences")}
+        <Link
+          href="/experiences"
           className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
         >
           ← 경험 목록
-        </button>
+        </Link>
         <h1 className="mt-2 text-2xl font-bold text-gray-900">경험 등록</h1>
       </div>
       <ExperienceForm

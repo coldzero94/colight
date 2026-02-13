@@ -61,7 +61,7 @@ moon run :build        # All builds
 | 1 | Auth & layout | Complete | 0 |
 | 2 | Experience CRUD | Complete | 1 |
 | 2.1 | Weapon auto-tagging | Complete | 1 |
-| 3 | Crawling & parsing | Pending | 2 |
+| 3 | Crawling & parsing | Complete | 2 |
 | 3.1 | Company data API | Pending | 2 |
 | 3.2 | AI company analysis | Pending | 3 |
 | 3.3 | Analysis report UI | Pending | 3 |

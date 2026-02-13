@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { StarDisplay } from "@/components/experiences/star-display";
@@ -50,12 +51,12 @@ export default function ExperienceDetailPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <button
-        onClick={() => router.push("/experiences")}
+      <Link
+        href="/experiences"
         className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
       >
         ← 경험 목록
-      </button>
+      </Link>
 
       <div className="flex items-start justify-between">
         <div>
