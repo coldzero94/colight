@@ -63,8 +63,8 @@ moon run :build        # All builds
 | 2.1 | Weapon auto-tagging | Complete | 1 |
 | 3 | Crawling & parsing | Complete | 2 |
 | 3.1 | Company data API | Complete | 2 |
-| 3.2 | AI company analysis | Pending | 3 |
-| 3.3 | Analysis report UI | Pending | 3 |
+| 3.2 | AI company analysis | Complete | 3 |
+| 3.3 | Analysis report UI | Complete | 3 |
 | 4 | Experience matching | Pending | 4 |
 | 5 | Question analysis | Pending | 5 |
 | 5.1 | Draft coaching | Pending | 5 |

@@ -80,8 +80,10 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 		First(ctx)
 
 	if err == nil {
-		// Cache hit - return cached data
-		// TODO: Increment view_count after Ent regeneration includes the field
+		// Cache hit - increment view_count and return cached data
+		_ = s.entClient.CompanyAnalysisCache.UpdateOneID(cache.ID).
+			SetViewCount(cache.ViewCount + 1).
+			Exec(ctx)
 
 		var analysis CompanyAnalysis
 		// cache.Data is map[string]interface{}, convert to JSON first
@@ -122,8 +124,8 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 		SetCompanyName(companyName).
 		SetData(dataMap).
 		SetExpiresAt(time.Now().AddDate(1, 0, 0)). // 365 days
+		SetViewCount(1).
 		Save(ctx)
-	// TODO: Add SetViewCount(1) after Ent regeneration
 
 	analysis.Source = "ai_generated"
 	return analysis, nil
