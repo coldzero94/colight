@@ -106,8 +106,28 @@ export async function updateExperience(
 export async function deleteExperience(
   id: string
 ): Promise<{ success: boolean }> {
-  const { data } = await apiClient.delete<{ success: boolean }>(
+  const { data} = await apiClient.delete<{ success: boolean }>(
     `/v1/experiences/${id}`
+  );
+  return data;
+}
+
+export interface WeaponTagResponse {
+  primary_weapon: {
+    code: string;
+    confidence: number;
+    reasoning: string;
+  };
+  secondary_weapons: Array<{
+    code: string;
+    confidence: number;
+    reasoning: string;
+  }>;
+}
+
+export async function tagExperience(id: string): Promise<WeaponTagResponse> {
+  const { data } = await apiClient.post<WeaponTagResponse>(
+    `/v1/experiences/${id}/tag`
   );
   return data;
 }

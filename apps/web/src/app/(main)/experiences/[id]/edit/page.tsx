@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { ExperienceForm } from "@/components/experiences/experience-form";
 import { useExperience, useUpdateExperience } from "@/hooks/use-experiences";
+import { useWeaponTagging } from "@/hooks/use-weapon-tagging";
 import type { ExperienceFormValues } from "@/lib/validations/experience";
 
 export default function EditExperiencePage() {
@@ -14,6 +15,7 @@ export default function EditExperiencePage() {
 
   const { data: experience, isLoading } = useExperience(id);
   const updateMutation = useUpdateExperience();
+  const { triggerTagging } = useWeaponTagging();
 
   const handleSubmit = async (data: ExperienceFormValues) => {
     try {
@@ -33,6 +35,10 @@ export default function EditExperiencePage() {
         },
       });
       toast.success("경험이 수정되었습니다.");
+
+      // Re-tag if STAR fields changed
+      triggerTagging(id);
+
       router.push(`/experiences/${id}`);
     } catch {
       toast.error("수정에 실패했습니다.");

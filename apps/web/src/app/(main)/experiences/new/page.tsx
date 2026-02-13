@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ExperienceForm } from "@/components/experiences/experience-form";
 import { useCreateExperience } from "@/hooks/use-experiences";
+import { useWeaponTagging } from "@/hooks/use-weapon-tagging";
 import type { ExperienceFormValues } from "@/lib/validations/experience";
 
 export default function NewExperiencePage() {
   const router = useRouter();
   const createMutation = useCreateExperience();
+  const { triggerTagging } = useWeaponTagging();
 
   const handleSubmit = async (data: ExperienceFormValues) => {
     try {
@@ -25,6 +27,10 @@ export default function NewExperiencePage() {
         star_result: data.star_result || undefined,
       });
       toast.success("경험이 등록되었습니다.");
+
+      // Trigger AI weapon tagging
+      triggerTagging(result.id);
+
       router.push(`/experiences/${result.id}`);
     } catch {
       toast.error("경험 등록에 실패했습니다.");
