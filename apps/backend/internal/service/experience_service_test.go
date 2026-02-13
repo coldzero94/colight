@@ -353,3 +353,52 @@ func TestCreateExperience_DirectDBUser(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, user.ID, exp.UserID)
 }
+
+func TestGetExperiences_FilterByWeapon(t *testing.T) {
+	es, as := newTestExperienceService(t)
+	userID := createTestUser(t, as)
+	ctx := context.Background()
+
+	// Create experiences
+	exp1, _ := es.CreateExperience(ctx, userID, CreateExperienceInput{
+		Title:   "Experience 1",
+		Content: "content 1",
+	})
+	exp2, _ := es.CreateExperience(ctx, userID, CreateExperienceInput{
+		Title:   "Experience 2",
+		Content: "content 2",
+	})
+
+	// Tag exp1 with W01
+	_ = es.db.ExperienceWeapon.Create().
+		SetExperienceID(exp1.ID).
+		SetWeaponCode("W01").
+		SetConfidence(0.9).
+		SetIsPrimary(true).
+		SaveX(ctx)
+
+	// Tag exp2 with W02
+	_ = es.db.ExperienceWeapon.Create().
+		SetExperienceID(exp2.ID).
+		SetWeaponCode("W02").
+		SetConfidence(0.8).
+		SetIsPrimary(true).
+		SaveX(ctx)
+
+	// Filter by W01
+	results, err := es.GetExperiences(ctx, userID, ExperienceListParams{WeaponCode: "W01"})
+	require.NoError(t, err)
+	assert.Len(t, results, 1)
+	assert.Equal(t, exp1.ID, results[0].ID)
+
+	// Filter by W02
+	results, err = es.GetExperiences(ctx, userID, ExperienceListParams{WeaponCode: "W02"})
+	require.NoError(t, err)
+	assert.Len(t, results, 1)
+	assert.Equal(t, exp2.ID, results[0].ID)
+
+	// No filter - should return all
+	results, err = es.GetExperiences(ctx, userID, ExperienceListParams{})
+	require.NoError(t, err)
+	assert.Len(t, results, 2)
+}

@@ -65,6 +65,7 @@ export interface UpdateExperienceRequest {
 export interface ExperienceListParams {
   sort?: "latest" | "oldest" | "title";
   category?: string;
+  weapon?: string; // Weapon code filter (W01-W07)
 }
 
 export async function fetchExperiences(

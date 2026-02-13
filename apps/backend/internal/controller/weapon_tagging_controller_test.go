@@ -66,7 +66,7 @@ func TestWeaponTaggingController_Tag(t *testing.T) {
 
 	// Create user
 	user := client.UserProfile.Create().
-		SetEmail("test@example.com").
+		SetEmail("wtc-tag-" + uuid.New().String()[:8] + "@example.com").
 		SetPasswordHash("hash").
 		SetRole("user").
 		SaveX(context.Background())
@@ -144,14 +144,14 @@ func TestWeaponTaggingController_Forbidden(t *testing.T) {
 
 	// Create owner
 	owner := client.UserProfile.Create().
-		SetEmail("owner@example.com").
+		SetEmail("wtc-owner-" + uuid.New().String()[:8] + "@example.com").
 		SetPasswordHash("hash").
 		SetRole("user").
 		SaveX(context.Background())
 
 	// Create other user
 	otherUser := client.UserProfile.Create().
-		SetEmail("other@example.com").
+		SetEmail("wtc-other-" + uuid.New().String()[:8] + "@example.com").
 		SetPasswordHash("hash").
 		SetRole("user").
 		SaveX(context.Background())

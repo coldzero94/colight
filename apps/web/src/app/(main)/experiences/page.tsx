@@ -15,6 +15,7 @@ export default function ExperiencesPage() {
 
   const sort = searchParams.get("sort") || "latest";
   const category = searchParams.get("category") || "";
+  const weapon = searchParams.get("weapon") || "";
 
   const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
     if (typeof window !== "undefined") {
@@ -26,6 +27,7 @@ export default function ExperiencesPage() {
   const { data: experiences, isLoading } = useExperiences({
     sort: sort as "latest" | "oldest" | "title",
     category: category || undefined,
+    weapon: weapon || undefined,
   });
 
   useEffect(() => {

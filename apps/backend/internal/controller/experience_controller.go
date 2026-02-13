@@ -103,8 +103,9 @@ func (ctrl *ExperienceController) List(c *gin.Context) {
 	}
 
 	params := service.ExperienceListParams{
-		Sort:     c.Query("sort"),
-		Category: c.Query("category"),
+		Sort:       c.Query("sort"),
+		Category:   c.Query("category"),
+		WeaponCode: c.Query("weapon"),
 	}
 
 	exps, err := ctrl.experienceService.GetExperiences(c.Request.Context(), userID, params)

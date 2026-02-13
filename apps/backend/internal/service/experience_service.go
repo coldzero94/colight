@@ -48,8 +48,9 @@ type UpdateExperienceInput struct {
 }
 
 type ExperienceListParams struct {
-	Sort     string // "latest" (default), "oldest", "title"
-	Category string
+	Sort       string // "latest" (default), "oldest", "title"
+	Category   string
+	WeaponCode string // Filter by weapon code (W01-W07)
 }
 
 func NewExperienceService(db *ent.Client) *ExperienceService {
@@ -113,6 +114,11 @@ func (s *ExperienceService) GetExperiences(ctx context.Context, userID uuid.UUID
 
 	if params.Category != "" {
 		query = query.Where(experience.CategoryEQ(params.Category))
+	}
+
+	// Filter by weapon code if specified
+	if params.WeaponCode != "" {
+		query = query.Where(experience.HasWeaponsWith(experienceweapon.WeaponCodeEQ(params.WeaponCode)))
 	}
 
 	switch params.Sort {
