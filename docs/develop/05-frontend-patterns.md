@@ -576,3 +576,83 @@ export function BottomNav() {
   );
 }
 ```
+
+---
+
+## 10. 접근성(Accessibility) 패턴
+
+### 폼 접근성 규칙
+
+모든 폼 입력 요소는 다음 규칙을 따릅니다:
+
+| 규칙 | 설명 | 예시 |
+|------|------|------|
+| `htmlFor`/`id` 연결 | `<label>`과 `<input>`을 `htmlFor`/`id`로 연결 | `<label htmlFor="title">` + `<input id="title">` |
+| `role="alert"` | 유효성 검증 에러 메시지에 `role="alert"` 부여 | `<p role="alert">제목을 입력해주세요</p>` |
+| `maxLength` | HTML `maxLength` 속성으로 클라이언트 제한 보강 | `<input maxLength={100}>` |
+| `aria-describedby` | 보조 설명(가이드 텍스트)을 입력과 연결 | `<textarea aria-describedby="guide-id">` |
+| `aria-live="polite"` | 동적 카운터에 스크린리더 공지 | `<p aria-live="polite">50/1000</p>` |
+
+### 네비게이션 접근성
+
+```typescript
+// Back link — aria-label로 명확한 액션 안내
+<Link
+  href="/experiences"
+  aria-label="경험 목록으로 돌아가기"
+>
+  ← 경험 목록
+</Link>
+
+// Tablist — aria-label로 탭 그룹 설명
+<div role="tablist" aria-label="무기 역량 필터">
+  <button role="tab" aria-selected={isActive}>...</button>
+</div>
+```
+
+### 터치 타겟
+
+모바일 터치 타겟은 최소 `44px` 이상을 유지합니다:
+
+```
+// 필터 탭 버튼 — px-4 py-2 (높이 약 40px+)
+className="px-4 py-2 text-sm font-medium"
+
+// 폼 버튼 — px-6 py-2
+className="px-6 py-2 text-sm font-medium"
+```
+
+### 모달/다이얼로그
+
+```typescript
+// DeleteDialog — 접근성 속성 필수
+<div role="dialog" aria-modal="true" aria-label="삭제 확인">
+  ...
+</div>
+```
+
+---
+
+## 11. 성능 최적화 (Vercel Best Practices)
+
+Phase 2.1 완료 시 적용된 최적화:
+
+| 규칙 | 적용 | 파일 |
+|------|------|------|
+| `bundle-defer-third-party` | ReactQueryDevtools를 `next/dynamic`으로 lazy-load | `providers.tsx` |
+| `bundle-barrel-imports` | `optimizePackageImports` 설정 | `next.config.ts` |
+| Navigation prefetch | 네비게이션에 `router.push` 대신 `<Link>` 사용 | 경험 상세/등록/수정 페이지 |
+
+### optimizePackageImports 설정
+
+```typescript
+// next.config.ts
+experimental: {
+  optimizePackageImports: [
+    "@tanstack/react-query",
+    "sonner",
+    "react-hook-form",
+    "@hookform/resolvers",
+  ],
+},
+```

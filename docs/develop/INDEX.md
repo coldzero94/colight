@@ -40,6 +40,7 @@ pnpm run dev
 | 12 | [Go 백엔드 테스트](./12-backend-testing.md) | testify + enttest, AI 모킹, 커버리지 |
 | 13 | [데이터 내보내기 & 백업](./13-data-export-backup.md) | 사용자 내보내기, 계정 삭제, DB 백업, 재해 복구 |
 | 14 | [크롤러 모니터링](./14-crawler-monitoring.md) | HTML 변경 감지, 실패 대응, 헬스체크, 관리자 대시보드 |
+| 15 | [UX 개선 백로그](./15-ux-improvement-backlog.md) | 접근성, 성능, 모바일 UX 개선 항목 추적 |
 
 ## Phase 가이드
 

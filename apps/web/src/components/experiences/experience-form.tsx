@@ -54,37 +54,41 @@ export function ExperienceForm({
         <h2 className="text-lg font-semibold text-gray-900">기본 정보</h2>
 
         <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">
+          <label htmlFor="title" className="text-sm font-medium text-gray-700">
             제목 <span className="text-red-500">*</span>
           </label>
           <input
+            id="title"
             {...register("title")}
+            maxLength={100}
             placeholder="동아리 축제 부스 운영"
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
           {errors.title && (
-            <p className="text-xs text-red-500">{errors.title.message}</p>
+            <p role="alert" className="text-xs text-red-500">{errors.title.message}</p>
           )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">시작일</label>
+            <label htmlFor="period_start" className="text-sm font-medium text-gray-700">시작일</label>
             <input
+              id="period_start"
               {...register("period_start")}
               type="date"
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">종료일</label>
+            <label htmlFor="period_end" className="text-sm font-medium text-gray-700">종료일</label>
             <input
+              id="period_end"
               {...register("period_end")}
               type="date"
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
             {errors.period_end && (
-              <p className="text-xs text-red-500">
+              <p role="alert" className="text-xs text-red-500">
                 {errors.period_end.message}
               </p>
             )}
@@ -92,14 +96,16 @@ export function ExperienceForm({
         </div>
 
         <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">역할</label>
+          <label htmlFor="role" className="text-sm font-medium text-gray-700">역할</label>
           <input
+            id="role"
             {...register("role")}
+            maxLength={50}
             placeholder="부스 운영 총괄"
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
           {errors.role && (
-            <p className="text-xs text-red-500">{errors.role.message}</p>
+            <p role="alert" className="text-xs text-red-500">{errors.role.message}</p>
           )}
         </div>
 
@@ -165,13 +171,15 @@ export function ExperienceForm({
           STAR 구조가 어렵다면 자유롭게 작성해도 AI가 정리해드려요
         </p>
         <textarea
+          id="content"
           {...register("content")}
+          maxLength={5000}
           placeholder="경험을 자유롭게 작성해주세요..."
           rows={6}
           className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
         />
         {errors.content && (
-          <p className="text-xs text-red-500">{errors.content.message}</p>
+          <p role="alert" className="text-xs text-red-500">{errors.content.message}</p>
         )}
       </section>
 

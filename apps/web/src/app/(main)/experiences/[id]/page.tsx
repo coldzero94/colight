@@ -54,6 +54,7 @@ export default function ExperienceDetailPage() {
       <Link
         href="/experiences"
         className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+        aria-label="경험 목록으로 돌아가기"
       >
         ← 경험 목록
       </Link>
