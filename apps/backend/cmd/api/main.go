@@ -53,6 +53,8 @@ func main() {
 		crawlingService = service.NewCrawlingService(aiProvider)
 	}
 
+	companyDataService := service.NewCompanyDataService()
+
 	// Controllers
 	authCtrl := controller.NewAuthController(authService, cfg)
 	adminCtrl := controller.NewAdminController(db)
@@ -67,6 +69,8 @@ func main() {
 	if crawlingService != nil {
 		crawlingCtrl = controller.NewCrawlingController(crawlingService)
 	}
+
+	companyDataCtrl := controller.NewCompanyDataController(companyDataService)
 
 	// Router
 	r := gin.Default()
@@ -109,6 +113,9 @@ func main() {
 		if crawlingCtrl != nil {
 			protected.POST("/crawl", crawlingCtrl.ParseJobPosting)
 		}
+
+		// Company data (DART + News crawling)
+		protected.GET("/company-data", companyDataCtrl.GetCompanyData)
 	}
 
 	// Admin routes (require authentication + admin role)
