@@ -57,8 +57,8 @@ moon run :build        # All builds
 
 | Phase | Name | Status | Sprint |
 |-------|------|--------|--------|
-| 0 | Project setup & infra | Pending | 0 |
-| 1 | Auth & layout | Pending | 0 |
+| 0 | Project setup & infra | Complete | 0 |
+| 1 | Auth & layout | Complete | 0 |
 | 2 | Experience CRUD | Complete | 1 |
 | 2.1 | Weapon auto-tagging | Complete | 1 |
 | 3 | Crawling & parsing | Pending | 2 |

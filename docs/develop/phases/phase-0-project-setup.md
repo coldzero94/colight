@@ -992,14 +992,14 @@ Next.js 15 프론트엔드 프로젝트를 생성하고, Go 백엔드 API를 호
 - [x] TypeSpec → OpenAPI → Go/TS 코드 생성 파이프라인
 - [x] Next.js 16 프론트엔드 동작 (포트 4000)
 - [x] ESLint 9 flat config 설정
-- [ ] 시드 데이터 삽입 완료
+- [x] 시드 데이터 삽입 완료
 
 ### 데이터
 - [x] 15개 DB 테이블 생성 (로컬)
 - [x] pgvector 확장 활성화
-- [ ] weapon_categories 35건 시드
-- [ ] prompt_templates 4건 시드
-- [ ] question_patterns 7건 시드
+- [x] weapon_categories 35건 시드
+- [x] prompt_templates 4건 시드
+- [x] question_patterns 7건 시드
 
 ### 코드 품질
 - [x] `moon run backend:build` → 빌드 성공

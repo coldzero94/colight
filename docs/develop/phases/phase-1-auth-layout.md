@@ -68,12 +68,12 @@ Phase 1은 6개 하위 문서로 분리됩니다:
 
 | Step | 이름 | 상태 |
 |------|------|------|
-| 1.1 | DB 스키마 수정 (auth + admin 필드) | ⬜ |
-| 1.2 | Auth + Admin API 정의 (TypeSpec) | ⬜ |
-| 1.3 | Go 백엔드 인증 (Naver OAuth + Email/PW + JWT) | ⬜ |
-| 1.4 | 프론트엔드 인증 (로그인 UI + 상태관리 + 보호 라우트) | ⬜ |
-| 1.5 | 어드민 시스템 (어드민 미들웨어 + 어드민 페이지) | ⬜ |
-| 1.6 | 공통 레이아웃 (사이드바/헤더 + 공통 컴포넌트) | ⬜ |
+| 1.1 | DB 스키마 수정 (auth + admin 필드) | ✅ |
+| 1.2 | Auth + Admin API 정의 (TypeSpec) | ✅ |
+| 1.3 | Go 백엔드 인증 (Naver OAuth + Email/PW + JWT) | ✅ |
+| 1.4 | 프론트엔드 인증 (로그인 UI + 상태관리 + 보호 라우트) | ✅ |
+| 1.5 | 어드민 시스템 (어드민 미들웨어 + 어드민 페이지) | ✅ |
+| 1.6 | 공통 레이아웃 (사이드바/헤더 + 공통 컴포넌트) | ✅ |
 
 ---
 
@@ -113,23 +113,23 @@ Phase 1은 6개 하위 문서로 분리됩니다:
 ## Phase 완료 체크리스트
 
 ### 기능
-- [ ] Naver OAuth 로그인/회원가입 정상
-- [ ] Email/Password 회원가입/로그인 정상
-- [ ] JWT access token + refresh token 발급/갱신 정상
-- [ ] 비인증 사용자 → `/login` 리디렉션 정상
-- [ ] 인증 사용자 → `/(main)/*` 접근 정상
-- [ ] 어드민 사용자 → `/admin/*` 접근 정상
-- [ ] 비어드민 사용자 → `/admin/*` 접근 차단
-- [ ] 사이드바 네비게이션 정상
-- [ ] 모바일 햄버거 메뉴 정상
-- [ ] 로그아웃 → 토큰 삭제 → `/login` 리디렉션
+- [x] Naver OAuth 로그인/회원가입 정상
+- [x] Email/Password 회원가입/로그인 정상
+- [x] JWT access token + refresh token 발급/갱신 정상
+- [x] 비인증 사용자 → `/login` 리디렉션 정상
+- [x] 인증 사용자 → `/(main)/*` 접근 정상
+- [x] 어드민 사용자 → `/admin/*` 접근 정상
+- [x] 비어드민 사용자 → `/admin/*` 접근 차단
+- [x] 사이드바 네비게이션 정상
+- [x] 모바일 햄버거 메뉴 정상
+- [x] 로그아웃 → 토큰 삭제 → `/login` 리디렉션
 
 ### 검증 게이트
-- [ ] `moon run backend:lint` → 통과
-- [ ] `moon run backend:test` → 통과
-- [ ] `moon run web:lint` → 통과
-- [ ] `moon run web:typecheck` → 통과
-- [ ] `moon run web:build` → 빌드 성공
+- [x] `moon run backend:lint` → 통과
+- [x] `moon run backend:test` → 통과
+- [x] `moon run web:lint` → 통과
+- [x] `moon run web:typecheck` → 통과
+- [x] `moon run web:build` → 빌드 성공
 
 ---
 

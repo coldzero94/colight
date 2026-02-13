@@ -9,10 +9,10 @@
 
 | Phase | 이름 | 상태 | 스프린트 | 공수 | 관련 기능 |
 |-------|------|------|----------|------|----------|
-| Phase 0 | 프로젝트 셋업 & 인프라 | ⬜ | Sprint 0 | 4일 | - |
-| Phase 1 | 인증 & 레이아웃 | ⬜ | Sprint 0 | 4일 | Sub-phases: 1.1~1.6 |
-| Phase 2 | 경험 CRUD | ⬜ | Sprint 1 | 3일 | F01 |
-| Phase 2.1 | 무기 자동 태깅 | ⬜ | Sprint 1 | 2일 | F03 |
+| Phase 0 | 프로젝트 셋업 & 인프라 | ✅ | Sprint 0 | 4일 | - |
+| Phase 1 | 인증 & 레이아웃 | ✅ | Sprint 0 | 4일 | Sub-phases: 1.1~1.6 |
+| Phase 2 | 경험 CRUD | ✅ | Sprint 1 | 3일 | F01 |
+| Phase 2.1 | 무기 자동 태깅 | ✅ | Sprint 1 | 2일 | F03 |
 | Phase 3 | 크롤링 & 파싱 | ⬜ | Sprint 2 | 2일 | F07 |
 | Phase 3.1 | 기업 데이터 API | ⬜ | Sprint 2 | 2일 | F08 |
 | Phase 3.2 | AI 기업 분석 | ⬜ | Sprint 3 | 2일 | F09 |
