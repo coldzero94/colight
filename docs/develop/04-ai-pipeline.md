@@ -630,7 +630,90 @@ async function getCachedOrFetch<T>(
 
 ---
 
-## 7. 전체 비용 요약 (1건 풀 파이프라인)
+## 7. 프롬프트 버전 관리 & A/B 테스트
+
+### 7.1 모델 선택 우선순위 규칙
+
+프롬프트 실행 시 모델 선택은 다음 우선순위를 따릅니다:
+
+```
+1. prompt_templates.model 필드 (DB에 명시된 모델)
+   → "claude-sonnet-4-5" → Claude Sonnet 4.5 고정
+   → "light" → LLM_LIGHT_PROVIDER 환경변수에 위임 (gemini|groq)
+   → NULL 또는 빈 문자열 → 기본값 "light"
+
+2. LLM_LIGHT_PROVIDER 환경변수 (경량 모델 프로바이더)
+   → "gemini" (기본) → Gemini 2.0 Flash
+   → "groq" → Groq Llama 3.3 70B
+```
+
+**규칙 요약**:
+- `prompt_templates.model = "claude-sonnet-4-5"` → 항상 Claude (env var 무시)
+- `prompt_templates.model = "light"` 또는 NULL → `LLM_LIGHT_PROVIDER`에 위임
+- 환경변수가 prompt_template보다 우선하지 않음. DB가 최종 권한.
+
+### 7.2 프롬프트 버전 관리
+
+```
+prompt_templates 테이블:
+┌──────────────┬───────────┬─────────┬───────────┐
+│ category     │ sub_cat   │ version │ is_active │
+├──────────────┼───────────┼─────────┼───────────┤
+│ exp_classify │ weapon    │ 1       │ false     │  ← 이전 버전 (비활성)
+│ exp_classify │ weapon    │ 2       │ true      │  ← 현재 활성 버전
+│ exp_classify │ weapon    │ 3       │ false     │  ← A/B 테스트 후보
+└──────────────┴───────────┴─────────┴───────────┘
+```
+
+**버전 관리 규칙**:
+1. **새 버전 생성**: `version` 증가, `is_active = false`로 생성
+2. **A/B 테스트 기간**: 새 버전을 특정 사용자 비율(예: 10%)에게 노출
+3. **활성화**: 테스트 통과 시 `is_active = true` 설정, 이전 버전 `is_active = false`
+4. **롤백**: 문제 발생 시 이전 버전 `is_active = true`로 즉시 복원
+5. **소프트 삭제**: 프롬프트는 물리 삭제하지 않음. `is_active = false`로 비활성화만
+
+**진행 중 세션 보호**:
+- 코칭 세션 시작 시 `prompt_template_id`를 `coaching_sessions`에 기록
+- 세션 진행 중 프롬프트가 변경되어도 기존 세션은 기록된 버전으로 완료
+- 새 세션부터 새 버전 적용
+
+### 7.3 A/B 테스트 인프라 (Phase 10+)
+
+```
+[AI 호출 시점]
+    │
+    ▼
+[프롬프트 로드]
+    ├── is_active=true 중 version 최신 (기본)
+    └── A/B 테스트 활성 시: user_id % 10 < split_ratio → 테스트 버전
+    │
+    ▼
+[결과 로깅]
+    coaching_sessions 테이블에 사용된 prompt_template_id 기록
+    │
+    ▼
+[비교 분석]
+    버전 A vs 버전 B:
+    - 코칭 만족도 (NPS)
+    - 재사용률 (7일 내 재코칭)
+    - 자소서 완성률
+    - 평균 토큰 사용량 (비용 효율)
+```
+
+> A/B 테스트 인프라는 Phase 10(성장 기능)에서 구현 예정. 초기에는 관리자가 수동으로 버전을 전환하는 방식으로 운영.
+
+### 7.4 프롬프트 보안
+
+| 위험 | 대응 |
+|------|------|
+| 사용자 입력에 `{{` 문자 포함 | 변수 치환 전 사용자 입력의 `{{`, `}}` 이스케이프 처리 |
+| 프롬프트 인젝션 (system prompt 조작) | system_prompt는 DB에서만 로드, 사용자 입력은 user_prompt에만 삽입 |
+| 프롬프트 길이 초과 | `max_tokens` 필드로 출력 제한, 입력은 경험 텍스트 5000자 + 기업 분석 제한 |
+| 관리자 실수로 프롬프트 삭제 | soft delete만 허용, is_active=false로 비활성화 |
+
+---
+
+## 8. 전체 비용 요약 (1건 풀 파이프라인)
 
 ```
 ┌─────────────────────────────────────────────────┐
