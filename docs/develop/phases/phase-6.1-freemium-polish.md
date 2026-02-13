@@ -51,15 +51,31 @@
 | 초안 코칭 | 1회/일 | 무제한 | 일별 |
 | 첨삭 코칭 | 1회/일 (무료 한도 내) | 5회/자소서 | 일별 |
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `user_profiles` 테이블에 `plan` 컬럼 추가 (`free` / `starter` / `pro` / `season`)
-- [ ] `usage_tracking` 테이블 생성 (또는 `user_profiles`에 JSONB 컬럼)
-- [ ] 사용량 추적 미들웨어 구현 (`src/lib/usage/tracker.ts`)
-- [ ] 각 API 엔드포인트에 사용량 체크 로직 추가
-- [ ] 사용량 초과 시 403 + 업그레이드 유도 메시지 반환
-- [ ] 일별 사용량 자정 리셋 로직 (Supabase Edge Function 또는 앱 내 체크)
-- [ ] 사용량 현황 조회 API
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `TestUsageService_CheckLimit_FreeUser` | `internal/service/usage_service_test.go` | 무료 사용자 경험 4번째 등록 시 제한 초과 반환 |
+| `TestUsageService_CheckLimit_PaidUser` | `internal/service/usage_service_test.go` | 유료 사용자 제한 없이 허용 |
+| `TestUsageService_DailyReset` | `internal/service/usage_service_test.go` | 일별 제한이 자정 이후 리셋 확인 |
+| `TestUsageController_GetUsage` | `internal/controller/usage_controller_test.go` | 사용량 조회 API 정상 응답, 본인 사용량만 반환 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/service/usage_service_test.go` 작성
+  - [ ] `internal/controller/usage_controller_test.go` 작성
+- [ ] 구현 (GREEN)
+  - [ ] `user_profiles` 테이블에 `plan` 컬럼 추가 (`free` / `starter` / `pro` / `season`)
+  - [ ] `usage_tracking` 테이블 생성 (또는 `user_profiles`에 JSONB 컬럼)
+  - [ ] 사용량 추적 미들웨어 구현 (`src/lib/usage/tracker.ts`)
+  - [ ] 각 API 엔드포인트에 사용량 체크 로직 추가
+  - [ ] 사용량 초과 시 403 + 업그레이드 유도 메시지 반환
+  - [ ] 일별 사용량 자정 리셋 로직 (Supabase Edge Function 또는 앱 내 체크)
+  - [ ] 사용량 현황 조회 API
+- [ ] 테스트 통과 확인
 
 ### DB 스키마 변경
 
@@ -183,15 +199,6 @@ await trackUsage(user.id, 'draft', { cover_letter_id: '...' });
 |--------|------|---------|----------|
 | `GET` | `/api/usage` | - | `{ plan, features: { [key]: { used, limit, remaining } } }` |
 
-### 검증 방법
-
-- [ ] 무료 사용자: 경험 4번째 등록 시 403 + 업그레이드 유도
-- [ ] 무료 사용자: 하루 2번째 분석 요청 시 403
-- [ ] 유료 사용자: 제한 없이 사용 가능
-- [ ] 사용량 조회 API 정상 동작
-- [ ] 일별 제한이 자정 이후 리셋 확인
-- [ ] RLS: 본인 사용량만 조회 가능
-
 ### 산출물
 
 - `supabase/migrations/YYYYMMDD_add_usage_tracking.sql`
@@ -208,15 +215,33 @@ await trackUsage(user.id, 'draft', { cover_letter_id: '...' });
 
 사용량 제한에 도달한 사용자에게 업그레이드를 유도하는 페이월 모달과 블러 처리된 프리미엄 미리보기를 구현한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 페이월 모달 컴포넌트 구현 (`PaywallModal`)
-- [ ] 블러 처리된 프리미엄 미리보기 (분석 결과 일부 흐릿하게)
-- [ ] 업그레이드 CTA 버튼 (가격표 페이지 또는 결제 모달로 이동)
-- [ ] 사용량 현황 표시 ("오늘 1/1 사용 완료")
-- [ ] 토스트 기반 알림 (사용량 80% 도달 시 경고)
-- [ ] 가격표 페이지 구현 (`/pricing`)
-- [ ] 결제 기능은 Phase 9에서 구현, 현재는 CTA만
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `describe('PaywallModal')` | `src/components/paywall/__tests__/paywall-modal.test.tsx` | 사용량 초과 시 모달 표시, 현재 사용량/제한 렌더링, "나중에 할게요" 클릭 시 닫힘 |
+| `describe('UsageBadge')` | `src/components/paywall/__tests__/usage-badge.test.tsx` | 사용량 배지 렌더링, 남은 횟수 표시 |
+| `describe('PricingCard')` | `src/components/paywall/__tests__/pricing-card.test.tsx` | 4개 플랜 카드 렌더링, CTA 버튼 동작 |
+| `describe('BlurredPreview')` | `src/components/paywall/__tests__/blurred-preview.test.tsx` | 블러 처리 래퍼 렌더링, 업그레이드 링크 표시 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/paywall/__tests__/paywall-modal.test.tsx` 작성
+  - [ ] `src/components/paywall/__tests__/usage-badge.test.tsx` 작성
+  - [ ] `src/components/paywall/__tests__/pricing-card.test.tsx` 작성
+  - [ ] `src/components/paywall/__tests__/blurred-preview.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] 페이월 모달 컴포넌트 구현 (`PaywallModal`)
+  - [ ] 블러 처리된 프리미엄 미리보기 (분석 결과 일부 흐릿하게)
+  - [ ] 업그레이드 CTA 버튼 (가격표 페이지 또는 결제 모달로 이동)
+  - [ ] 사용량 현황 표시 ("오늘 1/1 사용 완료")
+  - [ ] 토스트 기반 알림 (사용량 80% 도달 시 경고)
+  - [ ] 가격표 페이지 구현 (`/pricing`)
+  - [ ] 결제 기능은 Phase 9에서 구현, 현재는 CTA만
+- [ ] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -230,7 +255,7 @@ await trackUsage(user.id, 'draft', { cover_letter_id: '...' });
 
 ### 페이월 모달 레이아웃
 
-```
+```text
 ┌──────────────────────────────────────────────┐
 │                    ×                          │
 │                                              │
@@ -284,16 +309,6 @@ export function BlurredPreview({ children }: { children: React.ReactNode }) {
 }
 ```
 
-### 검증 방법
-
-- [ ] 사용량 초과 시 페이월 모달 자동 표시
-- [ ] 모달에 현재 사용량 / 제한 표시
-- [ ] 블러 처리된 프리미엄 미리보기 정상 렌더링
-- [ ] CTA 버튼 → 가격표 페이지 이동
-- [ ] "나중에 할게요" 클릭 시 모달 닫힘
-- [ ] 사용량 배지가 사이드바/헤더에 표시
-- [ ] 가격표 페이지에 4개 플랜 정상 표시
-
 ### 산출물
 
 - `src/components/paywall/paywall-modal.tsx`
@@ -310,17 +325,29 @@ export function BlurredPreview({ children }: { children: React.ReactNode }) {
 
 모든 API 라우트와 페이지에 일관된 에러 처리가 적용되어 있는지 점검하고, 누락된 부분을 보완한다. 사용자에게 친화적인 에러 메시지를 표시한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 모든 API 라우트에 try-catch + 일관된 에러 응답 형식 적용
-- [ ] 모든 `(main)/*/` 라우트에 `error.tsx` 존재 확인
-- [ ] 모든 `(main)/*/` 라우트에 `loading.tsx` 존재 확인
-- [ ] 토스트 기반 에러 알림 (sonner)
-- [ ] AI API 실패 시 재시도 안내 (retry 버튼)
-- [ ] 네트워크 에러 감지 + 오프라인 배너
-- [ ] Supabase 연결 실패 시 메시지
-- [ ] 404 페이지 커스터마이징 (`src/app/not-found.tsx`)
-- [ ] 500 에러 페이지 커스터마이징 (`src/app/global-error.tsx`)
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `describe('ErrorBoundary pages')` | `src/app/__tests__/error-pages.test.tsx` | 404/500 커스텀 에러 페이지 렌더링 확인 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/app/__tests__/error-pages.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] 모든 API 라우트에 try-catch + 일관된 에러 응답 형식 적용
+  - [ ] 모든 `(main)/*/` 라우트에 `error.tsx` 존재 확인
+  - [ ] 모든 `(main)/*/` 라우트에 `loading.tsx` 존재 확인
+  - [ ] 토스트 기반 에러 알림 (sonner)
+  - [ ] AI API 실패 시 재시도 안내 (retry 버튼)
+  - [ ] 네트워크 에러 감지 + 오프라인 배너
+  - [ ] Supabase 연결 실패 시 메시지
+  - [ ] 404 페이지 커스터마이징 (`src/app/not-found.tsx`)
+  - [ ] 500 에러 페이지 커스터마이징 (`src/app/global-error.tsx`)
+- [ ] 테스트 통과 확인
 
 ### 에러 응답 형식 (API)
 
@@ -366,15 +393,6 @@ export function errorResponse(error: unknown) {
 | `src/app/(main)/coaching/error.tsx` | 코칭 에러 | 코칭 관련 에러 |
 | `src/app/(main)/coaching/[id]/edit/error.tsx` | 에디터 에러 | 에디터 로드 실패 |
 
-### 검증 방법
-
-- [ ] 모든 API 라우트: 의도적 에러 발생 시 일관된 JSON 에러 응답
-- [ ] 존재하지 않는 URL 접근 시 커스텀 404 표시
-- [ ] 서버 에러 발생 시 커스텀 500 표시
-- [ ] AI API 타임아웃 시 재시도 버튼 표시
-- [ ] 네트워크 끊김 시 오프라인 배너 표시
-- [ ] 에러 발생 시 토스트 알림 표시
-
 ### 산출물
 
 - `src/lib/errors.ts`
@@ -390,14 +408,26 @@ export function errorResponse(error: unknown) {
 
 데이터가 없는 모든 목록 페이지에 적절한 빈 상태 UI를 제공하여, 사용자가 다음 행동을 할 수 있도록 안내한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 경험 목록 (`/experiences`): "아직 등록한 경험이 없어요" + 경험 등록 CTA
-- [ ] 기업 분석 목록 (`/analysis`): "아직 분석한 기업이 없어요" + URL 입력 CTA
-- [ ] 코칭 메인 (`/coaching`): "아직 코칭 이력이 없어요" + 코칭 시작 CTA
-- [ ] 대시보드 (`/dashboard`): 첫 사용자 온보딩 가이드
-- [ ] 경험 추천 (코칭 내): "매칭되는 경험이 없습니다" + 경험 등록 유도
-- [ ] 첨삭 이력: "아직 첨삭 이력이 없어요"
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `describe('EmptyState')` | `src/components/ui/__tests__/empty-state.test.tsx` | 빈 상태 컴포넌트 렌더링, CTA 버튼 링크 확인 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/ui/__tests__/empty-state.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] 경험 목록 (`/experiences`): "아직 등록한 경험이 없어요" + 경험 등록 CTA
+  - [ ] 기업 분석 목록 (`/analysis`): "아직 분석한 기업이 없어요" + URL 입력 CTA
+  - [ ] 코칭 메인 (`/coaching`): "아직 코칭 이력이 없어요" + 코칭 시작 CTA
+  - [ ] 대시보드 (`/dashboard`): 첫 사용자 온보딩 가이드
+  - [ ] 경험 추천 (코칭 내): "매칭되는 경험이 없습니다" + 경험 등록 유도
+  - [ ] 첨삭 이력: "아직 첨삭 이력이 없어요"
+- [ ] 테스트 통과 확인
 
 ### 빈 상태 UI 패턴
 
@@ -429,13 +459,6 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
 }
 ```
 
-### 검증 방법
-
-- [ ] 각 목록 페이지에서 데이터 0건일 때 빈 상태 UI 표시
-- [ ] CTA 버튼 클릭 시 올바른 페이지로 이동
-- [ ] 빈 상태 UI가 목록 UI와 같은 컨테이너 내에 표시 (레이아웃 일관성)
-- [ ] 모바일에서도 빈 상태 UI 정상 표시
-
 ### 산출물
 
 - `src/components/ui/empty-state.tsx`
@@ -449,16 +472,28 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
 
 모든 페이지를 375px (iPhone SE), 768px (iPad) 기준으로 반응형 테스트하고, 주요 레이아웃 이슈를 수정한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 사이드바 → 햄버거 메뉴 (768px 이하)
-- [ ] 테이블 → 카드 레이아웃 (768px 이하)
-- [ ] 에디터 + 사이드 패널 → 단일 컬럼 + 토글/바텀시트 (768px 이하)
-- [ ] 레이더 차트 크기 조정 (모바일에서 가독성)
-- [ ] 폼 입력 영역 모바일 최적화 (터치 타겟 48px)
-- [ ] 모달 크기 모바일 대응 (전체 화면 또는 바텀시트)
-- [ ] 글자 크기 가독성 확인 (최소 14px)
-- [ ] 가로 스크롤 발생하지 않도록 확인
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `describe('Sidebar responsive')` | `src/components/layout/__tests__/sidebar.test.tsx` | 모바일에서 햄버거 메뉴 표시, 데스크탑에서 사이드바 표시 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/layout/__tests__/sidebar.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] 사이드바 → 햄버거 메뉴 (768px 이하)
+  - [ ] 테이블 → 카드 레이아웃 (768px 이하)
+  - [ ] 에디터 + 사이드 패널 → 단일 컬럼 + 토글/바텀시트 (768px 이하)
+  - [ ] 레이더 차트 크기 조정 (모바일에서 가독성)
+  - [ ] 폼 입력 영역 모바일 최적화 (터치 타겟 48px)
+  - [ ] 모달 크기 모바일 대응 (전체 화면 또는 바텀시트)
+  - [ ] 글자 크기 가독성 확인 (최소 14px)
+  - [ ] 가로 스크롤 발생하지 않도록 확인
+- [ ] 테스트 통과 확인
 
 ### 반응형 브레이크포인트
 
@@ -471,7 +506,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
 
 ### 주요 수정 대상
 
-```
+```text
 1. Main Layout (사이드바)
    Desktop: 사이드바(240px) + 콘텐츠
    Mobile: 햄버거 → Drawer 사이드바
@@ -529,16 +564,6 @@ export function Sidebar() {
 }
 ```
 
-### 검증 방법
-
-- [ ] Chrome DevTools: 375px (iPhone SE) 에서 전체 페이지 확인
-- [ ] Chrome DevTools: 768px (iPad) 에서 전체 페이지 확인
-- [ ] 가로 스크롤 없음 확인
-- [ ] 터치 타겟 최소 44×44px
-- [ ] 모달/시트가 화면을 벗어나지 않음
-- [ ] 사이드바 햄버거 토글 정상 동작
-- [ ] 에디터 페이지 모바일에서 사용 가능
-
 ### 산출물
 
 - `src/components/layout/sidebar.tsx` 수정 (반응형)
@@ -553,17 +578,29 @@ export function Sidebar() {
 
 Lighthouse Performance 점수 70점 이상을 달성하고, 주요 번들 크기를 최적화한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] Lighthouse 측정 (현재 점수 기록)
-- [ ] Tiptap 에디터 lazy load (`next/dynamic`, ssr: false)
-- [ ] Recharts 레이더 차트 lazy load (`next/dynamic`, ssr: false)
-- [ ] 이미지 최적화 (`next/image` 사용, WebP 포맷)
-- [ ] 번들 분석 (`@next/bundle-analyzer`)
-- [ ] 불필요한 클라이언트 컴포넌트 서버 컴포넌트로 전환
-- [ ] React Query 캐싱 설정 최적화 (staleTime, gcTime)
-- [ ] Suspense 경계 적용 (병렬 데이터 로딩)
-- [ ] 폰트 최적화 (`next/font`)
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `describe('Lazy loaded components')` | `src/components/__tests__/lazy-load.test.tsx` | Tiptap/Recharts 컴포넌트 lazy load 시 로딩 스켈레톤 표시 확인 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/__tests__/lazy-load.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] Lighthouse 측정 (현재 점수 기록)
+  - [ ] Tiptap 에디터 lazy load (`next/dynamic`, ssr: false)
+  - [ ] Recharts 레이더 차트 lazy load (`next/dynamic`, ssr: false)
+  - [ ] 이미지 최적화 (`next/image` 사용, WebP 포맷)
+  - [ ] 번들 분석 (`@next/bundle-analyzer`)
+  - [ ] 불필요한 클라이언트 컴포넌트 서버 컴포넌트로 전환
+  - [ ] React Query 캐싱 설정 최적화 (staleTime, gcTime)
+  - [ ] Suspense 경계 적용 (병렬 데이터 로딩)
+  - [ ] 폰트 최적화 (`next/font`)
+- [ ] 테스트 통과 확인
 
 ### Lazy Load 대상
 
@@ -625,14 +662,6 @@ export const queryClient = new QueryClient({
 });
 ```
 
-### 검증 방법
-
-- [ ] Lighthouse Performance ≥ 70 달성
-- [ ] Tiptap/Recharts lazy load 후 초기 번들에 미포함 확인
-- [ ] 이미지에 `next/image` 사용 + WebP 서빙 확인
-- [ ] 번들 분석 결과: 메인 번들 200KB 이하 (gzip)
-- [ ] 폰트 프리로드 적용 확인
-
 ### 산출물
 
 - 각 페이지 lazy load 적용
@@ -656,6 +685,10 @@ export const queryClient = new QueryClient({
 - [ ] Lighthouse Performance ≥ 70
 - [ ] Tiptap/Recharts lazy load 적용
 - [ ] 토스트 에러 알림 동작
+- [ ] `moon run backend:test` → 전체 통과
+- [ ] `moon run web:test` → 전체 통과
+- [ ] `moon run :lint` → 경고 0건
+- [ ] `moon run web:build` → 빌드 성공
 
 ---
 

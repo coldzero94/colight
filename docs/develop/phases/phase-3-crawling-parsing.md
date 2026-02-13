@@ -37,16 +37,36 @@
 
 사용자가 채용공고 URL을 붙여넣으면, 도메인을 자동 감지하여 배지(badge)를 표시하고, 유효성 검증 후 분석을 시작할 수 있는 입력 UI를 제공한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `JobUrlInput` 컴포넌트 생성
-- [ ] URL 유효성 검증 (정규식 + URL 파싱)
-- [ ] 도메인 자동 감지 로직 구현 (잡코리아, 캐치, 원티드, 사람인, 기타)
-- [ ] 도메인별 배지 UI (아이콘 + 색상 구분)
-- [ ] 지원 사이트 / 미지원 사이트 안내 메시지
-- [ ] 클립보드 붙여넣기 자동 감지
-- [ ] 분석 시작 버튼 + 로딩 상태
-- [ ] 에러 상태 표시 (잘못된 URL, 파싱 실패 등)
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/lib/validations/__tests__/job-url.test.ts`
+  - `describe('JobUrlSchema')` — URL 유효성 검증 (정상 URL, 빈 값, 잘못된 형식)
+  - `describe('detectDomain')` — 도메인 자동 감지 (잡코리아 → 'jobkorea', 캐치 → 'catch', 미지원 → 'unknown')
+- `src/components/analysis/__tests__/job-url-input.test.tsx`
+  - `it('renders domain badge for jobkorea URL')` — 잡코리아 URL 입력 시 파란색 배지 표시
+  - `it('renders domain badge for catch URL')` — 캐치 URL 입력 시 초록색 배지 표시
+  - `it('shows error for invalid URL')` — 잘못된 URL 입력 시 에러 메시지 표시
+  - `it('shows unsupported domain message')` — 미지원 도메인 입력 시 안내 메시지 표시
+  - `it('shows validation error for empty submission')` — 빈 값 제출 시 유효성 에러
+  - `it('shows loading state when submitting')` — 분석 시작 시 로딩 상태
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/lib/validations/__tests__/job-url.test.ts`
+  - [ ] `src/components/analysis/__tests__/job-url-input.test.tsx`
+- [ ] 구현 (GREEN)
+  - [ ] `JobUrlInput` 컴포넌트 생성
+  - [ ] URL 유효성 검증 (정규식 + URL 파싱)
+  - [ ] 도메인 자동 감지 로직 구현 (잡코리아, 캐치, 원티드, 사람인, 기타)
+  - [ ] 도메인별 배지 UI (아이콘 + 색상 구분)
+  - [ ] 지원 사이트 / 미지원 사이트 안내 메시지
+  - [ ] 클립보드 붙여넣기 자동 감지
+  - [ ] 분석 시작 버튼 + 로딩 상태
+  - [ ] 에러 상태 표시 (잘못된 URL, 파싱 실패 등)
+- [ ] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -79,14 +99,6 @@ const DOMAIN_MAP: Record<string, DomainInfo> = {
 function detectDomain(url: string): DomainInfo;
 ```
 
-### 검증 방법
-
-- [ ] 잡코리아 URL 입력 시 파란색 배지 표시 확인
-- [ ] 캐치 URL 입력 시 초록색 배지 표시 확인
-- [ ] 잘못된 URL 입력 시 에러 메시지 표시 확인
-- [ ] 미지원 도메인 입력 시 "AI 범용 파싱으로 시도합니다" 안내 확인
-- [ ] 빈 값 제출 시 유효성 에러 확인
-
 ### 산출물
 
 - `src/components/analysis/job-url-input.tsx`
@@ -101,15 +113,29 @@ function detectDomain(url: string): DomainInfo;
 
 잡코리아 채용공고 URL에서 HTML을 가져와 Cheerio로 정적 파싱하여, 회사명, 포지션, 부서, 자격요건, 우대사항, 마감일 등의 데이터를 추출한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `cheerio` 패키지 설치 (`npm install cheerio`)
-- [ ] `jobkorea-parser.ts` 생성
-- [ ] HTML fetch 함수 (User-Agent 헤더 설정, robots.txt 준수)
-- [ ] CSS 셀렉터 기반 데이터 추출 로직 구현
-- [ ] 추출 실패 시 graceful fallback (빈 문자열 반환, 에러 로깅)
-- [ ] `RawJobPosting` 타입 정의 및 반환
-- [ ] 단위 테스트 (HTML 스냅샷 기반)
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/infrastructure/crawler/jobkorea_parser_test.go`
+  - `TestParseJobKorea_FullPosting` — testdata/crawling/jobkorea_full.html 픽스처로 전체 필드 추출 확인
+  - `TestParseJobKorea_MissingSections` — 일부 섹션 누락 HTML에서 빈 값 반환 확인
+  - `TestParseJobKorea_CompanyName` — 회사명 정상 추출 확인
+  - `TestParseJobKorea_SelectorMismatch` — 셀렉터 미스매치 시 에러 없이 빈 값 반환 확인
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/infrastructure/crawler/jobkorea_parser_test.go`
+  - [ ] HTML 픽스처 파일 생성: `testdata/crawling/jobkorea_full.html`, `testdata/crawling/jobkorea_minimal.html`
+- [ ] 구현 (GREEN)
+  - [ ] `goquery` 패키지 추가 (`go get github.com/PuerkitoBio/goquery`)
+  - [ ] `jobkorea_parser.go` 생성
+  - [ ] HTML fetch 함수 (User-Agent 헤더 설정, robots.txt 준수)
+  - [ ] CSS 셀렉터 기반 데이터 추출 로직 구현
+  - [ ] 추출 실패 시 graceful fallback (빈 문자열 반환, 에러 로깅)
+  - [ ] `RawJobPosting` 타입 정의 및 반환
+- [ ] 테스트 통과 확인
 
 ### CSS 셀렉터 매핑
 
@@ -169,18 +195,12 @@ async function parseJobKorea(url: string): Promise<RawJobPosting>;
 - **Rate limiting**: 사용자 요청 기반이므로 별도 제한 불필요, 단 동일 URL 재요청 시 캐시 활용
 - **HTML 원문 미저장**: 파싱 후 구조화된 데이터만 저장, rawHtml은 분석 완료 후 폐기
 
-### 검증 방법
-
-- [ ] 실제 잡코리아 공고 URL 3건 이상 파싱 테스트
-- [ ] 각 필드(회사명, 포지션, 자격요건 등) 정상 추출 확인
-- [ ] 셀렉터 미스매치 시 에러 없이 빈 값 반환 확인
-- [ ] HTML 스냅샷 기반 단위 테스트 작성
-
 ### 산출물
 
-- `src/lib/crawling/jobkorea-parser.ts`
-- `src/lib/crawling/types.ts` (`RawJobPosting`, `SupportedDomain` 타입 정의)
-- `__tests__/lib/crawling/jobkorea-parser.test.ts`
+- `internal/infrastructure/crawler/jobkorea_parser.go`
+- `internal/infrastructure/crawler/types.go` (`RawJobPosting`, `SupportedDomain` 타입 정의)
+- `internal/infrastructure/crawler/jobkorea_parser_test.go`
+- `testdata/crawling/jobkorea_full.html`
 
 ---
 
@@ -190,14 +210,28 @@ async function parseJobKorea(url: string): Promise<RawJobPosting>;
 
 캐치(CATCH) 채용공고 URL에서 HTML을 가져와 Cheerio로 정적 파싱하여, 잡코리아 파서와 동일한 `RawJobPosting` 형태로 데이터를 추출한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `catch-parser.ts` 생성
-- [ ] 캐치 페이지 구조 분석 및 CSS 셀렉터 매핑
-- [ ] HTML fetch + Cheerio 파싱 구현
-- [ ] `RawJobPosting` 타입으로 정규화
-- [ ] 잡코리아 파서와 동일한 에러 처리 패턴 적용
-- [ ] 단위 테스트 (HTML 스냅샷 기반)
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/infrastructure/crawler/catch_parser_test.go`
+  - `TestParseCatch_FullPosting` — testdata/crawling/catch_full.html 픽스처로 전체 필드 추출 확인
+  - `TestParseCatch_RawJobPostingStructure` — 잡코리아 파서와 동일한 `RawJobPosting` 구조 반환 확인
+  - `TestParseCatch_MissingSections` — 일부 섹션 누락 HTML에서 빈 값 반환 확인
+  - `TestParseCatch_SelectorMismatch` — 셀렉터 미스매치 시 에러 없이 빈 값 반환 확인
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/infrastructure/crawler/catch_parser_test.go`
+  - [ ] HTML 픽스처 파일 생성: `testdata/crawling/catch_full.html`, `testdata/crawling/catch_minimal.html`
+- [ ] 구현 (GREEN)
+  - [ ] `catch_parser.go` 생성
+  - [ ] 캐치 페이지 구조 분석 및 CSS 셀렉터 매핑
+  - [ ] HTML fetch + goquery 파싱 구현
+  - [ ] `RawJobPosting` 타입으로 정규화
+  - [ ] 잡코리아 파서와 동일한 에러 처리 패턴 적용
+- [ ] 테스트 통과 확인
 
 ### CSS 셀렉터 매핑
 
@@ -242,18 +276,12 @@ function parseListText(text: string): string[];
 function normalizeDate(dateStr: string): string | undefined;
 ```
 
-### 검증 방법
-
-- [ ] 실제 캐치 공고 URL 3건 이상 파싱 테스트
-- [ ] 잡코리아 파서 결과와 동일한 `RawJobPosting` 구조 확인
-- [ ] 필드별 정상 추출 확인
-- [ ] HTML 스냅샷 기반 단위 테스트
-
 ### 산출물
 
-- `src/lib/crawling/catch-parser.ts`
-- `src/lib/crawling/parser-utils.ts`
-- `__tests__/lib/crawling/catch-parser.test.ts`
+- `internal/infrastructure/crawler/catch_parser.go`
+- `internal/infrastructure/crawler/parser_utils.go`
+- `internal/infrastructure/crawler/catch_parser_test.go`
+- `testdata/crawling/catch_full.html`
 
 ---
 
@@ -263,14 +291,37 @@ function normalizeDate(dateStr: string): string | undefined;
 
 파서가 추출한 비정형 `RawJobPosting` 데이터를 GPT-4.1 mini로 정규화하여, 타입 안전한 `JobPosting` 구조로 변환한다. 미지원 사이트의 경우 raw HTML을 직접 LLM에 전달하여 구조화한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `JobPosting` Zod 스키마 정의
-- [ ] AI 정규화 프롬프트 작성 (`prompt_templates` 테이블에 저장)
-- [ ] `normalizeJobPosting()` 함수 구현 (OpenAI GPT-4.1 mini 호출)
-- [ ] AI fallback 파서 구현 (raw HTML → `JobPosting`)
-- [ ] 응답 Zod 검증 + 실패 시 재시도 (최대 1회)
-- [ ] 비용 추적 로깅
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/service/crawling_service_test.go`
+  - `TestNormalizeJobPosting_Success` — RawJobPosting → JobPosting 정상 변환 확인 (MockAIClient 사용)
+  - `TestNormalizeJobPosting_RequiredFieldsMissing` — 필수 필드(companyName, position) 누락 시 에러 처리
+  - `TestNormalizeJobPosting_RetryOnValidationFailure` — Zod 검증 실패 시 1회 재시도 확인
+- `internal/infrastructure/ai/normalizer_test.go`
+  - `TestParseHtmlWithAI_Fallback` — 미지원 사이트 HTML → AI fallback 파싱 확인 (testdata/crawling/unknown_site.html 픽스처)
+  - `TestParseHtmlWithAI_TextNormalization` — 비정형 텍스트("경력 3년 이상 또는 석사") → 정규화된 값 변환 확인
+
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/lib/validations/__tests__/job-posting.test.ts`
+  - `describe('JobPostingSchema')` — Zod 스키마 검증 (정상 데이터, 필수 필드 누락, 잘못된 enum 값)
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/service/crawling_service_test.go`
+  - [ ] `internal/infrastructure/ai/normalizer_test.go`
+  - [ ] `src/lib/validations/__tests__/job-posting.test.ts`
+- [ ] 구현 (GREEN)
+  - [ ] `JobPosting` Zod 스키마 정의
+  - [ ] AI 정규화 프롬프트 작성 (`prompt_templates` 테이블에 저장)
+  - [ ] `normalizeJobPosting()` 함수 구현 (OpenAI GPT-4.1 mini 호출)
+  - [ ] AI fallback 파서 구현 (raw HTML → `JobPosting`)
+  - [ ] 응답 Zod 검증 + 실패 시 재시도 (최대 1회)
+  - [ ] 비용 추적 로깅
+- [ ] 테스트 통과 확인
 
 ### DB 마이그레이션
 
@@ -365,19 +416,11 @@ async function parseHtmlWithAI(html: string, url: string): Promise<JobPosting>;
 - 출력 토큰: ~500 (구조화된 JSON)
 - AI fallback (HTML 직접 파싱): 입력 토큰 ~4000, 건당 약 15원
 
-### 검증 방법
-
-- [ ] RawJobPosting → JobPosting 변환 정상 동작 확인
-- [ ] Zod 스키마 검증 통과 확인
-- [ ] 필수 필드(companyName, position) 누락 시 에러 처리 확인
-- [ ] AI fallback 파서로 미지원 사이트 HTML 파싱 확인
-- [ ] 비정형 텍스트("경력 3년 이상 또는 석사") → 정규화된 값 변환 확인
-
 ### 산출물
 
-- `src/lib/crawling/schemas.ts`
-- `src/lib/crawling/ai-normalizer.ts`
-- `__tests__/lib/crawling/ai-normalizer.test.ts`
+- `internal/infrastructure/ai/normalizer.go`
+- `internal/infrastructure/ai/normalizer_test.go`
+- `src/lib/validations/job-posting.ts`
 - DB 시드: `prompt_templates` 2건 추가
 
 ---
@@ -388,16 +431,36 @@ async function parseHtmlWithAI(html: string, url: string): Promise<JobPosting>;
 
 `/api/analyze` POST 엔드포인트를 구현하여, 사용자가 입력한 URL의 도메인을 감지하고, 적절한 파서로 라우팅한 뒤, AI 정규화를 거쳐 `JobPosting` 결과를 반환한다. 미지원 도메인은 AI fallback으로 처리한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `/api/analyze` POST 라우트 생성
-- [ ] 도메인 감지 → 파서 선택 라우팅 로직
-- [ ] 파서 실행 → AI 정규화 → 결과 반환 파이프라인
-- [ ] 미지원 도메인 AI fallback 처리
-- [ ] 에러 처리 (fetch 실패, 파싱 실패, AI 실패)
-- [ ] 인증 미들웨어 (로그인 사용자만)
-- [ ] Rate limiting (사용자당 분당 5회)
-- [ ] 응답 캐싱 (동일 URL은 1시간 내 재파싱 방지)
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/controller/analysis_controller_test.go`
+  - `TestAnalyzeURL_JobKoreaRouting` — 잡코리아 URL → Cheerio 파서 → AI 정규화 → JobPosting 반환
+  - `TestAnalyzeURL_CatchRouting` — 캐치 URL → Cheerio 파서 → AI 정규화 → JobPosting 반환
+  - `TestAnalyzeURL_UnknownDomainFallback` — 미지원 도메인 URL → AI fallback → JobPosting 반환
+  - `TestAnalyzeURL_InvalidURL` — 잘못된 URL → `INVALID_URL` 에러 반환
+  - `TestAnalyzeURL_FetchFailed` — 존재하지 않는 페이지 → `FETCH_FAILED` 에러 반환
+  - `TestAnalyzeURL_Unauthorized` — 미인증 요청 → `UNAUTHORIZED` 에러 반환
+  - `TestAnalyzeURL_CacheHit` — 동일 URL 재요청 시 캐시 응답 반환
+- `internal/service/crawling_service_test.go`
+  - `TestDomainRouter_SelectsCorrectParser` — 도메인별 파서 라우팅 로직 단위 테스트
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/controller/analysis_controller_test.go`
+  - [ ] `internal/service/crawling_service_test.go` (도메인 라우팅)
+- [ ] 구현 (GREEN)
+  - [ ] `/api/analyze` POST 라우트 생성
+  - [ ] 도메인 감지 → 파서 선택 라우팅 로직
+  - [ ] 파서 실행 → AI 정규화 → 결과 반환 파이프라인
+  - [ ] 미지원 도메인 AI fallback 처리
+  - [ ] 에러 처리 (fetch 실패, 파싱 실패, AI 실패)
+  - [ ] 인증 미들웨어 (로그인 사용자만)
+  - [ ] Rate limiting (사용자당 분당 5회)
+  - [ ] 응답 캐싱 (동일 URL은 1시간 내 재파싱 방지)
+- [ ] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -494,22 +557,11 @@ interface AnalyzeError {
 }
 ```
 
-### 검증 방법
-
-- [ ] 잡코리아 URL → Cheerio 파서 → AI 정규화 → JobPosting 반환 확인
-- [ ] 캐치 URL → Cheerio 파서 → AI 정규화 → JobPosting 반환 확인
-- [ ] 미지원 도메인 URL → AI fallback → JobPosting 반환 확인
-- [ ] 잘못된 URL → `INVALID_URL` 에러 반환 확인
-- [ ] 존재하지 않는 페이지 → `FETCH_FAILED` 에러 반환 확인
-- [ ] 미인증 요청 → `UNAUTHORIZED` 에러 반환 확인
-- [ ] 동일 URL 재요청 시 캐시 응답 확인
-- [ ] 통합 테스트: URL 입력 → 분석 완료까지 E2E 흐름
-
 ### 산출물
 
-- `src/app/api/analyze/route.ts`
-- `src/lib/crawling/router.ts` (파서 라우팅 로직)
-- `__tests__/app/api/analyze/route.test.ts`
+- `internal/controller/analysis_controller.go`
+- `internal/service/crawling_service.go` (파서 라우팅 로직)
+- `internal/controller/analysis_controller_test.go`
 
 ---
 
@@ -523,8 +575,11 @@ interface AnalyzeError {
 - [ ] 도메인별 배지가 표시되는 URL 입력 UI 완성
 - [ ] 에러 핸들링 (잘못된 URL, 파싱 실패, AI 실패)
 - [ ] 캐시 동작 확인 (동일 URL 1시간 이내 재요청 방지)
-- [ ] 단위 테스트 + 통합 테스트 통과
 - [ ] prompt_templates 시드 데이터 추가 완료
+- [ ] `moon run backend:test` → 전체 통과
+- [ ] `moon run web:test` → 전체 통과
+- [ ] `moon run :lint` → 경고 0건
+- [ ] `moon run web:build` → 빌드 성공
 
 ---
 

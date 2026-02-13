@@ -39,15 +39,36 @@
 
 GPT-4.1 mini를 활용하여 사용자의 각 경험과 기업 분석 결과 사이의 적합도를 평가하는 매칭 알고리즘을 구현한다. 경험별로 직무 관련도(40%), 인재상 부합도(35%), 차별화 점수(25%)를 산출하고 종합 적합도를 계산한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `matching.ts` 모듈 생성
-- [ ] 매칭 프롬프트 설계 및 `prompt_templates` 등록
-- [ ] 경험별 개별 매칭 함수 구현
-- [ ] 가중 평균 종합 적합도 계산
-- [ ] 매칭 근거(reasoning) 생성
-- [ ] 배치 매칭 (여러 경험 동시 평가) 최적화
-- [ ] 매칭 결과 타입 정의 (Zod 스키마)
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/service/matching_service_test.go`
+  - `TestMatchExperience_ReturnsThreeCategoryScores`: 단일 경험 매칭 → 3개 카테고리 점수 + 종합 점수 반환 확인
+  - `TestCalculateOverallFit_WeightedAverage`: 종합 점수 = 가중 평균 계산 일치 확인 (cosine similarity with known vectors)
+  - `TestMatchExperience_HighRelevance_ScoreAbove70`: 관련 높은 경험 → 70+ 점수 확인
+  - `TestMatchExperience_LowRelevance_ScoreBelow30`: 무관한 경험 → 30 이하 점수 확인
+  - `TestMatchAllExperiences_BatchProcessing`: 배치 매칭 (10개 경험) 정상 동작 확인
+  - `TestMatchExperience_ReasoningNotEmpty`: 매칭 근거(reasoning) 구체성 확인
+  - `TestMatchExperience_SchemaValidation`: 응답 스키마 검증 통과 확인
+  - `TestMatchExperience_MockAIClient`: MockAIClient로 embedding API 호출 테스트
+
+> MockAIClient 패턴 사용. testdata/ 디렉토리에 매칭 fixture 데이터 준비. cosine similarity는 known vectors로 검증.
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/service/matching_service_test.go` 작성
+  - [ ] MockAIClient 및 testdata/ai/matching fixture 준비
+- [ ] 구현 (GREEN)
+  - [ ] `matching.ts` 모듈 생성
+  - [ ] 매칭 프롬프트 설계 및 `prompt_templates` 등록
+  - [ ] 경험별 개별 매칭 함수 구현
+  - [ ] 가중 평균 종합 적합도 계산
+  - [ ] 매칭 근거(reasoning) 생성
+  - [ ] 배치 매칭 (여러 경험 동시 평가) 최적화
+  - [ ] 매칭 결과 타입 정의 (Zod 스키마)
+- [ ] 테스트 통과 확인
 
 ### 매칭 알고리즘 상세
 
@@ -209,15 +230,6 @@ JSON 형식으로 응답해주세요.',
 - 경험 10개 매칭 시: 약 50원
 - 배치 최적화 (5개 이하 경험은 하나의 프롬프트에 포함): 약 15원
 
-### 검증 방법
-
-- [ ] 단일 경험 매칭 → 3개 카테고리 점수 + 종합 점수 반환 확인
-- [ ] 종합 점수 = 가중 평균 계산 일치 확인
-- [ ] 관련 높은 경험 → 70+ 점수, 무관한 경험 → 30 이하 점수 확인
-- [ ] 매칭 근거(reasoning) 구체성 확인 (일반적이지 않은 구체적 코멘트)
-- [ ] 배치 매칭 (10개 경험) 정상 동작 확인
-- [ ] Zod 스키마 검증 통과 확인
-
 ### 산출물
 
 - `src/lib/ai/matching.ts`
@@ -233,15 +245,30 @@ JSON 형식으로 응답해주세요.',
 
 기업 분석 ID를 받아 해당 사용자의 모든 경험에 대한 매칭을 수행하고 결과를 반환하는 API를 구현한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `/api/matching` POST 라우트 생성
-- [ ] 분석 데이터 + 사용자 경험 조회
-- [ ] 매칭 알고리즘 실행
-- [ ] 결과 저장 (`company_analyses.analysis_data`에 매칭 결과 병합)
-- [ ] 인증 및 권한 확인
-- [ ] 에러 처리 (분석 없음, 경험 없음)
-- [ ] Rate limiting
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/controller/matching_controller_test.go`
+  - `TestPostMatching_Success`: 정상 매칭 → 경험별 점수 + 종합 추천 반환 확인
+  - `TestPostMatching_ResultSaved`: 결과가 `company_analyses.analysis_data.matching`에 저장 확인
+  - `TestPostMatching_NoExperiences`: 경험 없는 사용자 → `NO_EXPERIENCES` 에러 확인
+  - `TestPostMatching_AnalysisNotFound`: 존재하지 않는 분석 ID → 404 에러 확인
+  - `TestGetMatching_ExistingResult`: GET `/api/matching/[analysisId]` → 기존 매칭 결과 조회 확인
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/controller/matching_controller_test.go` 작성
+- [ ] 구현 (GREEN)
+  - [ ] `/api/matching` POST 라우트 생성
+  - [ ] 분석 데이터 + 사용자 경험 조회
+  - [ ] 매칭 알고리즘 실행
+  - [ ] 결과 저장 (`company_analyses.analysis_data`에 매칭 결과 병합)
+  - [ ] 인증 및 권한 확인
+  - [ ] 에러 처리 (분석 없음, 경험 없음)
+  - [ ] Rate limiting
+- [ ] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -324,14 +351,6 @@ export async function POST(request: Request) {
 | 경험 0건 | 400 | "등록된 경험이 없습니다" |
 | AI API 에러 | 500 | "매칭 처리 중 오류가 발생했습니다" |
 
-### 검증 방법
-
-- [ ] 정상 매칭 → 경험별 점수 + 종합 추천 반환 확인
-- [ ] 결과가 `company_analyses.analysis_data.matching`에 저장 확인
-- [ ] 경험 없는 사용자 → `NO_EXPERIENCES` 에러 확인
-- [ ] 존재하지 않는 분석 ID → 404 에러 확인
-- [ ] GET `/api/matching/[analysisId]` → 기존 매칭 결과 조회 확인
-
 ### 산출물
 
 - `src/app/api/matching/route.ts`
@@ -346,17 +365,40 @@ export async function POST(request: Request) {
 
 분석 결과 페이지 내에 경험별 매칭 결과를 표시하는 UI를 구현한다. 각 경험에 대해 적합도 % 바와 색상 코딩(green/yellow/red), 매칭 근거를 보여준다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 매칭 결과 섹션 (분석 결과 페이지 하단에 추가)
-- [ ] 경험별 매칭 카드 컴포넌트
-- [ ] 적합도 % 바 (프로그레스 바)
-- [ ] 색상 코딩 (green: 70+, yellow: 40~69, red: 0~39)
-- [ ] 카테고리별 점수 세부 표시 (확장/접기)
-- [ ] 매칭 근거 표시
-- [ ] 종합 추천 & 갭 분석 표시
-- [ ] 매칭 실행 버튼 (매칭 결과 없을 때)
-- [ ] 경험 없음 안내 + 경험 등록 CTA
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/components/matching/__tests__/ExperienceMatchCard.test.tsx`
+  - `it('renders experience title and overall fit score')`
+  - `it('applies green color class for score >= 70')`
+  - `it('applies yellow color class for score 40-69')`
+  - `it('applies red color class for score < 40')`
+- `src/components/matching/__tests__/MatchingSection.test.tsx`
+  - `it('displays matching trigger button when no matching result')`
+  - `it('sorts experiences by score descending')`
+  - `it('shows no-experiences prompt when user has no experiences')`
+- `src/components/matching/__tests__/FitScoreBar.test.tsx`
+  - `it('renders progress bar with correct width percentage')`
+  - `it('displays score label text')`
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/matching/__tests__/ExperienceMatchCard.test.tsx` 작성
+  - [ ] `src/components/matching/__tests__/MatchingSection.test.tsx` 작성
+  - [ ] `src/components/matching/__tests__/FitScoreBar.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] 매칭 결과 섹션 (분석 결과 페이지 하단에 추가)
+  - [ ] 경험별 매칭 카드 컴포넌트
+  - [ ] 적합도 % 바 (프로그레스 바)
+  - [ ] 색상 코딩 (green: 70+, yellow: 40~69, red: 0~39)
+  - [ ] 카테고리별 점수 세부 표시 (확장/접기)
+  - [ ] 매칭 근거 표시
+  - [ ] 종합 추천 & 갭 분석 표시
+  - [ ] 매칭 실행 버튼 (매칭 결과 없을 때)
+  - [ ] 경험 없음 안내 + 경험 등록 CTA
+- [ ] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -442,18 +484,6 @@ const colorClasses: Record<ScoreColor, string> = {
 };
 ```
 
-### 검증 방법
-
-- [ ] 매칭 결과 있는 분석 → 경험별 카드 정상 표시 확인
-- [ ] 적합도 바 색상 코딩 (green/yellow/red) 확인
-- [ ] 세부 점수 확장/접기 동작 확인
-- [ ] 매칭 근거 텍스트 표시 확인
-- [ ] 종합 추천 & 갭 분석 표시 확인
-- [ ] 매칭 결과 없을 때 → "매칭 실행" 버튼 표시 확인
-- [ ] 경험 없을 때 → 경험 등록 CTA 표시 확인
-- [ ] 매칭 실행 → 로딩 → 결과 표시 전환 확인
-- [ ] 경험 높은 순 정렬 확인
-
 ### 산출물
 
 - `src/components/matching/matching-section.tsx`
@@ -473,13 +503,27 @@ const colorClasses: Record<ScoreColor, string> = {
 
 기업 분석이 완료된 후, 사용자에게 등록된 경험이 있으면 자동으로 매칭을 트리거한다. 분석 결과 페이지에서 매칭 섹션이 자동으로 로딩되도록 한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 분석 완료 후 경험 존재 여부 확인 로직
-- [ ] 자동 매칭 트리거 (경험 있으면 매칭 자동 실행)
-- [ ] 매칭 진행 중 로딩 표시
-- [ ] 자동 매칭 비활성화 옵션 (사용자 설정)
-- [ ] 분석 결과 페이지 진입 시 매칭 결과 없으면 자동 트리거
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/hooks/__tests__/useAutoMatching.test.ts`
+  - `it('triggers matching when no existing result and experiences exist')`
+  - `it('skips matching when no experiences')`
+  - `it('skips matching when result already exists')`
+  - `it('shows loading state during matching')`
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/hooks/__tests__/useAutoMatching.test.ts` 작성
+- [ ] 구현 (GREEN)
+  - [ ] 분석 완료 후 경험 존재 여부 확인 로직
+  - [ ] 자동 매칭 트리거 (경험 있으면 매칭 자동 실행)
+  - [ ] 매칭 진행 중 로딩 표시
+  - [ ] 자동 매칭 비활성화 옵션 (사용자 설정)
+  - [ ] 분석 결과 페이지 진입 시 매칭 결과 없으면 자동 트리거
+- [ ] 테스트 통과 확인
 
 ### 자동 트리거 구현
 
@@ -550,15 +594,6 @@ async function runAnalysisPipeline(options: PipelineOptions): Promise<void> {
 }
 ```
 
-### 검증 방법
-
-- [ ] 분석 완료 + 경험 있음 → 자동 매칭 실행 확인
-- [ ] 분석 완료 + 경험 없음 → 매칭 스킵 확인
-- [ ] 분석 결과 페이지 진입 시 매칭 없으면 자동 트리거 확인
-- [ ] 이미 매칭 있으면 재트리거 안 함 확인
-- [ ] 매칭 진행 중 로딩 표시 확인
-- [ ] 자동 매칭 중 페이지 이탈 → 에러 없음 확인
-
 ### 산출물
 
 - `src/hooks/use-auto-matching.ts`
@@ -572,14 +607,37 @@ async function runAnalysisPipeline(options: PipelineOptions): Promise<void> {
 
 매칭 결과를 `company_analyses.analysis_data` 내에 저장하고, 경험이 추가/수정/삭제되면 매칭 결과에 "outdated" 배지를 표시하여 재매칭을 유도한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 매칭 결과 저장 구조 정의 (`analysis_data.matching`)
-- [ ] 매칭 결과에 `matchedAt` 타임스탬프 저장
-- [ ] 경험 변경 감지 로직 (최종 경험 수정일 vs 매칭일 비교)
-- [ ] "outdated" 배지 표시 조건 정의
-- [ ] 재매칭 버튼 + 확인 다이얼로그
-- [ ] 매칭 결과 갱신 시 기존 결과 대체
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/service/matching_service_test.go`
+  - `TestCheckMatchingOutdated_ExperienceAdded`: 매칭 후 경험 추가 → outdated 판정
+  - `TestCheckMatchingOutdated_ExperienceModified`: 매칭 후 경험 수정 → outdated 판정
+  - `TestCheckMatchingOutdated_ExperienceDeleted`: 매칭 후 경험 삭제 → outdated 판정
+  - `TestCheckMatchingOutdated_SevenDaysExpired`: 매칭 후 7일 경과 → outdated 판정
+  - `TestCheckMatchingOutdated_Fresh`: 최신 매칭 → outdated 아님
+
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/components/matching/__tests__/OutdatedMatchingBanner.test.tsx`
+  - `it('displays outdated banner with reason text')`
+  - `it('calls onRefresh when re-match button clicked')`
+  - `it('hides banner when matching is fresh')`
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/service/matching_service_test.go`에 outdated 테스트 추가
+  - [ ] `src/components/matching/__tests__/OutdatedMatchingBanner.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] 매칭 결과 저장 구조 정의 (`analysis_data.matching`)
+  - [ ] 매칭 결과에 `matchedAt` 타임스탬프 저장
+  - [ ] 경험 변경 감지 로직 (최종 경험 수정일 vs 매칭일 비교)
+  - [ ] "outdated" 배지 표시 조건 정의
+  - [ ] 재매칭 버튼 + 확인 다이얼로그
+  - [ ] 매칭 결과 갱신 시 기존 결과 대체
+- [ ] 테스트 통과 확인
 
 ### Outdated 감지 로직
 
@@ -672,16 +730,6 @@ async function checkMatchingOutdated(
 |----------|------|-------|------|
 | `OutdatedMatchingBanner` | `src/components/matching/outdated-matching-banner.tsx` | `reason: string`, `onRefresh: () => void` | Outdated 경고 배너 |
 
-### 검증 방법
-
-- [ ] 매칭 후 경험 추가 → outdated 배지 표시 확인
-- [ ] 매칭 후 경험 수정 → outdated 배지 표시 확인
-- [ ] 매칭 후 경험 삭제 → outdated 배지 표시 확인
-- [ ] 매칭 후 7일 경과 → outdated 배지 표시 확인
-- [ ] "다시 매칭하기" 클릭 → 재매칭 실행 + 결과 갱신 확인
-- [ ] 재매칭 후 outdated 배지 사라짐 확인
-- [ ] 최신 매칭 → outdated 배지 없음 확인
-
 ### 산출물
 
 - `src/lib/matching/outdated-checker.ts`
@@ -704,7 +752,11 @@ async function checkMatchingOutdated(
 - [ ] 경험 없는 사용자에 대한 적절한 안내
 - [ ] 종합 추천 + 갭 분석 표시
 - [ ] Zod 스키마 검증 통과
-- [ ] 단위 테스트 + 통합 테스트 통과
+- [ ] 테스트
+  - [ ] `moon run backend:test` → 전체 통과
+  - [ ] `moon run web:test` → 전체 통과
+  - [ ] `moon run :lint` → 경고 0건
+  - [ ] `moon run web:build` → 빌드 성공
 - [ ] E2E: URL 입력 → 분석 → 매칭 → 결과 표시 전체 플로우
 
 ---

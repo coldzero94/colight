@@ -36,16 +36,31 @@
 
 DART 전자공시 시스템의 OpenAPI를 활용하여 기업 개황(기본정보)과 재무제표(매출, 영업이익, 당기순이익)를 조회하는 클라이언트를 구현한다. 회사명 → 기업코드(corp_code) 조회를 위한 로컬 매핑도 포함한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] DART OpenAPI 키 발급 (https://opendart.fss.or.kr)
-- [ ] `dart.ts` 클라이언트 모듈 생성
-- [ ] corp_code 조회 기능 구현 (회사명 → 고유번호 매핑)
-- [ ] 기업 개황 API (`/api/company.json`) 연동
-- [ ] 재무제표 API (`/api/fnlttSinglAcnt.json`) 연동
-- [ ] API 응답 타입 정의 (Zod 스키마)
-- [ ] 에러 처리 (API 키 만료, 일일 한도 초과, 비상장 기업 등)
-- [ ] 단위 테스트 (모킹 기반)
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/infrastructure/external/dart_client_test.go`
+  - `TestFindCorpCode_ExactMatch` — 정확한 회사명 매칭으로 corp_code 조회
+  - `TestFindCorpCode_NormalizedMatch` — 회사명 정규화 ("주식회사 삼성전자" → "삼성전자") 후 매칭
+  - `TestGetCompanyInfo_Success` — 상장 대기업 기업 개황 정상 파싱 확인
+  - `TestGetFinancials_Success` — 재무제표 (매출액, 영업이익, 당기순이익) 정상 파싱
+  - `TestGetCompanyInfo_NotFound` — 비상장 기업 → "조회된 데이터가 없음" graceful 처리
+  - `TestDartClient_MissingAPIKey` — API 키 누락 시 적절한 에러 반환
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/infrastructure/external/dart_client_test.go`
+- [ ] 구현 (GREEN)
+  - [ ] DART OpenAPI 키 발급 (https://opendart.fss.or.kr)
+  - [ ] `dart_client.go` 클라이언트 모듈 생성
+  - [ ] corp_code 조회 기능 구현 (회사명 → 고유번호 매핑)
+  - [ ] 기업 개황 API (`/api/company.json`) 연동
+  - [ ] 재무제표 API (`/api/fnlttSinglAcnt.json`) 연동
+  - [ ] API 응답 타입 정의
+  - [ ] 에러 처리 (API 키 만료, 일일 한도 초과, 비상장 기업 등)
+- [ ] 테스트 통과 확인
 
 ### DART API 상세
 
@@ -174,21 +189,13 @@ const DART_ERROR_CODES: Record<string, string> = {
 };
 ```
 
-### 검증 방법
-
-- [ ] 상장 대기업 (삼성전자) corp_code 조회 → 기업 개황 정상 반환
-- [ ] 재무제표 조회 → 매출액, 영업이익, 당기순이익 정상 파싱
-- [ ] 비상장 기업 → "조회된 데이터가 없음" graceful 처리 확인
-- [ ] 회사명 정규화 ("주식회사 삼성전자" → "삼성전자") 동작 확인
-- [ ] API 키 누락 시 적절한 에러 메시지 확인
-
 ### 산출물
 
-- `src/lib/external/dart.ts`
-- `src/lib/external/dart-schemas.ts`
-- `src/data/corp-codes.json` (또는 생성 스크립트)
-- `scripts/update-corp-codes.ts` (corp_code JSON 업데이트 스크립트)
-- `__tests__/lib/external/dart.test.ts`
+- `internal/infrastructure/external/dart_client.go`
+- `internal/infrastructure/external/dart_types.go`
+- `data/corp-codes.json` (또는 생성 스크립트)
+- `scripts/update-corp-codes.go` (corp_code JSON 업데이트 스크립트)
+- `internal/infrastructure/external/dart_client_test.go`
 
 ---
 
@@ -198,16 +205,32 @@ const DART_ERROR_CODES: Record<string, string> = {
 
 네이버 검색 API를 활용하여 특정 기업의 최근 3개월 뉴스를 검색하고, 상위 5~10건의 뉴스 제목/요약/링크를 수집한다. 기업 분석 시 최근 동향 파악의 입력 데이터로 활용한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 네이버 개발자 API 키 발급 (https://developers.naver.com)
-- [ ] `naver-news.ts` 클라이언트 모듈 생성
-- [ ] 뉴스 검색 API 연동 (`/v1/search/news.json`)
-- [ ] 검색 쿼리 최적화 (기업명 + 채용/경영/실적 키워드)
-- [ ] 검색 결과 정리 (HTML 태그 제거, 날짜 정규화)
-- [ ] 최근 3개월 필터링
-- [ ] 상위 5~10건 반환
-- [ ] 에러 처리 (API 한도 초과, 네트워크 오류)
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/infrastructure/external/naver_news_client_test.go`
+  - `TestSearchNews_Success` — 대기업명 검색 → 뉴스 목록 반환 확인
+  - `TestSearchNews_HtmlTagRemoval` — HTML 태그 제거 정상 동작 (`<b>삼성</b>` → `삼성`)
+  - `TestSearchNews_DateFiltering` — 3개월 이전 뉴스 필터링 확인
+  - `TestSearchNews_StockNewsFiltering` — 주식/시세 뉴스 필터링 확인
+  - `TestSearchNews_EmptyResult` — 존재하지 않는 기업명 → 빈 배열 반환
+  - `TestSearchNews_MissingAPIKey` — API 키 누락 시 적절한 에러 반환
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/infrastructure/external/naver_news_client_test.go`
+- [ ] 구현 (GREEN)
+  - [ ] 네이버 개발자 API 키 발급 (https://developers.naver.com)
+  - [ ] `naver_news_client.go` 클라이언트 모듈 생성
+  - [ ] 뉴스 검색 API 연동 (`/v1/search/news.json`)
+  - [ ] 검색 쿼리 최적화 (기업명 + 채용/경영/실적 키워드)
+  - [ ] 검색 결과 정리 (HTML 태그 제거, 날짜 정규화)
+  - [ ] 최근 3개월 필터링
+  - [ ] 상위 5~10건 반환
+  - [ ] 에러 처리 (API 한도 초과, 네트워크 오류)
+- [ ] 테스트 통과 확인
 
 ### API 상세
 
@@ -285,19 +308,10 @@ function filterStockNews(news: NewsItem[]): NewsItem[] {
 }
 ```
 
-### 검증 방법
-
-- [ ] 대기업명 (삼성전자) 검색 → 최근 뉴스 5건 이상 반환 확인
-- [ ] HTML 태그 제거 정상 동작 확인 (`<b>삼성</b>` → `삼성`)
-- [ ] 3개월 이전 뉴스 필터링 확인
-- [ ] 주식/시세 뉴스 필터링 확인
-- [ ] 존재하지 않는 기업명 → 빈 배열 반환 확인
-- [ ] API 키 누락 시 적절한 에러 메시지 확인
-
 ### 산출물
 
-- `src/lib/external/naver-news.ts`
-- `__tests__/lib/external/naver-news.test.ts`
+- `internal/infrastructure/external/naver_news_client.go`
+- `internal/infrastructure/external/naver_news_client_test.go`
 
 ---
 
@@ -307,15 +321,39 @@ function filterStockNews(news: NewsItem[]): NewsItem[] {
 
 DART 기업정보와 네이버 뉴스를 `Promise.all`로 병렬 호출하여 통합된 기업 데이터를 반환하는 API를 구현한다. 일부 소스 실패 시에도 나머지 데이터로 partial response를 반환한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `/api/analyze/company-data` POST 라우트 생성
-- [ ] DART + 네이버 뉴스 병렬 호출 (`Promise.allSettled`)
-- [ ] Partial failure 처리 (일부 소스 실패해도 결과 반환)
-- [ ] 통합 응답 스키마 정의
-- [ ] 각 소스별 상태 표시 (성공/실패/건너뜀)
-- [ ] 인증 미들웨어 적용
-- [ ] 에러 핸들링 (전체 실패 시 에러 응답)
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/controller/company_data_controller_test.go`
+  - `TestCompanyData_AllSourcesSuccess` — 상장 대기업 → DART + 뉴스 모두 성공
+  - `TestCompanyData_PartialFailure_NoFinancials` — 비상장 기업 → DART 개황 성공, 재무 실패 (partial)
+  - `TestCompanyData_PartialFailure_NewsOnly` — 미등록 기업 → 뉴스만 성공 (partial)
+  - `TestCompanyData_AllSourcesFailed` — 전체 실패 시 500 에러 응답
+  - `TestCompanyData_SourceStatuses` — 각 소스 상태(success/failed/skipped) 정확히 반환
+
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/components/analysis/__tests__/company-info-display.test.tsx`
+  - `it('renders full company data with all sources')` — 전체 데이터 표시
+  - `it('renders partial data when financials unavailable')` — 재무 없을 때 partial 표시
+  - `it('shows loading state while fetching')` — 데이터 로딩 상태
+  - `it('shows error state when all sources fail')` — 전체 실패 시 에러 표시
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/controller/company_data_controller_test.go`
+  - [ ] `src/components/analysis/__tests__/company-info-display.test.tsx`
+- [ ] 구현 (GREEN)
+  - [ ] `/api/analyze/company-data` POST 라우트 생성
+  - [ ] DART + 네이버 뉴스 병렬 호출 (`errgroup`)
+  - [ ] Partial failure 처리 (일부 소스 실패해도 결과 반환)
+  - [ ] 통합 응답 스키마 정의
+  - [ ] 각 소스별 상태 표시 (성공/실패/건너뜀)
+  - [ ] 인증 미들웨어 적용
+  - [ ] 에러 핸들링 (전체 실패 시 에러 응답)
+- [ ] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -402,20 +440,11 @@ export async function POST(request: Request) {
 | 미등록 스타트업 | ❌ (corp_code 없음) | ❌ | ✅ | news만 (profile, financials null) |
 | 전체 실패 | ❌ | ❌ | ❌ | 500 에러 |
 
-### 검증 방법
-
-- [ ] 상장 대기업 → DART + 뉴스 모두 성공 확인
-- [ ] 비상장 기업 → DART 개황 성공, 재무 실패 (partial) 확인
-- [ ] 미등록 기업 → 뉴스만 성공 (partial) 확인
-- [ ] 각 소스 상태(success/failed/skipped) 정확히 반환 확인
-- [ ] 전체 실패 시 500 에러 응답 확인
-- [ ] 응답 시간 3초 이내 확인 (병렬 호출)
-
 ### 산출물
 
-- `src/app/api/analyze/company-data/route.ts`
-- `src/lib/external/company-data-schemas.ts`
-- `__tests__/app/api/analyze/company-data.test.ts`
+- `internal/controller/company_data_controller.go`
+- `internal/service/company_data_service.go`
+- `internal/controller/company_data_controller_test.go`
 
 ---
 
@@ -425,15 +454,32 @@ export async function POST(request: Request) {
 
 기업 분석 결과를 `company_analysis_cache` 테이블에 7일 TTL로 캐싱하여, 동일 기업에 대한 반복 API 호출을 방지하고 응답 속도를 개선한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `company_analysis_cache` 테이블 생성 마이그레이션
-- [ ] 캐시 조회 함수 구현 (TTL 확인 포함)
-- [ ] 캐시 저장 함수 구현
-- [ ] 캐시 무효화 함수 구현 (수동 새로고침용)
-- [ ] 만료 캐시 자동 정리 (Supabase cron 또는 조회 시 lazy deletion)
-- [ ] `/api/analyze/company-data`에 캐시 로직 통합
-- [ ] 캐시 히트/미스 로깅
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/service/cache_test.go`
+  - `TestCacheCompanyData_SaveAndRetrieve` — 첫 요청 시 API 호출 + 캐시 저장 → 두 번째 요청 시 캐시 히트 확인
+  - `TestCacheCompanyData_TTLExpiry` — 7일 후 캐시 만료 → API 재호출 확인
+  - `TestCacheCompanyData_ForceRefresh` — 캐시 강제 새로고침 (`forceRefresh: true`) 동작 확인
+  - `TestCacheCompanyData_NormalizedName` — 회사명 정규화 ("주식회사 카카오" = "카카오") 동일 캐시 조회
+  - `TestCacheCompanyData_HitCountIncrement` — hit_count 정상 증가 확인
+  - `TestCacheCompanyData_InvalidateCache` — 캐시 무효화 함수 동작 확인
+  - `TestCleanupExpiredCache` — 만료 캐시 정리 함수 동작 확인
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/service/cache_test.go`
+- [ ] 구현 (GREEN)
+  - [ ] `company_analysis_cache` 테이블 생성 마이그레이션
+  - [ ] 캐시 조회 함수 구현 (TTL 확인 포함)
+  - [ ] 캐시 저장 함수 구현
+  - [ ] 캐시 무효화 함수 구현 (수동 새로고침용)
+  - [ ] 만료 캐시 자동 정리 (Supabase cron 또는 조회 시 lazy deletion)
+  - [ ] `/api/analyze/company-data`에 캐시 로직 통합
+  - [ ] 캐시 히트/미스 로깅
+- [ ] 테스트 통과 확인
 
 ### DB 마이그레이션
 
@@ -538,21 +584,11 @@ async function invalidateCache(companyName: string): Promise<void>;
 [결과 반환]
 ```
 
-### 검증 방법
-
-- [ ] 첫 요청 시 API 호출 + 캐시 저장 확인
-- [ ] 두 번째 요청 시 캐시 히트 확인 (API 미호출)
-- [ ] 7일 후 캐시 만료 → API 재호출 확인
-- [ ] 캐시 강제 새로고침 (`forceRefresh: true`) 동작 확인
-- [ ] 회사명 정규화 ("주식회사 카카오" = "카카오") 동일 캐시 조회 확인
-- [ ] hit_count 정상 증가 확인
-- [ ] 만료 캐시 정리 함수 동작 확인
-
 ### 산출물
 
-- `supabase/migrations/YYYYMMDDHHMMSS_create_company_analysis_cache.sql`
-- `src/lib/cache/company-cache.ts`
-- `__tests__/lib/cache/company-cache.test.ts`
+- `atlas migration` (company_analysis_cache 테이블)
+- `internal/service/cache.go`
+- `internal/service/cache_test.go`
 
 ---
 
@@ -562,12 +598,15 @@ async function invalidateCache(companyName: string): Promise<void>;
 - [ ] DART OpenAPI로 재무제표 (매출, 영업이익, 순이익) 조회 성공
 - [ ] 네이버 뉴스 API로 기업 관련 최근 뉴스 검색 성공
 - [ ] 비상장/미등록 기업에 대한 partial failure 정상 처리
-- [ ] 병렬 호출 (`Promise.allSettled`) 정상 동작
+- [ ] 병렬 호출 (`errgroup`) 정상 동작
 - [ ] `/api/analyze/company-data` API 응답 정상
 - [ ] 캐시 저장/조회/만료/무효화 정상 동작
 - [ ] 캐시 히트 시 API 미호출 확인
 - [ ] 환경변수 설정 문서 업데이트 (DART_API_KEY, NAVER_CLIENT_ID, NAVER_CLIENT_SECRET)
-- [ ] 단위 테스트 + 통합 테스트 통과
+- [ ] `moon run backend:test` → 전체 통과
+- [ ] `moon run web:test` → 전체 통과
+- [ ] `moon run :lint` → 경고 0건
+- [ ] `moon run web:build` → 빌드 성공
 
 ---
 

@@ -31,17 +31,33 @@
 
 서비스의 가치를 한눈에 전달하는 랜딩 페이지를 구현한다. Hero 섹션, 핵심 기능 3가지 소개, 데모/스크린샷, CTA(회원가입) 버튼으로 구성한다. 비로그인 사용자가 처음 접하는 페이지이므로 임팩트 있게 제작한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `src/app/page.tsx` 랜딩 페이지 구현 (기존 리다이렉트 대체)
-- [ ] Hero 섹션: 메인 카피 + 서브 카피 + CTA 버튼
-- [ ] 핵심 기능 소개 섹션 (3개 기능 카드)
-- [ ] 데모/스크린샷 섹션 (서비스 미리보기)
-- [ ] CTA 섹션: "지금 시작하기" → 회원가입
-- [ ] 푸터: 서비스명, 법적 링크, 저작권
-- [ ] 로그인 사용자 → `/dashboard`로 리다이렉트
-- [ ] SEO 메타태그 (title, description, og:image)
-- [ ] 반응형 (모바일 우선)
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `describe('HeroSection')` | `src/components/landing/__tests__/hero-section.test.tsx` | Hero 섹션 렌더링, CTA 버튼 링크 확인 (/signup) |
+| `describe('FeatureSection')` | `src/components/landing/__tests__/feature-section.test.tsx` | 3개 기능 카드 렌더링 확인 |
+| `describe('LandingPage redirect')` | `src/app/__tests__/landing-page.test.tsx` | 로그인 사용자 → /dashboard 리다이렉트 확인 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/landing/__tests__/hero-section.test.tsx` 작성
+  - [ ] `src/components/landing/__tests__/feature-section.test.tsx` 작성
+  - [ ] `src/app/__tests__/landing-page.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] `src/app/page.tsx` 랜딩 페이지 구현 (기존 리다이렉트 대체)
+  - [ ] Hero 섹션: 메인 카피 + 서브 카피 + CTA 버튼
+  - [ ] 핵심 기능 소개 섹션 (3개 기능 카드)
+  - [ ] 데모/스크린샷 섹션 (서비스 미리보기)
+  - [ ] CTA 섹션: "지금 시작하기" → 회원가입
+  - [ ] 푸터: 서비스명, 법적 링크, 저작권
+  - [ ] 로그인 사용자 → `/dashboard`로 리다이렉트
+  - [ ] SEO 메타태그 (title, description, og:image)
+  - [ ] 반응형 (모바일 우선)
+- [ ] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -56,7 +72,7 @@
 
 ### 페이지 레이아웃
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────────┐
 │  Colight                                    [로그인] [시작하기]  │
 ├──────────────────────────────────────────────────────────────────┤
@@ -162,16 +178,6 @@ export default async function LandingPage() {
 }
 ```
 
-### 검증 방법
-
-- [ ] 비로그인 사용자: 랜딩 페이지 정상 표시
-- [ ] 로그인 사용자: `/dashboard`로 자동 리다이렉트
-- [ ] "무료로 시작하기" → `/signup` 페이지로 이동
-- [ ] "로그인" → `/login` 페이지로 이동
-- [ ] 모바일 375px: 단일 컬럼 레이아웃 정상
-- [ ] SEO: `<title>`, `<meta name="description">`, `og:image` 확인
-- [ ] Lighthouse SEO ≥ 90
-
 ### 산출물
 
 - `src/app/page.tsx`
@@ -190,17 +196,31 @@ export default async function LandingPage() {
 
 서비스 운영에 필수적인 개인정보처리방침과 이용약관 페이지를 추가한다. 한국 법률(개인정보보호법, 전자상거래법)에 부합하는 최소 요건을 갖춘다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `/privacy` 개인정보처리방침 페이지 구현
-- [ ] `/terms` 이용약관 페이지 구현
-- [ ] 랜딩 페이지 푸터에 링크 추가
-- [ ] 회원가입 페이지에 "이용약관 동의" 체크박스 추가
-- [ ] 마크다운 기반 콘텐츠 (추후 수정 용이하도록)
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `describe('PrivacyPage')` | `src/app/(legal)/__tests__/privacy.test.tsx` | /privacy 페이지 렌더링, 필수 항목(처리 목적, 수집 항목 등) 포함 확인 |
+| `describe('TermsPage')` | `src/app/(legal)/__tests__/terms.test.tsx` | /terms 페이지 렌더링, 필수 항목 포함 확인 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/app/(legal)/__tests__/privacy.test.tsx` 작성
+  - [ ] `src/app/(legal)/__tests__/terms.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] `/privacy` 개인정보처리방침 페이지 구현
+  - [ ] `/terms` 이용약관 페이지 구현
+  - [ ] 랜딩 페이지 푸터에 링크 추가
+  - [ ] 회원가입 페이지에 "이용약관 동의" 체크박스 추가
+  - [ ] 마크다운 기반 콘텐츠 (추후 수정 용이하도록)
+- [ ] 테스트 통과 확인
 
 ### 개인정보처리방침 필수 항목
 
-```
+```text
 1. 개인정보의 처리 목적
 2. 수집하는 개인정보의 항목
    - 필수: 이메일, 이름(닉네임)
@@ -218,7 +238,7 @@ export default async function LandingPage() {
 
 ### 이용약관 필수 항목
 
-```
+```text
 1. 목적
 2. 용어의 정의
 3. 서비스의 제공
@@ -243,15 +263,6 @@ export default async function LandingPage() {
 | `TermsPage` | `src/app/(legal)/terms/page.tsx` | - | 이용약관 |
 | `LegalLayout` | `src/app/(legal)/layout.tsx` | - | 법적 페이지 공통 레이아웃 (간결한 헤더+푸터) |
 
-### 검증 방법
-
-- [ ] `/privacy` 페이지 접근 시 개인정보처리방침 표시
-- [ ] `/terms` 페이지 접근 시 이용약관 표시
-- [ ] 랜딩 페이지 푸터에서 링크 정상 동작
-- [ ] 회원가입 시 이용약관 동의 체크박스 미체크 시 가입 불가
-- [ ] 비로그인 상태에서도 접근 가능
-- [ ] 모바일 반응형 확인
-
 ### 산출물
 
 - `src/app/(legal)/layout.tsx`
@@ -266,21 +277,33 @@ export default async function LandingPage() {
 
 Vercel에 프로덕션 배포를 수행하고, 환경 변수를 설정하고, Supabase 프로덕션 프로젝트를 연결하여 5~10명의 베타 사용자가 실제 서비스를 사용할 수 있도록 한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] Vercel 프로젝트 프로덕션 환경 변수 설정
-- [ ] Supabase 프로덕션 프로젝트 생성 + DB 마이그레이션 적용
-- [ ] Supabase 프로덕션 Auth 설정 (이메일/소셜 로그인)
-- [ ] 커스텀 도메인 연결 (선택: colight.app 또는 colight.vercel.app)
-- [ ] SSL 인증서 확인 (Vercel 자동)
-- [ ] 프로덕션 빌드 테스트 (`npm run build && npm run start`)
-- [ ] 시드 데이터 프로덕션 적용 (weapon_categories, question_patterns, prompt_templates)
-- [ ] 환경별 API 키 분리 확인 (dev/prod)
-- [ ] 5~10명 베타 테스터 초대 (이메일)
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `TestHealthCheck_Production` | `internal/controller/health_controller_test.go` | 프로덕션 헬스체크 엔드포인트 정상 응답 확인 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/controller/health_controller_test.go` 작성
+- [ ] 구현 (GREEN)
+  - [ ] Vercel 프로젝트 프로덕션 환경 변수 설정
+  - [ ] Supabase 프로덕션 프로젝트 생성 + DB 마이그레이션 적용
+  - [ ] Supabase 프로덕션 Auth 설정 (이메일/소셜 로그인)
+  - [ ] 커스텀 도메인 연결 (선택: colight.app 또는 colight.vercel.app)
+  - [ ] SSL 인증서 확인 (Vercel 자동)
+  - [ ] 프로덕션 빌드 테스트 (`npm run build && npm run start`)
+  - [ ] 시드 데이터 프로덕션 적용 (weapon_categories, question_patterns, prompt_templates)
+  - [ ] 환경별 API 키 분리 확인 (dev/prod)
+  - [ ] 5~10명 베타 테스터 초대 (이메일)
+- [ ] 테스트 통과 확인
 
 ### 환경 변수 체크리스트
 
-```
+```text
 # Vercel 프로덕션 환경 변수
 NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
@@ -321,7 +344,7 @@ git push origin main
 
 ### 베타 테스터 초대 메시지 템플릿
 
-```
+```text
 안녕하세요!
 
 AI 취업 코칭 서비스 Colight의 베타 테스트에 초대합니다.
@@ -341,17 +364,6 @@ AI 취업 코칭 서비스 Colight의 베타 테스트에 초대합니다.
 감사합니다!
 ```
 
-### 검증 방법
-
-- [ ] 프로덕션 URL에서 랜딩 페이지 정상 표시
-- [ ] 회원가입 → 로그인 → 대시보드 접근 정상
-- [ ] 경험 등록 → 기업 분석 → 코칭 전체 흐름 동작
-- [ ] SSL 인증서 유효 (HTTPS)
-- [ ] 프로덕션 Supabase RLS 정책 동작 확인
-- [ ] AI API (Claude, OpenAI) 프로덕션 키로 정상 호출
-- [ ] 사용량 제한 프로덕션에서 동작 확인
-- [ ] 베타 테스터 5명 이상 가입 확인
-
 ### 산출물
 
 - Vercel 프로덕션 배포 완료
@@ -366,14 +378,28 @@ AI 취업 코칭 서비스 Colight의 베타 테스트에 초대합니다.
 
 베타 사용자로부터 실시간으로 피드백을 수집할 수 있는 플로팅 피드백 버튼을 구현한다. 최소한의 기능으로 텍스트 피드백 + 페이지 URL + 스크린샷 여부를 수집한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 플로팅 피드백 버튼 구현 (우측 하단 고정)
-- [ ] 피드백 모달: 카테고리(버그/개선/기타) + 텍스트 입력
-- [ ] 현재 페이지 URL 자동 첨부
-- [ ] 사용자 ID 자동 첨부 (로그인 시)
-- [ ] 피드백 저장 (Supabase `feedback` 테이블 또는 외부 서비스)
-- [ ] 제출 후 감사 토스트 메시지
+> 패턴 참고: docs/develop/12-backend-testing.md, docs/develop/08-testing-strategy.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `TestFeedbackController_SubmitFeedback` | `internal/controller/feedback_controller_test.go` | 피드백 제출 API, 카테고리 + 내용 저장, 인증 사용자만 허용 |
+| `describe('FeedbackModal')` | `src/components/feedback/__tests__/feedback-modal.test.tsx` | 카테고리 선택, 내용 입력, 제출 콜백 호출, 현재 URL 자동 첨부 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/controller/feedback_controller_test.go` 작성
+  - [ ] `src/components/feedback/__tests__/feedback-modal.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] 플로팅 피드백 버튼 구현 (우측 하단 고정)
+  - [ ] 피드백 모달: 카테고리(버그/개선/기타) + 텍스트 입력
+  - [ ] 현재 페이지 URL 자동 첨부
+  - [ ] 사용자 ID 자동 첨부 (로그인 시)
+  - [ ] 피드백 저장 (Supabase `feedback` 테이블 또는 외부 서비스)
+  - [ ] 제출 후 감사 토스트 메시지
+- [ ] 테스트 통과 확인
 
 ### DB 스키마
 
@@ -404,7 +430,7 @@ CREATE POLICY "Authenticated users can submit feedback"
 
 ### UI 레이아웃
 
-```
+```text
 ┌─────────────────────────────────────┐
 │  💬 피드백 보내기                ×   │
 │                                     │
@@ -427,16 +453,6 @@ CREATE POLICY "Authenticated users can submit feedback"
                               [💬]  ← 항상 표시
 ```
 
-### 검증 방법
-
-- [ ] 플로팅 버튼이 모든 페이지에서 표시 (랜딩 제외)
-- [ ] 버튼 클릭 시 피드백 모달 열림
-- [ ] 카테고리 선택 + 내용 입력 후 제출 성공
-- [ ] `feedback` 테이블에 레코드 생성 확인
-- [ ] 현재 페이지 URL 자동 첨부 확인
-- [ ] 제출 후 "감사합니다" 토스트 표시
-- [ ] 모바일에서 플로팅 버튼 + 모달 정상 동작
-
 ### 산출물
 
 - `supabase/migrations/YYYYMMDD_create_feedback_table.sql`
@@ -452,14 +468,26 @@ CREATE POLICY "Authenticated users can submit feedback"
 
 프로덕션 환경에서 서비스 상태, 사용자 행동, AI 비용을 모니터링할 수 있는 기본 인프라를 설정한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] Vercel Analytics 활성화 (Web Vitals 자동 수집)
-- [ ] Vercel Speed Insights 활성화 (성능 모니터링)
-- [ ] Supabase Dashboard 확인 (DB 사용량, Auth 사용자 수)
-- [ ] AI 비용 추적 대시보드 (coaching_sessions의 토큰/비용 집계)
-- [ ] 에러 모니터링 기본 설정 (console.error → Vercel Logs)
-- [ ] 주요 지표 수동 확인 루틴 문서화
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `TestCostAlert_ThresholdExceeded` | `internal/service/monitoring_service_test.go` | 일별 AI 비용 임계치 초과 시 경고 로그 출력 확인 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/service/monitoring_service_test.go` 작성
+- [ ] 구현 (GREEN)
+  - [ ] Vercel Analytics 활성화 (Web Vitals 자동 수집)
+  - [ ] Vercel Speed Insights 활성화 (성능 모니터링)
+  - [ ] Supabase Dashboard 확인 (DB 사용량, Auth 사용자 수)
+  - [ ] AI 비용 추적 대시보드 (coaching_sessions의 토큰/비용 집계)
+  - [ ] 에러 모니터링 기본 설정 (console.error → Vercel Logs)
+  - [ ] 주요 지표 수동 확인 루틴 문서화
+- [ ] 테스트 통과 확인
 
 ### Vercel Analytics 설정
 
@@ -544,15 +572,6 @@ export async function checkDailyCost() {
 }
 ```
 
-### 검증 방법
-
-- [ ] Vercel Analytics 대시보드에서 페이지뷰 확인
-- [ ] Vercel Speed Insights에서 Web Vitals 확인
-- [ ] Supabase Dashboard에서 사용자 수/DB 용량 확인
-- [ ] AI 비용 쿼리 실행 결과 확인
-- [ ] Vercel Functions Logs에서 에러 로그 확인 가능
-- [ ] 비용 알람 임계치 동작 확인 (로그 출력)
-
 ### 산출물
 
 - `src/app/layout.tsx` (Analytics/SpeedInsights 추가)
@@ -576,6 +595,10 @@ export async function checkDailyCost() {
 - [ ] AI 비용 추적 가능
 - [ ] 베타 테스터 5~10명 초대 완료
 - [ ] 전체 플로우 프로덕션 동작 확인
+- [ ] `moon run backend:test` → 전체 통과
+- [ ] `moon run web:test` → 전체 통과
+- [ ] `moon run :lint` → 경고 0건
+- [ ] `moon run web:build` → 빌드 성공
 
 ---
 
@@ -589,7 +612,7 @@ export async function checkDailyCost() {
 
 Phase 6.2를 완료하면 Colight MVP가 베타 출시됩니다.
 
-```
+```text
 ✅ 핵심 사용자 여정 완성:
    경험 등록 → 무기 태깅 → 채용공고 분석 → 기업 분석
    → 경험 매칭 → 문항 분석 → 경험 추천

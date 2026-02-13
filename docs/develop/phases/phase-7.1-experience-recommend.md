@@ -24,18 +24,53 @@
 
 ### 7.1.1 추천 로직 강화
 
-- [ ] 무기 매칭 점수 (문항 필요 무기 ↔ 경험 보유 무기)
-- [ ] 키워드 오버랩 점수 (문항 키워드 ↔ 경험 키워드)
-- [ ] 사용 이력 중복 제거 (이미 다른 문항에 사용된 경험 감점)
-- [ ] 유니크 보너스 (덜 사용된 경험 우선)
-- [ ] 최종 점수 = 가중 합산, 상위 3~5개 반환
+#### 테스트 명세
+
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `TestRecommendService_WeaponMatchScore` | `internal/service/recommend_service_test.go` | 문항 필요 무기와 경험 보유 무기 매칭 점수 계산 정확성 |
+| `TestRecommendService_KeywordOverlap` | `internal/service/recommend_service_test.go` | 문항 키워드와 경험 키워드 오버랩 점수 계산 |
+| `TestRecommendService_UsageDedup` | `internal/service/recommend_service_test.go` | 이미 다른 문항에 사용된 경험 감점 처리, 유니크 보너스 적용 |
+| `TestRecommendService_RankTopN` | `internal/service/recommend_service_test.go` | 최종 가중 합산 점수 기준 상위 3~5개 정렬 반환 |
+
+#### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/service/recommend_service_test.go` 작성
+- [ ] 구현 (GREEN)
+  - [ ] 무기 매칭 점수 (문항 필요 무기 ↔ 경험 보유 무기)
+  - [ ] 키워드 오버랩 점수 (문항 키워드 ↔ 경험 키워드)
+  - [ ] 사용 이력 중복 제거 (이미 다른 문항에 사용된 경험 감점)
+  - [ ] 유니크 보너스 (덜 사용된 경험 우선)
+  - [ ] 최종 점수 = 가중 합산, 상위 3~5개 반환
+- [ ] 테스트 통과 확인
 
 ### 7.1.2 추천 UI 개선
 
-- [ ] 추천 사유 텍스트 표시 (예: "리더십 무기 일치", "직무 키워드 3개 매칭")
-- [ ] "이미 사용됨" 뱃지 표시 (다른 문항에서 사용 중인 경험)
-- [ ] 추천 순서 재정렬 (점수순 + 사용 여부 고려)
-- [ ] 경험 카드 미리보기 (hover 또는 expand)
+#### 테스트 명세
+
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `describe('RecommendationList')` | `src/components/recommend/__tests__/recommendation-list.test.tsx` | 추천 경험 목록 렌더링, 점수순 정렬 확인 |
+| `describe('RelevanceIndicator')` | `src/components/recommend/__tests__/relevance-indicator.test.tsx` | 적합도 점수 시각적 표시 (프로그레스 바, 색상) |
+| `describe('RecommendationCard')` | `src/components/recommend/__tests__/recommendation-card.test.tsx` | 추천 사유 텍스트 표시, "이미 사용됨" 뱃지, 카드 확장 미리보기 |
+
+#### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/recommend/__tests__/recommendation-list.test.tsx` 작성
+  - [ ] `src/components/recommend/__tests__/relevance-indicator.test.tsx` 작성
+  - [ ] `src/components/recommend/__tests__/recommendation-card.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] 추천 사유 텍스트 표시 (예: "리더십 무기 일치", "직무 키워드 3개 매칭")
+  - [ ] "이미 사용됨" 뱃지 표시 (다른 문항에서 사용 중인 경험)
+  - [ ] 추천 순서 재정렬 (점수순 + 사용 여부 고려)
+  - [ ] 경험 카드 미리보기 (hover 또는 expand)
+- [ ] 테스트 통과 확인
 
 ---
 
@@ -46,6 +81,10 @@
 - [ ] 추천 사유 사용자에게 표시
 - [ ] 기존 추천 대비 적합도 향상 확인
 - [ ] phases/README.md 상태 업데이트
+- [ ] `moon run backend:test` → 전체 통과
+- [ ] `moon run web:test` → 전체 통과
+- [ ] `moon run :lint` → 경고 0건
+- [ ] `moon run web:build` → 빌드 성공
 
 ---
 

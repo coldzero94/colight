@@ -36,13 +36,26 @@
 
 `prompt_templates` 테이블에 `company_analysis` 카테고리의 프롬프트를 등록한다. 채용공고 정보 + 기업 프로필 + 재무 데이터 + 최근 뉴스를 입력으로 받아, 구조화된 분석 결과를 JSON으로 출력하도록 설계한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `company_analysis` 프롬프트 시스템 프롬프트 작성
-- [ ] 사용자 프롬프트 템플릿 작성 (변수 주입 포맷)
-- [ ] 출력 JSON 스키마 정의
-- [ ] `prompt_templates` 테이블에 시드 데이터 추가
-- [ ] 프롬프트 버전 관리 체계 수립
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/infrastructure/ai/prompt_builder_test.go`
+  - `TestBuildCompanyAnalysisPrompt_VariableInjection` — 변수 주입 후 완성된 프롬프트 형식 확인
+  - `TestBuildCompanyAnalysisPrompt_AllVariablesPresent` — jobPosting, companyProfile, financials, recentNews 변수 모두 포함 확인
+  - `TestBuildCompanyAnalysisPrompt_EmptyOptionalFields` — 선택 필드 없을 때 graceful 처리
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/infrastructure/ai/prompt_builder_test.go`
+- [ ] 구현 (GREEN)
+  - [ ] `company_analysis` 프롬프트 시스템 프롬프트 작성
+  - [ ] 사용자 프롬프트 템플릿 작성 (변수 주입 포맷)
+  - [ ] 출력 JSON 스키마 정의
+  - [ ] `prompt_templates` 테이블에 시드 데이터 추가
+  - [ ] 프롬프트 버전 관리 체계 수립
+- [ ] 테스트 통과 확인
 
 ### 프롬프트 상세
 
@@ -163,18 +176,10 @@ interface CompanyAnalysis {
 }
 ```
 
-### 검증 방법
-
-- [ ] 프롬프트 템플릿 → DB 정상 저장 확인
-- [ ] 변수 주입 후 완성된 프롬프트 형식 확인
-- [ ] Claude API에 직접 테스트 → 유효한 JSON 응답 확인
-- [ ] 출력 스키마와 실제 응답 구조 일치 확인
-- [ ] 다양한 기업(대기업, 중견, 스타트업)에 대해 분석 품질 확인
-
 ### 산출물
 
-- `src/lib/ai/analysis-schemas.ts` (CompanyAnalysis 타입 + Zod 스키마)
-- `src/lib/ai/prompts/company-analysis.ts` (프롬프트 빌더)
+- `internal/infrastructure/ai/prompt_builder.go` (프롬프트 빌더)
+- `internal/infrastructure/ai/prompt_builder_test.go`
 - DB 시드: `prompt_templates` 1건 추가 (company_analysis/comprehensive_analysis)
 
 ---
@@ -185,16 +190,41 @@ interface CompanyAnalysis {
 
 Go backend에서 Claude Sonnet 4.5의 기업 분석 결과를 Server-Sent Events (SSE)로 실시간 스트리밍하여 전달하는 API를 구현한다. 분석 완료 후 결과를 `company_analyses` 테이블에 저장한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] Go backend API 엔드포인트 구현
-- [ ] `POST /v1/analyze/comprehensive` SSE 스트리밍 구현
-- [ ] Claude Sonnet 4.5 API 호출 및 스트리밍 처리
-- [ ] 스트림 완료 후 `company_analyses` 테이블에 결과 저장
-- [ ] 스트리밍 중 에러 처리 (타임아웃, API 에러)
-- [ ] 토큰 사용량 로깅
-- [ ] 인증 미들웨어 적용
-- [ ] 프론트엔드: EventSource를 사용한 SSE 수신
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/controller/analysis_controller_test.go`
+  - `TestComprehensiveAnalysis_SSEStreaming` — SSE 스트리밍 응답이 실시간으로 전달되는지 확인
+  - `TestComprehensiveAnalysis_SaveResult` — 스트림 완료 후 `company_analyses` 테이블에 결과 정상 저장
+  - `TestComprehensiveAnalysis_Unauthorized` — 미인증 요청 시 401 반환
+- `internal/infrastructure/ai/anthropic_test.go`
+  - `TestAnthropicClient_StreamAnalysis` — MockAIClient로 Claude API 스트리밍 호출 확인 (testdata/ai/analysis_response.json 픽스처)
+  - `TestAnthropicClient_APIError` — Anthropic API 에러 시 적절한 에러 응답
+  - `TestAnthropicClient_TokenUsageLogging` — 토큰 사용량 로깅 확인
+
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/hooks/__tests__/use-analysis-stream.test.ts`
+  - `describe('useAnalysisStream')` — SSE 수신 훅 동작 확인 (연결, 데이터 수신, 에러 처리)
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/controller/analysis_controller_test.go` (스트리밍 관련)
+  - [ ] `internal/infrastructure/ai/anthropic_test.go`
+  - [ ] `src/hooks/__tests__/use-analysis-stream.test.ts`
+  - [ ] 픽스처 파일: `testdata/ai/analysis_response.json`
+- [ ] 구현 (GREEN)
+  - [ ] Go backend API 엔드포인트 구현
+  - [ ] `POST /v1/analyze/comprehensive` SSE 스트리밍 구현
+  - [ ] Claude Sonnet 4.5 API 호출 및 스트리밍 처리
+  - [ ] 스트림 완료 후 `company_analyses` 테이블에 결과 저장
+  - [ ] 스트리밍 중 에러 처리 (타임아웃, API 에러)
+  - [ ] 토큰 사용량 로깅
+  - [ ] 인증 미들웨어 적용
+  - [ ] 프론트엔드: EventSource를 사용한 SSE 수신
+- [ ] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -302,18 +332,10 @@ export function getModel(purpose: 'analysis' | 'coaching' | 'parsing') {
 - 출력 토큰: ~2000 (분석 결과 JSON)
 - 스트리밍으로 체감 대기 시간 단축 (실제 7~15초 → 체감 2~3초)
 
-### 검증 방법
-
-- [ ] 스트리밍 응답이 실시간으로 전달되는지 확인 (SSE 이벤트)
-- [ ] 스트림 완료 후 전체 JSON 파싱 성공 확인
-- [ ] `company_analyses` 테이블에 결과 정상 저장 확인
-- [ ] 토큰 사용량 로깅 확인
-- [ ] Anthropic API 에러 시 적절한 에러 응답 확인
-- [ ] 미인증 요청 시 401 반환 확인
-
 ### 산출물
 
-- Go backend: `POST /v1/analyze/comprehensive` 엔드포인트 (backend 레포지토리)
+- Go backend: `POST /v1/analyze/comprehensive` 엔드포인트
+- `internal/infrastructure/ai/anthropic.go`
 - 프론트엔드: `src/hooks/use-analysis-stream.ts` (SSE 스트리밍 훅)
 - 프론트엔드: `@/api/generated/sdk.gen.ts` (SDK 업데이트)
 
@@ -325,14 +347,37 @@ export function getModel(purpose: 'analysis' | 'coaching' | 'parsing') {
 
 `/api/analyze` 메인 엔드포인트를 확장하여, URL 파싱 → 기업 데이터 수집 → AI 종합 분석의 전체 파이프라인을 하나의 요청으로 오케스트레이션한다. 각 단계의 진행 상태를 스트리밍으로 전달한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `/api/analyze` 메인 엔드포인트 확장 (파이프라인 모드)
-- [ ] 단계별 진행 상태 스트리밍 이벤트 정의
-- [ ] 단계별 에러 처리 및 fallback 로직
-- [ ] 파이프라인 상태 관리 (진행중/완료/실패)
-- [ ] 중간 결과 저장 (URL 파싱 결과, 기업 데이터)
-- [ ] 타임아웃 처리 (전체 60초 제한)
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/service/pipeline_service_test.go`
+  - `TestPipeline_FullFlow` — 전체 파이프라인 (URL → 파싱 → 데이터 수집 → AI 분석) E2E 동작 확인 (MockAIClient 사용)
+  - `TestPipeline_ParseOnlyMode` — `mode: 'parse_only'` → URL 파싱만 수행 후 완료
+  - `TestPipeline_PartialDataAnalysis` — DART 실패 시 뉴스만으로 AI 분석 수행
+  - `TestPipeline_StepEvents` — 각 단계별 진행 이벤트가 순서대로 스트리밍되는지 확인
+  - `TestPipeline_Timeout` — 60초 타임아웃 동작 확인
+  - `TestPipeline_SaveResult` — 분석 완료 후 `company_analyses` 테이블에 저장
+
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/hooks/__tests__/use-analysis-stream.test.ts`
+  - `it('processes pipeline events in correct order')` — 파이프라인 이벤트 순서 확인
+  - `it('handles streaming chunks during analysis step')` — AI 분석 스트리밍 청크 실시간 전달
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/service/pipeline_service_test.go`
+  - [ ] `src/hooks/__tests__/use-analysis-stream.test.ts` (파이프라인 이벤트 관련 추가)
+- [ ] 구현 (GREEN)
+  - [ ] `/api/analyze` 메인 엔드포인트 확장 (파이프라인 모드)
+  - [ ] 단계별 진행 상태 스트리밍 이벤트 정의
+  - [ ] 단계별 에러 처리 및 fallback 로직
+  - [ ] 파이프라인 상태 관리 (진행중/완료/실패)
+  - [ ] 중간 결과 저장 (URL 파싱 결과, 기업 데이터)
+  - [ ] 타임아웃 처리 (전체 60초 제한)
+- [ ] 테스트 통과 확인
 
 ### 파이프라인 흐름
 
@@ -466,20 +511,11 @@ async function runAnalysisPipeline(options: PipelineOptions): Promise<void> {
 | AI 분석 | JSON 파싱 실패 | 1회 재시도 (temperature 0.1로 낮춤) |
 | 전체 | 타임아웃 (60초) | 현재까지 결과 저장 + 에러 이벤트 |
 
-### 검증 방법
-
-- [ ] 전체 파이프라인 (URL → 파싱 → 데이터 수집 → AI 분석) E2E 동작 확인
-- [ ] 각 단계별 진행 이벤트가 순서대로 스트리밍되는지 확인
-- [ ] `mode: 'parse_only'` → URL 파싱만 수행 후 완료 확인
-- [ ] DART 실패 시 뉴스만으로 AI 분석 수행 확인
-- [ ] AI 분석 스트리밍 청크가 실시간으로 전달되는지 확인
-- [ ] 분석 완료 후 `company_analyses` 테이블에 저장 확인
-- [ ] 60초 타임아웃 동작 확인
-
 ### 산출물
 
-- `src/lib/pipeline/analyze-orchestrator.ts`
-- `src/app/api/analyze/route.ts` (확장)
+- `internal/service/pipeline_service.go`
+- `internal/service/pipeline_service_test.go`
+- `internal/controller/analysis_controller.go` (확장)
 
 ---
 
@@ -489,13 +525,37 @@ async function runAnalysisPipeline(options: PipelineOptions): Promise<void> {
 
 AI 분석 결과의 JSON 출력을 Zod 스키마로 검증하여 타입 안전성을 보장한다. 검증 실패 시 1회 재시도하고, 재시도에도 실패하면 부분 결과를 반환한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `CompanyAnalysis` Zod 스키마 정의 (전체 분석 결과)
-- [ ] AI 응답 JSON 파싱 + Zod 검증 함수 구현
-- [ ] 검증 실패 시 재시도 로직 (에러 메시지를 피드백으로 포함)
-- [ ] partial parsing (일부 필드 누락 시 기본값 적용)
-- [ ] 검증 결과 로깅 (성공률 추적)
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/lib/validations/__tests__/company-analysis.test.ts`
+  - `describe('CompanyAnalysisSchema')` — 정상 JSON → Zod 검증 통과
+  - `it('rejects missing required fields')` — 필수 필드 누락 JSON → 에러 목록 정확히 반환
+  - `it('validates array length constraints')` — coreValues 3~5개, strategyKeywords 5~7개 등 배열 길이 제약
+
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/infrastructure/ai/analysis_validator_test.go`
+  - `TestValidateAnalysisResponse_ValidJSON` — 정상 JSON 검증 통과 (testdata/ai/valid_analysis.json 픽스처)
+  - `TestValidateAnalysisResponse_MarkdownCodeBlock` — 마크다운 코드 블록 (` ```json ... ``` `) → JSON 추출 성공
+  - `TestValidateAnalysisResponse_RetryOnFailure` — 검증 실패 → 재시도 → 성공 흐름 (MockAIClient)
+  - `TestValidateAnalysisResponse_PartialParsing` — 재시도에도 실패 → partial parsing 동작
+  - `TestValidateAnalysisResponse_InvalidJSON` — 유효하지 않은 JSON → 재시도 트리거
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/lib/validations/__tests__/company-analysis.test.ts`
+  - [ ] `internal/infrastructure/ai/analysis_validator_test.go`
+  - [ ] 픽스처 파일: `testdata/ai/valid_analysis.json`, `testdata/ai/invalid_analysis.json`
+- [ ] 구현 (GREEN)
+  - [ ] `CompanyAnalysis` Zod 스키마 정의 (전체 분석 결과)
+  - [ ] AI 응답 JSON 파싱 + Zod 검증 함수 구현
+  - [ ] 검증 실패 시 재시도 로직 (에러 메시지를 피드백으로 포함)
+  - [ ] partial parsing (일부 필드 누락 시 기본값 적용)
+  - [ ] 검증 결과 로깅 (성공률 추적)
+- [ ] 테스트 통과 확인
 
 ### Zod 스키마 정의
 
@@ -622,20 +682,12 @@ function parsePartialAnalysis(data: unknown): CompanyAnalysis {
 }
 ```
 
-### 검증 방법
-
-- [ ] 정상 JSON → Zod 검증 통과 확인
-- [ ] 필수 필드 누락 JSON → 에러 목록 정확히 반환 확인
-- [ ] 마크다운 코드 블록 (```json ... ```) → JSON 추출 성공 확인
-- [ ] 검증 실패 → 재시도 → 성공 흐름 확인
-- [ ] 재시도에도 실패 → partial parsing 동작 확인
-- [ ] 검증 성공률 로깅 확인
-
 ### 산출물
 
-- `src/lib/ai/analysis-schemas.ts` (Zod 스키마 완성)
-- `src/lib/ai/analysis-validator.ts`
-- `__tests__/lib/ai/analysis-validator.test.ts`
+- `src/lib/validations/company-analysis.ts` (Zod 스키마 완성)
+- `internal/infrastructure/ai/analysis_validator.go`
+- `internal/infrastructure/ai/analysis_validator_test.go`
+- `testdata/ai/valid_analysis.json`
 
 ---
 
@@ -650,7 +702,10 @@ function parsePartialAnalysis(data: unknown): CompanyAnalysis {
 - [ ] Partial failure 시 가능한 데이터로 분석 진행
 - [ ] 토큰 사용량 로깅 동작
 - [ ] 환경변수 문서 업데이트 (ANTHROPIC_API_KEY)
-- [ ] 단위 테스트 + 통합 테스트 통과
+- [ ] `moon run backend:test` → 전체 통과
+- [ ] `moon run web:test` → 전체 통과
+- [ ] `moon run :lint` → 경고 0건
+- [ ] `moon run web:build` → 빌드 성공
 
 ---
 

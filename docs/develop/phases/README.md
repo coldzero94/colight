@@ -2,7 +2,8 @@
 
 ## 개요
 
-각 Phase는 독립적인 기능 단위로, 체크리스트 기반으로 진행됩니다.
+각 Phase는 독립적인 기능 단위로, **TDD(Test-Driven Development)** 기반으로 진행됩니다.
+각 스텝은 테스트 명세 → 테스트 작성 (RED) → 구현 (GREEN) → 리팩터링 순서를 따릅니다.
 
 ## Phase 상태
 
@@ -73,14 +74,33 @@ Phase 10 (성장) ← MVP 완료 후 독립 진행
 - [ ] 선행 조건 Phase 완료 확인
 - [ ] 이 README 상태를 🟡 진행중으로 변경
 
-### 2. 진행 중
+### 2. 진행 중 (TDD)
 
-- [ ] Phase 문서의 체크리스트 따라 구현
-- [ ] 각 스텝 완료 시 체크박스 업데이트
+각 스텝마다 아래 순서를 반복:
+
+- [ ] 테스트 명세 확인 (Phase 문서의 각 스텝 "테스트 명세" 섹션)
+- [ ] 테스트 작성 (RED — 실패하는 테스트 먼저 작성)
+- [ ] 구현 (GREEN — 테스트를 통과시키는 최소 코드)
+- [ ] 리팩터링 (필요시 — 테스트 통과를 유지하면서 개선)
+- [ ] 테스트 통과 확인 (`moon run backend:test` / `moon run web:test`)
 - [ ] 커밋 메시지: `Phase X.Y: description`
 
-### 3. 완료 후
+### 3. 완료 전 검증 게이트
+
+- [ ] `moon run backend:test` → 전체 통과
+- [ ] `moon run web:test` → 전체 통과
+- [ ] `moon run :lint` → 경고 0건
+- [ ] `moon run web:build` → 빌드 성공
+
+### 4. 완료 후
 
 - [ ] Phase 문서의 모든 체크박스 완료
 - [ ] 이 README 상태를 ✅ 완료로 변경
 - [ ] CLAUDE.md Phase Progress 테이블 업데이트
+
+---
+
+## 테스트 참고 문서
+
+- `docs/develop/08-testing-strategy.md` — 프론트엔드 테스트 전략 (Vitest, Testing Library, MSW, Playwright)
+- `docs/develop/12-backend-testing.md` — 백엔드 테스트 전략 (testify, enttest, MockAIClient, fixtures)

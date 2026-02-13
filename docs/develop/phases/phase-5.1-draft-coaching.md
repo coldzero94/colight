@@ -38,21 +38,45 @@
 
 사용자가 선택한 경험(1~3개)과 문항 분석 결과, 기업 분석 데이터를 조합하여 Claude Sonnet 4.5로 STAR 구조 자소서 초안을 스트리밍 생성하는 Go backend API를 구현한다. SSE를 통해 실시간으로 응답을 반환한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] Go backend API 엔드포인트 구현
-- [ ] `POST /v1/coaching/draft` 엔드포인트 구현 (SSE 스트리밍)
-- [ ] 인증 확인
-- [ ] 입력 검증 (application_id, experience_ids[], question_text, char_limit, analysis_result)
-- [ ] `prompt_templates`에서 `coaching_draft` 프롬프트 로드
-- [ ] 선택된 경험의 STAR 데이터 로드
-- [ ] 기업 분석 결과 로드
-- [ ] Claude Sonnet 4.5 API 호출 및 스트리밍
-- [ ] `cover_letters` 테이블에 초안 저장 (스트리밍 완료 후)
-- [ ] `coaching_sessions` 테이블에 세션 기록
-- [ ] 토큰 사용량 / 비용 로깅
-- [ ] 에러 처리 (스트리밍 중단, AI 실패 등)
-- [ ] 프론트엔드: EventSource로 SSE 수신
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/service/coaching_service_test.go`
+  - `TestGenerateDraft_CoachingPromptComposition`: 코칭 프롬프트가 경험 STAR 데이터 + 기업 분석 + 문항 분석을 올바르게 조합하는지 확인
+  - `TestGenerateDraft_StreamingResponse`: MockAIClient로 스트리밍 응답 정상 수신 확인
+  - `TestGenerateDraft_STARStructure`: 생성된 초안에 STAR 태그 ([상황], [과제], [행동], [결과]) 포함 확인
+  - `TestGenerateDraft_CharLimitRespected`: 생성된 초안이 `char_limit` 이내인지 확인
+  - `TestGenerateDraft_ErrorHandling`: AI 실패 시 적절한 에러 반환 확인
+- `internal/controller/coaching_controller_test.go`
+  - `TestPostDraft_Unauthorized`: 인증 없는 요청 시 401 반환
+  - `TestPostDraft_StreamingHeaders`: SSE 스트리밍 응답 헤더(Content-Type: text/event-stream) 확인
+  - `TestPostDraft_SavesOnCompletion`: 스트리밍 완료 후 `cover_letters` + `cover_letter_versions` 레코드 생성 확인
+  - `TestPostDraft_GracefulDisconnect`: 클라이언트 연결 끊김 시 graceful 처리 확인
+
+> MockAIClient 패턴 사용. testdata/ai/coaching fixture 데이터 준비.
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/service/coaching_service_test.go` 작성
+  - [ ] `internal/controller/coaching_controller_test.go` 작성
+  - [ ] MockAIClient 및 testdata/ai/coaching fixture 준비
+- [ ] 구현 (GREEN)
+  - [ ] Go backend API 엔드포인트 구현
+  - [ ] `POST /v1/coaching/draft` 엔드포인트 구현 (SSE 스트리밍)
+  - [ ] 인증 확인
+  - [ ] 입력 검증 (application_id, experience_ids[], question_text, char_limit, analysis_result)
+  - [ ] `prompt_templates`에서 `coaching_draft` 프롬프트 로드
+  - [ ] 선택된 경험의 STAR 데이터 로드
+  - [ ] 기업 분석 결과 로드
+  - [ ] Claude Sonnet 4.5 API 호출 및 스트리밍
+  - [ ] `cover_letters` 테이블에 초안 저장 (스트리밍 완료 후)
+  - [ ] `coaching_sessions` 테이블에 세션 기록
+  - [ ] 토큰 사용량 / 비용 로깅
+  - [ ] 에러 처리 (스트리밍 중단, AI 실패 등)
+  - [ ] 프론트엔드: EventSource로 SSE 수신
+- [ ] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -194,18 +218,6 @@ export function useDraftCoaching() {
 }
 ```
 
-### 검증 방법
-
-- [ ] 정상 요청 시 SSE 스트리밍 응답 수신 확인
-- [ ] 스트리밍 완료 후 `cover_letters` + `cover_letter_versions` 레코드 생성 확인
-- [ ] `coaching_sessions` 레코드 생성 확인 (session_type = 'draft')
-- [ ] 생성된 초안이 `char_limit` 이내인지 확인
-- [ ] 초안에 STAR 태그 ([상황], [과제], [행동], [결과]) 포함 확인
-- [ ] 핵심 키워드가 자연스럽게 포함되었는지 확인
-- [ ] 피해야 할 표현이 사용되지 않았는지 확인
-- [ ] 인증 없는 요청 시 401 반환
-- [ ] 스트리밍 중 클라이언트 연결 끊김 시 graceful 처리
-
 ### 산출물
 
 - `src/app/api/coaching/draft/route.ts`
@@ -220,14 +232,29 @@ export function useDraftCoaching() {
 
 Phase 5.4에서 추천된 경험 목록에서 사용자가 1~3개 경험을 선택하고, 선택한 경험의 매칭 점수와 STAR 요약을 확인한 뒤 초안 생성을 요청하는 인터랙션을 구현한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 경험 선택 상태 관리 (최대 3개)
-- [ ] 선택/해제 시 시각적 피드백 (체크박스 + 카드 보더 하이라이트)
-- [ ] 선택된 경험 수 표시 ("1/3개 선택됨")
-- [ ] 경험 카드 확장 시 STAR 전문 표시
-- [ ] "초안 작성 시작" 버튼 (최소 1개 선택 필수)
-- [ ] 선택한 경험 간 무기 중복 여부 표시 (다양한 무기 조합 권장)
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/components/coaching/__tests__/ExperienceSelector.test.tsx`
+  - `it('toggles experience selection on card click')`
+  - `it('blocks selection beyond 3 experiences with message')`
+  - `it('shows validation error when submitting with no selection')`
+  - `it('expands card to show full STAR content on click')`
+  - `it('updates weapon coverage display on selection change')`
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/coaching/__tests__/ExperienceSelector.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] 경험 선택 상태 관리 (최대 3개)
+  - [ ] 선택/해제 시 시각적 피드백 (체크박스 + 카드 보더 하이라이트)
+  - [ ] 선택된 경험 수 표시 ("1/3개 선택됨")
+  - [ ] 경험 카드 확장 시 STAR 전문 표시
+  - [ ] "초안 작성 시작" 버튼 (최소 1개 선택 필수)
+  - [ ] 선택한 경험 간 무기 중복 여부 표시 (다양한 무기 조합 권장)
+- [ ] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -236,14 +263,6 @@ Phase 5.4에서 추천된 경험 목록에서 사용자가 1~3개 경험을 선�
 | `ExperienceSelector` | `src/components/coaching/experience-selector.tsx` | `experiences: RecommendedExp[], maxSelect: 3, onConfirm: fn` | 경험 선택 래퍼 |
 | `SelectableExpCard` | `src/components/coaching/selectable-exp-card.tsx` | `experience: Experience, matchScore: number, selected: boolean, onToggle: fn, expanded: boolean` | 선택 가능 경험 카드 |
 | `WeaponCoverage` | `src/components/coaching/weapon-coverage.tsx` | `selectedWeapons: Weapon[], requiredWeapons: RequiredWeapons` | 선택한 경험의 무기 커버리지 표시 |
-
-### 검증 방법
-
-- [ ] 경험 카드 클릭 시 선택/해제 토글
-- [ ] 3개 이상 선택 시 4번째 선택 차단 + 안내 메시지
-- [ ] 선택 없이 "초안 작성" 클릭 시 검증 에러
-- [ ] 경험 카드 확장 시 STAR 전문 표시 (접기/펼치기)
-- [ ] 무기 커버리지가 선택에 따라 실시간 업데이트
 
 ### 산출물
 
@@ -259,16 +278,31 @@ Phase 5.4에서 추천된 경험 목록에서 사용자가 1~3개 경험을 선�
 
 초안 생성 API의 SSE 스트리밍 응답을 에디터 영역에 실시간으로 표시한다. STAR 섹션 태그를 감지하여 시각적으로 구분하고, 타이핑 애니메이션 효과를 적용한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] Vercel AI SDK `useChat()` 또는 `useCompletion()` 훅 활용
-- [ ] 스트리밍 텍스트를 에디터 영역에 실시간 렌더링
-- [ ] STAR 태그 (`[상황]`, `[과제]`, `[행동]`, `[결과]`) 감지 → 색상 하이라이트
-- [ ] 스트리밍 진행 중 로딩 인디케이터 표시
-- [ ] 스트리밍 완료 시 "편집 모드로 전환" 버튼 활성화
-- [ ] 글자수 카운터 실시간 업데이트
-- [ ] 스트리밍 중단 버튼 (선택사항)
-- [ ] 스트리밍 완료 후 자동으로 에디터 페이지로 이동 옵션
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/components/coaching/__tests__/DraftStreaming.test.tsx`
+  - `it('shows loading indicator when streaming starts')`
+  - `it('renders streamed text in real-time')`
+  - `it('highlights STAR tags with correct colors')`
+  - `it('updates character counter during streaming')`
+  - `it('shows edit button after streaming completes')`
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/coaching/__tests__/DraftStreaming.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] Vercel AI SDK `useChat()` 또는 `useCompletion()` 훅 활용
+  - [ ] 스트리밍 텍스트를 에디터 영역에 실시간 렌더링
+  - [ ] STAR 태그 (`[상황]`, `[과제]`, `[행동]`, `[결과]`) 감지 → 색상 하이라이트
+  - [ ] 스트리밍 진행 중 로딩 인디케이터 표시
+  - [ ] 스트리밍 완료 시 "편집 모드로 전환" 버튼 활성화
+  - [ ] 글자수 카운터 실시간 업데이트
+  - [ ] 스트리밍 중단 버튼 (선택사항)
+  - [ ] 스트리밍 완료 후 자동으로 에디터 페이지로 이동 옵션
+- [ ] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -331,16 +365,6 @@ export function DraftStreaming({ coverLetterId, onComplete }) {
 | `[행동]` | `text-green-700` | `bg-green-50` |
 | `[결과]` | `text-purple-700` | `bg-purple-50` |
 
-### 검증 방법
-
-- [ ] 스트리밍 시작 시 로딩 인디케이터 표시
-- [ ] 텍스트가 한 글자씩(또는 토큰 단위) 실시간 표시
-- [ ] STAR 태그가 올바른 색상으로 하이라이트
-- [ ] 글자수 카운터가 실시간으로 증가
-- [ ] 스트리밍 완료 시 "에디터에서 편집하기" 버튼 활성화
-- [ ] 스트리밍 중 페이지 이탈 시 확인 다이얼로그
-- [ ] 네트워크 에러 시 재시도 안내
-
 ### 산출물
 
 - `src/components/coaching/draft-streaming.tsx`
@@ -357,14 +381,32 @@ export function DraftStreaming({ coverLetterId, onComplete }) {
 
 코칭 세션의 전체 과정을 `coaching_sessions` 테이블에 기록한다. 세션 유형(draft/review/refine), 메시지 이력, 토큰 사용량을 저장하여 추후 히스토리 조회와 비용 추적에 활용한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `coaching_sessions` 테이블에 세션 생성 로직 구현
-- [ ] 세션 타입별 분류 (`draft`, `review`, `refine`)
-- [ ] 메시지 이력 저장 (JSONB: system/user/assistant 메시지)
-- [ ] 토큰 사용량 기록 (input_tokens, output_tokens, total_cost)
-- [ ] 세션 이력 조회 API 구현
-- [ ] 코칭 이력 목록 UI (최근 세션 표시)
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/service/coaching_service_test.go`
+  - `TestRecordSession_CreatesRecord`: 초안 생성 완료 후 `coaching_sessions` 레코드 생성 확인
+  - `TestRecordSession_DraftType`: `session_type`이 'draft'로 저장 확인
+  - `TestRecordSession_MessagesStored`: `messages` JSONB에 system/assistant 메시지 포함 확인
+  - `TestRecordSession_TokenUsageTracked`: 토큰 사용량이 정확히 기록되는지 확인
+- `internal/controller/coaching_controller_test.go`
+  - `TestGetSessions_Success`: 세션 이력 조회 API 정상 동작 확인
+  - `TestGetSessions_OnlyOwnSessions`: RLS 정책: 본인 세션만 조회 가능 확인
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/service/coaching_service_test.go`에 세션 기록 테스트 추가
+  - [ ] `internal/controller/coaching_controller_test.go`에 세션 조회 테스트 추가
+- [ ] 구현 (GREEN)
+  - [ ] `coaching_sessions` 테이블에 세션 생성 로직 구현
+  - [ ] 세션 타입별 분류 (`draft`, `review`, `refine`)
+  - [ ] 메시지 이력 저장 (JSONB: system/user/assistant 메시지)
+  - [ ] 토큰 사용량 기록 (input_tokens, output_tokens, total_cost)
+  - [ ] 세션 이력 조회 API 구현
+  - [ ] 코칭 이력 목록 UI (최근 세션 표시)
+- [ ] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -424,15 +466,6 @@ export function calculateCost(
 }
 ```
 
-### 검증 방법
-
-- [ ] 초안 생성 완료 후 `coaching_sessions` 레코드 생성 확인
-- [ ] `session_type`이 'draft'로 저장 확인
-- [ ] `messages` JSONB에 system/assistant 메시지 포함 확인
-- [ ] 토큰 사용량이 정확히 기록되는지 확인
-- [ ] 세션 이력 조회 API 정상 동작 확인
-- [ ] RLS 정책: 본인 세션만 조회 가능 확인
-
 ### 산출물
 
 - `src/lib/ai/cost-tracker.ts`
@@ -451,6 +484,11 @@ export function calculateCost(
 - [ ] 스트리밍 완료 후 에디터 페이지로 이동 가능
 - [ ] 에러 상태 (스트리밍 실패, 네트워크 에러 등) 처리
 - [ ] Claude API 비용: ~65원/건 이내 확인
+- [ ] 테스트
+  - [ ] `moon run backend:test` → 전체 통과
+  - [ ] `moon run web:test` → 전체 통과
+  - [ ] `moon run :lint` → 경고 0건
+  - [ ] `moon run web:build` → 빌드 성공
 
 ---
 

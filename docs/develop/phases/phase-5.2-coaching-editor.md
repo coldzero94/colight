@@ -36,15 +36,32 @@
 
 Tiptap 에디터를 프로젝트에 설치하고, 자소서 편집에 필요한 최소한의 툴바(굵게, 기울임, 리스트, 제목)와 글자수 카운트 확장을 설정한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] Tiptap 패키지 설치 (`@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-character-count`)
-- [ ] 기본 에디터 컴포넌트 구현
-- [ ] 툴바 구현 (Bold, Italic, Bullet List, Heading 2/3)
-- [ ] Character Count 확장 설정 (한국어 글자수 기준)
-- [ ] STAR 태그 하이라이트 커스텀 확장 (또는 CSS 기반)
-- [ ] 에디터 스타일링 (Tailwind CSS, prose 클래스)
-- [ ] 에디터 콘텐츠 초기화 (초안 데이터 로드)
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/components/coaching/__tests__/TiptapEditor.test.tsx`
+  - `it('renders editor with initial content')`
+  - `it('allows text input and editing')`
+  - `it('applies bold formatting via toolbar')`
+  - `it('updates character count in real-time')`
+  - `it('shows red warning when charLimit exceeded')`
+  - `it('renders read-only when editable is false')`
+  - `it('highlights STAR tags visually')`
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/coaching/__tests__/TiptapEditor.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] Tiptap 패키지 설치 (`@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-character-count`)
+  - [ ] 기본 에디터 컴포넌트 구현
+  - [ ] 툴바 구현 (Bold, Italic, Bullet List, Heading 2/3)
+  - [ ] Character Count 확장 설정 (한국어 글자수 기준)
+  - [ ] STAR 태그 하이라이트 커스텀 확장 (또는 CSS 기반)
+  - [ ] 에디터 스타일링 (Tailwind CSS, prose 클래스)
+  - [ ] 에디터 콘텐츠 초기화 (초안 데이터 로드)
+- [ ] 테스트 통과 확인
 
 ### 패키지 설치
 
@@ -124,16 +141,6 @@ export function TiptapEditor({
 | 90~100% | `text-amber-600` | 거의 다 참 |
 | 100% 초과 | `text-red-600 font-bold` | 초과 (경고) |
 
-### 검증 방법
-
-- [ ] 에디터 영역에 텍스트 입력/수정 가능
-- [ ] Bold, Italic, Bullet List, Heading 툴바 동작
-- [ ] 글자수 카운터가 실시간 업데이트
-- [ ] `charLimit` 초과 시 빨간색 경고 표시
-- [ ] 초안 콘텐츠가 에디터에 정상 로드
-- [ ] STAR 태그가 시각적으로 구분 표시
-- [ ] `editable=false` 시 읽기 전용
-
 ### 산출물
 
 - `src/components/coaching/tiptap-editor.tsx`
@@ -148,15 +155,37 @@ export function TiptapEditor({
 
 코칭 세션별 에디터 페이지를 구현한다. 초안이 Tiptap 에디터에 사전 로드되고, 사이드 패널에 분석 요약과 경험 카드가 표시되어 참고하며 편집할 수 있다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `(main)/coaching/[id]/edit/page.tsx` 페이지 생성
-- [ ] 서버 컴포넌트에서 `cover_letters` + 최신 `cover_letter_versions` 로드
-- [ ] 에디터 영역 (좌측, 메인): Tiptap 에디터 + 글자수 카운터
-- [ ] 사이드 패널 (우측): 분석 요약 + 경험 카드
-- [ ] 헤더: 기업명 + 문항 + 저장 상태 표시
-- [ ] `loading.tsx`, `error.tsx` 추가
-- [ ] URL 파라미터로 cover_letter_id 식별
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/components/coaching/__tests__/EditorLayout.test.tsx`
+  - `it('loads latest version content into editor')`
+  - `it('displays analysis sidebar with weapon badges and structure')`
+  - `it('shows company name and question in header')`
+  - `it('displays save status indicator')`
+
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/controller/editor_controller_test.go`
+  - `TestGetCoverLetter_LoadsLatestVersion`: URL `/coaching/[id]/edit`으로 접근 시 최신 버전 로드 확인
+  - `TestGetCoverLetter_NotFound`: 존재하지 않는 ID 접근 시 404 확인
+  - `TestGetCoverLetter_Forbidden`: 다른 사용자의 자소서 접근 시 403 확인
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/coaching/__tests__/EditorLayout.test.tsx` 작성
+  - [ ] `internal/controller/editor_controller_test.go` 작성
+- [ ] 구현 (GREEN)
+  - [ ] `(main)/coaching/[id]/edit/page.tsx` 페이지 생성
+  - [ ] 서버 컴포넌트에서 `cover_letters` + 최신 `cover_letter_versions` 로드
+  - [ ] 에디터 영역 (좌측, 메인): Tiptap 에디터 + 글자수 카운터
+  - [ ] 사이드 패널 (우측): 분석 요약 + 경험 카드
+  - [ ] 헤더: 기업명 + 문항 + 저장 상태 표시
+  - [ ] `loading.tsx`, `error.tsx` 추가
+  - [ ] URL 파라미터로 cover_letter_id 식별
+- [ ] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -259,16 +288,6 @@ export default async function CoachingEditPage({
 | Tablet (768~1023px) | 에디터 전체 폭 + 사이드 패널 접기/펼치기 토글 |
 | Mobile (≤767px) | 에디터 전체 폭 + 사이드 패널은 바텀 시트 |
 
-### 검증 방법
-
-- [ ] URL `/coaching/[id]/edit`으로 접근 시 해당 자소서의 최신 버전 로드
-- [ ] 에디터에서 텍스트 편집 가능
-- [ ] 사이드 패널에 분석 요약 + 경험 카드 정상 표시
-- [ ] 헤더에 기업명, 문항, 저장 상태 표시
-- [ ] 존재하지 않는 ID 접근 시 404 또는 에러 페이지
-- [ ] 다른 사용자의 자소서 접근 시 403 (RLS)
-- [ ] 반응형: 768px 이하에서 사이드 패널 토글/바텀 시트
-
 ### 산출물
 
 - `src/app/(main)/coaching/[id]/edit/page.tsx`
@@ -286,15 +305,38 @@ export default async function CoachingEditPage({
 
 에디터 내용 변경 시 2초 debounce로 자동 저장하고, 명시적 "버전 저장" 버튼 클릭 시 `cover_letter_versions`에 새 버전을 생성한다. 저장 상태(저장됨/저장 중/미저장)를 UI에 표시한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] Debounce 2초 자동 저장 로직 구현
-- [ ] `cover_letters.updated_at` + 최신 버전의 `content` 업데이트
-- [ ] "버전 저장" 버튼: `cover_letter_versions`에 새 레코드 생성 (version_number 자동 증가)
-- [ ] 저장 상태 인디케이터 (`saved` / `saving` / `unsaved`)
-- [ ] 버전 이력 목록 표시 (하단 또는 사이드 패널)
-- [ ] 이전 버전으로 되돌리기 (해당 버전 content를 에디터에 로드)
-- [ ] 페이지 이탈 시 미저장 경고 (beforeunload)
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/hooks/__tests__/useAutoSave.test.ts`
+  - `it('auto-saves after 2 second debounce on content change')`
+  - `it('updates save status to saving then saved')`
+  - `it('shows unsaved status on network error')`
+  - `it('triggers beforeunload warning when unsaved')`
+
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+- `internal/controller/editor_controller_test.go`
+  - `TestPatchCoverLetter_UpdatesContent`: PATCH로 content 업데이트 확인
+  - `TestPostVersion_CreatesNewVersion`: 버전 저장 시 `cover_letter_versions`에 새 레코드 생성 확인
+  - `TestGetVersions_ReturnsList`: 버전 이력 조회 확인
+  - `TestRestoreVersion_LoadsPreviousContent`: 이전 버전으로 되돌리기 확인
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/hooks/__tests__/useAutoSave.test.ts` 작성
+  - [ ] `internal/controller/editor_controller_test.go`에 저장/버전 테스트 추가
+- [ ] 구현 (GREEN)
+  - [ ] Debounce 2초 자동 저장 로직 구현
+  - [ ] `cover_letters.updated_at` + 최신 버전의 `content` 업데이트
+  - [ ] "버전 저장" 버튼: `cover_letter_versions`에 새 레코드 생성 (version_number 자동 증가)
+  - [ ] 저장 상태 인디케이터 (`saved` / `saving` / `unsaved`)
+  - [ ] 버전 이력 목록 표시 (하단 또는 사이드 패널)
+  - [ ] 이전 버전으로 되돌리기 (해당 버전 content를 에디터에 로드)
+  - [ ] 페이지 이탈 시 미저장 경고 (beforeunload)
+- [ ] 테스트 통과 확인
 
 ### 구현 코드
 
@@ -371,15 +413,6 @@ export function useAutoSave(coverLetterId: string) {
 | `POST` | `/api/coaching/cover-letters/[id]/versions` | `{ content: string }` | `{ version: CoverLetterVersion }` |
 | `GET` | `/api/coaching/cover-letters/[id]/versions` | - | `{ versions: CoverLetterVersion[] }` |
 
-### 검증 방법
-
-- [ ] 텍스트 변경 후 2초 뒤 자동 저장 확인 (저장 상태 → "저장 중" → "저장됨")
-- [ ] "버전 저장" 클릭 시 `cover_letter_versions`에 새 레코드 생성 확인
-- [ ] 버전 이력 목록에 버전 번호 + 저장 시간 표시
-- [ ] 이전 버전 클릭 시 해당 내용이 에디터에 로드
-- [ ] 미저장 상태에서 페이지 이탈 시 확인 다이얼로그
-- [ ] 네트워크 에러 시 "저장 실패" 상태 + 재시도 안내
-
 ### 산출물
 
 - `src/hooks/use-auto-save.ts`
@@ -394,13 +427,27 @@ export function useAutoSave(coverLetterId: string) {
 
 에디터의 자소서 내용을 클립보드에 순수 텍스트로 복사하는 기능을 제공한다. 자소서 입력 폼에 붙여넣기 위해 서식을 제거한 plain text 형태로 복사한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] "클립보드에 복사" 버튼 구현
-- [ ] 에디터 HTML → plain text 변환 (서식 제거)
-- [ ] STAR 태그 (`[상황]`, `[과제]`, `[행동]`, `[결과]`) 제거 옵션 (토글)
-- [ ] 복사 성공 시 토스트 메시지 ("클립보드에 복사되었습니다")
-- [ ] 글자수 함께 표시 ("542자 복사됨")
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/components/coaching/__tests__/CopyButton.test.tsx`
+  - `it('copies plain text to clipboard on click')`
+  - `it('strips HTML tags from copied content')`
+  - `it('removes STAR tags when option enabled')`
+  - `it('shows success toast with character count')`
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/coaching/__tests__/CopyButton.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] "클립보드에 복사" 버튼 구현
+  - [ ] 에디터 HTML → plain text 변환 (서식 제거)
+  - [ ] STAR 태그 (`[상황]`, `[과제]`, `[행동]`, `[결과]`) 제거 옵션 (토글)
+  - [ ] 복사 성공 시 토스트 메시지 ("클립보드에 복사되었습니다")
+  - [ ] 글자수 함께 표시 ("542자 복사됨")
+- [ ] 테스트 통과 확인
 
 ### 구현 코드
 
@@ -441,14 +488,6 @@ export function CopyButton({ content, removeStarTags = false }: CopyButtonProps)
 }
 ```
 
-### 검증 방법
-
-- [ ] "복사" 버튼 클릭 시 클립보드에 텍스트 복사 확인
-- [ ] 복사된 텍스트에 HTML 태그 미포함 확인
-- [ ] STAR 태그 제거 옵션 동작 확인
-- [ ] 복사 성공 시 토스트 메시지 표시 + 글자수 표시
-- [ ] HTTPS 환경에서만 동작 (HTTP에서는 fallback 처리)
-
 ### 산출물
 
 - `src/components/coaching/copy-button.tsx`
@@ -467,6 +506,11 @@ export function CopyButton({ content, removeStarTags = false }: CopyButtonProps)
 - [ ] 사이드 패널에 분석 요약 + 경험 카드 표시
 - [ ] 반응형 (데스크탑/태블릿/모바일) 확인
 - [ ] 페이지 이탈 시 미저장 경고
+- [ ] 테스트
+  - [ ] `moon run backend:test` → 전체 통과
+  - [ ] `moon run web:test` → 전체 통과
+  - [ ] `moon run :lint` → 경고 0건
+  - [ ] `moon run web:build` → 빌드 성공
 
 ---
 

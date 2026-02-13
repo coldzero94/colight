@@ -44,10 +44,17 @@ docs/            # Plan, develop, phase guides, research
 3. Commit format: `Phase X.Y: description`
 
 ### Before marking complete — verification gate
-1. **Backend**: `cd apps/backend && golangci-lint run ./... && go test ./...`
-2. **Frontend**: `cd apps/web && pnpm run lint && pnpm exec tsc --noEmit && pnpm run build`
-3. Or use moon from root: `moon run :lint && moon run :test && moon run web:build`
-4. Fix all lint errors, type errors, and build failures before proceeding
+
+Run **all checks from project root** using moon:
+
+```bash
+moon run backend:lint && moon run backend:test   # Go lint + tests
+moon run web:lint && moon run web:typecheck && moon run web:test && moon run web:build  # TS lint + types + tests + build
+```
+
+Or combined: `moon run :lint && moon run :test && moon run web:build`
+
+**All checks must pass with zero errors before proceeding.** Fix any lint errors, type errors, test failures, and build failures.
 
 ### After verification passes
 1. Confirm all phase doc checkboxes are checked

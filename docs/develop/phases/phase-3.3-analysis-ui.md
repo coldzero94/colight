@@ -36,15 +36,30 @@
 
 기업 분석의 진입점 페이지를 구현한다. URL 입력 영역, 최근 분석 목록, 빈 상태(empty state) UI를 포함한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `(main)/analysis/page.tsx` 페이지 생성
-- [ ] URL 입력 영역 (Phase 3.1의 `JobUrlInput` 컴포넌트 활용)
-- [ ] 최근 분석 목록 (최대 5건, 카드 형태)
-- [ ] 빈 상태 UI (첫 분석 안내 일러스트 + CTA)
-- [ ] 분석 시작 시 스트리밍 디스플레이로 전환
-- [ ] 페이지 레이아웃 및 반응형 디자인
-- [ ] 로딩 상태 처리
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/components/analysis/__tests__/analysis-page.test.tsx`
+  - `it('renders URL input area')` — URL 입력 영역 렌더링 확인
+  - `it('renders recent analysis list when data exists')` — 최근 분석 목록 정상 표시 (데이터 있을 때)
+  - `it('renders empty state when no analyses')` — 빈 상태 UI 정상 표시 (데이터 없을 때)
+  - `it('shows loading state on submit')` — 분석 시작 버튼 클릭 → 로딩 상태 전환
+  - `it('transitions to streaming display on analysis start')` — 분석 시작 시 스트리밍 디스플레이로 전환
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/analysis/__tests__/analysis-page.test.tsx`
+- [ ] 구현 (GREEN)
+  - [ ] `(main)/analysis/page.tsx` 페이지 생성
+  - [ ] URL 입력 영역 (Phase 3.1의 `JobUrlInput` 컴포넌트 활용)
+  - [ ] 최근 분석 목록 (최대 5건, 카드 형태)
+  - [ ] 빈 상태 UI (첫 분석 안내 일러스트 + CTA)
+  - [ ] 분석 시작 시 스트리밍 디스플레이로 전환
+  - [ ] 페이지 레이아웃 및 반응형 디자인
+  - [ ] 로딩 상태 처리
+- [ ] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -107,15 +122,6 @@ export default async function AnalysisPage() {
 }
 ```
 
-### 검증 방법
-
-- [ ] 분석 메인 페이지 정상 렌더링 확인
-- [ ] URL 입력 → 도메인 배지 표시 확인
-- [ ] 최근 분석 목록 정상 표시 확인 (데이터 있을 때)
-- [ ] 빈 상태 UI 정상 표시 확인 (데이터 없을 때)
-- [ ] 분석 시작 버튼 클릭 → 로딩 상태 전환 확인
-- [ ] 반응형 레이아웃 (모바일/태블릿/데스크톱)
-
 ### 산출물
 
 - `src/app/(main)/analysis/page.tsx`
@@ -132,15 +138,31 @@ export default async function AnalysisPage() {
 
 AI 분석이 진행되는 동안 각 섹션이 순차적으로 표시되는 progressive rendering UI를 구현한다. 각 섹션별 로딩 스켈레톤이 표시되며, 분석 완료 후 전체 결과가 렌더링된다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 파이프라인 진행 상태 표시 (단계별 체크마크)
-- [ ] 각 섹션별 로딩 스켈레톤 컴포넌트
-- [ ] 스트리밍 텍스트 progressive 렌더링
-- [ ] 분석 완료 시 결과 페이지로 자동 전환
-- [ ] 분석 취소 기능
-- [ ] 에러 상태 표시 + 재시도 버튼
-- [ ] Vercel AI SDK `useCompletion` / `useChat` 훅 활용
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/components/analysis/__tests__/streaming-analysis.test.tsx`
+  - `it('displays pipeline steps with correct status')` — 파이프라인 단계별 진행 표시
+  - `it('shows checkmark when step completes')` — 각 단계 완료 시 체크마크 전환
+  - `it('renders skeleton while section is loading')` — 각 섹션 스켈레톤 표시
+  - `it('replaces skeleton with content when data arrives')` — 스켈레톤 → 실제 콘텐츠 교체
+  - `it('navigates to result page on completion')` — 분석 완료 시 결과 페이지로 자동 이동
+  - `it('handles cancel button click')` — 분석 취소 버튼 동작
+  - `it('shows error UI with retry button on failure')` — 에러 시 에러 UI + 재시도 버튼
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/analysis/__tests__/streaming-analysis.test.tsx`
+- [ ] 구현 (GREEN)
+  - [ ] 파이프라인 진행 상태 표시 (단계별 체크마크)
+  - [ ] 각 섹션별 로딩 스켈레톤 컴포넌트
+  - [ ] 스트리밍 텍스트 progressive 렌더링
+  - [ ] 분석 완료 시 결과 페이지로 자동 전환
+  - [ ] 분석 취소 기능
+  - [ ] 에러 상태 표시 + 재시도 버튼
+- [ ] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -264,16 +286,6 @@ function useAnalysisStream(options?: UseAnalysisStreamOptions) {
 }
 ```
 
-### 검증 방법
-
-- [ ] 분석 시작 → 파이프라인 단계별 진행 표시 확인
-- [ ] 각 단계 완료 시 체크마크(✅) 전환 확인
-- [ ] AI 분석 스트리밍 텍스트가 실시간으로 표시되는지 확인
-- [ ] 각 섹션 스켈레톤 → 실제 콘텐츠 교체 확인
-- [ ] 분석 완료 시 결과 페이지로 자동 이동 확인
-- [ ] 분석 취소 버튼 동작 확인
-- [ ] 네트워크 에러 시 에러 UI + 재시도 버튼 표시 확인
-
 ### 산출물
 
 - `src/components/analysis/streaming-analysis.tsx`
@@ -281,6 +293,7 @@ function useAnalysisStream(options?: UseAnalysisStreamOptions) {
 - `src/components/analysis/analysis-skeleton.tsx`
 - `src/components/analysis/streaming-text.tsx`
 - `src/hooks/use-analysis-stream.ts`
+- `src/components/analysis/__tests__/streaming-analysis.test.tsx`
 
 ---
 
@@ -290,18 +303,36 @@ function useAnalysisStream(options?: UseAnalysisStreamOptions) {
 
 완성된 기업 분석 결과를 보기 좋게 표시하는 상세 페이지를 구현한다. 기업정보 → 핵심가치 → 인재상 → 최근 동향 → 전략 키워드 → 피해야 할 표현 순서로 섹션을 구성한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `(main)/analysis/[id]/page.tsx` 페이지 생성
-- [ ] 기업 기본정보 섹션 (회사명, 업종, 설립일, 대표자, 재무 요약)
-- [ ] 핵심가치 섹션 (키워드 카드 3~5개)
-- [ ] 인재상 섹션 (특성 카드 + 우선순위 배지)
-- [ ] 최근 동향 섹션 (뉴스 타임라인)
-- [ ] 전략 키워드 섹션 (태그 클라우드)
-- [ ] 피해야 할 표현 섹션 (경고 카드)
-- [ ] 섹션 간 네비게이션 (사이드바 또는 상단 탭)
-- [ ] 공유/복사 기능
-- [ ] 분석 새로고침 버튼
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/components/analysis/report/__tests__/analysis-report.test.tsx`
+  - `it('renders company info section')` — 기업정보 섹션 (회사명, 업종, 재무 등) 표시
+  - `it('renders core values cards (3-5)')` — 핵심가치 카드 표시
+  - `it('renders talent profile with priority badges')` — 인재상 카드 (우선순위 배지 포함) 표시
+  - `it('renders recent trends timeline')` — 최근 동향 타임라인 표시
+  - `it('renders strategy keyword tags')` — 전략 키워드 태그 표시
+  - `it('renders avoid expressions warning cards')` — 피해야 할 표현 경고 카드 표시
+  - `it('scrolls to section on nav click')` — 섹션 네비게이션 클릭 → 해당 섹션으로 스크롤
+  - `it('shows 404 for non-existent analysis')` — 존재하지 않는 ID → 404 페이지
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/analysis/report/__tests__/analysis-report.test.tsx`
+- [ ] 구현 (GREEN)
+  - [ ] `(main)/analysis/[id]/page.tsx` 페이지 생성
+  - [ ] 기업 기본정보 섹션 (회사명, 업종, 설립일, 대표자, 재무 요약)
+  - [ ] 핵심가치 섹션 (키워드 카드 3~5개)
+  - [ ] 인재상 섹션 (특성 카드 + 우선순위 배지)
+  - [ ] 최근 동향 섹션 (뉴스 타임라인)
+  - [ ] 전략 키워드 섹션 (태그 클라우드)
+  - [ ] 피해야 할 표현 섹션 (경고 카드)
+  - [ ] 섹션 간 네비게이션 (사이드바 또는 상단 탭)
+  - [ ] 공유/복사 기능
+  - [ ] 분석 새로고침 버튼
+- [ ] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -386,20 +417,6 @@ export default async function AnalysisDetailPage({ params }: Props) {
 }
 ```
 
-### 검증 방법
-
-- [ ] 분석 결과 페이지 정상 렌더링 확인
-- [ ] 기업정보 섹션 (회사명, 업종, 재무 등) 표시 확인
-- [ ] 핵심가치 카드 (3~5개) 표시 확인
-- [ ] 인재상 카드 (우선순위 배지 포함) 표시 확인
-- [ ] 최근 동향 타임라인 표시 확인
-- [ ] 전략 키워드 태그 표시 확인
-- [ ] 피해야 할 표현 경고 카드 표시 확인
-- [ ] 섹션 네비게이션 클릭 → 해당 섹션으로 스크롤 확인
-- [ ] 존재하지 않는 ID → 404 페이지 표시 확인
-- [ ] 다른 사용자의 분석 → 404 (RLS 보호) 확인
-- [ ] 반응형 레이아웃 (모바일에서 사이드바 숨김)
-
 ### 산출물
 
 - `src/app/(main)/analysis/[id]/page.tsx`
@@ -420,14 +437,31 @@ export default async function AnalysisDetailPage({ params }: Props) {
 
 사용자가 과거에 수행한 기업 분석 목록을 보여주는 히스토리 UI를 구현한다. 목록에서 클릭하면 해당 분석 결과 페이지로 이동한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 분석 목록 컴포넌트 (페이지네이션 포함)
-- [ ] 분석 카드 (회사명, 포지션, 분석일, 요약 정보)
-- [ ] 검색/필터 기능 (회사명 검색)
-- [ ] 분석 삭제 기능 (확인 다이얼로그 포함)
-- [ ] 빈 상태 UI
-- [ ] 정렬 옵션 (최신순, 회사명순)
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+- `src/components/analysis/history/__tests__/analysis-history.test.tsx`
+  - `it('renders analysis history list')` — 분석 히스토리 목록 정상 표시
+  - `it('paginates results')` — 페이지네이션 동작 (다음/이전 페이지)
+  - `it('filters by company name search')` — 회사명 검색 → 필터링 결과
+  - `it('navigates to analysis detail on card click')` — 히스토리 카드 클릭 → 분석 결과 페이지 이동
+  - `it('shows delete confirmation dialog')` — 삭제 버튼 → 확인 다이얼로그
+  - `it('removes card after delete confirmation')` — 삭제 확인 → 카드 제거
+  - `it('shows empty state when no history')` — 빈 상태 UI
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/analysis/history/__tests__/analysis-history.test.tsx`
+- [ ] 구현 (GREEN)
+  - [ ] 분석 목록 컴포넌트 (페이지네이션 포함)
+  - [ ] 분석 카드 (회사명, 포지션, 분석일, 요약 정보)
+  - [ ] 검색/필터 기능 (회사명 검색)
+  - [ ] 분석 삭제 기능 (확인 다이얼로그 포함)
+  - [ ] 빈 상태 UI
+  - [ ] 정렬 옵션 (최신순, 회사명순)
+- [ ] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -491,16 +525,6 @@ export async function GET(request: Request) {
 }
 ```
 
-### 검증 방법
-
-- [ ] 분석 히스토리 목록 정상 표시 확인
-- [ ] 페이지네이션 동작 확인 (다음/이전 페이지)
-- [ ] 회사명 검색 → 필터링 결과 확인
-- [ ] 히스토리 카드 클릭 → 분석 결과 페이지 이동 확인
-- [ ] 삭제 버튼 → 확인 다이얼로그 → 삭제 완료 확인
-- [ ] 빈 상태 (히스토리 없음) UI 확인
-- [ ] RLS: 다른 사용자의 히스토리 접근 불가 확인
-
 ### 산출물
 
 - `src/components/analysis/history/analysis-history-list.tsx`
@@ -524,6 +548,10 @@ export async function GET(request: Request) {
 - [ ] 로딩 상태 처리 (스켈레톤, 스피너)
 - [ ] RLS 보호 확인 (타 사용자 데이터 접근 불가)
 - [ ] Lighthouse 접근성 점수 80+ 확인
+- [ ] `moon run backend:test` → 전체 통과
+- [ ] `moon run web:test` → 전체 통과
+- [ ] `moon run :lint` → 경고 0건
+- [ ] `moon run web:build` → 빌드 성공
 
 ---
 

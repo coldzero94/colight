@@ -37,19 +37,35 @@
 
 자소서 전문을 Claude Sonnet 4.5에 입력하여 4개 차원별 0~100점 평가, 차원별 좋은점/개선점 피드백, 라인 단위 구체적 수정 제안을 포함하는 구조화된 첨삭 결과를 반환하는 API를 구현한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] `POST /api/coaching/review` 엔드포인트 구현
-- [ ] 인증 확인 (Supabase Auth)
-- [ ] 입력 검증 (Zod: cover_letter_id, content, question_text, company context)
-- [ ] `prompt_templates`에서 `coaching_review` 프롬프트 로드
-- [ ] 기업 분석 결과 + 문항 분석 결과 로드 (맥락 주입)
-- [ ] Claude Sonnet 4.5 호출 (`generateObject` 또는 `streamText`)
-- [ ] 응답 JSON 스키마 검증 + 파싱
-- [ ] `coaching_sessions` 저장 (session_type = 'review')
-- [ ] `cover_letter_versions.feedback` 컬럼에 결과 저장
-- [ ] 토큰 사용량 / 비용 로깅
-- [ ] 에러 처리
+> 패턴 참고: docs/develop/12-backend-testing.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `TestReviewService_ParseAIResponse` | `internal/service/review_service_test.go` | AI 응답 JSON 파싱 → 4개 차원 점수 + 피드백 구조체 변환 |
+| `TestReviewService_ValidateScores` | `internal/service/review_service_test.go` | 각 scores 값이 0~100 범위, overall이 4개 평균 |
+| `TestReviewController_Unauthorized` | `internal/controller/review_controller_test.go` | 인증 없는 요청 시 401 반환 |
+| `TestReviewController_SuccessFlow` | `internal/controller/review_controller_test.go` | MockAIClient 사용, 유효 입력 → scores + feedback + suggestions 반환, coaching_sessions 저장 확인 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `internal/service/review_service_test.go` 작성
+  - [ ] `internal/controller/review_controller_test.go` 작성
+- [ ] 구현 (GREEN)
+  - [ ] `POST /api/coaching/review` 엔드포인트 구현
+  - [ ] 인증 확인 (Supabase Auth)
+  - [ ] 입력 검증 (Zod: cover_letter_id, content, question_text, company context)
+  - [ ] `prompt_templates`에서 `coaching_review` 프롬프트 로드
+  - [ ] 기업 분석 결과 + 문항 분석 결과 로드 (맥락 주입)
+  - [ ] Claude Sonnet 4.5 호출 (`generateObject` 또는 `streamText`)
+  - [ ] 응답 JSON 스키마 검증 + 파싱
+  - [ ] `coaching_sessions` 저장 (session_type = 'review')
+  - [ ] `cover_letter_versions.feedback` 컬럼에 결과 저장
+  - [ ] 토큰 사용량 / 비용 로깅
+  - [ ] 에러 처리
+- [ ] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -214,18 +230,6 @@ export async function POST(request: Request) {
 }
 ```
 
-### 검증 방법
-
-- [ ] 유효한 자소서 입력 시 4개 차원 점수 + 피드백 반환 확인
-- [ ] `scores`의 각 값이 0~100 범위인지 확인
-- [ ] `overall`이 4개 점수의 평균인지 확인
-- [ ] `per_dimension_feedback`이 4개 차원 모두 포함하는지 확인
-- [ ] `specific_suggestions`가 최소 3개 이상 존재하는지 확인
-- [ ] `cover_letter_versions.feedback`에 결과 저장 확인
-- [ ] `coaching_sessions` 레코드 생성 확인 (session_type = 'review')
-- [ ] 인증 없는 요청 시 401 반환
-- [ ] 응답 시간 15초 이내
-
 ### 산출물
 
 - `src/app/api/coaching/review/route.ts`
@@ -240,16 +244,34 @@ export async function POST(request: Request) {
 
 첨삭 결과를 4축 레이더 차트, 차원별 확장 카드, 에디터 내 라인별 수정 제안 하이라이트로 직관적으로 표시한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] 4축 레이더 차트 구현 (Recharts RadarChart)
-- [ ] 종합 점수 표시 (큰 숫자 + 등급 라벨)
-- [ ] 차원별 피드백 카드 (접기/펼치기)
-- [ ] 각 카드에 점수 + 좋은점 + 개선점 표시
-- [ ] 라인별 수정 제안 목록 구현
-- [ ] 수정 제안 클릭 시 에디터 해당 위치 하이라이트
-- [ ] "수정 적용" 버튼 (제안된 텍스트로 자동 교체)
-- [ ] 첨삭 결과 패널 (에디터 페이지와 통합 또는 별도 모달)
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `describe('ScoreRadarChart')` | `src/components/coaching/__tests__/score-radar-chart.test.tsx` | 4개 차원 점수 렌더링, 이전 점수 오버레이 표시 |
+| `describe('DimensionCard')` | `src/components/coaching/__tests__/dimension-card.test.tsx` | 접기/펼치기 동작, 좋은점/개선점 표시 |
+| `describe('SuggestionList')` | `src/components/coaching/__tests__/suggestion-list.test.tsx` | 수정 제안 목록 렌더링, "적용" 콜백 호출 |
+| `describe('OverallScore')` | `src/components/coaching/__tests__/overall-score.test.tsx` | 종합 점수 표시, 등급 라벨 매핑 (S/A/B/C/D) |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/coaching/__tests__/score-radar-chart.test.tsx` 작성
+  - [ ] `src/components/coaching/__tests__/dimension-card.test.tsx` 작성
+  - [ ] `src/components/coaching/__tests__/suggestion-list.test.tsx` 작성
+  - [ ] `src/components/coaching/__tests__/overall-score.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] 4축 레이더 차트 구현 (Recharts RadarChart)
+  - [ ] 종합 점수 표시 (큰 숫자 + 등급 라벨)
+  - [ ] 차원별 피드백 카드 (접기/펼치기)
+  - [ ] 각 카드에 점수 + 좋은점 + 개선점 표시
+  - [ ] 라인별 수정 제안 목록 구현
+  - [ ] 수정 제안 클릭 시 에디터 해당 위치 하이라이트
+  - [ ] "수정 적용" 버튼 (제안된 텍스트로 자동 교체)
+  - [ ] 첨삭 결과 패널 (에디터 페이지와 통합 또는 별도 모달)
+- [ ] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -409,16 +431,6 @@ const ScoreRadarChart = dynamic(
 );
 ```
 
-### 검증 방법
-
-- [ ] 레이더 차트에 4개 차원 점수가 정상 표시
-- [ ] 이전 점수가 있을 때 점선 오버레이로 비교 표시
-- [ ] 종합 점수 + 등급 라벨 정상 표시
-- [ ] 차원별 카드 접기/펼치기 동작
-- [ ] 수정 제안 "적용" 클릭 시 에디터 내용 자동 교체
-- [ ] 레이더 차트 반응형 (작은 화면에서도 가독성 유지)
-- [ ] Recharts lazy load → Lighthouse 성능 영향 최소화
-
 ### 산출물
 
 - `src/components/coaching/review-result.tsx`
@@ -436,15 +448,29 @@ const ScoreRadarChart = dynamic(
 
 수정 후 재첨삭을 요청하여 이전 점수와 현재 점수를 비교하는 반복 코칭 루프를 구현한다. 사용자가 개선 과정을 시각적으로 확인할 수 있도록 점수 변화를 표시한다.
 
-### 체크리스트
+### 테스트 명세
 
-- [ ] "수정 후 재첨삭" 버튼 구현 (에디터 페이지)
-- [ ] 이전 첨삭 결과 로드 (cover_letter_versions.feedback)
-- [ ] 재첨삭 시 이전 점수와 현재 점수 비교 표시
-- [ ] 레이더 차트에 이전/현재 점수 오버레이
-- [ ] 차원별 점수 변화 표시 (↑ 상승 / ↓ 하락 / → 유지)
-- [ ] 첨삭 이력 타임라인 (v1: 초안 → v2: 1차 첨삭 → v3: 2차 첨삭)
-- [ ] 최대 5회 첨삭 제한 (프리미엄 기능)
+> 패턴 참고: docs/develop/08-testing-strategy.md
+
+| 테스트 | 파일 | 검증 내용 |
+|--------|------|----------|
+| `describe('ScoreComparison')` | `src/components/coaching/__tests__/score-comparison.test.tsx` | 점수 변화 표시 (상승/하락/동일 아이콘), diff 계산 정확성 |
+| `describe('ReviewTimeline')` | `src/components/coaching/__tests__/review-timeline.test.tsx` | 첨삭 이력 타임라인 렌더링, 버전별 점수 표시 |
+
+### 구현 체크리스트
+
+- [ ] 테스트 작성 (RED)
+  - [ ] `src/components/coaching/__tests__/score-comparison.test.tsx` 작성
+  - [ ] `src/components/coaching/__tests__/review-timeline.test.tsx` 작성
+- [ ] 구현 (GREEN)
+  - [ ] "수정 후 재첨삭" 버튼 구현 (에디터 페이지)
+  - [ ] 이전 첨삭 결과 로드 (cover_letter_versions.feedback)
+  - [ ] 재첨삭 시 이전 점수와 현재 점수 비교 표시
+  - [ ] 레이더 차트에 이전/현재 점수 오버레이
+  - [ ] 차원별 점수 변화 표시 (↑ 상승 / ↓ 하락 / → 유지)
+  - [ ] 첨삭 이력 타임라인 (v1: 초안 → v2: 1차 첨삭 → v3: 2차 첨삭)
+  - [ ] 최대 5회 첨삭 제한 (프리미엄 기능)
+- [ ] 테스트 통과 확인
 
 ### 점수 비교 표시
 
@@ -476,15 +502,6 @@ function ScoreChange({ current, previous }: { current: number; previous?: number
 └────────────────────────────────────────────────────────┘
 ```
 
-### 검증 방법
-
-- [ ] "재첨삭" 클릭 시 현재 에디터 내용으로 새 첨삭 API 호출
-- [ ] 이전 첨삭 점수가 레이더 차트에 점선으로 표시
-- [ ] 차원별 점수 변화 (↑↓→) 표시
-- [ ] 첨삭 이력 타임라인에 모든 버전 표시
-- [ ] 점수가 개선되었을 때 시각적 보상 (색상, 애니메이션)
-- [ ] 첨삭 횟수 제한 (무료: 1회, 유료: 5회)
-
 ### 산출물
 
 - `src/components/coaching/score-comparison.tsx`
@@ -505,6 +522,10 @@ function ScoreChange({ current, previous }: { current: number; previous?: number
 - [ ] `coaching_sessions` (review) + `cover_letter_versions.feedback` 저장 확인
 - [ ] Claude API 비용: ~65원/건 이내 확인
 - [ ] Recharts lazy load 적용
+- [ ] `moon run backend:test` → 전체 통과
+- [ ] `moon run web:test` → 전체 통과
+- [ ] `moon run :lint` → 경고 0건
+- [ ] `moon run web:build` → 빌드 성공
 
 ---
 
