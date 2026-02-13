@@ -31,96 +31,27 @@ docs/            # Plan, develop, phase guides, research
 - **Commit format**: `Phase X.Y: description`
 - **Deploy**: Koyeb (Go), Vercel (Next.js), Supabase (PostgreSQL only)
 
-## Phase Completion Rules
-
-### Before starting
-1. Read phase doc (`docs/develop/phases/phase-X.md`)
-2. Verify prerequisite phases are complete
-3. Update `phases/README.md` status to in-progress
-
-### During implementation
-1. Follow phase doc checklist
-2. Update checkboxes as steps complete
-3. Commit format: `Phase X.Y: description`
-
-### Before marking complete — verification gate
-
-Run **all checks from project root** using moon:
-
-```bash
-moon run backend:lint && moon run backend:test   # Go lint + tests
-moon run web:lint && moon run web:typecheck && moon run web:test && moon run web:build  # TS lint + types + tests + build
-```
-
-Or combined: `moon run :lint && moon run :test && moon run web:build`
-
-**All checks must pass with zero errors before proceeding.** Fix any lint errors, type errors, test failures, and build failures.
-
-### After verification passes
-1. Confirm all phase doc checkboxes are checked
-2. Update `phases/README.md` status to complete
-3. Update Phase Progress table below
-
 ## Commands
 
-**⚠️ CRITICAL: Always use `moon` from project root for ALL operations.**
-
-This includes:
-- Running dev servers
-- Building projects
-- Running tests
-- Code generation
-- Database operations
-- **Even when testing or verifying steps**
-
-❌ **NEVER do this:**
-```bash
-cd apps/backend && go run ./cmd/api
-cd apps/backend && go test ./...
-cd apps/web && pnpm run dev
-```
-
-✅ **ALWAYS do this:**
-```bash
-moon run backend:dev
-moon run backend:test
-moon run web:dev
-```
+**CRITICAL: Always use `moon` from project root for ALL operations.** Never `cd` into subdirectories to run commands. See each sub-project CLAUDE.md for full command reference.
 
 ```bash
-# Development (all commands from project root)
-moon run :dev                     # Start all dev servers (backend + frontend, parallel)
-moon run backend:dev              # Start Go API server only (port 9000)
-moon run web:dev                  # Start Next.js only (port 4000)
-
-# Code Generation
-moon run protocol:generate        # TypeSpec → OpenAPI
-moon run backend:generate-api     # OpenAPI → Go server code
-moon run web:generate-client      # OpenAPI → TS client
-moon run backend:generate-ent     # Regenerate Ent code
-
-# Database Migrations
-moon run backend:migrate-diff -- name=<description>   # Create migration
-moon run backend:migrate-apply                        # Apply migrations
-moon run backend:seed                                 # Insert seed data
-
-# Testing & Quality
-moon run :test                    # Run all tests
-moon run :lint                    # Lint all projects
-moon run backend:test             # Go tests only
-moon run web:test                 # Next.js tests only
-moon run web:typecheck            # TypeScript type check
-
-# Build
-moon run :build                   # Build all projects
-moon run backend:build            # Build Go binary
-moon run web:build                # Build Next.js
-
-# Direct Commands (reference only - prefer moon)
-# Backend: cd apps/backend && air (or go run ./cmd/api)
-# Frontend: cd apps/web && pnpm run dev
-# Database: docker compose up -d
+# Essential shortcuts
+moon run :dev          # All dev servers
+moon run :test         # All tests
+moon run :lint         # All linting
+moon run :build        # All builds
 ```
+
+## Phase Completion Rules
+
+1. Read phase doc (`docs/develop/phases/phase-X.md`), verify prerequisites
+2. Follow phase doc checklist, update checkboxes, commit as `Phase X.Y: description`
+3. **Verification gate** — all must pass before marking complete:
+   ```bash
+   moon run backend:lint && moon run backend:test && moon run web:lint && moon run web:typecheck && moon run web:test && moon run web:build
+   ```
+4. Update `phases/README.md` status + Phase Progress table below
 
 ## Phase Progress
 
@@ -152,3 +83,22 @@ moon run web:build                # Build Next.js
 
 - **Phase docs have TypeScript remnants** (Phase 3–6.1): architecture change notes added at top. Implement in Go, not TypeScript.
 - **Schema duality**: `02-data-structure.md` is canonical if it conflicts with phase-0 doc.
+
+## Ralph Loop
+
+### Rules
+- Run full verification gate before outputting any completion promise — zero errors required
+- Format: `<promise>PROMISE_TEXT</promise>` — ONLY when verifiably TRUE
+- NEVER output a false promise to escape the loop
+
+### TDD Cycle
+1. Write failing test → `moon run :test` (red)
+2. Implement minimal code → `moon run :test` (green)
+3. `moon run :lint` → refactor if needed → commit `Phase X.Y: description`
+4. Repeat. Output promise only when ALL requirements have passing tests
+
+### Guardrails
+- ALWAYS read files before editing — never assume content
+- NEVER skip failing tests. Do NOT refactor unrelated code
+- Re-read task requirements before declaring completion
+- If stuck: document in `BLOCKED.md`, let `--max-iterations` handle exit

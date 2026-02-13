@@ -27,10 +27,12 @@ func main() {
 	// Services
 	tokenService := service.NewTokenService(cfg.JWTSecret, cfg.JWTAccessTokenTTL, cfg.JWTRefreshTokenTTL)
 	authService := service.NewAuthService(cfg, db, tokenService)
+	experienceService := service.NewExperienceService(db)
 
 	// Controllers
 	authCtrl := controller.NewAuthController(authService, cfg)
 	adminCtrl := controller.NewAdminController(db)
+	experienceCtrl := controller.NewExperienceController(experienceService)
 
 	// Router
 	r := gin.Default()
@@ -56,6 +58,13 @@ func main() {
 	{
 		protected.GET("/auth/me", authCtrl.Me)
 		protected.POST("/auth/logout", authCtrl.Logout)
+
+		// Experience CRUD
+		protected.POST("/experiences", experienceCtrl.Create)
+		protected.GET("/experiences", experienceCtrl.List)
+		protected.GET("/experiences/:id", experienceCtrl.Get)
+		protected.PATCH("/experiences/:id", experienceCtrl.Update)
+		protected.DELETE("/experiences/:id", experienceCtrl.Delete)
 	}
 
 	// Admin routes (require authentication + admin role)
