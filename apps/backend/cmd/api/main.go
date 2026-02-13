@@ -48,6 +48,11 @@ func main() {
 		weaponTaggingService = service.NewWeaponTaggingService(db, aiProvider.Light())
 	}
 
+	var crawlingService *service.CrawlingService
+	if aiProvider != nil {
+		crawlingService = service.NewCrawlingService(aiProvider)
+	}
+
 	// Controllers
 	authCtrl := controller.NewAuthController(authService, cfg)
 	adminCtrl := controller.NewAdminController(db)
@@ -56,6 +61,11 @@ func main() {
 	var weaponTaggingCtrl *controller.WeaponTaggingController
 	if weaponTaggingService != nil {
 		weaponTaggingCtrl = controller.NewWeaponTaggingController(weaponTaggingService)
+	}
+
+	var crawlingCtrl *controller.CrawlingController
+	if crawlingService != nil {
+		crawlingCtrl = controller.NewCrawlingController(crawlingService)
 	}
 
 	// Router
@@ -93,6 +103,11 @@ func main() {
 		// Weapon tagging (if AI provider is available)
 		if weaponTaggingCtrl != nil {
 			protected.POST("/experiences/:id/tag", weaponTaggingCtrl.Tag)
+		}
+
+		// Job posting crawling (if AI provider is available)
+		if crawlingCtrl != nil {
+			protected.POST("/crawl", crawlingCtrl.ParseJobPosting)
 		}
 	}
 
