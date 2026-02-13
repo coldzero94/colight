@@ -116,6 +116,27 @@ func (_u *CompanyAnalysisCacheUpdate) SetNillableExpiresAt(v *time.Time) *Compan
 	return _u
 }
 
+// SetViewCount sets the "view_count" field.
+func (_u *CompanyAnalysisCacheUpdate) SetViewCount(v int) *CompanyAnalysisCacheUpdate {
+	_u.mutation.ResetViewCount()
+	_u.mutation.SetViewCount(v)
+	return _u
+}
+
+// SetNillableViewCount sets the "view_count" field if the given value is not nil.
+func (_u *CompanyAnalysisCacheUpdate) SetNillableViewCount(v *int) *CompanyAnalysisCacheUpdate {
+	if v != nil {
+		_u.SetViewCount(*v)
+	}
+	return _u
+}
+
+// AddViewCount adds value to the "view_count" field.
+func (_u *CompanyAnalysisCacheUpdate) AddViewCount(v int) *CompanyAnalysisCacheUpdate {
+	_u.mutation.AddViewCount(v)
+	return _u
+}
+
 // Mutation returns the CompanyAnalysisCacheMutation object of the builder.
 func (_u *CompanyAnalysisCacheUpdate) Mutation() *CompanyAnalysisCacheMutation {
 	return _u.mutation
@@ -203,6 +224,12 @@ func (_u *CompanyAnalysisCacheUpdate) sqlSave(ctx context.Context) (_node int, e
 	}
 	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(companyanalysiscache.FieldExpiresAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.ViewCount(); ok {
+		_spec.SetField(companyanalysiscache.FieldViewCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedViewCount(); ok {
+		_spec.AddField(companyanalysiscache.FieldViewCount, field.TypeInt, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -309,6 +336,27 @@ func (_u *CompanyAnalysisCacheUpdateOne) SetNillableExpiresAt(v *time.Time) *Com
 	if v != nil {
 		_u.SetExpiresAt(*v)
 	}
+	return _u
+}
+
+// SetViewCount sets the "view_count" field.
+func (_u *CompanyAnalysisCacheUpdateOne) SetViewCount(v int) *CompanyAnalysisCacheUpdateOne {
+	_u.mutation.ResetViewCount()
+	_u.mutation.SetViewCount(v)
+	return _u
+}
+
+// SetNillableViewCount sets the "view_count" field if the given value is not nil.
+func (_u *CompanyAnalysisCacheUpdateOne) SetNillableViewCount(v *int) *CompanyAnalysisCacheUpdateOne {
+	if v != nil {
+		_u.SetViewCount(*v)
+	}
+	return _u
+}
+
+// AddViewCount adds value to the "view_count" field.
+func (_u *CompanyAnalysisCacheUpdateOne) AddViewCount(v int) *CompanyAnalysisCacheUpdateOne {
+	_u.mutation.AddViewCount(v)
 	return _u
 }
 
@@ -429,6 +477,12 @@ func (_u *CompanyAnalysisCacheUpdateOne) sqlSave(ctx context.Context) (_node *Co
 	}
 	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(companyanalysiscache.FieldExpiresAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.ViewCount(); ok {
+		_spec.SetField(companyanalysiscache.FieldViewCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedViewCount(); ok {
+		_spec.AddField(companyanalysiscache.FieldViewCount, field.TypeInt, value)
 	}
 	_node = &CompanyAnalysisCache{config: _u.config}
 	_spec.Assign = _node.assignValues

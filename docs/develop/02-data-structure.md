@@ -853,7 +853,10 @@ func (CompanyAnalysisCache) Fields() []ent.Field {
 			MaxLen(100).
 			Comment("Company name"),
 		field.Time("expires_at").
-			Comment("Expiration time (created_at + 7 days)"),
+			Comment("Expiration time (created_at + 365 days for talent profiles, 7 days for news)"),
+		field.Int("view_count").
+			Default(0).
+			Comment("Number of times this cache was accessed"),
 	}
 }
 

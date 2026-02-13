@@ -87,6 +87,20 @@ func (_c *CompanyAnalysisCacheCreate) SetExpiresAt(v time.Time) *CompanyAnalysis
 	return _c
 }
 
+// SetViewCount sets the "view_count" field.
+func (_c *CompanyAnalysisCacheCreate) SetViewCount(v int) *CompanyAnalysisCacheCreate {
+	_c.mutation.SetViewCount(v)
+	return _c
+}
+
+// SetNillableViewCount sets the "view_count" field if the given value is not nil.
+func (_c *CompanyAnalysisCacheCreate) SetNillableViewCount(v *int) *CompanyAnalysisCacheCreate {
+	if v != nil {
+		_c.SetViewCount(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *CompanyAnalysisCacheCreate) SetID(v uuid.UUID) *CompanyAnalysisCacheCreate {
 	_c.mutation.SetID(v)
@@ -140,6 +154,10 @@ func (_c *CompanyAnalysisCacheCreate) defaults() {
 		v := companyanalysiscache.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
+	if _, ok := _c.mutation.ViewCount(); !ok {
+		v := companyanalysiscache.DefaultViewCount
+		_c.mutation.SetViewCount(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := companyanalysiscache.DefaultID()
 		_c.mutation.SetID(v)
@@ -177,6 +195,9 @@ func (_c *CompanyAnalysisCacheCreate) check() error {
 	}
 	if _, ok := _c.mutation.ExpiresAt(); !ok {
 		return &ValidationError{Name: "expires_at", err: errors.New(`ent: missing required field "CompanyAnalysisCache.expires_at"`)}
+	}
+	if _, ok := _c.mutation.ViewCount(); !ok {
+		return &ValidationError{Name: "view_count", err: errors.New(`ent: missing required field "CompanyAnalysisCache.view_count"`)}
 	}
 	return nil
 }
@@ -240,6 +261,10 @@ func (_c *CompanyAnalysisCacheCreate) createSpec() (*CompanyAnalysisCache, *sqlg
 	if value, ok := _c.mutation.ExpiresAt(); ok {
 		_spec.SetField(companyanalysiscache.FieldExpiresAt, field.TypeTime, value)
 		_node.ExpiresAt = value
+	}
+	if value, ok := _c.mutation.ViewCount(); ok {
+		_spec.SetField(companyanalysiscache.FieldViewCount, field.TypeInt, value)
+		_node.ViewCount = value
 	}
 	return _node, _spec
 }

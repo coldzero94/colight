@@ -28,6 +28,8 @@ const (
 	FieldCompanyName = "company_name"
 	// FieldExpiresAt holds the string denoting the expires_at field in the database.
 	FieldExpiresAt = "expires_at"
+	// FieldViewCount holds the string denoting the view_count field in the database.
+	FieldViewCount = "view_count"
 	// Table holds the table name of the companyanalysiscache in the database.
 	Table = "company_analysis_caches"
 )
@@ -42,6 +44,7 @@ var Columns = []string{
 	FieldSourceURL,
 	FieldCompanyName,
 	FieldExpiresAt,
+	FieldViewCount,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -63,6 +66,8 @@ var (
 	CacheTypeValidator func(string) error
 	// CompanyNameValidator is a validator for the "company_name" field. It is called by the builders before save.
 	CompanyNameValidator func(string) error
+	// DefaultViewCount holds the default value on creation for the "view_count" field.
+	DefaultViewCount int
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -103,4 +108,9 @@ func ByCompanyName(opts ...sql.OrderTermOption) OrderOption {
 // ByExpiresAt orders the results by the expires_at field.
 func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExpiresAt, opts...).ToFunc()
+}
+
+// ByViewCount orders the results by the view_count field.
+func ByViewCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldViewCount, opts...).ToFunc()
 }

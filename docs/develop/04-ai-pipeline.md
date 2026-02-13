@@ -323,15 +323,20 @@ export function substituteVariables(
 [입력: 파싱된 공고 + 기업 데이터]
     │
     ▼
-[캐시 확인] ← company_analysis_cache (7일 TTL)
-    ├── [HIT] → 캐시 결과 즉시 반환
+[1차: talent_profiles 조회] ← Pre-seeded 주요 대기업 인재상 (영구)
+    ├── [HIT] → 검증된 인재상 즉시 반환 (삼성, 네이버, 카카오 등)
+    └── [MISS] → 계속 진행
+    │
+    ▼
+[2차: 캐시 확인] ← company_analysis_cache (365일 TTL)
+    ├── [HIT] → 캐시 결과 즉시 반환 + view_count++
     └── [MISS] → 계속 진행
     │
     ▼
 [기업 데이터 병렬 수집]
-    ├── [DART OpenAPI] → 기업 기본정보, 재무제표, 임원 현황
-    ├── [네이버 뉴스 API] → 최근 뉴스 5~10건 (3개월 이내)
-    └── [talent_profiles] → 사전 DB 인재상 조회 (있으면)
+    ├── [DART 크롤링] → 기업 기본정보, 공시 데이터
+    ├── [네이버 뉴스 크롤링] → 최근 뉴스 5~10건
+    └── [구글 검색] → "회사명 + 인재상" 키워드 (선택)
     │
     ▼
 [데이터 병합] → 공고 + DART + 뉴스 + 인재상 통합
@@ -348,7 +353,7 @@ export function substituteVariables(
     └── avoid_expressions: string[]                 ← 피해야 할 표현
     │
     ▼
-[캐시 저장] ← company_analysis_cache (expires_at = NOW() + 7일)
+[캐시 저장] ← company_analysis_cache (expires_at = NOW() + 365일, view_count = 1)
     │
     ▼
 [company_analyses 저장] ← 사용자별 분석 결과 영구 저장
@@ -577,12 +582,14 @@ function calculateCost(model: string, usage: { promptTokens: number; completionT
 
 | 대상 | TTL | 캐시 키 | 무효화 조건 |
 |------|-----|---------|------------|
-| 기업 분석 결과 | 7일 | URL 해시 + 기업명 | TTL 만료 또는 수동 무효화 |
+| **기업 인재상/핵심가치** | **365일** | 기업명 해시 | TTL 만료 또는 수동 무효화 |
+| 기업 뉴스 | 7일 | 기업명 + 날짜 | TTL 만료 |
 | 채용공고 파싱 | 7일 | URL 해시 | TTL 만료 |
-| DART 기업 정보 | 7일 | 기업 코드 | TTL 만료 |
+| DART 기업 정보 | 30일 | 기업 코드 | TTL 만료 |
 | 코칭 결과 | 캐시 안함 | - | 매번 새로 생성 (개인화) |
 | 경험 분류 | 캐시 안함 | - | 경험 수정 시 재분류 |
 | 무기/프롬프트 마스터 | 앱 시작 시 | - | 관리자 수정 시 |
+| **주요 대기업 인재상** | **영구** | talent_profiles 테이블 | 관리자 수동 업데이트 |
 
 ### 캐시 구현
 

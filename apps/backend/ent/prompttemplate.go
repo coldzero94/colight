@@ -36,7 +36,7 @@ type PromptTemplate struct {
 	UserPromptTemplate string `json:"user_prompt_template,omitempty"`
 	// Expected output JSON schema
 	OutputSchema map[string]interface{} `json:"output_schema,omitempty"`
-	// AI model: gpt-4.1-mini, claude-sonnet-4-5
+	// AI model: gemini-2.0-flash, groq-llama-3.3, claude-sonnet-4-5
 	Model string `json:"model,omitempty"`
 	// Model temperature
 	Temperature float64 `json:"temperature,omitempty"`

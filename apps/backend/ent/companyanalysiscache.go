@@ -32,8 +32,10 @@ type CompanyAnalysisCache struct {
 	SourceURL string `json:"source_url,omitempty"`
 	// Company name
 	CompanyName string `json:"company_name,omitempty"`
-	// Expiration time (created_at + 7 days)
-	ExpiresAt    time.Time `json:"expires_at,omitempty"`
+	// Expiration time (365 days for talent profiles, 7 days for news)
+	ExpiresAt time.Time `json:"expires_at,omitempty"`
+	// Number of cache hits (popular companies)
+	ViewCount    int `json:"view_count,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -44,6 +46,8 @@ func (*CompanyAnalysisCache) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case companyanalysiscache.FieldData:
 			values[i] = new([]byte)
+		case companyanalysiscache.FieldViewCount:
+			values[i] = new(sql.NullInt64)
 		case companyanalysiscache.FieldCacheKey, companyanalysiscache.FieldCacheType, companyanalysiscache.FieldSourceURL, companyanalysiscache.FieldCompanyName:
 			values[i] = new(sql.NullString)
 		case companyanalysiscache.FieldCreatedAt, companyanalysiscache.FieldExpiresAt:
@@ -115,6 +119,12 @@ func (_m *CompanyAnalysisCache) assignValues(columns []string, values []any) err
 			} else if value.Valid {
 				_m.ExpiresAt = value.Time
 			}
+		case companyanalysiscache.FieldViewCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field view_count", values[i])
+			} else if value.Valid {
+				_m.ViewCount = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -171,6 +181,9 @@ func (_m *CompanyAnalysisCache) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("expires_at=")
 	builder.WriteString(_m.ExpiresAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("view_count=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ViewCount))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -85,6 +85,11 @@ func ExpiresAt(v time.Time) predicate.CompanyAnalysisCache {
 	return predicate.CompanyAnalysisCache(sql.FieldEQ(FieldExpiresAt, v))
 }
 
+// ViewCount applies equality check predicate on the "view_count" field. It's identical to ViewCountEQ.
+func ViewCount(v int) predicate.CompanyAnalysisCache {
+	return predicate.CompanyAnalysisCache(sql.FieldEQ(FieldViewCount, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.CompanyAnalysisCache {
 	return predicate.CompanyAnalysisCache(sql.FieldEQ(FieldCreatedAt, v))
@@ -443,6 +448,46 @@ func ExpiresAtLT(v time.Time) predicate.CompanyAnalysisCache {
 // ExpiresAtLTE applies the LTE predicate on the "expires_at" field.
 func ExpiresAtLTE(v time.Time) predicate.CompanyAnalysisCache {
 	return predicate.CompanyAnalysisCache(sql.FieldLTE(FieldExpiresAt, v))
+}
+
+// ViewCountEQ applies the EQ predicate on the "view_count" field.
+func ViewCountEQ(v int) predicate.CompanyAnalysisCache {
+	return predicate.CompanyAnalysisCache(sql.FieldEQ(FieldViewCount, v))
+}
+
+// ViewCountNEQ applies the NEQ predicate on the "view_count" field.
+func ViewCountNEQ(v int) predicate.CompanyAnalysisCache {
+	return predicate.CompanyAnalysisCache(sql.FieldNEQ(FieldViewCount, v))
+}
+
+// ViewCountIn applies the In predicate on the "view_count" field.
+func ViewCountIn(vs ...int) predicate.CompanyAnalysisCache {
+	return predicate.CompanyAnalysisCache(sql.FieldIn(FieldViewCount, vs...))
+}
+
+// ViewCountNotIn applies the NotIn predicate on the "view_count" field.
+func ViewCountNotIn(vs ...int) predicate.CompanyAnalysisCache {
+	return predicate.CompanyAnalysisCache(sql.FieldNotIn(FieldViewCount, vs...))
+}
+
+// ViewCountGT applies the GT predicate on the "view_count" field.
+func ViewCountGT(v int) predicate.CompanyAnalysisCache {
+	return predicate.CompanyAnalysisCache(sql.FieldGT(FieldViewCount, v))
+}
+
+// ViewCountGTE applies the GTE predicate on the "view_count" field.
+func ViewCountGTE(v int) predicate.CompanyAnalysisCache {
+	return predicate.CompanyAnalysisCache(sql.FieldGTE(FieldViewCount, v))
+}
+
+// ViewCountLT applies the LT predicate on the "view_count" field.
+func ViewCountLT(v int) predicate.CompanyAnalysisCache {
+	return predicate.CompanyAnalysisCache(sql.FieldLT(FieldViewCount, v))
+}
+
+// ViewCountLTE applies the LTE predicate on the "view_count" field.
+func ViewCountLTE(v int) predicate.CompanyAnalysisCache {
+	return predicate.CompanyAnalysisCache(sql.FieldLTE(FieldViewCount, v))
 }
 
 // And groups predicates with the AND operator between them.

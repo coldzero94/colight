@@ -3735,6 +3735,8 @@ type CompanyAnalysisCacheMutation struct {
 	source_url    *string
 	company_name  *string
 	expires_at    *time.Time
+	view_count    *int
+	addview_count *int
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*CompanyAnalysisCache, error)
@@ -4123,6 +4125,62 @@ func (m *CompanyAnalysisCacheMutation) ResetExpiresAt() {
 	m.expires_at = nil
 }
 
+// SetViewCount sets the "view_count" field.
+func (m *CompanyAnalysisCacheMutation) SetViewCount(i int) {
+	m.view_count = &i
+	m.addview_count = nil
+}
+
+// ViewCount returns the value of the "view_count" field in the mutation.
+func (m *CompanyAnalysisCacheMutation) ViewCount() (r int, exists bool) {
+	v := m.view_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldViewCount returns the old "view_count" field's value of the CompanyAnalysisCache entity.
+// If the CompanyAnalysisCache object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyAnalysisCacheMutation) OldViewCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldViewCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldViewCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldViewCount: %w", err)
+	}
+	return oldValue.ViewCount, nil
+}
+
+// AddViewCount adds i to the "view_count" field.
+func (m *CompanyAnalysisCacheMutation) AddViewCount(i int) {
+	if m.addview_count != nil {
+		*m.addview_count += i
+	} else {
+		m.addview_count = &i
+	}
+}
+
+// AddedViewCount returns the value that was added to the "view_count" field in this mutation.
+func (m *CompanyAnalysisCacheMutation) AddedViewCount() (r int, exists bool) {
+	v := m.addview_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetViewCount resets all changes to the "view_count" field.
+func (m *CompanyAnalysisCacheMutation) ResetViewCount() {
+	m.view_count = nil
+	m.addview_count = nil
+}
+
 // Where appends a list predicates to the CompanyAnalysisCacheMutation builder.
 func (m *CompanyAnalysisCacheMutation) Where(ps ...predicate.CompanyAnalysisCache) {
 	m.predicates = append(m.predicates, ps...)
@@ -4157,7 +4215,7 @@ func (m *CompanyAnalysisCacheMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CompanyAnalysisCacheMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, companyanalysiscache.FieldCreatedAt)
 	}
@@ -4178,6 +4236,9 @@ func (m *CompanyAnalysisCacheMutation) Fields() []string {
 	}
 	if m.expires_at != nil {
 		fields = append(fields, companyanalysiscache.FieldExpiresAt)
+	}
+	if m.view_count != nil {
+		fields = append(fields, companyanalysiscache.FieldViewCount)
 	}
 	return fields
 }
@@ -4201,6 +4262,8 @@ func (m *CompanyAnalysisCacheMutation) Field(name string) (ent.Value, bool) {
 		return m.CompanyName()
 	case companyanalysiscache.FieldExpiresAt:
 		return m.ExpiresAt()
+	case companyanalysiscache.FieldViewCount:
+		return m.ViewCount()
 	}
 	return nil, false
 }
@@ -4224,6 +4287,8 @@ func (m *CompanyAnalysisCacheMutation) OldField(ctx context.Context, name string
 		return m.OldCompanyName(ctx)
 	case companyanalysiscache.FieldExpiresAt:
 		return m.OldExpiresAt(ctx)
+	case companyanalysiscache.FieldViewCount:
+		return m.OldViewCount(ctx)
 	}
 	return nil, fmt.Errorf("unknown CompanyAnalysisCache field %s", name)
 }
@@ -4282,6 +4347,13 @@ func (m *CompanyAnalysisCacheMutation) SetField(name string, value ent.Value) er
 		}
 		m.SetExpiresAt(v)
 		return nil
+	case companyanalysiscache.FieldViewCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetViewCount(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CompanyAnalysisCache field %s", name)
 }
@@ -4289,13 +4361,21 @@ func (m *CompanyAnalysisCacheMutation) SetField(name string, value ent.Value) er
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *CompanyAnalysisCacheMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addview_count != nil {
+		fields = append(fields, companyanalysiscache.FieldViewCount)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *CompanyAnalysisCacheMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case companyanalysiscache.FieldViewCount:
+		return m.AddedViewCount()
+	}
 	return nil, false
 }
 
@@ -4304,6 +4384,13 @@ func (m *CompanyAnalysisCacheMutation) AddedField(name string) (ent.Value, bool)
 // type.
 func (m *CompanyAnalysisCacheMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case companyanalysiscache.FieldViewCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddViewCount(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CompanyAnalysisCache numeric field %s", name)
 }
@@ -4366,6 +4453,9 @@ func (m *CompanyAnalysisCacheMutation) ResetField(name string) error {
 		return nil
 	case companyanalysiscache.FieldExpiresAt:
 		m.ResetExpiresAt()
+		return nil
+	case companyanalysiscache.FieldViewCount:
+		m.ResetViewCount()
 		return nil
 	}
 	return fmt.Errorf("unknown CompanyAnalysisCache field %s", name)

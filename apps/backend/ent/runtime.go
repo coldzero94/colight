@@ -202,6 +202,10 @@ func init() {
 	companyanalysiscacheDescCompanyName := companyanalysiscacheFields[4].Descriptor()
 	// companyanalysiscache.CompanyNameValidator is a validator for the "company_name" field. It is called by the builders before save.
 	companyanalysiscache.CompanyNameValidator = companyanalysiscacheDescCompanyName.Validators[0].(func(string) error)
+	// companyanalysiscacheDescViewCount is the schema descriptor for view_count field.
+	companyanalysiscacheDescViewCount := companyanalysiscacheFields[6].Descriptor()
+	// companyanalysiscache.DefaultViewCount holds the default value on creation for the view_count field.
+	companyanalysiscache.DefaultViewCount = companyanalysiscacheDescViewCount.Default.(int)
 	// companyanalysiscacheDescID is the schema descriptor for id field.
 	companyanalysiscacheDescID := companyanalysiscacheMixinFields0[0].Descriptor()
 	// companyanalysiscache.DefaultID holds the default value on creation for the id field.

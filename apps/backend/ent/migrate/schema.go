@@ -165,6 +165,7 @@ var (
 		{Name: "source_url", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "company_name", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "view_count", Type: field.TypeInt, Default: 0},
 	}
 	// CompanyAnalysisCachesTable holds the schema information for the "company_analysis_caches" table.
 	CompanyAnalysisCachesTable = &schema.Table{
