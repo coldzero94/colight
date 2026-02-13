@@ -41,17 +41,20 @@
 Phase 0 (셋업)
   └─→ Phase 1 (인증)
         └─→ Phase 2 (경험 CRUD)
-              ├─→ Phase 2.1 (무기 태깅)  ← 병렬 분기 A
+              ├─→ Phase 2.1 (무기 태깅)     ← 병렬 분기 A
               │     ├─→ Phase 7 (AI 인터뷰)
               │     └─→ Phase 7.1 (추천 강화)
-              └─→ Phase 3 (크롤링)        ← 병렬 분기 B
-                    ├─→ Phase 3.1 (기업 데이터)
+              │
+              └─→ Phase 3 (크롤링)           ← 병렬 분기 B
+                    │
+                    ├─→ Phase 3.1 (기업 데이터)  ⚡ Phase 3과 병렬 가능
                     │     └─→ Phase 3.2 (AI 분석)
                     │           └─→ Phase 3.3 (분석 UI)
+                    │
                     └─→ Phase 8 (칸반)
 
 Phase 2.1 (무기 태깅) + Phase 3.3 (분석 UI)
-  └─→ Phase 4 (매칭)
+  └─→ Phase 4 (매칭)    ← ⚠️ Phase 2.1 필수 (무기 태그가 매칭 점수의 40% 차지)
         └─→ Phase 5 (문항 분석)
               └─→ Phase 5.1 (초안 코칭)
                     └─→ Phase 5.2 (코칭 에디터)
@@ -63,6 +66,14 @@ Phase 2.1 (무기 태깅) + Phase 3.3 (분석 UI)
 
 Phase 10 (성장) ← MVP 완료 후 독립 진행
 ```
+
+### 주요 의존성 참고 사항
+
+| 항목 | 설명 |
+|------|------|
+| **Phase 3 ↔ 3.1 병렬** | Phase 3(채용공고 크롤링)과 Phase 3.1(기업 데이터 API)은 서로 다른 소스를 크롤링하므로 **동시 진행 가능**. Phase 3: 채용공고 URL → 구조화. Phase 3.1: DART/뉴스 → 기업 프로필. 단, Phase 3.2(AI 분석)는 둘 다 필요. |
+| **Phase 4 ← Phase 2.1 필수** | Phase 4(매칭) 알고리즘에서 무기 태그가 talent_fit 점수(35%)와 uniqueness 점수(25%)에 핵심 입력. Phase 2.1 미완료 시 매칭 품질 저하. |
+| **Phase 0.9 시드 데이터** | Phase 0.9에서 시드되는 weapon_categories(35행), prompt_templates(4행), question_patterns(7행)은 Phase 2.1(무기 태깅)에서 사용. |
 
 ---
 
