@@ -9,7 +9,7 @@
 | **목표** | 크롤링 확장, 임베딩 매칭, AI 탐지, 대기업 인재상, 레이더 차트 등 성장 기능 |
 | **선행 조건** | MVP 완료 (Phase 0~6.2) |
 | **주요 산출물** | 추가 크롤러, 임베딩 매칭 고도화, 분석 도구 |
-| **기술 스택** | Playwright, 사람인 API, pgvector, Recharts, GPT-4.1 mini |
+| **기술 스택** | Playwright, 사람인 API, pgvector, Recharts, 경량 모델 (Gemini/Groq) |
 
 ---
 

@@ -22,7 +22,7 @@ testutil/          # Shared test helpers
 - Controller → Service → Ent (never skip layers)
 - No RLS — filter by `user_id` in service layer
 - AI prompts from DB (`prompt_templates`) — never hardcode
-- AI SDK: `github.com/openai/openai-go` (NOT sashabaranov)
+- AI SDK: Common LLM abstraction (`internal/infrastructure/ai/`) — supports Gemini, Groq, Anthropic via `LLMProvider` interface
 - All routes use `/v1/` prefix
 - Generated `internal/generated/` is committed — do not edit manually
 - FK constraints use CASCADE DELETE

@@ -14,7 +14,7 @@
 | **캐치** | `catch.co.kr` | goquery (정적 HTML) | Phase 3 | 메인 |
 | **사람인** | `saramin.co.kr` | 공식 API (oAPI) | Phase 3 | API 우선 |
 | **원티드** | `wanted.co.kr` | Playwright + River (SPA) | Phase 10 | 동적 |
-| **기타** | - | AI fallback (GPT-4.1 mini) | Phase 3 | 폴백 |
+| **기타** | - | AI fallback (경량 모델 Gemini/Groq) | Phase 3 | 폴백 |
 
 ### 사이트별 URL 패턴
 
@@ -386,9 +386,9 @@ func (a *SlackAlerter) SendAlert(result *HealthCheckResult) error {
           └── 파싱 성공했지만 필수 필드 없음 (구조 변경)
           │
           ▼
-[3차: AI Fallback (GPT-4.1 mini)]
+[3차: AI Fallback (경량 모델 Gemini/Groq)]
     │
-    ├── raw HTML을 GPT-4.1 mini에 전달
+    ├── raw HTML을 경량 모델 (Gemini/Groq)에 전달
     │     ├── HTML body만 추출 (max 8,000자)
     │     └── JobPosting 스키마로 구조화 요청
     │

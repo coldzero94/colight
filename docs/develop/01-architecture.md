@@ -54,8 +54,9 @@ External Services (Go에서 직접 호출):
 │   AI Providers   │ │ 기업 데이터    │
 │                  │ │              │
 │ • Claude API     │ │ • DART API   │
-│ • OpenAI API     │ │ • 네이버 API │
-│ • Embedding API  │ │ • 사람인 API │
+│ • Gemini API     │ │ • 네이버 API │
+│ • Groq API       │ │ • 사람인 API │
+│ • Embedding API  │ │              │
 └──────────────────┘ └──────────────┘
 
 Async Jobs (Go API 내부, River embedded):
@@ -91,7 +92,7 @@ colight/
 │   │   │   │   ├── config/        # 환경 설정
 │   │   │   │   ├── database/      # DB 연결
 │   │   │   │   ├── middleware/     # JWT 검증, CORS, 로깅
-│   │   │   │   ├── ai/            # Claude/OpenAI/Embedding 클라이언트
+│   │   │   │   ├── ai/            # 공통 LLM (Gemini/Groq), Claude, Embedding 클라이언트
 │   │   │   │   └── external/      # DART, 네이버, 사람인, Koyeb 클라이언트
 │   │   │   └── generated/         # oapi-codegen 생성 코드
 │   │   ├── ent/                   # Ent ORM
@@ -231,7 +232,7 @@ cmd/api/main.go
 | `config/` | 환경 변수 로드, 설정 구조체 |
 | `database/` | Ent 클라이언트 생성, DB 연결 관리 |
 | `middleware/` | JWT 검증, CORS, Request ID, HTTP 로깅, Rate Limiting |
-| `ai/` | Claude 클라이언트 (스트리밍), OpenAI 클라이언트, Embedding 클라이언트 |
+| `ai/` | 공통 LLM 인터페이스 (Gemini/Groq), Claude 클라이언트 (스트리밍), Embedding 클라이언트 |
 | `external/` | DART API, 네이버 뉴스 API, 사람인 API, Koyeb Worker 트리거 |
 
 ---
@@ -352,7 +353,7 @@ src/lib/api/
     │           [weapon_categories 로드] → 전체 무기 목록 조회
     │               │
     │               ▼
-    │           [GPT-4.1 mini 호출] → {{experience_text}} + {{weapon_categories}} 주입
+    │           [경량 모델 (Gemini/Groq) 호출] → {{experience_text}} + {{weapon_categories}} 주입
     │               │
     │               ▼
     │           [결과 파싱]
@@ -382,7 +383,7 @@ src/lib/api/
     │       ├── [동적: 원티드]       → Koyeb Worker에 Playwright 요청 트리거
     │       └── [사람인]             → 사람인 API 직접 호출
     │
-    ├── 3. 공고 파싱 (GPT-4.1 mini, ~5원)
+    ├── 3. 공고 파싱 (경량 모델 (Gemini/Groq), ~5원)
     │       └── 직무, 자격요건, 우대사항, 키워드 구조화
     │
     ├── 4. 기업 정보 병렬 수집 (Go goroutine)
@@ -503,7 +504,7 @@ pnpm run generate:api:ts
 | **Supabase** | PostgreSQL + pgvector + Auth 통합, 무료 500MB | Firebase (NoSQL 부적합, 벡터 미지원), PlanetScale (벡터 미지원) |
 | **pgvector** | PostgreSQL 네이티브 벡터 검색, Supabase 내장, 별도 벡터 DB 불필요 | Pinecone (추가 인프라, 무료 제한적) |
 | **Claude Sonnet 4.5** | 한국어 분석/코칭 품질 최상, 구조화 출력 우수, 긴 컨텍스트 | GPT-4o (한국어 코칭 품질 열세) |
-| **GPT-4.1 mini** | 경량 작업 최적, ~5원/건 저비용, 빠른 응답 | Claude Haiku (비용 유사하나 API 통합 복잡) |
+| **Gemini Flash / Groq Llama** | 경량 작업 최적, ~3~5원/건 저비용, 무료 티어 넉넉, 공통 LLM 인터페이스로 교체 용이 | GPT-4.1 mini (유료 전용), Claude Haiku (비용 유사하나 API 통합 복잡) |
 | **shadcn/ui** | 커스터마이징 자유, Radix UI 기반, Tailwind 호환, 번들 최소 | Material UI (무겁다), Ant Design (한국 서비스 UX 부적합) |
 | **Tiptap** | 리치 텍스트 에디터, ProseMirror 기반, React 통합 우수 | Quill (확장성 제한), Slate (학습곡선 높음) |
 | **@hello-pangea/dnd** | 칸반보드용 DnD, 접근성, react-beautiful-dnd 후속 | dnd-kit (칸반 UX 직접 구현 필요) |
@@ -578,7 +579,9 @@ pnpm run generate:api:ts
 | **Supabase** | DB 500MB, Storage 1GB, MAU 50K | 1주 비활동 시 자동 중지, 프로젝트 2개 | Pro $25/월 |
 | **Koyeb (API)** | 인스턴스 1개, 0.1vCPU, 512MB RAM | 1시간 무트래픽 시 Scale-to-Zero | Starter $5.6/월 |
 | **Koyeb (Worker)** | 인스턴스 1개 (API와 별도) | 동시 크롤링 1건 | Starter $5.6/월 |
-| **OpenAI API** | 없음 (종량제) | GPT-4.1 mini ~5원/건 | 사용량 비례 |
+| **Gemini API** | 무료 티어 넉넉 (15 RPM) | 경량 작업 ~3원/건 | 종량제 |
+| **Groq API** | 무료 티어 (30 RPM) | 경량 작업 ~5원/건 | 종량제 |
+| **OpenAI API** | 없음 (종량제) | 임베딩 전용 ~0.5원/건 | 사용량 비례 |
 | **Anthropic API** | 없음 (종량제) | Claude Sonnet 4.5 ~65원/건 | 사용량 비례 |
 | **DART OpenAPI** | 10,000건/일 | 승인 후 사용 | 무료 |
 | **네이버 API** | 25,000건/일 | Client ID/Secret 필요 | 무료 |
@@ -588,9 +591,9 @@ pnpm run generate:api:ts
 
 | 작업 | 모델 | 건당 비용 | 월간 예상 (10건) |
 |------|------|----------|-----------------|
-| 공고 파싱 | GPT-4.1 mini | ~5원 | ~50원 |
-| 경험 인터뷰 (5턴) | GPT-4.1 mini | ~25원 | ~250원 |
-| 경험 무기 분류 | GPT-4.1 mini | ~5원 | ~50원 |
+| 공고 파싱 | Gemini Flash / Groq Llama | ~3~5원 | ~30~50원 |
+| 경험 인터뷰 (5턴) | Gemini Flash / Groq Llama | ~15~25원 | ~150~250원 |
+| 경험 무기 분류 | Gemini Flash / Groq Llama | ~3~5원 | ~30~50원 |
 | 임베딩 생성 | text-embedding-3-small | ~0.5원 | ~5원 |
 | 기업 종합 분석 | Claude Sonnet 4.5 | ~65원 | ~650원 |
 | 문항 분석 | Claude Sonnet 4.5 | ~65원 | ~650원 |

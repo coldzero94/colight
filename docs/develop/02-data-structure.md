@@ -691,7 +691,7 @@ func (PromptTemplate) Fields() []ent.Field {
 		field.String("model").
 			NotEmpty().
 			MaxLen(50).
-			Comment("AI model: gpt-4.1-mini, claude-sonnet-4-5"),
+			Comment("AI model: gemini-2.0-flash, claude-sonnet-4-5"),
 		field.Float("temperature").
 			Default(0.3).
 			Comment("Model temperature"),
@@ -1521,8 +1521,8 @@ apps/backend/scripts/
 
 | 카테고리 | 서브카테고리 | 이름 | 모델 |
 |----------|-------------|------|------|
-| experience_classify | weapon_tagging | 경험 무기 자동 분류 | gpt-4.1-mini |
-| experience_classify | interview | 경험 AI 인터뷰 | gpt-4.1-mini |
+| experience_classify | weapon_tagging | 경험 무기 자동 분류 | gemini-2.0-flash |
+| experience_classify | interview | 경험 AI 인터뷰 | gemini-2.0-flash |
 | coaching_draft | question_analysis | 자소서 문항 분석 | claude-sonnet-4-5 |
 | coaching_draft | weapon_enhance | 무기별 경험 강화 코칭 | claude-sonnet-4-5 |
 

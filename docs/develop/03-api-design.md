@@ -852,8 +852,8 @@ Base URL: `/v1`
 |------|------|
 | **요청** | Path: `id` |
 | **응답** | `{ data: { primary_weapon, secondary_weapons, star, matchable_questions } }` |
-| **설명** | GPT-4.1 mini로 경험 분석 → 무기 자동 분류 + STAR 추출 |
-| **모델** | GPT-4.1 mini (~5원) |
+| **설명** | 경량 모델 (Gemini/Groq)로 경험 분석 → 무기 자동 분류 + STAR 추출 |
+| **모델** | 경량 모델 (Gemini/Groq) (~3~5원) |
 
 ### 9.3 기업 분석 (Analysis)
 
@@ -870,7 +870,7 @@ Base URL: `/v1`
 | **요청** | `{ url: string }` |
 | **응답** | 스트리밍 (SSE) → `CompanyAnalysisResult` |
 | **설명** | 채용공고 URL → 파싱 → 기업 정보 수집 → AI 종합 분석 |
-| **모델** | GPT-4.1 mini (파싱, ~5원) + Claude Sonnet 4.5 (분석, ~65원) |
+| **모델** | 경량 모델 (Gemini/Groq) (파싱, ~3~5원) + Claude Sonnet 4.5 (분석, ~65원) |
 | **캐시** | company_analysis_cache 7일 TTL |
 
 ### 9.4 AI 코칭 (Coaching)
@@ -921,7 +921,7 @@ Base URL: `/v1`
 | **요청** | `{ company_analysis_id: string, experience_ids?: string[] }` |
 | **응답** | `{ data: { overall_fit, category_scores, experience_matches, recommendations } }` |
 | **설명** | 하이브리드 매칭: 임베딩 유사도(1차 필터) → LLM 정밀 분석(2차) |
-| **모델** | text-embedding-3-small (~0.5원) + GPT-4.1 mini (~5원) |
+| **모델** | text-embedding-3-small (~0.5원) + 경량 모델 (Gemini/Groq) (~3~5원) |
 
 ### 9.6 지원 관리 (Applications)
 

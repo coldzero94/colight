@@ -10,13 +10,22 @@
 
 | 계층 | 모델 | 건당 비용 | 용도 | 선택 기준 |
 |------|------|----------|------|----------|
-| **경량 (Tier 1)** | GPT-4.1 mini | ~5원 | 공고 파싱, 경험 분류, 인터뷰 대화, 2차 매칭 | 빠른 응답(1~3초), 구조화 출력, 비용 최소화 |
+| **경량 (Tier 1)** | Gemini 2.0 Flash / Groq Llama 3.3 70B | ~3~5원 | 공고 파싱, 경험 분류, 인터뷰 대화, 2차 매칭 | 빠른 응답(1~3초), 구조화 출력, 비용 최소화 |
 | **고급 (Tier 2)** | Claude Sonnet 4.5 | ~65원 | 기업 종합 분석, 문항 분석, 초안/첨삭 코칭 | 한국어 분석 품질, 긴 컨텍스트, 심층 추론 |
 | **임베딩** | text-embedding-3-small | ~0.5원 | 경험 벡터화, 유사도 1차 필터링 | 1536차원, 저비용, pgvector 호환 |
 
+### 경량 모델 프로바이더 선택
+
+`LLM_LIGHT_PROVIDER` 환경변수로 경량 모델 프로바이더를 선택합니다:
+
+| 프로바이더 | 모델 | 장점 | 단점 |
+|------------|------|------|------|
+| **gemini** (기본) | Gemini 2.0 Flash | 무료 티어 넉넉, 구조화 출력 우수 | Google AI Studio 계정 필요 |
+| **groq** | Llama 3.3 70B | 초고속 응답(\~0.5초), 무료 티어 관대 | 모델 품질 Gemini 대비 약간 하위 |
+
 ### 비용 최적화 원칙
 
-1. **구조화 작업은 GPT-4.1 mini**: JSON 변환, 분류, 키워드 추출
+1. **구조화 작업은 경량 모델 (Gemini/Groq)**: JSON 변환, 분류, 키워드 추출
 2. **분석/코칭은 Claude Sonnet 4.5**: 맥락 이해, 한국어 품질이 중요한 작업
 3. **대량 비교는 임베딩 우선**: 유사도 필터링 후 LLM 정밀 분석
 4. **캐싱으로 중복 호출 방지**: 기업 분석 7일 TTL
@@ -27,36 +36,102 @@
 
 **AI 호출은 Go 백엔드에서 처리**합니다. 프론트엔드는 Go API를 통해 간접 호출만 합니다.
 
+### 2.1 공통 LLM 인터페이스
+
+경량 모델을 Gemini/Groq 중 환경변수로 선택할 수 있도록 공통 인터페이스를 사용합니다.
+
+```go
+// apps/backend/internal/infrastructure/ai/llm.go
+package ai
+
+// LLMProvider — 경량 모델 공통 인터페이스
+type LLMProvider interface {
+    // Call sends a prompt and returns the response text
+    Call(ctx context.Context, req LLMRequest) (LLMResponse, error)
+}
+
+type LLMRequest struct {
+    SystemPrompt string
+    UserPrompt   string
+    Temperature  float64
+    MaxTokens    int
+    JSONMode     bool // structured output
+}
+
+type LLMResponse struct {
+    Content      string
+    InputTokens  int
+    OutputTokens int
+    Model        string
+}
+```
+
+### 2.2 프로바이더 구현
+
+```go
+// apps/backend/internal/infrastructure/ai/gemini.go
+type GeminiProvider struct {
+    client *genai.Client
+    model  string // "gemini-2.0-flash"
+}
+
+func NewGeminiProvider(apiKey string) (*GeminiProvider, error) {
+    client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
+    return &GeminiProvider{client: client, model: "gemini-2.0-flash"}, err
+}
+
+func (g *GeminiProvider) Call(ctx context.Context, req LLMRequest) (LLMResponse, error) {
+    // Google AI SDK 호출
+}
+```
+
+```go
+// apps/backend/internal/infrastructure/ai/groq.go
+type GroqProvider struct {
+    client *http.Client
+    apiKey string
+    model  string // "llama-3.3-70b-versatile"
+}
+
+func NewGroqProvider(apiKey string) *GroqProvider {
+    return &GroqProvider{apiKey: apiKey, model: "llama-3.3-70b-versatile"}
+}
+
+func (g *GroqProvider) Call(ctx context.Context, req LLMRequest) (LLMResponse, error) {
+    // Groq REST API 호출 (OpenAI-compatible)
+}
+```
+
+### 2.3 AIProvider (통합)
+
 ```go
 // apps/backend/internal/infrastructure/ai/provider.go
 package ai
 
-import (
-    "github.com/openai/openai-go"
-    "github.com/anthropics/anthropic-sdk-go"
-)
-
 type AIProvider struct {
-    openaiClient    *openai.Client
-    anthropicClient *anthropic.Client
+    light           LLMProvider       // Gemini or Groq (configurable)
+    anthropicClient *anthropic.Client // Claude (heavy)
 }
 
-func NewAIProvider(openaiKey, anthropicKey string) *AIProvider {
-    return &AIProvider{
-        openaiClient:    openai.NewClient(openaiKey),
-        anthropicClient: anthropic.NewClient(anthropicKey),
+func NewAIProvider(cfg AIConfig) (*AIProvider, error) {
+    // 경량 프로바이더 선택 (LLM_LIGHT_PROVIDER 환경변수)
+    var light LLMProvider
+    switch cfg.LightProvider {
+    case "groq":
+        light = NewGroqProvider(cfg.GroqAPIKey)
+    default: // "gemini"
+        light, _ = NewGeminiProvider(cfg.GeminiAPIKey)
     }
+
+    return &AIProvider{
+        light:           light,
+        anthropicClient: anthropic.NewClient(cfg.AnthropicAPIKey),
+    }, nil
 }
 
-// 경량 작업용 (GPT-4.1 mini)
-func (p *AIProvider) CallLight(ctx context.Context, prompt string) (string, error) {
-    resp, err := p.openaiClient.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-        Model: "gpt-4.1-mini",
-        Messages: []openai.ChatCompletionMessage{
-            {Role: "user", Content: prompt},
-        },
-    })
-    return resp.Choices[0].Message.Content, err
+// 경량 작업용 (Gemini Flash / Groq Llama)
+func (p *AIProvider) CallLight(ctx context.Context, req LLMRequest) (LLMResponse, error) {
+    return p.light.Call(ctx, req)
 }
 
 // 고급 분석용 (Claude Sonnet 4.5)
@@ -175,7 +250,7 @@ export function substituteVariables(
 [변수 치환] ← {{experience_text}}, {{weapon_categories}}
     │
     ▼
-[GPT-4.1 mini 호출] ← temperature: 0.2, max_tokens: 1500
+[경량 모델 호출 (Gemini/Groq)] ← temperature: 0.2, max_tokens: 1500
     │
     ▼
 [JSON 파싱]
@@ -192,8 +267,8 @@ export function substituteVariables(
     └── experience_tags (키워드, STAR)
 ```
 
-- **모델**: GPT-4.1 mini
-- **비용**: ~5원/건
+- **모델**: Gemini 2.0 Flash / Groq Llama 3.3 (LLM_LIGHT_PROVIDER)
+- **비용**: ~3~5원/건
 - **응답 시간**: 1~3초
 
 ---
@@ -218,7 +293,7 @@ export function substituteVariables(
 [HTML → 텍스트 추출] (구조화 전 원문)
     │
     ▼
-[GPT-4.1 mini 호출] ← 공고 구조화 프롬프트
+[경량 모델 호출 (Gemini/Groq)] ← 공고 구조화 프롬프트
     │
     ▼
 [JSON 출력]
@@ -236,8 +311,8 @@ export function substituteVariables(
     └── deadline: string
 ```
 
-- **모델**: GPT-4.1 mini
-- **비용**: ~5원/건
+- **모델**: Gemini 2.0 Flash / Groq Llama 3.3 (LLM_LIGHT_PROVIDER)
+- **비용**: ~3~5원/건
 - **응답 시간**: 2~5초 (크롤링 포함)
 
 ---
@@ -298,7 +373,7 @@ export function substituteVariables(
     │
     ▼
 [2차: LLM 정밀 매칭]
-    │ 선별된 경험 × 기업 요구사항 → GPT-4.1 mini
+    │ 선별된 경험 × 기업 요구사항 → 경량 모델 (Gemini/Groq)
     │
     ▼
 [매칭 결과]
@@ -316,8 +391,8 @@ export function substituteVariables(
     └── recommendations: string[]   ← 보완 제안
 ```
 
-- **모델**: text-embedding-3-small (~0.5원) + GPT-4.1 mini (~5원)
-- **총 비용**: ~5.5원/건
+- **모델**: text-embedding-3-small (~0.5원) + 경량 모델 (~3~5원)
+- **총 비용**: ~3.5~5.5원/건
 - **응답 시간**: 2~5초
 
 ---
@@ -480,7 +555,8 @@ func (s *CoachingService) GenerateDraft(ctx context.Context, req DraftRequest) (
 ```typescript
 function calculateCost(model: string, usage: { promptTokens: number; completionTokens: number }): number {
   const rates: Record<string, { input: number; output: number }> = {
-    'gpt-4.1-mini':       { input: 0.00056, output: 0.00224 }, // 원/1K tokens
+    'gemini-2.0-flash':   { input: 0.0001,  output: 0.0004 },  // 원/1K tokens
+    'llama-3.3-70b':      { input: 0.00084, output: 0.00084 }, // 원/1K tokens (Groq)
     'claude-sonnet-4-5':  { input: 0.042,   output: 0.21 },    // 원/1K tokens
     'text-embedding-3-small': { input: 0.000028, output: 0 },
   };
@@ -553,13 +629,13 @@ async function getCachedOrFetch<T>(
 ┌─────────────────────────────────────────────────┐
 │  1건 자소서 완성 파이프라인 총 비용              │
 │                                                 │
-│  공고 파싱 (GPT-4.1 mini)     :     ~5원        │
+│  공고 파싱 (Gemini/Groq)      :   ~3~5원        │
 │  기업 종합 분석 (Claude)      :    ~65원        │
-│  경험 매칭 (임베딩+GPT)       :   ~5.5원        │
+│  경험 매칭 (임베딩+Gemini)    : ~3.5~5.5원      │
 │  문항 분석 (Claude)           :    ~65원        │
 │  초안 코칭 (Claude)           :    ~65원        │
 │  ──────────────────────────────────────         │
-│  합계                         : ~205.5원        │
+│  합계                         : ~201~206원      │
 │                                                 │
 │  ※ 첨삭 코칭 추가 시: +~65원                    │
 │  ※ 캐시 HIT 시 기업 분석 0원                    │

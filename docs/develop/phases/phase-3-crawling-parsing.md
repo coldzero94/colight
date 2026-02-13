@@ -26,7 +26,7 @@
 | 3.1 | URL 입력 컴포넌트 | ⬜ |
 | 3.2 | Cheerio 파서 — 잡코리아 | ⬜ |
 | 3.3 | Cheerio 파서 — 캐치 | ⬜ |
-| 3.4 | AI 구조화 (GPT-4.1 mini) | ⬜ |
+| 3.4 | AI 구조화 (경량 모델) | ⬜ |
 | 3.5 | URL 도메인 라우터 API | ⬜ |
 
 ---
@@ -285,11 +285,11 @@ function normalizeDate(dateStr: string): string | undefined;
 
 ---
 
-## Step 3.4: AI 구조화 (GPT-4.1 mini)
+## Step 3.4: AI 구조화 (경량 모델)
 
 ### 목표
 
-파서가 추출한 비정형 `RawJobPosting` 데이터를 GPT-4.1 mini로 정규화하여, 타입 안전한 `JobPosting` 구조로 변환한다. 미지원 사이트의 경우 raw HTML을 직접 LLM에 전달하여 구조화한다.
+파서가 추출한 비정형 `RawJobPosting` 데이터를 경량 모델 (Gemini/Groq)로 정규화하여, 타입 안전한 `JobPosting` 구조로 변환한다. 미지원 사이트의 경우 raw HTML을 직접 LLM에 전달하여 구조화한다.
 
 ### 테스트 명세
 
@@ -317,7 +317,7 @@ function normalizeDate(dateStr: string): string | undefined;
 - [ ] 구현 (GREEN)
   - [ ] `JobPosting` Zod 스키마 정의
   - [ ] AI 정규화 프롬프트 작성 (`prompt_templates` 테이블에 저장)
-  - [ ] `normalizeJobPosting()` 함수 구현 (OpenAI GPT-4.1 mini 호출)
+  - [ ] `normalizeJobPosting()` 함수 구현 (경량 LLM 호출, 공통 인터페이스)
   - [ ] AI fallback 파서 구현 (raw HTML → `JobPosting`)
   - [ ] 응답 Zod 검증 + 실패 시 재시도 (최대 1회)
   - [ ] 비용 추적 로깅
@@ -334,7 +334,7 @@ VALUES (
   1,
   '당신은 채용공고 데이터를 정확하게 구조화하는 전문가입니다. 주어진 비정형 데이터를 정해진 JSON 스키마에 맞게 정규화하세요.',
   '다음 채용공고 데이터를 구조화된 JSON으로 변환해주세요.\n\n{{rawData}}\n\n반드시 아래 스키마를 따르세요:\n{{schema}}',
-  'gpt-4.1-mini',
+  'gemini-2.0-flash',
   0.1,
   2000
 );
@@ -346,7 +346,7 @@ VALUES (
   1,
   '당신은 채용공고 웹페이지에서 핵심 정보를 추출하는 전문가입니다. HTML에서 채용공고 관련 정보만 정확하게 추출하세요.',
   '다음 HTML에서 채용공고 정보를 추출하여 JSON으로 구조화해주세요.\n\n{{html}}\n\n반드시 아래 스키마를 따르세요:\n{{schema}}',
-  'gpt-4.1-mini',
+  'gemini-2.0-flash',
   0.1,
   2000
 );
@@ -385,7 +385,7 @@ export type JobPosting = z.infer<typeof JobPostingSchema>;
 
 ```typescript
 // src/lib/crawling/ai-normalizer.ts
-import OpenAI from 'openai';
+// LLM_LIGHT_PROVIDER 환경변수로 gemini 또는 groq 선택 (공통 인터페이스)
 
 interface NormalizeOptions {
   raw: RawJobPosting;
@@ -393,7 +393,7 @@ interface NormalizeOptions {
 }
 
 /**
- * RawJobPosting → JobPosting (GPT-4.1 mini)
+ * RawJobPosting → JobPosting (경량 모델 Gemini/Groq)
  * - 비정형 텍스트를 배열/구조화 데이터로 변환
  * - 스킬 분류 (required vs soft)
  * - 기업 가치 힌트 추출
@@ -411,10 +411,10 @@ async function parseHtmlWithAI(html: string, url: string): Promise<JobPosting>;
 
 ### 비용 관리
 
-- GPT-4.1 mini 사용: 건당 약 5원
+- 경량 모델 (Gemini/Groq) 사용: 건당 약 3~5원
 - 입력 토큰: ~1000 (RawJobPosting 데이터)
 - 출력 토큰: ~500 (구조화된 JSON)
-- AI fallback (HTML 직접 파싱): 입력 토큰 ~4000, 건당 약 15원
+- AI fallback (HTML 직접 파싱): 입력 토큰 ~4000, 건당 약 10~15원
 
 ### 산출물
 

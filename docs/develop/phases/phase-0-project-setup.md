@@ -193,7 +193,7 @@ Go 모듈을 초기화하고, Gin + Ent + oapi-codegen 등 핵심 패키지를 �
   - [ ] JWT: `go get github.com/golang-jwt/jwt/v5`
   - [ ] UUID: `go get github.com/google/uuid`
   - [ ] AI (Anthropic): `go get github.com/anthropics/anthropic-sdk-go`
-  - [ ] AI (OpenAI): `go get github.com/openai/openai-go`
+  - [ ] AI (경량 LLM 공통 인터페이스): Gemini SDK / Groq SDK (`LLM_LIGHT_PROVIDER` 환경변수로 선택)
   - [ ] pgvector: `go get github.com/pgvector/pgvector-go`
   - [ ] 로깅: `log/slog` (표준 라이브러리)
 - [ ] 디렉토리 구조 생성
@@ -844,8 +844,8 @@ Next.js 15 프론트엔드 프로젝트를 생성하고, Go 백엔드 API를 호
   - [ ] W01~W07 대분류 7건 (code, name, description, keywords, question_patterns, display_order, icon, color)
   - [ ] W01-A~W01-D, W02-A~W02-D, ..., W07-A~W07-D 소분류 28건 (parent_code 연결)
 - [ ] prompt_templates 삽입 (4건)
-  - [ ] 경험 무기 자동 분류 (`experience_classify` / `weapon_tagging`, model: `gpt-4.1-mini`)
-  - [ ] 경험 인터뷰 (`experience_classify` / `interview`, model: `gpt-4.1-mini`)
+  - [ ] 경험 무기 자동 분류 (`experience_classify` / `weapon_tagging`, model: `gemini-2.0-flash`)
+  - [ ] 경험 인터뷰 (`experience_classify` / `interview`, model: `gemini-2.0-flash`)
   - [ ] 자소서 문항 분석 (`coaching_draft` / `question_analysis`, model: `claude-sonnet-4-5`)
   - [ ] 무기별 경험 강화 코칭 (`coaching_draft` / `weapon_enhance`, model: `claude-sonnet-4-5`)
 - [ ] question_patterns 삽입 (7건)
@@ -878,8 +878,8 @@ Next.js 15 프론트엔드 프로젝트를 생성하고, Go 백엔드 API를 호
 
 | category | sub_category | name | model |
 |----------|-------------|------|-------|
-| experience_classify | weapon_tagging | 경험 무기 자동 분류 | gpt-4.1-mini |
-| experience_classify | interview | 경험 인터뷰 (대화형) | gpt-4.1-mini |
+| experience_classify | weapon_tagging | 경험 무기 자동 분류 | gemini-2.0-flash |
+| experience_classify | interview | 경험 인터뷰 (대화형) | gemini-2.0-flash |
 | coaching_draft | question_analysis | 자소서 문항 분석 | claude-sonnet-4-5 |
 | coaching_draft | weapon_enhance | 무기별 경험 강화 코칭 | claude-sonnet-4-5 |
 

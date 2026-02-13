@@ -62,7 +62,7 @@
 | 제공사 | 모델 | 용도 | 데이터 학습 여부 | 데이터 보관 | 확인 사항 |
 |--------|------|------|----------------|-----------|----------|
 | **Anthropic** | Claude Sonnet 4.5 | 기업 분석, 문항 분석, 초안/첨삭 코칭 | API를 통한 입출력 데이터 학습에 미사용 | 30일 보관 후 삭제 (API Terms) | 최신 API Terms 확인 필요 |
-| **OpenAI** | GPT-4.1 mini | 공고 파싱, 무기 태깅, AI 인터뷰 | API 사용 시 기본 opt-out | 30일 보관 후 삭제 | Zero data retention 옵션 검토 |
+| **Google / Groq** | Gemini Flash / Groq Llama | 공고 파싱, 무기 태깅, AI 인터뷰 | API 사용 시 기본 opt-out (Google AI Studio: 학습 미사용, Groq: 학습 미사용) | 30일 보관 후 삭제 | 각 제공사 최신 API Terms 확인 필요 |
 | **OpenAI** | text-embedding-3-small | 경험 임베딩 생성 | API 사용 시 기본 opt-out | 30일 보관 후 삭제 | 동일 |
 
 ### AI 전송 데이터 최소화 원칙
@@ -92,7 +92,7 @@ AI 코칭 기능 최초 사용 시 동의 화면:
 │ AI 코칭 서비스 안내                                │
 │                                                   │
 │ Colight는 AI 코칭을 위해 다음 데이터를 AI          │
-│ (Claude, GPT)에 전송합니다:                        │
+│ (Claude, Gemini, Groq)에 전송합니다:                │
 │                                                   │
 │  - 등록하신 경험 내용                              │
 │  - 자소서 문항 및 답변                             │
@@ -220,7 +220,7 @@ AI 코칭 기능 최초 사용 시 동의 화면:
 
 | 항목 | 내용 |
 |------|------|
-| 개인정보 처리 위탁 계약 | Anthropic, OpenAI와의 DPA (Data Processing Agreement) 확인 |
+| 개인정보 처리 위탁 계약 | Anthropic, Google, Groq, OpenAI(임베딩)와의 DPA (Data Processing Agreement) 확인 |
 | 국외 이전 동의 | AI API 서버(미국)로 데이터 전송 시 사전 동의 필요 |
 | 14세 미만 이용 | 원칙적으로 14세 미만 가입 불가 (법정 대리인 동의 불필요하도록) |
 | 마케팅 수신 동의 | 가입 시 선택적 동의, 이메일/인앱 알림 별도 관리 |

@@ -9,7 +9,7 @@
 | **목표** | AI와 대화하며 경험을 발굴하고 STAR 구조 경험 카드를 자동 생성 |
 | **선행 조건** | Phase 2 (경험 CRUD), Phase 2.1 (무기 태깅) |
 | **주요 산출물** | 인터뷰 채팅 UI, 인터뷰 API (스트리밍), 경험 카드 자동 생성 |
-| **기술 스택** | GPT-4.1 mini, Vercel AI SDK streamText, React Query |
+| **기술 스택** | 경량 모델 (Gemini/Groq), Vercel AI SDK streamText, React Query |
 
 ---
 
@@ -76,7 +76,7 @@
   - [ ] `internal/service/interview_service_test.go` 작성
   - [ ] `internal/controller/interview_controller_test.go` 작성
 - [ ] 구현 (GREEN)
-  - [ ] GPT-4.1 mini 기반 멀티턴 대화형 API
+  - [ ] 경량 모델 (Gemini/Groq) 기반 멀티턴 대화형 API
   - [ ] prompt_templates에서 인터뷰 프롬프트 로드
   - [ ] 인터뷰 단계 관리:
     1. **가볍게** -- 최근 활동, 관심사 탐색

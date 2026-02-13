@@ -27,7 +27,7 @@
 ## Step 2.1.1: AI 태깅 API
 
 ### 목표
-경험 텍스트를 GPT-4.1 mini로 분석하여 무기 카테고리를 자동 분류하는 Go backend API를 구현한다. 프롬프트는 DB에서 동적으로 로드한다.
+경험 텍스트를 경량 모델 (Gemini/Groq)로 분석하여 무기 카테고리를 자동 분류하는 Go backend API를 구현한다. 프롬프트는 DB에서 동적으로 로드한다.
 
 ### 테스트 명세
 
@@ -37,7 +37,7 @@
 
 | 테스트 파일 | 테스트 함수 | 설명 |
 |------------|-----------|------|
-| `internal/service/weapon_tagging_service_test.go` | `TestTagExperience_Success` | MockAIClient로 GPT-4.1 mini 응답 모킹, 주 무기 + 부 무기 분류 결과 파싱 확인 |
+| `internal/service/weapon_tagging_service_test.go` | `TestTagExperience_Success` | MockAIClient로 경량 LLM 응답 모킹, 주 무기 + 부 무기 분류 결과 파싱 확인 |
 | `internal/service/weapon_tagging_service_test.go` | `TestTagExperience_ParseAIResponse` | `testdata/ai/weapon_tagging_response.json` fixture 로드 후 JSON 파싱 + 구조 검증 |
 | `internal/service/weapon_tagging_service_test.go` | `TestTagExperience_ConfidenceSorting` | confidence 기준 내림차순 정렬 확인 (가장 높은 confidence가 primary) |
 | `internal/service/weapon_tagging_service_test.go` | `TestTagExperience_InvalidWeaponCode` | AI가 존재하지 않는 weapon_code 반환 시 에러 처리 |
@@ -72,8 +72,8 @@
     - [ ] STAR 필드를 하나의 텍스트로 조합
     - [ ] raw_content가 있으면 함께 포함
     - [ ] 프롬프트 변수 `{{experience_text}}`에 주입
-  - [ ] GPT-4.1 mini 호출
-    - [ ] OpenAI API 호출 (`gpt-4.1-mini`)
+  - [ ] 경량 모델 (Gemini/Groq) 호출
+    - [ ] 경량 LLM 호출 (공통 인터페이스)
     - [ ] temperature: 0.2 (DB에서 로드)
     - [ ] max_tokens: 2000 (DB에서 로드)
     - [ ] JSON mode 활성화 (`response_format: { type: "json_object" }`)
@@ -96,7 +96,7 @@
     - [ ] `prompt_templates.usage_count` 증가
     - [ ] `avg_latency_ms` 업데이트 (응답 시간 측정)
   - [ ] 에러 핸들링
-    - [ ] OpenAI API 에러 → 500 + 에러 메시지
+    - [ ] LLM API 에러 → 500 + 에러 메시지
     - [ ] JSON 파싱 실패 → 재시도 1회 후 실패 응답
     - [ ] Rate limit → 429 반환
     - [ ] 경험이 너무 짧은 경우 (50자 미만) → 400 + 안내 메시지
@@ -339,7 +339,7 @@
 ## Phase 완료 체크리스트
 
 ### 기능
-- [ ] AI 태깅 API: 경험 → GPT-4.1 mini → 무기 분류 정상 동작
+- [ ] AI 태깅 API: 경험 → 경량 모델 (Gemini/Groq) → 무기 분류 정상 동작
 - [ ] 프롬프트 DB에서 동적 로드 (하드코딩 아님)
 - [ ] 경험 등록 후 자동 태깅 트리거 → 3~5초 후 결과 표시
 - [ ] 경험 수정 후 재태깅 (STAR 변경 시에만)
@@ -358,7 +358,7 @@
 ### 코드 품질
 - [ ] TypeScript strict mode 에러 0건
 - [ ] ESLint 경고/에러 0건
-- [ ] OpenAI API 에러 핸들링 (타임아웃, rate limit, 파싱 에러)
+- [ ] LLM API 에러 핸들링 (타임아웃, rate limit, 파싱 에러)
 - [ ] AI 응답 Zod 스키마 검증
 - [ ] 프롬프트 인젝션 방지: 사용자 입력 텍스트 이스케이프
 - [ ] API 키 환경변수 검증 (없으면 명확한 에러 메시지)

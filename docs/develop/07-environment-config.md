@@ -11,7 +11,10 @@
 | `NEXT_PUBLIC_SUPABASE_URL` | [supabase.com](https://supabase.com) | 무료 | Phase 0 | Supabase 프로젝트 URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | [supabase.com](https://supabase.com) | 무료 | Phase 0 | Supabase 익명 키 (클라이언트용) |
 | `SUPABASE_SERVICE_ROLE_KEY` | [supabase.com](https://supabase.com) | 무료 | Phase 0 | Supabase 서비스 역할 키 (서버용, RLS 우회) |
-| `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com) | 종량제 | Phase 2.1 | GPT-4.1 mini, 임베딩 |
+| `LLM_LIGHT_PROVIDER` | - | - | Phase 2.1 | 경량 모델 프로바이더 선택 (`gemini` 또는 `groq`, 기본: `gemini`) |
+| `GEMINI_API_KEY` | [aistudio.google.com](https://aistudio.google.com) | 무료 티어 | Phase 2.1 | Gemini 2.0 Flash (경량 작업) |
+| `GROQ_API_KEY` | [console.groq.com](https://console.groq.com) | 무료 티어 | Phase 2.1 | Groq Llama 3.3 (경량 작업, `groq` 선택 시) |
+| `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com) | 종량제 | Phase 2.1 | text-embedding-3-small (임베딩 전용) |
 | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) | 종량제 | Phase 3.2 | Claude Sonnet 4.5 |
 | `DART_API_KEY` | [opendart.fss.or.kr](https://opendart.fss.or.kr) | 무료 | Phase 3.1 | DART OpenAPI (기업 재무정보) |
 | `NAVER_CLIENT_ID` | [developers.naver.com](https://developers.naver.com) | 무료 | Phase 3.1 | 네이버 검색 API |
@@ -36,7 +39,19 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# --- OpenAI (Phase 2.1) ---
+# --- 경량 모델 프로바이더 (Phase 2.1) ---
+# "gemini" (기본) 또는 "groq"
+LLM_LIGHT_PROVIDER=gemini
+
+# --- Gemini (Phase 2.1) ---
+# https://aistudio.google.com/apikey
+GEMINI_API_KEY=your-gemini-key
+
+# --- Groq (Phase 2.1, groq 선택 시) ---
+# https://console.groq.com/keys
+GROQ_API_KEY=your-groq-key
+
+# --- OpenAI (Phase 2.1, 임베딩 전용) ---
 # https://platform.openai.com/api-keys
 OPENAI_API_KEY=sk-...
 
@@ -81,8 +96,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY   → 브라우저에서 인증 요청 (RLS로 보
 
 ```
 SUPABASE_SERVICE_ROLE_KEY       → RLS 우회, 관리 작업용
-OPENAI_API_KEY                  → AI API 호출
-ANTHROPIC_API_KEY               → AI API 호출
+LLM_LIGHT_PROVIDER              → 경량 모델 프로바이더 선택
+GEMINI_API_KEY                  → Gemini Flash 호출
+GROQ_API_KEY                    → Groq Llama 호출
+OPENAI_API_KEY                  → 임베딩 API 호출
+ANTHROPIC_API_KEY               → Claude API 호출
 DART_API_KEY                    → 기업 데이터 조회
 NAVER_CLIENT_ID                 → 뉴스 검색
 NAVER_CLIENT_SECRET             → 뉴스 검색
@@ -177,7 +195,9 @@ Phase 0   프로젝트 셋업
           └── SUPABASE_SERVICE_ROLE_KEY
 
 Phase 2.1 무기 자동 태깅
-          └── OPENAI_API_KEY
+          ├── LLM_LIGHT_PROVIDER
+          ├── GEMINI_API_KEY (또는 GROQ_API_KEY)
+          └── OPENAI_API_KEY (임베딩)
 
 Phase 3.1 기업 데이터 API
           ├── DART_API_KEY
@@ -217,7 +237,10 @@ export const SUPABASE_ANON_KEY = requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
 export const SUPABASE_SERVICE_ROLE_KEY = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
 
 // Phase 2.1+ (사용 시점에 검증)
-export const getOpenAIKey = () => requireEnv('OPENAI_API_KEY');
+export const getLightProvider = () => process.env.LLM_LIGHT_PROVIDER || 'gemini';
+export const getGeminiKey = () => requireEnv('GEMINI_API_KEY');
+export const getGroqKey = () => requireEnv('GROQ_API_KEY');
+export const getOpenAIKey = () => requireEnv('OPENAI_API_KEY'); // 임베딩 전용
 export const getAnthropicKey = () => requireEnv('ANTHROPIC_API_KEY');
 export const getDartKey = () => requireEnv('DART_API_KEY');
 export const getNaverCredentials = () => ({

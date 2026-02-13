@@ -186,7 +186,7 @@ import (
 type UsageLog struct {
     TraceID       string        `json:"trace_id"`
     UserID        string        `json:"user_id"`
-    Model         string        `json:"model"`         // "claude-sonnet-4-5", "gpt-4.1-mini"
+    Model         string        `json:"model"`         // "claude-sonnet-4-5", "gemini-2.0-flash"
     Purpose       string        `json:"purpose"`       // "company_analysis", "draft_coaching", etc.
     InputTokens   int           `json:"input_tokens"`
     OutputTokens  int           `json:"output_tokens"`
@@ -229,9 +229,9 @@ func EstimateCost(model string, inputTokens, outputTokens int) float64 {
     case "claude-sonnet-4-5":
         inputPricePerMToken = 3.0   // $3/1M input tokens
         outputPricePerMToken = 15.0 // $15/1M output tokens
-    case "gpt-4.1-mini":
-        inputPricePerMToken = 0.4   // $0.4/1M input tokens
-        outputPricePerMToken = 1.6  // $1.6/1M output tokens
+    case "gemini-2.0-flash":
+        inputPricePerMToken = 0.1   // $0.1/1M input tokens
+        outputPricePerMToken = 0.4  // $0.4/1M output tokens
     case "text-embedding-3-small":
         inputPricePerMToken = 0.02  // $0.02/1M tokens
         outputPricePerMToken = 0.0
@@ -489,7 +489,7 @@ Sentry Alert Rules:
 | **목록 조회** (검색, 필터) | < 200ms | < 500ms | 페이지네이션 필수 |
 | **외부 API** (DART, 네이버) | < 1s | < 3s | 캐시 적용 시 < 100ms |
 | **AI 분석** (Claude) | < 10s | < 30s | 스트리밍 응답 |
-| **AI 경량** (GPT-4.1 mini) | < 3s | < 8s | 태깅, 파싱 |
+| **AI 경량** (Gemini/Groq) | < 3s | < 8s | 태깅, 파싱 |
 | **임베딩 생성** | < 1s | < 3s | 배치 처리 가능 |
 
 ### Koyeb 리소스 모니터링

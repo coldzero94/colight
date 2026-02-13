@@ -70,15 +70,15 @@
 | 자동 재시도 실패 | 3회 실패 후 | 수동 재시도 + 캐시 제공 | "잠시 후 다시 시도해주세요" + 이전 분석 결과 캐시 제공 |
 | Rate Limit (429) | 즉시 | 큐잉 처리 | "대기 중입니다 (예상 대기 시간: ~30초)" |
 
-### OpenAI API 장애 (GPT-4.1 mini)
+### 경량 모델 장애 (Gemini Flash / Groq Llama)
 
 ```
-[GPT-4.1 mini 장애 감지]
+[경량 모델 (Gemini/Groq) 장애 감지]
     │
-    ├── 공고 파싱 → Claude Haiku 폴백 (비용 증가 ~5배, 기능 유지)
-    ├── 무기 태깅 → Claude Haiku 폴백
+    ├── 공고 파싱 → 다른 경량 모델 폴백 (Gemini↔Groq 교차) → Claude Haiku 최종 폴백
+    ├── 무기 태깅 → 다른 경량 모델 폴백 (Gemini↔Groq 교차) → Claude Haiku 최종 폴백
     ├── 임베딩 생성 → 키워드 기반 매칭으로 폴백 (품질 저하 감수)
-    └── AI 인터뷰 → Claude Haiku 폴백
+    └── AI 인터뷰 → 다른 경량 모델 폴백 (Gemini↔Groq 교차) → Claude Haiku 최종 폴백
 ```
 
 > **폴백 전략 원칙**: 비용이 증가하더라도 기능 중단보다는 폴백 우선. 폴백 발생 시 Slack 알림으로 모니터링.

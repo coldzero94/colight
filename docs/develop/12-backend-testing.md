@@ -204,7 +204,7 @@ func TestWeaponTagging_Success(t *testing.T) {
     svc := NewWeaponTaggingService(mockAI)
 
     mockAI.On("ChatCompletion", mock.Anything, mock.MatchedBy(func(req ai.ChatRequest) bool {
-        return req.Model == "gpt-4.1-mini"
+        return req.Model == "gemini-2.0-flash"
     })).Return(&ai.ChatResponse{
         Content: `{"weapons": [{"code": "W01", "confidence": 0.85}, {"code": "W03", "confidence": 0.72}]}`,
         InputTokens:  500,

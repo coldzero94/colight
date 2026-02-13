@@ -301,7 +301,7 @@ func TestAdminController_ListPrompts_FilterByCategory(t *testing.T) {
 	db.PromptTemplate.Create().
 		SetCategory("analysis").SetSubCategory("company").
 		SetName("P2").SetSystemPrompt("sys").SetUserPromptTemplate("usr").
-		SetModel("gpt-4.1-mini").SaveX(t.Context())
+		SetModel("gemini-2.0-flash").SaveX(t.Context())
 
 	r := gin.New()
 	r.GET("/v1/admin/prompts", ctrl.ListPrompts)

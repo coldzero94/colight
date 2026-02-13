@@ -107,7 +107,7 @@
 | 1-1 | 경험 등록 폼 UI (제목, 기간, 상황/과제/행동/결과 STAR 입력) | 1.5일 | F01 | - | Sprint 0 |
 | 1-2 | 경험 CRUD API (Server Actions 또는 API Routes) | 1일 | F01 | 1-1과 병렬 | Sprint 0 |
 | 1-3 | 경험 목록/상세 페이지 UI | 1일 | F01 | 1-1과 순차 | 1-1 |
-| 1-4 | AI 역량 태깅 구현 (GPT-4.1 mini, 경험 텍스트 → 역량 키워드 추출) | 1일 | F03 | 1-2와 병렬 | Sprint 0 |
+| 1-4 | AI 역량 태깅 구현 (Gemini Flash / Groq Llama, 경험 텍스트 → 역량 키워드 추출) | 1일 | F03 | 1-2와 병렬 | Sprint 0 |
 | 1-5 | 태그 UI (경험 카드에 태그 표시 + 수동 편집) | 0.5일 | F03 | 1-3, 1-4 이후 | 1-3, 1-4 |
 
 **병렬 작업 그룹**:
@@ -116,7 +116,7 @@
 - 1-5는 A, B 합류 지점
 
 **기술 포인트**:
-- AI 태깅: GPT-4.1 mini로 비용 최소화 (~5원/건)
+- AI 태깅: 경량 모델 (Gemini/Groq)로 비용 최소화 (~3~5원/건)
 - F24 무기 카테고리 마스터를 참조하여 일관된 태깅 체계 유지
 - 프롬프트: F23 프롬프트 DB에서 태깅 프롬프트 로드
 
@@ -170,7 +170,7 @@
 
 **기술 포인트**:
 - MVP에서는 LLM 직접 매칭만 구현 (임베딩은 Phase 2)
-- GPT-4.1 mini로 비용 최소화 (~5원/매칭)
+- 경량 모델 (Gemini/Groq)로 비용 최소화 (~3~5원/매칭)
 - 경험 수가 적은 MVP 단계에서는 LLM 매칭으로 충분
 
 **마일스톤**: 경험 3개 등록 + 공고 분석 → 경험별 적합도 점수(%) + 매칭 근거 확인
@@ -371,7 +371,7 @@
 | **영향 범위** | 서비스 운영비 전체 |
 | **대응 시점** | Sprint 0부터 상시 |
 | **대응 방안** | |
-| 1차 | 모델 티어링: 단순 작업은 GPT-4.1 mini (~5원), 복잡 분석은 Claude Sonnet (~65원) |
+| 1차 | 모델 티어링: 단순 작업은 경량 모델 (Gemini/Groq) (~3~5원), 복잡 분석은 Claude Sonnet (~65원) |
 | 2차 | 결과 캐싱 적극 활용 (기업 분석, 매칭 결과) |
 | 3차 | 일일 사용량 캡 (무료 사용자: 분석 1회/일, 코칭 1회/일) |
 | 4차 | Freemium 제한으로 무료 사용자 API 비용 통제 |
@@ -433,9 +433,10 @@
 ### 배포
 
 - [ ] Production 브랜치 보호 설정
-- [ ] 환경변수 Production 세팅 완료 (7개 API 키)
-  - OpenAI API Key
+- [ ] 환경변수 Production 세팅 완료 (8개 API 키)
   - Anthropic API Key
+  - Google AI API Key
+  - Groq API Key
   - DART API Key
   - 네이버 Client ID + Secret
   - 사람인 Access Key (Phase 2)
@@ -479,12 +480,13 @@ Sprint 0 (인프라)
 
 | API | 발급 소요 | 확보 시점 | 비고 |
 |-----|----------|----------|------|
-| OpenAI | 즉시 | Sprint 0 | 결제 수단 등록 필요 |
 | Anthropic | 즉시 | Sprint 0 | 결제 수단 등록 필요 |
+| Google AI (Gemini) | 즉시 | Sprint 0 | Google AI Studio에서 발급 |
+| Groq | 즉시 | Sprint 0 | console.groq.com에서 발급 |
 | DART OpenAPI | 이메일 인증 후 즉시 | Sprint 0 | 무료 |
 | 네이버 개발자센터 | 즉시 | Sprint 0 | 무료, Client ID/Secret |
 | Supabase | 즉시 | Sprint 0 | 프로젝트 생성 시 자동 |
 | 사람인 API | 앱 등록 후 승인 (1~3일) | Sprint 7 | Phase 2에서 사용 |
 | Koyeb | 즉시 | Sprint 8 | Phase 3에서 사용 |
 
-> **Sprint 0 시작 전에 OpenAI, Anthropic, DART, 네이버 API 키를 미리 확보해 둘 것.**
+> **Sprint 0 시작 전에 Anthropic, Google AI, Groq, DART, 네이버 API 키를 미리 확보해 둘 것.**

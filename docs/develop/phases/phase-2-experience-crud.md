@@ -451,6 +451,6 @@ Go backend API를 사용하여 경험의 생성/조회/수정/삭제 로직을 �
 ## 다음 Phase
 
 **→ Phase 2.1: AI 무기 자동 태깅** (Sprint 1, Day 4-5)
-- AI 무기 분류 API 구현 (GPT-4.1 mini)
+- AI 무기 분류 API 구현 (경량 모델 Gemini/Groq)
 - 경험 등록/수정 후 자동 태깅 트리거
 - 무기 태그 UI 및 수동 편집 기능

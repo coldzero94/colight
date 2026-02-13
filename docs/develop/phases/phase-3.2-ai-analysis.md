@@ -319,7 +319,7 @@ export function getModel(purpose: 'analysis' | 'coaching' | 'parsing') {
     case 'coaching':
       return anthropicProvider('claude-sonnet-4-5-20250929');
     case 'parsing':
-      // OpenAI GPT-4.1 mini는 별도 설정
+      // 경량 모델 (Gemini/Groq)은 별도 공통 인터페이스로 설정
       return null;
   }
 }

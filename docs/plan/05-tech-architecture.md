@@ -64,12 +64,12 @@ question_patterns (공통 문항 패턴 DB)
 
 | 작업 | 모델 | 건당 비용 |
 |------|------|----------|
-| 공고 파싱 + 구조화 | GPT-4.1 mini | ~5원 |
+| 공고 파싱 + 구조화 | Gemini 2.0 Flash / Groq Llama 3.3 | ~3~5원 |
 | 기업 종합 분석 | Claude Sonnet 4.5 | ~65원 |
-| 경험 매칭 | GPT-4.1 mini | ~5원 |
+| 경험 매칭 | Gemini 2.0 Flash / Groq Llama 3.3 | ~3~5원 |
 | 자소서 초안 코칭 | Claude Sonnet 4.5 | ~65원 |
 | 자소서 첨삭 | Claude Sonnet 4.5 | ~65원 |
-| 경험 인터뷰 (대화형) | GPT-4.1 mini | ~5원/턴 |
+| 경험 인터뷰 (대화형) | Gemini 2.0 Flash / Groq Llama 3.3 | ~3~5원/턴 |
 | 임베딩 생성 | text-embedding-3-small | ~0.5원 |
 
-**1건 풀 분석 (공고 파싱 → 기업 분석 → 매칭 → 코칭)**: 약 140~200원
+**1건 풀 분석 (공고 파싱 → 기업 분석 → 매칭 → 코칭)**: 약 140~206원

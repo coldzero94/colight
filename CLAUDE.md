@@ -19,8 +19,8 @@ docs/            # Plan, develop, phase guides, research
 - **Auth**: Go backend handles Naver OAuth 2.0 + Email/Password directly, JWT (HMAC-SHA256) for access/refresh tokens
 - **Migrations**: Atlas (not Supabase CLI)
 - **AI prompts**: loaded from `prompt_templates` table — never hardcode
-- **AI models**: Claude Sonnet 4.5 (analysis/coaching), GPT-4.1 mini (parsing/tagging), text-embedding-3-small (embeddings)
-- **Go AI SDK**: `github.com/openai/openai-go` (NOT sashabaranov/go-openai)
+- **AI models**: Claude Sonnet 4.5 (analysis/coaching), Gemini Flash / Groq Llama 3.3 (parsing/tagging, configurable via `LLM_LIGHT_PROVIDER` env), text-embedding-3-small (embeddings)
+- **Go AI SDK**: Common LLM abstraction (`internal/infrastructure/ai/`) supporting multiple providers (Anthropic, Google Gemini, Groq)
 - **Background jobs**: River (embedded mode, PostgreSQL-based)
 
 ## Conventions

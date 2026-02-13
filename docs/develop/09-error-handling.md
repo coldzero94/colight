@@ -300,8 +300,8 @@ export async function analyzeWithFallback(prompt: string): Promise<string> {
     console.warn('Anthropic failed, falling back to OpenAI:', error);
 
     try {
-      // 2차: GPT-4.1 mini (폴백)
-      return await callOpenAI(prompt);
+      // 2차: 경량 모델 (Gemini/Groq) (폴백)
+      return await callLightweightLLM(prompt);
     } catch (fallbackError) {
       console.error('All AI providers failed:', fallbackError);
       throw Errors.aiTimeout();

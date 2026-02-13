@@ -41,14 +41,14 @@
 ### 프롬프트 1: 경험 무기 자동 분류
 
 - category: `experience_classify` / sub: `weapon_tagging`
-- model: `gpt-4.1-mini` / temperature: 0.2
+- model: `gemini-2.0-flash` / temperature: 0.2
 - 역할: 사용자 경험을 분석하여 무기 카테고리로 분류
 - 출력: primary_weapon, secondary_weapons, STAR 추출, matchable_questions, strength_keywords
 
 ### 프롬프트 2: 경험 인터뷰 (대화형)
 
 - category: `experience_classify` / sub: `interview`
-- model: `gpt-4.1-mini` / temperature: 0.7
+- model: `gemini-2.0-flash` / temperature: 0.7
 - 역할: 대화형으로 경험을 끌어내는 코치
 - 전략: 가볍게 물어보기 → 기억에 남는 순간 → 어려웠던 점 → 해결법 → 결과/배운 점 → STAR 정리
 

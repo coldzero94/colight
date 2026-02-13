@@ -43,7 +43,7 @@ func (PromptTemplate) Fields() []ent.Field {
 		field.String("model").
 			NotEmpty().
 			MaxLen(50).
-			Comment("AI model: gpt-4.1-mini, claude-sonnet-4-5"),
+			Comment("AI model: gemini-2.0-flash, groq-llama-3.3, claude-sonnet-4-5"),
 		field.Float("temperature").
 			Default(0.3).
 			Comment("Model temperature"),
