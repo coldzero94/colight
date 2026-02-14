@@ -46,7 +46,7 @@ func TestGetCoverLetter_LoadsLatestVersion(t *testing.T) {
 	ctx := context.Background()
 
 	user := client.UserProfile.Create().
-		SetEmail("editor-test@example.com").
+		SetEmail("editor-ctrl-" + uuid.New().String()[:8] + "@example.com").
 		SetPasswordHash("hash").
 		SetRole("user").
 		SaveX(ctx)
@@ -92,7 +92,7 @@ func TestGetCoverLetter_NotFound(t *testing.T) {
 	ctx := context.Background()
 
 	user := client.UserProfile.Create().
-		SetEmail("editor-notfound@example.com").
+		SetEmail("editor-nf-" + uuid.New().String()[:8] + "@example.com").
 		SetPasswordHash("hash").
 		SetRole("user").
 		SaveX(ctx)
@@ -152,7 +152,7 @@ func TestPatchCoverLetter_UpdatesContent(t *testing.T) {
 	ctx := context.Background()
 
 	user := client.UserProfile.Create().
-		SetEmail("patch-test@example.com").
+		SetEmail("patch-" + uuid.New().String()[:8] + "@example.com").
 		SetPasswordHash("hash").
 		SetRole("user").
 		SaveX(ctx)
@@ -193,7 +193,7 @@ func TestPostVersion_CreatesNewVersion(t *testing.T) {
 	ctx := context.Background()
 
 	user := client.UserProfile.Create().
-		SetEmail("version-test@example.com").
+		SetEmail("version-" + uuid.New().String()[:8] + "@example.com").
 		SetPasswordHash("hash").
 		SetRole("user").
 		SaveX(ctx)
@@ -235,7 +235,7 @@ func TestGetVersions_ReturnsList(t *testing.T) {
 	ctx := context.Background()
 
 	user := client.UserProfile.Create().
-		SetEmail("versions-list@example.com").
+		SetEmail("verlist-" + uuid.New().String()[:8] + "@example.com").
 		SetPasswordHash("hash").
 		SetRole("user").
 		SaveX(ctx)
