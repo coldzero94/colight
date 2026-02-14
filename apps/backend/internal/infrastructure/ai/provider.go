@@ -85,6 +85,15 @@ func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req 
 	}
 }
 
+// HeavyStreaming returns the heavy LLM provider as a StreamingLLMProvider.
+// Returns nil if the heavy provider doesn't support streaming.
+func (p *AIProvider) HeavyStreaming() StreamingLLMProvider {
+	if sp, ok := p.heavy.(StreamingLLMProvider); ok {
+		return sp
+	}
+	return nil
+}
+
 // CallHeavy calls the heavy model (Claude Sonnet 4.5)
 func (p *AIProvider) CallHeavy(ctx context.Context, req LLMRequest) (LLMResponse, error) {
 	if p.heavy == nil {

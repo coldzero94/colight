@@ -23,3 +23,15 @@ type LLMResponse struct {
 	OutputTokens int
 	Model        string
 }
+
+// StreamCallback is called for each text chunk during streaming.
+type StreamCallback func(chunk string)
+
+// StreamingLLMProvider extends LLMProvider with streaming capability.
+// Only implemented by providers that support streaming (e.g. Claude).
+type StreamingLLMProvider interface {
+	LLMProvider
+	// Stream sends a request and calls onChunk for each text delta.
+	// Returns the final accumulated LLMResponse (including token usage) after completion.
+	Stream(ctx context.Context, req LLMRequest, onChunk StreamCallback) (LLMResponse, error)
+}

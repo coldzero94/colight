@@ -3,6 +3,7 @@ package ai
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
@@ -73,6 +74,65 @@ func (c *ClaudeProvider) Call(ctx context.Context, req LLMRequest) (LLMResponse,
 
 	return LLMResponse{
 		Content:      content,
+		InputTokens:  inputTokens,
+		OutputTokens: outputTokens,
+		Model:        string(c.model),
+	}, nil
+}
+
+// Stream sends a request to Claude and calls onChunk for each text delta.
+// Returns the final accumulated LLMResponse (including token usage) after completion.
+func (c *ClaudeProvider) Stream(ctx context.Context, req LLMRequest, onChunk StreamCallback) (LLMResponse, error) {
+	messages := []anthropic.MessageParam{
+		anthropic.NewUserMessage(anthropic.NewTextBlock(req.UserPrompt)),
+	}
+
+	params := anthropic.MessageNewParams{
+		Model:     c.model,
+		Messages:  messages,
+		MaxTokens: int64(req.MaxTokens),
+	}
+
+	if req.SystemPrompt != "" {
+		params.System = []anthropic.TextBlockParam{
+			{Text: req.SystemPrompt, Type: "text"},
+		}
+	}
+
+	stream := c.client.Messages.NewStreaming(ctx, params)
+	defer stream.Close()
+
+	var content strings.Builder
+	var inputTokens, outputTokens int
+
+	for stream.Next() {
+		event := stream.Current()
+
+		switch event.Type {
+		case "message_start":
+			msg := event.AsMessageStart()
+			inputTokens = int(msg.Message.Usage.InputTokens)
+
+		case "content_block_delta":
+			delta := event.AsContentBlockDelta()
+			if delta.Delta.Type == "text_delta" {
+				textDelta := delta.Delta.AsTextDelta()
+				content.WriteString(textDelta.Text)
+				onChunk(textDelta.Text)
+			}
+
+		case "message_delta":
+			msg := event.AsMessageDelta()
+			outputTokens = int(msg.Usage.OutputTokens)
+		}
+	}
+
+	if err := stream.Err(); err != nil {
+		return LLMResponse{}, fmt.Errorf("Claude streaming failed: %w", err)
+	}
+
+	return LLMResponse{
+		Content:      content.String(),
 		InputTokens:  inputTokens,
 		OutputTokens: outputTokens,
 		Model:        string(c.model),
