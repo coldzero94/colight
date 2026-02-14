@@ -38,13 +38,15 @@ describe("useQuestionAnalysis", () => {
   it("calls analyzeQuestion and returns result on success", async () => {
     const mockResult = {
       surface_question: "팀워크 경험",
-      real_intents: [{ intent: "협업", description: "팀 경험" }],
+      real_intents: [{ intent: "협업", why: "팀 경험" }],
       required_weapons: {
         primary: { weapon_id: "W01", weapon_name: "문제해결", reason: "핵심" },
         secondary: [],
       },
       writing_structure: { total_chars: 800, sections: [] },
       key_keywords: ["데이터"],
+      avoid_list: [],
+      good_structure_example: "",
     };
     mockAnalyzeQuestion.mockResolvedValue(mockResult);
 

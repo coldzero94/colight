@@ -1,16 +1,6 @@
-import { QuestionInputForm } from "@/components/coaching/question-input-form";
+import { CoachingFlow } from "@/components/coaching/coaching-flow";
 
-export default async function CoachingPage() {
-  // TODO: Fetch user's analysis history from Go backend
-  // For now, use empty array to show empty state
-  const companies: any[] = [];
-
-  const handleSubmit = async (data: any) => {
-    "use server";
-    // TODO: Call Go backend API for question analysis
-    console.log("Question analysis request:", data);
-  };
-
+export default function CoachingPage() {
   return (
     <div className="container mx-auto max-w-3xl px-4 py-8">
       <div className="mb-8">
@@ -20,7 +10,7 @@ export default async function CoachingPage() {
         </p>
       </div>
 
-      <QuestionInputForm companies={companies} onSubmit={handleSubmit} />
+      <CoachingFlow />
     </div>
   );
 }

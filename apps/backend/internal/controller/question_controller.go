@@ -18,6 +18,42 @@ func NewQuestionController(questionService *service.QuestionService) *QuestionCo
 	}
 }
 
+// GetApplications handles GET /v1/applications
+func (c *QuestionController) GetApplications(ctx *gin.Context) {
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "인증이 필요합니다."})
+		return
+	}
+
+	apps, err := c.questionService.ListApplications(ctx.Request.Context(), userID.(uuid.UUID))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "지원 목록 조회 실패"})
+		return
+	}
+
+	type appResponse struct {
+		ID          string `json:"id"`
+		CompanyName string `json:"company_name"`
+		Position    string `json:"position"`
+		Status      string `json:"status"`
+		CreatedAt   string `json:"created_at"`
+	}
+
+	result := make([]appResponse, len(apps))
+	for i, app := range apps {
+		result[i] = appResponse{
+			ID:          app.ID.String(),
+			CompanyName: app.CompanyName,
+			Position:    app.Position,
+			Status:      string(app.Status),
+			CreatedAt:   app.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		}
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"applications": result})
+}
+
 // PostQuestionAnalysis handles POST /v1/coaching/question-analysis
 func (c *QuestionController) PostQuestionAnalysis(ctx *gin.Context) {
 	// Get user ID from auth middleware

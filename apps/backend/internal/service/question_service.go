@@ -72,6 +72,18 @@ type Section struct {
 	Guide     string  `json:"guide"`
 }
 
+// ListApplications returns the user's applications for coaching page company select
+func (s *QuestionService) ListApplications(ctx context.Context, userID uuid.UUID) ([]*ent.Application, error) {
+	apps, err := s.entClient.Application.Query().
+		Where(application.UserIDEQ(userID)).
+		Order(ent.Desc(application.FieldCreatedAt)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query applications: %w", err)
+	}
+	return apps, nil
+}
+
 // AnalyzeQuestion analyzes a cover letter question using Claude
 func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID, applicationID uuid.UUID, questionText string, charLimit int) (*QuestionAnalysisResult, error) {
 	// 1. Verify application exists and user owns it

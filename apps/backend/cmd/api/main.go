@@ -171,6 +171,11 @@ func main() {
 			protected.POST("/match", matchingCtrl.MatchExperiences)
 		}
 
+		// Applications list (for coaching page company select)
+		if questionCtrl != nil {
+			protected.GET("/applications", questionCtrl.GetApplications)
+		}
+
 		// Question analysis (AI-powered question intent analysis)
 		if questionCtrl != nil {
 			protected.POST("/coaching/question-analysis", questionCtrl.PostQuestionAnalysis)

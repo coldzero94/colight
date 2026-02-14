@@ -12,7 +12,7 @@ export interface QuestionAnalysisResult {
   surface_question: string;
   real_intents: Array<{
     intent: string;
-    description: string;
+    why: string;
   }>;
   required_weapons: {
     primary: { weapon_id: string; weapon_name: string; reason: string };
@@ -32,8 +32,8 @@ export interface QuestionAnalysisResult {
     }>;
   };
   key_keywords: string[];
-  avoid_list?: string[];
-  example?: string;
+  avoid_list: string[];
+  good_structure_example: string;
 }
 
 export interface GenerateDraftRequest {
@@ -73,7 +73,24 @@ export interface CoverLetterVersion {
   created_at: string;
 }
 
+export interface ApplicationSummary {
+  id: string;
+  company_name: string;
+  position: string;
+  status: string;
+  created_at: string;
+}
+
 // === API Functions ===
+
+export async function getApplications(): Promise<{
+  applications: ApplicationSummary[];
+}> {
+  const { data } = await apiClient.get<{
+    applications: ApplicationSummary[];
+  }>("/v1/applications");
+  return data;
+}
 
 export async function analyzeQuestion(
   req: QuestionAnalysisRequest
