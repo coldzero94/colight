@@ -149,7 +149,7 @@ export default function AnalysisResultPage() {
 
       {/* Avoid Expressions */}
       {analysis.avoid_expressions.length > 0 && (
-        <section>
+        <section className="mb-8">
           <h2 className="mb-4 text-xl font-semibold text-gray-900">
             피해야 할 표현
           </h2>
@@ -165,6 +165,27 @@ export default function AnalysisResultPage() {
           </div>
         </section>
       )}
+
+      {/* Experience Matching */}
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-900">
+            내 경험 적합도 매칭
+          </h2>
+          <button
+            className="text-sm text-blue-600 hover:text-blue-800"
+            onClick={() => {
+              // TODO: Trigger matching
+            }}
+          >
+            매칭 시작 →
+          </button>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          AI가 내 경험과 이 기업의 적합도를 분석합니다.
+        </p>
+        {/* MatchingResults component will be rendered here after matching */}
+      </section>
     </div>
   );
 }
