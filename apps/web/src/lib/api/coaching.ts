@@ -81,6 +81,40 @@ export interface ApplicationSummary {
   created_at: string;
 }
 
+// === Review Types ===
+
+export interface ReviewScores {
+  specificity: number;
+  job_fit: number;
+  company_fit: number;
+  authenticity: number;
+}
+
+export interface DimensionFeedback {
+  dimension: string;
+  score: number;
+  good: string[];
+  improve: string[];
+}
+
+export interface SpecificSuggestion {
+  original: string;
+  suggested: string;
+  reason: string;
+}
+
+export interface ReviewResult {
+  scores: ReviewScores;
+  overall: number;
+  per_dimension_feedback: DimensionFeedback[];
+  specific_suggestions: SpecificSuggestion[];
+}
+
+export interface ReviewRequest {
+  cover_letter_id: string;
+  content: string;
+}
+
 // === API Functions ===
 
 export async function getApplications(): Promise<{
@@ -180,6 +214,16 @@ export async function getVersions(
 ): Promise<{ versions: CoverLetterVersion[] }> {
   const { data } = await apiClient.get<{ versions: CoverLetterVersion[] }>(
     `/v1/coaching/cover-letters/${id}/versions`
+  );
+  return data;
+}
+
+export async function requestReview(
+  req: ReviewRequest
+): Promise<ReviewResult> {
+  const { data } = await apiClient.post<ReviewResult>(
+    "/v1/coaching/review",
+    req
   );
   return data;
 }
