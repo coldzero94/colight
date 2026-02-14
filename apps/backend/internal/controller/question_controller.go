@@ -120,3 +120,39 @@ func (c *QuestionController) PostQuestionAnalysis(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, result)
 }
+
+// PostRecommendExperiences handles POST /v1/coaching/recommend-experiences
+func (c *QuestionController) PostRecommendExperiences(ctx *gin.Context) {
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "인증이 필요합니다."})
+		return
+	}
+
+	var req struct {
+		RequiredWeapons service.RequiredWeapons `json:"required_weapons" binding:"required"`
+		Limit           int                     `json:"limit"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "입력 값이 올바르지 않습니다: " + err.Error()})
+		return
+	}
+
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+
+	recommendations, err := c.questionService.RecommendExperiences(
+		ctx.Request.Context(),
+		userID.(uuid.UUID),
+		req.RequiredWeapons,
+		req.Limit,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "경험 추천 실패"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"recommendations": recommendations})
+}

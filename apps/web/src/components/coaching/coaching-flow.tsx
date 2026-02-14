@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,8 +13,10 @@ import { useQuestionAnalysis } from "@/hooks/use-question-analysis";
 import { useDraftCoaching } from "@/hooks/use-draft-coaching";
 import {
   getApplications,
+  recommendExperiences,
   type QuestionAnalysisResult,
   type QuestionAnalysisRequest,
+  type ExperienceRecommendation,
 } from "@/lib/api/coaching";
 
 type FlowStep = "input" | "analysis" | "select" | "draft";
@@ -27,6 +29,9 @@ export function CoachingFlow() {
   const [formData, setFormData] = useState<QuestionAnalysisRequest | null>(
     null
   );
+  const [recommendations, setRecommendations] = useState<
+    ExperienceRecommendation[]
+  >([]);
 
   // Fetch user's applications
   const { data: appsData, isLoading: appsLoading } = useQuery({
@@ -37,12 +42,27 @@ export function CoachingFlow() {
   const questionAnalysis = useQuestionAnalysis();
   const draftCoaching = useDraftCoaching();
 
+  const experienceRecommend = useMutation({
+    mutationFn: (requiredWeapons: QuestionAnalysisResult["required_weapons"]) =>
+      recommendExperiences(requiredWeapons),
+  });
+
   // Handle question analysis submit
   const handleAnalyze = async (data: QuestionAnalysisRequest) => {
     setFormData(data);
     const result = await questionAnalysis.mutateAsync(data);
     setAnalysisResult(result);
     setStep("analysis");
+  };
+
+  // Handle move to experience selection - fetch recommendations
+  const handleGoToSelect = async () => {
+    if (!analysisResult) return;
+    const result = await experienceRecommend.mutateAsync(
+      analysisResult.required_weapons
+    );
+    setRecommendations(result.recommendations);
+    setStep("select");
   };
 
   // Handle experience selection confirm
@@ -99,6 +119,21 @@ export function CoachingFlow() {
     created_at: app.created_at,
   }));
 
+  // Map recommendations to ExperienceSelector format
+  const selectorExperiences = recommendations.map((rec) => ({
+    id: rec.id,
+    title: rec.title,
+    category: rec.category,
+    period_start: rec.period_start,
+    period_end: rec.period_end,
+    star_situation: rec.star_situation,
+    star_task: "",
+    star_action: "",
+    star_result: "",
+    weapons: rec.weapons.map((w) => ({ code: w, name: w })),
+    matchScore: rec.match_score,
+  }));
+
   return (
     <div className="space-y-8">
       {/* Step 1: Question Input */}
@@ -118,10 +153,18 @@ export function CoachingFlow() {
               다시 분석하기
             </button>
             <button
-              onClick={() => setStep("select")}
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+              onClick={handleGoToSelect}
+              disabled={experienceRecommend.isPending}
+              className="flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
             >
-              경험 선택하러 가기
+              {experienceRecommend.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  경험 추천 중...
+                </>
+              ) : (
+                "경험 선택하러 가기"
+              )}
             </button>
           </div>
         </div>
@@ -130,7 +173,7 @@ export function CoachingFlow() {
       {/* Step 3: Experience Selection */}
       {step === "select" && analysisResult && (
         <ExperienceSelector
-          experiences={[]}
+          experiences={selectorExperiences}
           maxSelect={3}
           requiredWeapons={analysisResult.required_weapons}
           onConfirm={handleExperienceConfirm}
@@ -152,6 +195,13 @@ export function CoachingFlow() {
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
           분석 중 오류가 발생했습니다:{" "}
           {questionAnalysis.error?.message ?? "알 수 없는 오류"}
+        </div>
+      )}
+
+      {experienceRecommend.isError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+          경험 추천 중 오류가 발생했습니다:{" "}
+          {experienceRecommend.error?.message ?? "알 수 없는 오류"}
         </div>
       )}
 

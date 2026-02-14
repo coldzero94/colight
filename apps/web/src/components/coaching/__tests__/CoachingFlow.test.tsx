@@ -8,6 +8,7 @@ vi.mock("@/lib/api/coaching", () => ({
   getApplications: vi.fn(),
   analyzeQuestion: vi.fn(),
   generateDraft: vi.fn(),
+  recommendExperiences: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({

@@ -179,6 +179,7 @@ func main() {
 		// Question analysis (AI-powered question intent analysis)
 		if questionCtrl != nil {
 			protected.POST("/coaching/question-analysis", questionCtrl.PostQuestionAnalysis)
+			protected.POST("/coaching/recommend-experiences", questionCtrl.PostRecommendExperiences)
 		}
 
 		// Draft coaching (AI-powered draft generation)

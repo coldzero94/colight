@@ -92,6 +92,30 @@ export async function getApplications(): Promise<{
   return data;
 }
 
+export interface ExperienceRecommendation {
+  id: string;
+  title: string;
+  category: string;
+  period_start?: string;
+  period_end?: string;
+  star_situation: string;
+  weapons: string[];
+  match_score: number;
+}
+
+export async function recommendExperiences(
+  requiredWeapons: QuestionAnalysisResult["required_weapons"],
+  limit = 10
+): Promise<{ recommendations: ExperienceRecommendation[] }> {
+  const { data } = await apiClient.post<{
+    recommendations: ExperienceRecommendation[];
+  }>("/v1/coaching/recommend-experiences", {
+    required_weapons: requiredWeapons,
+    limit,
+  });
+  return data;
+}
+
 export async function analyzeQuestion(
   req: QuestionAnalysisRequest
 ): Promise<QuestionAnalysisResult> {
