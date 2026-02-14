@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/experience"
@@ -13,15 +14,19 @@ import (
 
 // MatchingService handles experience-company matching
 type MatchingService struct {
-	entClient  *ent.Client
-	aiProvider ai.LLMProvider
+	entClient    *ent.Client
+	aiProvider   ai.LLMProvider
+	resultCache  map[string]*MatchResult // Key: experienceID_companyName
+	cacheExpiry  map[string]time.Time
 }
 
 // NewMatchingService creates a new matching service
 func NewMatchingService(entClient *ent.Client, aiProvider ai.LLMProvider) *MatchingService {
 	return &MatchingService{
-		entClient:  entClient,
-		aiProvider: aiProvider,
+		entClient:   entClient,
+		aiProvider:  aiProvider,
+		resultCache: make(map[string]*MatchResult),
+		cacheExpiry: make(map[string]time.Time),
 	}
 }
 
@@ -48,6 +53,17 @@ type aiMatchResponse struct {
 
 // MatchExperience matches a single experience against company analysis
 func (s *MatchingService) MatchExperience(ctx context.Context, userID uuid.UUID, experienceID uuid.UUID, companyAnalysis *CompanyAnalysis) (*MatchResult, error) {
+	// Step 4.5: Check cache first (5-minute TTL for matching results)
+	cacheKey := experienceID.String() + "_" + companyAnalysis.CompanyName
+	if cached, ok := s.resultCache[cacheKey]; ok {
+		if expiry, exists := s.cacheExpiry[cacheKey]; exists && time.Now().Before(expiry) {
+			return cached, nil
+		}
+		// Cache expired, remove
+		delete(s.resultCache, cacheKey)
+		delete(s.cacheExpiry, cacheKey)
+	}
+
 	// 1. Verify experience exists and user owns it
 	exp, err := s.entClient.Experience.Query().
 		Where(experience.IDEQ(experienceID)).
@@ -127,6 +143,10 @@ Return JSON with scores (0-100):
 		Reasoning:      aiResult.Reasoning,
 		SuggestedAngle: aiResult.SuggestedAngle,
 	}
+
+	// Step 4.5: Save to cache (5-minute TTL)
+	s.resultCache[cacheKey] = result
+	s.cacheExpiry[cacheKey] = time.Now().Add(5 * time.Minute)
 
 	return result, nil
 }

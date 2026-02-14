@@ -26,6 +26,10 @@ export default function AnalysisResultPage() {
         onSuccess: (data) => {
           setCompanyName(mockCompanyName);
           setAnalysis(data);
+
+          // Auto-trigger matching after analysis complete (Step 4.4)
+          // This will be implemented with matching API call
+          toast.info("경험 매칭을 준비하고 있습니다...");
         },
         onError: () => {
           toast.error("분석에 실패했습니다.");
