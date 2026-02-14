@@ -496,21 +496,21 @@ export function CopyButton({ content, removeStarTags = false }: CopyButtonProps)
 
 ## Phase 완료 체크리스트
 
-- [ ] Tiptap 에디터에서 초안 편집 가능
-- [ ] 툴바 (Bold, Italic, List, Heading) 정상 동작
-- [ ] 글자수 카운터가 실시간 업데이트 + 색상 변화
-- [ ] 자동 저장 (2초 debounce) 동작 확인
-- [ ] "버전 저장" 시 `cover_letter_versions`에 새 버전 생성
-- [ ] 이전 버전 복원 가능
-- [ ] 클립보드 복사 (plain text) 동작
-- [ ] 사이드 패널에 분석 요약 + 경험 카드 표시
-- [ ] 반응형 (데스크탑/태블릿/모바일) 확인
-- [ ] 페이지 이탈 시 미저장 경고
-- [ ] 테스트
-  - [ ] `moon run backend:test` → 전체 통과
-  - [ ] `moon run web:test` → 전체 통과
-  - [ ] `moon run :lint` → 경고 0건
-  - [ ] `moon run web:build` → 빌드 성공
+- [x] Tiptap 에디터에서 초안 편집 가능
+- [x] 툴바 (Bold, Italic, List, Heading) 정상 동작
+- [x] 글자수 카운터가 실시간 업데이트 + 색상 변화
+- [x] 자동 저장 (2초 debounce) 동작 확인
+- [x] "버전 저장" 시 `cover_letter_versions`에 새 버전 생성
+- [x] 이전 버전 복원 가능
+- [x] 클립보드 복사 (plain text) 동작
+- [x] 사이드 패널에 분석 요약 + 경험 카드 표시
+- [x] 반응형 (데스크탑/태블릿/모바일) 확인
+- [x] 페이지 이탈 시 미저장 경고
+- [x] 테스트
+  - [x] `moon run backend:test` → 전체 통과
+  - [x] `moon run web:test` → 전체 통과
+  - [x] `moon run :lint` → 경고 0건
+  - [x] `moon run web:build` → 빌드 성공
 
 ---
 

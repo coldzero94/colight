@@ -476,19 +476,19 @@ export function calculateCost(
 
 ## Phase 완료 체크리스트
 
-- [ ] 경험 선택(1~3개) → 초안 생성 API 호출 → 스트리밍 표시 전체 흐름 동작
-- [ ] 초안이 STAR 구조로 생성되고, 글자수 제한 이내
-- [ ] STAR 태그가 시각적으로 하이라이트
-- [ ] 스트리밍 완료 후 `cover_letters` + `cover_letter_versions` + `coaching_sessions` 저장 확인
-- [ ] 세션 이력 조회 정상 동작
-- [ ] 스트리밍 완료 후 에디터 페이지로 이동 가능
-- [ ] 에러 상태 (스트리밍 실패, 네트워크 에러 등) 처리
-- [ ] Claude API 비용: ~65원/건 이내 확인
-- [ ] 테스트
-  - [ ] `moon run backend:test` → 전체 통과
-  - [ ] `moon run web:test` → 전체 통과
-  - [ ] `moon run :lint` → 경고 0건
-  - [ ] `moon run web:build` → 빌드 성공
+- [x] 경험 선택(1~3개) → 초안 생성 API 호출 → 스트리밍 표시 전체 흐름 동작
+- [x] 초안이 STAR 구조로 생성되고, 글자수 제한 이내
+- [x] STAR 태그가 시각적으로 하이라이트
+- [x] 스트리밍 완료 후 `cover_letters` + `cover_letter_versions` + `coaching_sessions` 저장 확인
+- [x] 세션 이력 조회 정상 동작
+- [x] 스트리밍 완료 후 에디터 페이지로 이동 가능
+- [x] 에러 상태 (스트리밍 실패, 네트워크 에러 등) 처리
+- [ ] Claude API 비용: ~65원/건 이내 확인 (실 API 연동 후 검증 필요)
+- [x] 테스트
+  - [x] `moon run backend:test` → 전체 통과
+  - [x] `moon run web:test` → 전체 통과
+  - [x] `moon run :lint` → 경고 0건
+  - [x] `moon run web:build` → 빌드 성공
 
 ---
 
