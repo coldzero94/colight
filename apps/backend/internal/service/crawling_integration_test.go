@@ -16,8 +16,7 @@ func TestCrawlJobPosting_RealJobKorea(t *testing.T) {
 		t.Skip("Skipping integration test. Set INTEGRATION_TEST=1 to run.")
 	}
 
-	// Mock AI for normalization (to avoid API cost)
-	_ = &MockLLMForCrawling{
+	mockLLM := &MockLLMForCrawling{
 		response: ai.LLMResponse{
 			Content: `{
 				"company_name": "테스트 회사",
@@ -36,19 +35,14 @@ func TestCrawlJobPosting_RealJobKorea(t *testing.T) {
 		},
 	}
 
-	aiProvider := &ai.AIProvider{} // Would need proper setup
-	_ = aiProvider
-
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
 	service := NewCrawlingService(aiProvider)
 
-	// Test with a real JobKorea URL (should be a stable, long-running job posting)
-	// Note: This URL should be updated periodically as job postings expire
 	testURL := "https://www.jobkorea.co.kr/Recruit/GI_Read/45942867"
 
 	ctx := context.Background()
 	result, err := service.CrawlJobPosting(ctx, testURL)
 
-	// If the specific URL is expired, just verify the crawler doesn't crash
 	if err != nil {
 		t.Logf("Warning: Crawl failed (URL may be expired): %v", err)
 		return
@@ -66,7 +60,7 @@ func TestCrawlJobPosting_RealCatch(t *testing.T) {
 		t.Skip("Skipping integration test. Set INTEGRATION_TEST=1 to run.")
 	}
 
-	_ = &MockLLMForCrawling{
+	mockLLM := &MockLLMForCrawling{
 		response: ai.LLMResponse{
 			Content: `{
 				"company_name": "캐치 회사",
@@ -85,12 +79,9 @@ func TestCrawlJobPosting_RealCatch(t *testing.T) {
 		},
 	}
 
-	aiProvider := &ai.AIProvider{}
-	_ = aiProvider
-
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
 	service := NewCrawlingService(aiProvider)
 
-	// Test with a real Catch URL
 	testURL := "https://www.catch.co.kr/NCS/RecruitInfoDetail/321177"
 
 	ctx := context.Background()
@@ -111,7 +102,9 @@ func TestCrawlJobPosting_RealCatch(t *testing.T) {
 func TestCrawlJobPosting_Manual(t *testing.T) {
 	t.Skip("Manual test - run individually with: go test -run TestCrawlJobPosting_Manual -v")
 
-	service := NewCrawlingService(nil) // AI will fail, but we can see parser output
+	mockLLM := &MockLLMForCrawling{}
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	service := NewCrawlingService(aiProvider)
 
 	urls := []string{
 		"https://www.jobkorea.co.kr/Recruit/GI_Read/45942867",
@@ -121,7 +114,6 @@ func TestCrawlJobPosting_Manual(t *testing.T) {
 	for _, url := range urls {
 		t.Logf("\n=== Testing URL: %s ===", url)
 
-		// Just test parsing without AI
 		html, err := service.fetchHTML(url)
 		if err != nil {
 			t.Logf("Fetch error: %v", err)
@@ -129,9 +121,7 @@ func TestCrawlJobPosting_Manual(t *testing.T) {
 		}
 
 		t.Logf("HTML length: %d bytes", len(html))
-		t.Logf("Contains '채용': %v", len(html) > 0 && html != "")
 
-		// Try parsing
 		var rawPosting interface{}
 		if containsDomain(url, "jobkorea") {
 			rawPosting, err = service.jobkoreaParser.ParseHTML(url, html)
