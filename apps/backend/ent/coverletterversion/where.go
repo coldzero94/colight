@@ -361,6 +361,16 @@ func ScoresNotNil() predicate.CoverLetterVersion {
 	return predicate.CoverLetterVersion(sql.FieldNotNull(FieldScores))
 }
 
+// FeedbackIsNil applies the IsNil predicate on the "feedback" field.
+func FeedbackIsNil() predicate.CoverLetterVersion {
+	return predicate.CoverLetterVersion(sql.FieldIsNull(FieldFeedback))
+}
+
+// FeedbackNotNil applies the NotNil predicate on the "feedback" field.
+func FeedbackNotNil() predicate.CoverLetterVersion {
+	return predicate.CoverLetterVersion(sql.FieldNotNull(FieldFeedback))
+}
+
 // HasCoverLetter applies the HasEdge predicate on the "cover_letter" edge.
 func HasCoverLetter() predicate.CoverLetterVersion {
 	return predicate.CoverLetterVersion(func(s *sql.Selector) {

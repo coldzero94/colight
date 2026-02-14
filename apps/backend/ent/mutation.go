@@ -5767,6 +5767,7 @@ type CoverLetterVersionMutation struct {
 	addchar_count           *int
 	change_summary          *string
 	scores                  *map[string]interface{}
+	feedback                *map[string]interface{}
 	clearedFields           map[string]struct{}
 	cover_letter            *uuid.UUID
 	clearedcover_letter     bool
@@ -6177,6 +6178,55 @@ func (m *CoverLetterVersionMutation) ResetScores() {
 	delete(m.clearedFields, coverletterversion.FieldScores)
 }
 
+// SetFeedback sets the "feedback" field.
+func (m *CoverLetterVersionMutation) SetFeedback(value map[string]interface{}) {
+	m.feedback = &value
+}
+
+// Feedback returns the value of the "feedback" field in the mutation.
+func (m *CoverLetterVersionMutation) Feedback() (r map[string]interface{}, exists bool) {
+	v := m.feedback
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeedback returns the old "feedback" field's value of the CoverLetterVersion entity.
+// If the CoverLetterVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CoverLetterVersionMutation) OldFeedback(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeedback is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeedback requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeedback: %w", err)
+	}
+	return oldValue.Feedback, nil
+}
+
+// ClearFeedback clears the value of the "feedback" field.
+func (m *CoverLetterVersionMutation) ClearFeedback() {
+	m.feedback = nil
+	m.clearedFields[coverletterversion.FieldFeedback] = struct{}{}
+}
+
+// FeedbackCleared returns if the "feedback" field was cleared in this mutation.
+func (m *CoverLetterVersionMutation) FeedbackCleared() bool {
+	_, ok := m.clearedFields[coverletterversion.FieldFeedback]
+	return ok
+}
+
+// ResetFeedback resets all changes to the "feedback" field.
+func (m *CoverLetterVersionMutation) ResetFeedback() {
+	m.feedback = nil
+	delete(m.clearedFields, coverletterversion.FieldFeedback)
+}
+
 // SetCoverLetterID sets the "cover_letter" edge to the CoverLetter entity by id.
 func (m *CoverLetterVersionMutation) SetCoverLetterID(id uuid.UUID) {
 	m.cover_letter = &id
@@ -6289,7 +6339,7 @@ func (m *CoverLetterVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CoverLetterVersionMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, coverletterversion.FieldCreatedAt)
 	}
@@ -6307,6 +6357,9 @@ func (m *CoverLetterVersionMutation) Fields() []string {
 	}
 	if m.scores != nil {
 		fields = append(fields, coverletterversion.FieldScores)
+	}
+	if m.feedback != nil {
+		fields = append(fields, coverletterversion.FieldFeedback)
 	}
 	return fields
 }
@@ -6328,6 +6381,8 @@ func (m *CoverLetterVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.ChangeSummary()
 	case coverletterversion.FieldScores:
 		return m.Scores()
+	case coverletterversion.FieldFeedback:
+		return m.Feedback()
 	}
 	return nil, false
 }
@@ -6349,6 +6404,8 @@ func (m *CoverLetterVersionMutation) OldField(ctx context.Context, name string) 
 		return m.OldChangeSummary(ctx)
 	case coverletterversion.FieldScores:
 		return m.OldScores(ctx)
+	case coverletterversion.FieldFeedback:
+		return m.OldFeedback(ctx)
 	}
 	return nil, fmt.Errorf("unknown CoverLetterVersion field %s", name)
 }
@@ -6399,6 +6456,13 @@ func (m *CoverLetterVersionMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetScores(v)
+		return nil
+	case coverletterversion.FieldFeedback:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeedback(v)
 		return nil
 	}
 	return fmt.Errorf("unknown CoverLetterVersion field %s", name)
@@ -6466,6 +6530,9 @@ func (m *CoverLetterVersionMutation) ClearedFields() []string {
 	if m.FieldCleared(coverletterversion.FieldScores) {
 		fields = append(fields, coverletterversion.FieldScores)
 	}
+	if m.FieldCleared(coverletterversion.FieldFeedback) {
+		fields = append(fields, coverletterversion.FieldFeedback)
+	}
 	return fields
 }
 
@@ -6488,6 +6555,9 @@ func (m *CoverLetterVersionMutation) ClearField(name string) error {
 		return nil
 	case coverletterversion.FieldScores:
 		m.ClearScores()
+		return nil
+	case coverletterversion.FieldFeedback:
+		m.ClearFeedback()
 		return nil
 	}
 	return fmt.Errorf("unknown CoverLetterVersion nullable field %s", name)
@@ -6514,6 +6584,9 @@ func (m *CoverLetterVersionMutation) ResetField(name string) error {
 		return nil
 	case coverletterversion.FieldScores:
 		m.ResetScores()
+		return nil
+	case coverletterversion.FieldFeedback:
+		m.ResetFeedback()
 		return nil
 	}
 	return fmt.Errorf("unknown CoverLetterVersion field %s", name)

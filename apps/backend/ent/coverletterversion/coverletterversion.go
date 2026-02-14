@@ -27,6 +27,8 @@ const (
 	FieldChangeSummary = "change_summary"
 	// FieldScores holds the string denoting the scores field in the database.
 	FieldScores = "scores"
+	// FieldFeedback holds the string denoting the feedback field in the database.
+	FieldFeedback = "feedback"
 	// EdgeCoverLetter holds the string denoting the cover_letter edge name in mutations.
 	EdgeCoverLetter = "cover_letter"
 	// EdgeCoachingSession holds the string denoting the coaching_session edge name in mutations.
@@ -58,6 +60,7 @@ var Columns = []string{
 	FieldCharCount,
 	FieldChangeSummary,
 	FieldScores,
+	FieldFeedback,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "cover_letter_versions"

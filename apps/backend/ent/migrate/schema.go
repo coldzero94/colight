@@ -245,6 +245,7 @@ var (
 		{Name: "char_count", Type: field.TypeInt, Nullable: true},
 		{Name: "change_summary", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "scores", Type: field.TypeJSON, Nullable: true},
+		{Name: "feedback", Type: field.TypeJSON, Nullable: true},
 		{Name: "coaching_session_cover_letter_versions", Type: field.TypeUUID, Nullable: true},
 		{Name: "cover_letter_versions", Type: field.TypeUUID},
 	}
@@ -256,13 +257,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "cover_letter_versions_coaching_sessions_cover_letter_versions",
-				Columns:    []*schema.Column{CoverLetterVersionsColumns[7]},
+				Columns:    []*schema.Column{CoverLetterVersionsColumns[8]},
 				RefColumns: []*schema.Column{CoachingSessionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "cover_letter_versions_cover_letters_versions",
-				Columns:    []*schema.Column{CoverLetterVersionsColumns[8]},
+				Columns:    []*schema.Column{CoverLetterVersionsColumns[9]},
 				RefColumns: []*schema.Column{CoverLettersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

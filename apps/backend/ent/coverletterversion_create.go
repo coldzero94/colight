@@ -83,6 +83,12 @@ func (_c *CoverLetterVersionCreate) SetScores(v map[string]interface{}) *CoverLe
 	return _c
 }
 
+// SetFeedback sets the "feedback" field.
+func (_c *CoverLetterVersionCreate) SetFeedback(v map[string]interface{}) *CoverLetterVersionCreate {
+	_c.mutation.SetFeedback(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *CoverLetterVersionCreate) SetID(v uuid.UUID) *CoverLetterVersionCreate {
 	_c.mutation.SetID(v)
@@ -249,6 +255,10 @@ func (_c *CoverLetterVersionCreate) createSpec() (*CoverLetterVersion, *sqlgraph
 	if value, ok := _c.mutation.Scores(); ok {
 		_spec.SetField(coverletterversion.FieldScores, field.TypeJSON, value)
 		_node.Scores = value
+	}
+	if value, ok := _c.mutation.Feedback(); ok {
+		_spec.SetField(coverletterversion.FieldFeedback, field.TypeJSON, value)
+		_node.Feedback = value
 	}
 	if nodes := _c.mutation.CoverLetterIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

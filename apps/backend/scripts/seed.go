@@ -326,7 +326,7 @@ func seedWeaponCategories(ctx context.Context, client *ent.Client) error {
 	return nil
 }
 
-// seedPromptTemplates inserts 4 prompt templates
+// seedPromptTemplates inserts 5 prompt templates
 func seedPromptTemplates(ctx context.Context, client *ent.Client) error {
 	log.Println("Seeding prompt templates...")
 
@@ -475,6 +475,59 @@ STAR 구조:
 			IsActive:    true,
 		},
 		{
+			Category:    "coaching",
+			SubCategory: "review",
+			Name:        "자소서 첨삭 평가",
+			SystemPrompt: `당신은 한국 대기업 자기소개서 첨삭 전문가입니다.
+
+자소서를 4가지 차원으로 평가하세요:
+1. specificity (구체성): 수치, 이름, 기간 등 구체적 사실이 있는가
+2. job_fit (직무적합성): 지원 직무에 필요한 역량을 보여주는가
+3. company_fit (기업적합성): 기업 인재상/핵심가치와 부합하는가
+4. authenticity (진정성): 진솔하고 자연스러운 경험인가
+
+각 차원 0-100점, 종합 점수(overall), 차원별 상세 피드백(잘한 점 + 개선점), 문장 단위 구체적 수정 제안을 JSON으로 응답하세요.
+
+응답 형식:
+{
+  "scores": {"specificity": N, "job_fit": N, "company_fit": N, "authenticity": N},
+  "overall": N,
+  "per_dimension_feedback": [
+    {"dimension": "specificity", "score": N, "good": ["..."], "improve": ["..."]}
+  ],
+  "specific_suggestions": [
+    {"original": "원문 문장", "suggested": "수정 제안", "reason": "수정 이유"}
+  ]
+}
+
+반드시 위 JSON 형식으로만 응답하세요. 다른 텍스트를 포함하지 마세요.`,
+			UserPromptTemplate: `자소서 내용:
+{{content}}
+
+문항: {{question_text}}
+글자수 제한: {{char_limit}}자
+
+{{company_context}}
+
+위 자소서를 4가지 차원으로 평가하고, 구체적인 수정 제안을 포함한 JSON으로 응답하세요.`,
+			OutputSchema: map[string]interface{}{
+				"scores": map[string]interface{}{
+					"specificity":  "number (0-100)",
+					"job_fit":      "number (0-100)",
+					"company_fit":  "number (0-100)",
+					"authenticity": "number (0-100)",
+				},
+				"overall":                "number (0-100)",
+				"per_dimension_feedback":  []map[string]interface{}{},
+				"specific_suggestions":    []map[string]interface{}{},
+			},
+			Model:       "claude-sonnet-4-5",
+			Temperature: 0.3,
+			MaxTokens:   3000,
+			Version:     1,
+			IsActive:    true,
+		},
+		{
 			Category:    "coaching_draft",
 			SubCategory: "weapon_enhance",
 			Name:        "무기별 경험 강화 코칭",
@@ -542,7 +595,7 @@ STAR 구조:
 	if _, err := client.PromptTemplate.CreateBulk(bulk...).Save(ctx); err != nil {
 		return fmt.Errorf("failed to insert prompt templates: %w", err)
 	}
-	log.Println("✓ Inserted 4 prompt templates")
+	log.Println("✓ Inserted 5 prompt templates")
 
 	return nil
 }

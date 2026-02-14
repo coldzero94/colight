@@ -35,6 +35,9 @@ func (CoverLetterVersion) Fields() []ent.Field {
 		field.JSON("scores", map[string]interface{}{}).
 			Optional().
 			Comment("Scores: {specificity, jobFit, companyFit, authenticity}"),
+		field.JSON("feedback", map[string]interface{}{}).
+			Optional().
+			Comment("Review feedback: per_dimension_feedback + specific_suggestions"),
 	}
 }
 

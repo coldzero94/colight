@@ -34,6 +34,8 @@ type CoverLetterVersion struct {
 	ChangeSummary string `json:"change_summary,omitempty"`
 	// Scores: {specificity, jobFit, companyFit, authenticity}
 	Scores map[string]interface{} `json:"scores,omitempty"`
+	// Review feedback: per_dimension_feedback + specific_suggestions
+	Feedback map[string]interface{} `json:"feedback,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CoverLetterVersionQuery when eager-loading is set.
 	Edges                                  CoverLetterVersionEdges `json:"edges"`
@@ -80,7 +82,7 @@ func (*CoverLetterVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case coverletterversion.FieldScores:
+		case coverletterversion.FieldScores, coverletterversion.FieldFeedback:
 			values[i] = new([]byte)
 		case coverletterversion.FieldVersionNumber, coverletterversion.FieldCharCount:
 			values[i] = new(sql.NullInt64)
@@ -152,6 +154,14 @@ func (_m *CoverLetterVersion) assignValues(columns []string, values []any) error
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &_m.Scores); err != nil {
 					return fmt.Errorf("unmarshal field scores: %w", err)
+				}
+			}
+		case coverletterversion.FieldFeedback:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field feedback", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Feedback); err != nil {
+					return fmt.Errorf("unmarshal field feedback: %w", err)
 				}
 			}
 		case coverletterversion.ForeignKeys[0]:
@@ -233,6 +243,9 @@ func (_m *CoverLetterVersion) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("scores=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Scores))
+	builder.WriteString(", ")
+	builder.WriteString("feedback=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Feedback))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -19,4 +19,8 @@ var (
 	// Application errors
 	ErrApplicationNotFound  = errors.New("application not found")
 	ErrApplicationForbidden = errors.New("forbidden: not the owner of this application")
+
+	// Cover letter errors
+	ErrCoverLetterNotFound  = errors.New("cover letter not found")
+	ErrCoverLetterForbidden = errors.New("forbidden: not the owner of this cover letter")
 )

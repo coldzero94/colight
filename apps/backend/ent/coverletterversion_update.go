@@ -124,6 +124,18 @@ func (_u *CoverLetterVersionUpdate) ClearScores() *CoverLetterVersionUpdate {
 	return _u
 }
 
+// SetFeedback sets the "feedback" field.
+func (_u *CoverLetterVersionUpdate) SetFeedback(v map[string]interface{}) *CoverLetterVersionUpdate {
+	_u.mutation.SetFeedback(v)
+	return _u
+}
+
+// ClearFeedback clears the value of the "feedback" field.
+func (_u *CoverLetterVersionUpdate) ClearFeedback() *CoverLetterVersionUpdate {
+	_u.mutation.ClearFeedback()
+	return _u
+}
+
 // SetCoverLetterID sets the "cover_letter" edge to the CoverLetter entity by ID.
 func (_u *CoverLetterVersionUpdate) SetCoverLetterID(id uuid.UUID) *CoverLetterVersionUpdate {
 	_u.mutation.SetCoverLetterID(id)
@@ -252,6 +264,12 @@ func (_u *CoverLetterVersionUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if _u.mutation.ScoresCleared() {
 		_spec.ClearField(coverletterversion.FieldScores, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Feedback(); ok {
+		_spec.SetField(coverletterversion.FieldFeedback, field.TypeJSON, value)
+	}
+	if _u.mutation.FeedbackCleared() {
+		_spec.ClearField(coverletterversion.FieldFeedback, field.TypeJSON)
 	}
 	if _u.mutation.CoverLetterCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -425,6 +443,18 @@ func (_u *CoverLetterVersionUpdateOne) ClearScores() *CoverLetterVersionUpdateOn
 	return _u
 }
 
+// SetFeedback sets the "feedback" field.
+func (_u *CoverLetterVersionUpdateOne) SetFeedback(v map[string]interface{}) *CoverLetterVersionUpdateOne {
+	_u.mutation.SetFeedback(v)
+	return _u
+}
+
+// ClearFeedback clears the value of the "feedback" field.
+func (_u *CoverLetterVersionUpdateOne) ClearFeedback() *CoverLetterVersionUpdateOne {
+	_u.mutation.ClearFeedback()
+	return _u
+}
+
 // SetCoverLetterID sets the "cover_letter" edge to the CoverLetter entity by ID.
 func (_u *CoverLetterVersionUpdateOne) SetCoverLetterID(id uuid.UUID) *CoverLetterVersionUpdateOne {
 	_u.mutation.SetCoverLetterID(id)
@@ -583,6 +613,12 @@ func (_u *CoverLetterVersionUpdateOne) sqlSave(ctx context.Context) (_node *Cove
 	}
 	if _u.mutation.ScoresCleared() {
 		_spec.ClearField(coverletterversion.FieldScores, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Feedback(); ok {
+		_spec.SetField(coverletterversion.FieldFeedback, field.TypeJSON, value)
+	}
+	if _u.mutation.FeedbackCleared() {
+		_spec.ClearField(coverletterversion.FieldFeedback, field.TypeJSON)
 	}
 	if _u.mutation.CoverLetterCleared() {
 		edge := &sqlgraph.EdgeSpec{
