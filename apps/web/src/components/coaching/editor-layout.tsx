@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { TiptapEditor } from "./tiptap-editor";
 import { SaveIndicator } from "./save-indicator";
 import { AnalysisSidebar } from "./analysis-sidebar";
+import { useAutoSave } from "@/hooks/use-auto-save";
 
 interface CoverLetter {
   id: string;
@@ -56,17 +57,16 @@ export function EditorLayout({
   onSave,
 }: EditorLayoutProps) {
   const [content, setContent] = useState(coverLetter.current_content);
-  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
+  const { status, debouncedSave, saveVersion } = useAutoSave(coverLetter.id);
 
   const handleChange = (newContent: string) => {
     setContent(newContent);
-    setSaveStatus("unsaved");
+    debouncedSave(newContent); // Auto-save with 2s debounce
   };
 
   const handleSave = () => {
-    setSaveStatus("saving");
+    saveVersion(content); // Manual version save
     onSave(content);
-    setTimeout(() => setSaveStatus("saved"), 500);
   };
 
   return (
@@ -90,7 +90,7 @@ export function EditorLayout({
               <p className="text-sm text-gray-600">{coverLetter.question_text}</p>
             </div>
           </div>
-          <SaveIndicator status={saveStatus} />
+          <SaveIndicator status={status} />
         </div>
       </div>
 
@@ -109,10 +109,10 @@ export function EditorLayout({
           <div className="mt-4 flex gap-3">
             <button
               onClick={handleSave}
-              disabled={saveStatus === "saved"}
+              disabled={status === "saved"}
               className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
             >
-              💾 저장
+              💾 버전 저장
             </button>
           </div>
         </div>
