@@ -65,6 +65,18 @@ func main() {
 		matchingService = service.NewMatchingService(db, aiProvider.Light())
 	}
 
+	var questionService *service.QuestionService
+	if aiProvider != nil {
+		questionService = service.NewQuestionService(db, aiProvider.Heavy())
+	}
+
+	var coachingService *service.CoachingService
+	if aiProvider != nil {
+		coachingService = service.NewCoachingService(db, aiProvider.Heavy())
+	}
+
+	editorService := service.NewEditorService(db)
+
 	// Controllers
 	authCtrl := controller.NewAuthController(authService, cfg)
 	adminCtrl := controller.NewAdminController(db)
@@ -91,6 +103,18 @@ func main() {
 	if matchingService != nil && companyAnalysisService != nil {
 		matchingCtrl = controller.NewMatchingController(matchingService, companyAnalysisService)
 	}
+
+	var questionCtrl *controller.QuestionController
+	if questionService != nil {
+		questionCtrl = controller.NewQuestionController(questionService)
+	}
+
+	var coachingCtrl *controller.CoachingController
+	if coachingService != nil {
+		coachingCtrl = controller.NewCoachingController(coachingService)
+	}
+
+	editorCtrl := controller.NewEditorController(editorService)
 
 	// Router
 	r := gin.Default()
@@ -146,6 +170,23 @@ func main() {
 		if matchingCtrl != nil {
 			protected.POST("/match", matchingCtrl.MatchExperiences)
 		}
+
+		// Question analysis (AI-powered question intent analysis)
+		if questionCtrl != nil {
+			protected.POST("/coaching/question-analysis", questionCtrl.PostQuestionAnalysis)
+		}
+
+		// Draft coaching (AI-powered draft generation)
+		if coachingCtrl != nil {
+			protected.POST("/coaching/draft", coachingCtrl.PostDraft)
+			protected.GET("/coaching/sessions", coachingCtrl.GetSessions)
+		}
+
+		// Cover letter editor (CRUD + versioning)
+		protected.GET("/coaching/cover-letters/:id", editorCtrl.GetCoverLetter)
+		protected.PATCH("/coaching/cover-letters/:id", editorCtrl.PatchCoverLetter)
+		protected.POST("/coaching/cover-letters/:id/versions", editorCtrl.PostVersion)
+		protected.GET("/coaching/cover-letters/:id/versions", editorCtrl.GetVersions)
 	}
 
 	// Admin routes (require authentication + admin role)

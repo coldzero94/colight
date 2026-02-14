@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import { updateCoverLetter, createVersion } from "@/lib/api/coaching";
 
 type SaveStatus = "saved" | "saving" | "unsaved";
 
@@ -16,14 +17,10 @@ export function useAutoSave(coverLetterId: string) {
 
       setStatus("saving");
       try {
-        await fetch(`/v1/coaching/cover-letters/${coverLetterId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content }),
-        });
+        await updateCoverLetter(coverLetterId, content);
         lastSavedContent.current = content;
         setStatus("saved");
-      } catch (error) {
+      } catch {
         setStatus("unsaved");
       }
     },
@@ -35,14 +32,10 @@ export function useAutoSave(coverLetterId: string) {
     async (content: string) => {
       setStatus("saving");
       try {
-        await fetch(`/v1/coaching/cover-letters/${coverLetterId}/versions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content }),
-        });
+        await createVersion(coverLetterId, content);
         lastSavedContent.current = content;
         setStatus("saved");
-      } catch (error) {
+      } catch {
         setStatus("unsaved");
       }
     },
