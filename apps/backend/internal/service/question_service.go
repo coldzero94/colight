@@ -8,6 +8,7 @@ import (
 
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/application"
+	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 	"github.com/google/uuid"
@@ -193,4 +194,123 @@ func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID,
 	}
 
 	return &result, nil
+}
+
+// ExperienceRecommendation represents a recommended experience with match score
+type ExperienceRecommendation struct {
+	ID            uuid.UUID `json:"id"`
+	Title         string    `json:"title"`
+	Category      string    `json:"category"`
+	PeriodStart   string    `json:"period_start,omitempty"`
+	PeriodEnd     string    `json:"period_end,omitempty"`
+	StarSituation string    `json:"star_situation"`
+	Weapons       []string  `json:"weapons"`
+	MatchScore    int       `json:"match_score"` // 0~100
+}
+
+// RecommendExperiences recommends top N experiences based on required weapons
+func (s *QuestionService) RecommendExperiences(ctx context.Context, userID uuid.UUID, requiredWeapons RequiredWeapons, limit int) ([]ExperienceRecommendation, error) {
+	// 1. Get all user experiences with weapons
+	experiences, err := s.entClient.Experience.Query().
+		Where(experience.UserIDEQ(userID)).
+		WithWeapons().
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query experiences: %w", err)
+	}
+
+	if len(experiences) == 0 {
+		return []ExperienceRecommendation{}, nil
+	}
+
+	// 2. Calculate match score for each experience
+	type scoredExperience struct {
+		exp   *ent.Experience
+		score int
+	}
+
+	var scored []scoredExperience
+	for _, exp := range experiences {
+		score := s.calculateMatchScore(exp, requiredWeapons)
+		if score > 0 {
+			scored = append(scored, scoredExperience{exp: exp, score: score})
+		}
+	}
+
+	// 3. Sort by score (descending)
+	for i := 0; i < len(scored); i++ {
+		for j := i + 1; j < len(scored); j++ {
+			if scored[j].score > scored[i].score {
+				scored[i], scored[j] = scored[j], scored[i]
+			}
+		}
+	}
+
+	// 4. Take top N
+	resultLimit := limit
+	if len(scored) < resultLimit {
+		resultLimit = len(scored)
+	}
+
+	// 5. Build recommendations
+	recommendations := make([]ExperienceRecommendation, resultLimit)
+	for i := 0; i < resultLimit; i++ {
+		exp := scored[i].exp
+		weaponNames := make([]string, len(exp.Edges.Weapons))
+		for j, w := range exp.Edges.Weapons {
+			// Look up weapon name from weapon_code
+			weaponNames[j] = w.WeaponCode
+		}
+
+		rec := ExperienceRecommendation{
+			ID:            exp.ID,
+			Title:         exp.Title,
+			Category:      exp.Category,
+			StarSituation: exp.StarSituation,
+			Weapons:       weaponNames,
+			MatchScore:    scored[i].score,
+		}
+
+		if exp.PeriodStart != nil {
+			rec.PeriodStart = exp.PeriodStart.Format("2006-01")
+		}
+		if exp.PeriodEnd != nil {
+			rec.PeriodEnd = exp.PeriodEnd.Format("2006-01")
+		}
+
+		recommendations[i] = rec
+	}
+
+	return recommendations, nil
+}
+
+// calculateMatchScore calculates match score for an experience
+// Primary weapon: 50 points, Secondary weapons: 25 points each
+func (s *QuestionService) calculateMatchScore(exp *ent.Experience, requiredWeapons RequiredWeapons) int {
+	score := 0
+	maxScore := 100
+
+	// Find primary weapon match (50 points)
+	for _, w := range exp.Edges.Weapons {
+		if w.WeaponCode == requiredWeapons.Primary.WeaponID {
+			score += int(50 * w.Confidence)
+			break
+		}
+	}
+
+	// Find secondary weapon matches (25 points each)
+	for _, secondary := range requiredWeapons.Secondary {
+		for _, w := range exp.Edges.Weapons {
+			if w.WeaponCode == secondary.WeaponID {
+				score += int(25 * w.Confidence)
+				break
+			}
+		}
+	}
+
+	if score > maxScore {
+		score = maxScore
+	}
+
+	return score
 }

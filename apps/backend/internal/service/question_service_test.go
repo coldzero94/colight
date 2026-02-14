@@ -341,3 +341,106 @@ func TestAnalyzeQuestion_CategoryMatching(t *testing.T) {
 	assert.Equal(t, "W01", result.RequiredWeapons.Primary.WeaponID)
 	assert.Equal(t, "문제해결", result.RequiredWeapons.Primary.WeaponName)
 }
+
+func TestRecommendExperiences_Top3Sorted(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewQuestionService(client, nil)
+	ctx := context.Background()
+
+	userID, _ := createTestUserAndApplication(t, client)
+	ensureWeaponCategoriesForQuestion(t, client)
+
+	w01, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W01")).Only(ctx)
+	w02, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W02")).Only(ctx)
+
+	// Create 3 experiences with different weapon matches
+	exp1 := client.Experience.Create().
+		SetUserID(userID).SetTitle("경험1 - 높은 점수").SetContent("내용").SetCategory("프로젝트").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(exp1).SetWeaponCode(w01.Code).SetConfidence(0.9).SetIsPrimary(true).SaveX(ctx)
+
+	exp2 := client.Experience.Create().
+		SetUserID(userID).SetTitle("경험2 - 중간 점수").SetContent("내용").SetCategory("인턴").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(exp2).SetWeaponCode(w02.Code).SetConfidence(0.7).SetIsPrimary(false).SaveX(ctx)
+
+	exp3 := client.Experience.Create().
+		SetUserID(userID).SetTitle("경험3 - 낮은 점수").SetContent("내용").SetCategory("동아리").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(exp3).SetWeaponCode(w02.Code).SetConfidence(0.5).SetIsPrimary(false).SaveX(ctx)
+
+	requiredWeapons := RequiredWeapons{
+		Primary:   WeaponInfo{WeaponID: w01.Code},
+		Secondary: []WeaponInfo{{WeaponID: w02.Code}},
+	}
+
+	recommendations, err := svc.RecommendExperiences(ctx, userID, requiredWeapons, 3)
+	require.NoError(t, err)
+	assert.Len(t, recommendations, 3)
+
+	// Verify sorted by score (descending)
+	for i := 0; i < len(recommendations)-1; i++ {
+		assert.GreaterOrEqual(t, recommendations[i].MatchScore, recommendations[i+1].MatchScore)
+	}
+}
+
+func TestRecommendExperiences_PrimaryWeaponDoubleWeight(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewQuestionService(client, nil)
+	ctx := context.Background()
+
+	userID, _ := createTestUserAndApplication(t, client)
+	ensureWeaponCategoriesForQuestion(t, client)
+
+	w01, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W01")).Only(ctx)
+	w02, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W02")).Only(ctx)
+
+	// Experience with primary weapon (0.9 relevance) -> 50 * 0.9 = 45
+	expPrimary := client.Experience.Create().
+		SetUserID(userID).SetTitle("주 무기 경험").SetContent("내용").SetCategory("프로젝트").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(expPrimary).SetWeaponCode(w01.Code).SetConfidence(0.9).SetIsPrimary(true).SaveX(ctx)
+
+	// Experience with secondary weapon (1.0 relevance) -> 25 * 1.0 = 25
+	expSecondary := client.Experience.Create().
+		SetUserID(userID).SetTitle("부 무기 경험").SetContent("내용").SetCategory("인턴").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(expSecondary).SetWeaponCode(w02.Code).SetConfidence(1.0).SetIsPrimary(false).SaveX(ctx)
+
+	requiredWeapons := RequiredWeapons{
+		Primary:   WeaponInfo{WeaponID: w01.Code},
+		Secondary: []WeaponInfo{{WeaponID: w02.Code}},
+	}
+
+	recommendations, err := svc.RecommendExperiences(ctx, userID, requiredWeapons, 3)
+	require.NoError(t, err)
+
+	// Primary should rank higher (45 > 25)
+	assert.Equal(t, "주 무기 경험", recommendations[0].Title)
+	assert.Greater(t, recommendations[0].MatchScore, recommendations[1].MatchScore)
+}
+
+func TestRecommendExperiences_NoExperiences(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewQuestionService(client, nil)
+	ctx := context.Background()
+
+	userID, _ := createTestUserAndApplication(t, client)
+	ensureWeaponCategoriesForQuestion(t, client)
+
+	w01, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W01")).Only(ctx)
+
+	requiredWeapons := RequiredWeapons{
+		Primary:   WeaponInfo{WeaponID: w01.Code},
+		Secondary: []WeaponInfo{},
+	}
+
+	recommendations, err := svc.RecommendExperiences(ctx, userID, requiredWeapons, 3)
+	require.NoError(t, err)
+	assert.Empty(t, recommendations)
+}
