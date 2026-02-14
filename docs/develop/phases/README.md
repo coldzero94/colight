@@ -13,12 +13,12 @@
 | Phase 1 | 인증 & 레이아웃 | ✅ | Sprint 0 | 4일 | Sub-phases: 1.1~1.6 |
 | Phase 2 | 경험 CRUD | ✅ | Sprint 1 | 3일 | F01 |
 | Phase 2.1 | 무기 자동 태깅 | ✅ | Sprint 1 | 2일 | F03 |
-| Phase 3 | 크롤링 & 파싱 | ⬜ | Sprint 2 | 2일 | F07 |
-| Phase 3.1 | 기업 데이터 API | ⬜ | Sprint 2 | 2일 | F08 |
-| Phase 3.2 | AI 기업 분석 | ⬜ | Sprint 3 | 2일 | F09 |
-| Phase 3.3 | 분석 리포트 UI | ⬜ | Sprint 3 | 2일 | F09 |
-| Phase 4 | 경험 매칭 | ⬜ | Sprint 4 | 5일 | F10 |
-| Phase 5 | 문항 분석 | ⬜ | Sprint 5 | 2일 | F11 |
+| Phase 3 | 크롤링 & 파싱 | ✅ | Sprint 2 | 2일 | F07 |
+| Phase 3.1 | 기업 데이터 API | ✅ | Sprint 2 | 2일 | F08 |
+| Phase 3.2 | AI 기업 분석 | ✅ | Sprint 3 | 2일 | F09 |
+| Phase 3.3 | 분석 리포트 UI | ✅ | Sprint 3 | 2일 | F09 |
+| Phase 4 | 경험 매칭 | ✅ | Sprint 4 | 5일 | F10 |
+| Phase 5 | 문항 분석 | ✅ | Sprint 5 | 2일 | F11 |
 | Phase 5.1 | 초안 코칭 | ⬜ | Sprint 5 | 2일 | F12, F13 |
 | Phase 5.2 | 코칭 에디터 | ⬜ | Sprint 5 | 1일 | F13 |
 | Phase 6 | 첨삭 코칭 | ⬜ | Sprint 6 | 2일 | F14 |
