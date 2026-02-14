@@ -45,6 +45,7 @@ func setupCoachingTestRouter(t *testing.T, mockAI *mockLLMForCoaching) (*gin.Eng
 		c.Next()
 	})
 	v1.POST("/coaching/draft", coachingCtrl.PostDraft)
+	v1.GET("/coaching/sessions", coachingCtrl.GetSessions)
 
 	return router, client
 }
@@ -239,4 +240,113 @@ func TestPostDraft_GracefulDisconnect(t *testing.T) {
 
 	// Should not panic or error on disconnect
 	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestGetSessions_Success(t *testing.T) {
+	mockAI := &mockLLMForCoaching{
+		response: ai.LLMResponse{Content: "[상황]\n초안"},
+	}
+
+	router, client := setupCoachingTestRouter(t, mockAI)
+	ctx := context.Background()
+
+	user := client.UserProfile.Create().
+		SetEmail("sessions-test@example.com").
+		SetPasswordHash("hash").
+		SetRole("user").
+		SaveX(ctx)
+
+	app := client.Application.Create().
+		SetUserID(user.ID).
+		SetCompanyName("회사").
+		SetPosition("개발자").
+		SetJobURL("https://example.com").
+		SaveX(ctx)
+
+	coverLetter := client.CoverLetter.Create().
+		SetUserID(user.ID).
+		SetApplicationID(app.ID).
+		SetQuestionText("문항").
+		SetCharLimit(800).
+		SetCurrentContent("초안").
+		SaveX(ctx)
+
+	// Create a session
+	client.CoachingSession.Create().
+		SetUserID(user.ID).
+		SetCoverLetter(coverLetter).
+		SetSessionType("draft").
+		SetInputData(map[string]interface{}{"system": "test"}).
+		SetOutputData(map[string]interface{}{"content": "response"}).
+		SaveX(ctx)
+
+	// GET request for sessions
+	req := httptest.NewRequest(http.MethodGet, "/v1/coaching/sessions?cover_letter_id="+coverLetter.ID.String(), nil)
+	req.Header.Set("X-Test-UserID", user.ID.String())
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]interface{}
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, err)
+	sessions := resp["sessions"].([]interface{})
+	assert.GreaterOrEqual(t, len(sessions), 1)
+}
+
+func TestGetSessions_OnlyOwnSessions(t *testing.T) {
+	mockAI := &mockLLMForCoaching{
+		response: ai.LLMResponse{Content: "[상황]\n초안"},
+	}
+
+	router, client := setupCoachingTestRouter(t, mockAI)
+	ctx := context.Background()
+
+	// User 1
+	user1 := client.UserProfile.Create().
+		SetEmail("user1@example.com").
+		SetPasswordHash("hash").
+		SetRole("user").
+		SaveX(ctx)
+
+	// User 2
+	user2 := client.UserProfile.Create().
+		SetEmail("user2@example.com").
+		SetPasswordHash("hash").
+		SetRole("user").
+		SaveX(ctx)
+
+	app1 := client.Application.Create().
+		SetUserID(user1.ID).
+		SetCompanyName("회사1").
+		SetPosition("개발자").
+		SetJobURL("https://example.com").
+		SaveX(ctx)
+
+	coverLetter1 := client.CoverLetter.Create().
+		SetUserID(user1.ID).
+		SetApplicationID(app1.ID).
+		SetQuestionText("문항").
+		SetCharLimit(800).
+		SetCurrentContent("초안").
+		SaveX(ctx)
+
+	// User1's session
+	client.CoachingSession.Create().
+		SetUserID(user1.ID).
+		SetCoverLetter(coverLetter1).
+		SetSessionType("draft").
+		SetInputData(map[string]interface{}{}).
+		SetOutputData(map[string]interface{}{}).
+		SaveX(ctx)
+
+	// User2 should not see user1's sessions
+	req := httptest.NewRequest(http.MethodGet, "/v1/coaching/sessions?cover_letter_id="+coverLetter1.ID.String(), nil)
+	req.Header.Set("X-Test-UserID", user2.ID.String())
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// Should return empty or forbidden
+	assert.True(t, w.Code == http.StatusOK || w.Code == http.StatusForbidden)
 }

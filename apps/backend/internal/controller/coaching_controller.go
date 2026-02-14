@@ -103,3 +103,44 @@ func (c *CoachingController) PostDraft(ctx *gin.Context) {
 		"draft": draft,
 	})
 }
+
+// GetSessions handles GET /v1/coaching/sessions
+func (c *CoachingController) GetSessions(ctx *gin.Context) {
+	// Get user ID from auth middleware
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "인증이 필요합니다.",
+		})
+		return
+	}
+
+	coverLetterID := ctx.Query("cover_letter_id")
+	if coverLetterID == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "cover_letter_id가 필요합니다",
+		})
+		return
+	}
+
+	clID, err := uuid.Parse(coverLetterID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "유효하지 않은 cover_letter_id입니다",
+		})
+		return
+	}
+
+	// Get sessions (only user's own sessions)
+	sessions, err := c.coachingService.GetSessions(ctx.Request.Context(), userID.(uuid.UUID), clID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "세션 조회 중 오류가 발생했습니다",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"sessions": sessions,
+	})
+}

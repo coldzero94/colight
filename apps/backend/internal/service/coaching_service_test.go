@@ -211,3 +211,107 @@ func TestGenerateDraft_ErrorHandling(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "AI")
 }
+
+func TestRecordSession_CreatesRecord(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewCoachingService(client, nil)
+	ctx := context.Background()
+
+	userID, appID, _ := createTestCoachingData(t, client)
+
+	// Create a cover letter first
+	coverLetter := client.CoverLetter.Create().
+		SetUserID(userID).
+		SetApplicationID(appID).
+		SetQuestionText("문항").
+		SetCharLimit(800).
+		SetCurrentContent("초안 내용").
+		SaveX(ctx)
+
+	// Record session
+	session, err := svc.RecordSession(ctx, userID, coverLetter.ID, "draft", "system prompt", "user prompt", "assistant response", 500, 300)
+	require.NoError(t, err)
+	require.NotNil(t, session)
+
+	// Verify session was created
+	assert.Equal(t, "draft", string(session.SessionType))
+	assert.NotNil(t, session.InputData)
+	assert.NotNil(t, session.OutputData)
+}
+
+func TestRecordSession_DraftType(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewCoachingService(client, nil)
+	ctx := context.Background()
+
+	userID, appID, _ := createTestCoachingData(t, client)
+
+	coverLetter := client.CoverLetter.Create().
+		SetUserID(userID).
+		SetApplicationID(appID).
+		SetQuestionText("문항").
+		SetCharLimit(800).
+		SetCurrentContent("초안").
+		SaveX(ctx)
+
+	session, err := svc.RecordSession(ctx, userID, coverLetter.ID, "draft", "sys", "user", "asst", 100, 50)
+	require.NoError(t, err)
+
+	assert.Equal(t, "draft", string(session.SessionType))
+}
+
+func TestRecordSession_MessagesStored(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewCoachingService(client, nil)
+	ctx := context.Background()
+
+	userID, appID, _ := createTestCoachingData(t, client)
+
+	coverLetter := client.CoverLetter.Create().
+		SetUserID(userID).
+		SetApplicationID(appID).
+		SetQuestionText("문항").
+		SetCharLimit(800).
+		SetCurrentContent("초안").
+		SaveX(ctx)
+
+	systemPrompt := "당신은 코칭 전문가입니다"
+	userPrompt := "경험을 바탕으로 작성하세요"
+	assistantResponse := "[상황]\n초안 내용"
+
+	session, err := svc.RecordSession(ctx, userID, coverLetter.ID, "draft", systemPrompt, userPrompt, assistantResponse, 100, 50)
+	require.NoError(t, err)
+
+	// Verify input/output data are stored
+	assert.NotNil(t, session.InputData)
+	assert.NotNil(t, session.OutputData)
+	// Input data should contain system and user prompts
+	assert.Contains(t, session.InputData, "system")
+	assert.Contains(t, session.InputData, "user")
+}
+
+func TestRecordSession_TokenUsageTracked(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewCoachingService(client, nil)
+	ctx := context.Background()
+
+	userID, appID, _ := createTestCoachingData(t, client)
+
+	coverLetter := client.CoverLetter.Create().
+		SetUserID(userID).
+		SetApplicationID(appID).
+		SetQuestionText("문항").
+		SetCharLimit(800).
+		SetCurrentContent("초안").
+		SaveX(ctx)
+
+	inputTokens := 500
+	outputTokens := 300
+
+	session, err := svc.RecordSession(ctx, userID, coverLetter.ID, "draft", "sys", "user", "asst", inputTokens, outputTokens)
+	require.NoError(t, err)
+
+	// Verify token usage is tracked (int fields, not pointers)
+	assert.Equal(t, inputTokens, session.InputTokens)
+	assert.Equal(t, outputTokens, session.OutputTokens)
+}

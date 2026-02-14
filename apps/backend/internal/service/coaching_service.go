@@ -7,6 +7,8 @@ import (
 
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/application"
+	"github.com/coby/colight/apps/backend/ent/coachingsession"
+	"github.com/coby/colight/apps/backend/ent/coverletter"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
@@ -145,4 +147,70 @@ func (s *CoachingService) GenerateDraft(
 	}
 
 	return resp.Content, nil
+}
+
+// RecordSession records a coaching session to coaching_sessions table
+func (s *CoachingService) RecordSession(
+	ctx context.Context,
+	userID uuid.UUID,
+	coverLetterID uuid.UUID,
+	sessionType string,
+	systemPrompt string,
+	userPrompt string,
+	assistantResponse string,
+	inputTokens int,
+	outputTokens int,
+) (*ent.CoachingSession, error) {
+	// Build input/output data
+	inputData := map[string]interface{}{
+		"system": systemPrompt,
+		"user":   userPrompt,
+	}
+
+	outputData := map[string]interface{}{
+		"content": assistantResponse,
+		"usage": map[string]interface{}{
+			"input_tokens":  inputTokens,
+			"output_tokens": outputTokens,
+		},
+	}
+
+	// Load cover letter for edge
+	coverLetter, err := s.entClient.CoverLetter.Get(ctx, coverLetterID)
+	if err != nil {
+		return nil, fmt.Errorf("cover letter not found: %w", err)
+	}
+
+	// Create session
+	session, err := s.entClient.CoachingSession.Create().
+		SetUserID(userID).
+		SetCoverLetter(coverLetter).
+		SetSessionType(coachingsession.SessionType(sessionType)).
+		SetInputData(inputData).
+		SetOutputData(outputData).
+		SetInputTokens(inputTokens).
+		SetOutputTokens(outputTokens).
+		Save(ctx)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to record session: %w", err)
+	}
+
+	return session, nil
+}
+
+// GetSessions retrieves coaching sessions for a cover letter
+func (s *CoachingService) GetSessions(ctx context.Context, userID uuid.UUID, coverLetterID uuid.UUID) ([]*ent.CoachingSession, error) {
+	sessions, err := s.entClient.CoachingSession.Query().
+		Where(
+			coachingsession.UserIDEQ(userID),
+			coachingsession.HasCoverLetterWith(coverletter.IDEQ(coverLetterID)),
+		).
+		All(ctx)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to query sessions: %w", err)
+	}
+
+	return sessions, nil
 }
