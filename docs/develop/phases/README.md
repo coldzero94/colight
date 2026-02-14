@@ -19,7 +19,7 @@
 | Phase 3.3 | 분석 리포트 UI | ✅ | Sprint 3 | 2일 | F09 |
 | Phase 4 | 경험 매칭 | ✅ | Sprint 4 | 5일 | F10 |
 | Phase 5 | 문항 분석 | ✅ | Sprint 5 | 2일 | F11 |
-| Phase 5.1 | 초안 코칭 | ⬜ | Sprint 5 | 2일 | F12, F13 |
+| Phase 5.1 | 초안 코칭 | ✅ | Sprint 5 | 2일 | F12, F13 |
 | Phase 5.2 | 코칭 에디터 | ⬜ | Sprint 5 | 1일 | F13 |
 | Phase 6 | 첨삭 코칭 | ⬜ | Sprint 6 | 2일 | F14 |
 | Phase 6.1 | 프리미엄 & 마무리 | ⬜ | Sprint 6 | 2일 | - |
