@@ -166,6 +166,98 @@ func formatTalentTraits(traits []TalentTrait) string {
 	}
 	return result
 }
+// CalculateOverallFit computes the weighted average overall fit score
+// Weights: job_relevance 40%, talent_fit 35%, uniqueness 25%
+func CalculateOverallFit(jobRelevance, talentFit, uniqueness int) int {
+	return (jobRelevance*40 + talentFit*35 + uniqueness*25) / 100
+}
+
+// BatchMatchResult holds all matching results for a user's experiences
+type BatchMatchResult struct {
+	Matches   []MatchResult `json:"matches"`
+	Total     int           `json:"total"`
+	MatchedAt time.Time     `json:"matched_at"`
+}
+
+// MatchAllExperiences matches all user experiences against company analysis
+func (s *MatchingService) MatchAllExperiences(ctx context.Context, userID uuid.UUID, companyAnalysis *CompanyAnalysis) (*BatchMatchResult, error) {
+	// 1. Get all user experiences
+	experiences, err := s.entClient.Experience.Query().
+		Where(experience.UserIDEQ(userID)).
+		WithWeapons().
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query experiences: %w", err)
+	}
+
+	if len(experiences) == 0 {
+		return nil, ErrNoExperiences
+	}
+
+	// 2. Match each experience
+	var matches []MatchResult
+	for _, exp := range experiences {
+		result, err := s.MatchExperience(ctx, userID, exp.ID, companyAnalysis)
+		if err != nil {
+			continue // skip failed matches
+		}
+		matches = append(matches, *result)
+	}
+
+	return &BatchMatchResult{
+		Matches:   matches,
+		Total:     len(matches),
+		MatchedAt: time.Now(),
+	}, nil
+}
+
+// OutdatedCheckResult indicates whether a matching result is stale
+type OutdatedCheckResult struct {
+	IsOutdated bool   `json:"is_outdated"`
+	Reason     string `json:"reason,omitempty"`
+}
+
+// CheckMatchingOutdated checks if a matching result is outdated
+// Conditions: experience added/modified/deleted after matchedAt, or 7+ days elapsed
+func (s *MatchingService) CheckMatchingOutdated(ctx context.Context, userID uuid.UUID, matchedAt time.Time) (*OutdatedCheckResult, error) {
+	// 1. Find latest experience update time
+	latestExp, err := s.entClient.Experience.Query().
+		Where(experience.UserIDEQ(userID)).
+		Order(ent.Desc(experience.FieldUpdatedAt)).
+		First(ctx)
+
+	if err != nil && !ent.IsNotFound(err) {
+		return nil, fmt.Errorf("failed to query latest experience: %w", err)
+	}
+
+	// Check if any experience was modified after matching
+	if latestExp != nil && latestExp.UpdatedAt.After(matchedAt) {
+		return &OutdatedCheckResult{
+			IsOutdated: true,
+			Reason:     "매칭 이후 경험이 변경되었습니다",
+		}, nil
+	}
+
+	// Check experience count changed (deletion detection via create_time after match)
+	// If no experiences exist but matching was done, experiences were deleted
+	if latestExp == nil {
+		return &OutdatedCheckResult{
+			IsOutdated: true,
+			Reason:     "등록된 경험이 없습니다",
+		}, nil
+	}
+
+	// Check 7-day expiry
+	if time.Since(matchedAt) > 7*24*time.Hour {
+		return &OutdatedCheckResult{
+			IsOutdated: true,
+			Reason:     "매칭 결과가 7일 이상 지났습니다",
+		}, nil
+	}
+
+	return &OutdatedCheckResult{IsOutdated: false}, nil
+}
+
 // GetClient returns the Ent client
 func (s *MatchingService) GetClient() *ent.Client {
 	return s.entClient

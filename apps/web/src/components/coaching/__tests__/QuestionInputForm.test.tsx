@@ -77,7 +77,7 @@ describe("QuestionInputForm", () => {
 
   it("shows loading spinner on form submit", async () => {
     const user = userEvent.setup();
-    const onSubmit = vi.fn(() => new Promise(() => {})); // 완료되지 않는 Promise
+    const onSubmit = vi.fn((): Promise<void> => new Promise(() => {})); // 완료되지 않는 Promise
     render(<QuestionInputForm companies={mockCompanies} onSubmit={onSubmit} />);
 
     // 폼 입력
