@@ -146,3 +146,7 @@ func formatTalentTraits(traits []TalentTrait) string {
 	}
 	return result
 }
+// GetClient returns the Ent client
+func (s *MatchingService) GetClient() *ent.Client {
+	return s.entClient
+}

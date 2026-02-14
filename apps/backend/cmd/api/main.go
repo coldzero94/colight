@@ -60,6 +60,11 @@ func main() {
 		companyAnalysisService = service.NewCompanyAnalysisService(db, aiProvider, companyDataService)
 	}
 
+	var matchingService *service.MatchingService
+	if aiProvider != nil {
+		matchingService = service.NewMatchingService(db, aiProvider.Light())
+	}
+
 	// Controllers
 	authCtrl := controller.NewAuthController(authService, cfg)
 	adminCtrl := controller.NewAdminController(db)
@@ -80,6 +85,11 @@ func main() {
 	var companyAnalysisCtrl *controller.CompanyAnalysisController
 	if companyAnalysisService != nil {
 		companyAnalysisCtrl = controller.NewCompanyAnalysisController(companyAnalysisService)
+	}
+
+	var matchingCtrl *controller.MatchingController
+	if matchingService != nil && companyAnalysisService != nil {
+		matchingCtrl = controller.NewMatchingController(matchingService, companyAnalysisService)
 	}
 
 	// Router
@@ -130,6 +140,11 @@ func main() {
 		// Company analysis (AI-powered talent profile analysis)
 		if companyAnalysisCtrl != nil {
 			protected.POST("/analyze-company", companyAnalysisCtrl.AnalyzeCompany)
+		}
+
+		// Experience matching (AI-powered experience-company matching)
+		if matchingCtrl != nil {
+			protected.POST("/match", matchingCtrl.MatchExperiences)
 		}
 	}
 
