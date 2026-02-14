@@ -20,7 +20,7 @@
 | Phase 4 | 경험 매칭 | ✅ | Sprint 4 | 5일 | F10 |
 | Phase 5 | 문항 분석 | ✅ | Sprint 5 | 2일 | F11 |
 | Phase 5.1 | 초안 코칭 | ✅ | Sprint 5 | 2일 | F12, F13 |
-| Phase 5.2 | 코칭 에디터 | ⬜ | Sprint 5 | 1일 | F13 |
+| Phase 5.2 | 코칭 에디터 | ✅ | Sprint 5 | 1일 | F13 |
 | Phase 6 | 첨삭 코칭 | ⬜ | Sprint 6 | 2일 | F14 |
 | Phase 6.1 | 프리미엄 & 마무리 | ⬜ | Sprint 6 | 2일 | - |
 | Phase 6.2 | 랜딩 & 베타 | ⬜ | Sprint 6 | 1일 | - |

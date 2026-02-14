@@ -68,7 +68,7 @@ moon run :build        # All builds
 | 4 | Experience matching | Complete | 4 |
 | 5 | Question analysis | Complete | 5 |
 | 5.1 | Draft coaching | Complete | 5 |
-| 5.2 | Coaching editor | Pending | 5 |
+| 5.2 | Coaching editor | Complete | 5 |
 | 6 | Revision coaching | Pending | 6 |
 | 6.1 | Premium & polish | Pending | 6 |
 | 6.2 | Landing & beta | Pending | 6 |
