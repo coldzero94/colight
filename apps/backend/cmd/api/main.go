@@ -75,6 +75,11 @@ func main() {
 		coachingService = service.NewCoachingService(db, aiProvider.HeavyStreaming())
 	}
 
+	var reviewService *service.ReviewService
+	if aiProvider != nil {
+		reviewService = service.NewReviewService(db, aiProvider.Heavy())
+	}
+
 	editorService := service.NewEditorService(db)
 
 	// Controllers
@@ -112,6 +117,11 @@ func main() {
 	var coachingCtrl *controller.CoachingController
 	if coachingService != nil {
 		coachingCtrl = controller.NewCoachingController(coachingService)
+	}
+
+	var reviewCtrl *controller.ReviewController
+	if reviewService != nil {
+		reviewCtrl = controller.NewReviewController(reviewService)
 	}
 
 	editorCtrl := controller.NewEditorController(editorService)
@@ -186,6 +196,11 @@ func main() {
 		if coachingCtrl != nil {
 			protected.POST("/coaching/draft", coachingCtrl.PostDraft)
 			protected.GET("/coaching/sessions", coachingCtrl.GetSessions)
+		}
+
+		// Review coaching (AI-powered cover letter review)
+		if reviewCtrl != nil {
+			protected.POST("/coaching/review", reviewCtrl.PostReview)
 		}
 
 		// Cover letter editor (CRUD + versioning)
