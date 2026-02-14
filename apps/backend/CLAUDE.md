@@ -1,69 +1,45 @@
 # Backend
 
-Go API server for Colight. See root CLAUDE.md for project-wide rules.
+Go API server. See root CLAUDE.md for project rules.
 
-## Architecture
+## Structure
 
-```text
+```
 cmd/api/           # Entrypoint
 ent/schema/        # DB schema (source of truth)
 internal/
-  controller/      # HTTP handlers (implements generated StrictServerInterface)
+  controller/      # HTTP handlers (StrictServerInterface)
   service/         # Business logic
-  infrastructure/  # External integrations (AI, DB, middleware, external APIs)
-  generated/       # oapi-codegen output (committed, do not edit)
-migrations/        # Atlas SQL migrations
-scripts/           # Seed data
+  infrastructure/  # AI, DB, middleware, external APIs
+  generated/       # oapi-codegen (do not edit)
 testutil/          # Shared test helpers
 ```
 
-## Key Rules
+## Rules
 
 - Controller → Service → Ent (never skip layers)
 - No RLS — filter by `user_id` in service layer
-- AI prompts from DB (`prompt_templates`) — never hardcode
-- AI SDK: Common LLM abstraction (`internal/infrastructure/ai/`) — supports Gemini, Groq, Anthropic via `LLMProvider` interface
-- All routes use `/v1/` prefix
-- Generated `internal/generated/` is committed — do not edit manually
-- FK constraints use CASCADE DELETE
+- AI: `LLMProvider` interface (`internal/infrastructure/ai/`)
+- Routes: `/v1/` prefix. FK: CASCADE DELETE
 
-## Commands (always from project root)
+## Commands
 
 ```bash
-moon run backend:dev              # Dev server (hot reload via air)
+moon run backend:dev              # Dev (air hot reload)
 moon run backend:build            # Build binary
-moon run backend:lint             # golangci-lint run ./...
+moon run backend:lint             # golangci-lint
 moon run backend:test             # go test ./...
-moon run backend:generate-ent     # Regenerate Ent code
-moon run backend:generate-api     # OpenAPI → Go server code
-moon run backend:migrate-diff -- name=<desc>  # Create migration
-moon run backend:migrate-apply    # Apply migrations
-moon run backend:seed             # Seed data (all | admin | prompts)
+moon run backend:generate-ent     # Ent codegen
+moon run backend:generate-api     # OpenAPI → Go server
+moon run backend:migrate-diff -- name=<desc>
+moon run backend:migrate-apply
+moon run backend:seed             # Seed data
 ```
 
-## Verification Gate
+## Testing
 
-**Run after every code change, before marking any phase complete:**
+Go `testing` + testify. Tests co-located: `foo.go` → `foo_test.go`. Helpers in `testutil/`.
 
-```bash
-moon run backend:lint && moon run backend:test
-```
+## Migration
 
-Both must pass with **zero errors**. Do not skip. Do not proceed to the next phase if tests fail.
-
-## Testing Conventions
-
-- Framework: Go standard `testing` + `github.com/stretchr/testify`
-- Test files: live next to source — `foo.go` → `foo_test.go`
-- Shared helpers: `testutil/` package
-- Use table-driven tests where appropriate
-- **Every new service/controller/middleware must have tests**
-- Run `moon run backend:test` after writing or modifying any code
-
-## Migration Workflow
-
-1. Edit `ent/schema/*.go`
-2. `moon run backend:generate-ent`
-3. `moon run backend:migrate-diff -- name=<description>`
-4. Review generated SQL
-5. `moon run backend:migrate-apply`
+Edit `ent/schema/*.go` → `generate-ent` → `migrate-diff` → review SQL → `migrate-apply`
