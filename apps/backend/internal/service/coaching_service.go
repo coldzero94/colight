@@ -18,27 +18,26 @@ import (
 // CoachingService handles draft coaching
 type CoachingService struct {
 	entClient  *ent.Client
-	aiProvider ai.LLMProvider
+	aiProvider ai.StreamingLLMProvider
 }
 
 // NewCoachingService creates a new coaching service
-func NewCoachingService(entClient *ent.Client, aiProvider ai.LLMProvider) *CoachingService {
+func NewCoachingService(entClient *ent.Client, aiProvider ai.StreamingLLMProvider) *CoachingService {
 	return &CoachingService{
 		entClient:  entClient,
 		aiProvider: aiProvider,
 	}
 }
 
-// GenerateDraft generates a cover letter draft using Claude
-func (s *CoachingService) GenerateDraft(
+// buildDraftRequest builds the LLM request for draft generation (shared by sync and streaming).
+func (s *CoachingService) buildDraftRequest(
 	ctx context.Context,
 	userID uuid.UUID,
 	applicationID uuid.UUID,
 	experienceIDs []uuid.UUID,
 	questionText string,
 	charLimit int,
-	analysisResult any, // Can be nil
-) (string, error) {
+) (ai.LLMRequest, error) {
 	// 1. Verify application ownership
 	app, err := s.entClient.Application.Query().
 		Where(application.IDEQ(applicationID)).
@@ -46,13 +45,13 @@ func (s *CoachingService) GenerateDraft(
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return "", ErrApplicationNotFound
+			return ai.LLMRequest{}, ErrApplicationNotFound
 		}
-		return "", err
+		return ai.LLMRequest{}, err
 	}
 
 	if app.UserID != userID {
-		return "", ErrApplicationForbidden
+		return ai.LLMRequest{}, ErrApplicationForbidden
 	}
 
 	// 2. Load selected experiences
@@ -61,13 +60,12 @@ func (s *CoachingService) GenerateDraft(
 		WithWeapons().
 		All(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to load experiences: %w", err)
+		return ai.LLMRequest{}, fmt.Errorf("failed to load experiences: %w", err)
 	}
 
-	// Verify all experiences belong to user
 	for _, exp := range experiences {
 		if exp.UserID != userID {
-			return "", ErrExperienceForbidden
+			return ai.LLMRequest{}, ErrExperienceForbidden
 		}
 	}
 
@@ -80,7 +78,7 @@ func (s *CoachingService) GenerateDraft(
 		).
 		First(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to load prompt template: %w", err)
+		return ai.LLMRequest{}, fmt.Errorf("failed to load prompt template: %w", err)
 	}
 
 	// 4. Build experiences context
@@ -133,12 +131,27 @@ func (s *CoachingService) GenerateDraft(
 	userPrompt = strings.ReplaceAll(userPrompt, "{{char_limit}}", fmt.Sprintf("%d", charLimit))
 	userPrompt = strings.ReplaceAll(userPrompt, "{{experiences}}", experiencesContext)
 
-	// 7. Call Claude
-	llmReq := ai.LLMRequest{
+	return ai.LLMRequest{
 		SystemPrompt: prompt.SystemPrompt,
 		UserPrompt:   userPrompt,
 		Temperature:  prompt.Temperature,
 		MaxTokens:    prompt.MaxTokens,
+	}, nil
+}
+
+// GenerateDraft generates a cover letter draft synchronously.
+func (s *CoachingService) GenerateDraft(
+	ctx context.Context,
+	userID uuid.UUID,
+	applicationID uuid.UUID,
+	experienceIDs []uuid.UUID,
+	questionText string,
+	charLimit int,
+	analysisResult any,
+) (string, error) {
+	llmReq, err := s.buildDraftRequest(ctx, userID, applicationID, experienceIDs, questionText, charLimit)
+	if err != nil {
+		return "", err
 	}
 
 	resp, err := s.aiProvider.Call(ctx, llmReq)
@@ -147,6 +160,83 @@ func (s *CoachingService) GenerateDraft(
 	}
 
 	return resp.Content, nil
+}
+
+// GenerateDraftStream generates a cover letter draft with streaming.
+// Calls onChunk for each text delta. Returns final LLMResponse with token usage.
+func (s *CoachingService) GenerateDraftStream(
+	ctx context.Context,
+	userID uuid.UUID,
+	applicationID uuid.UUID,
+	experienceIDs []uuid.UUID,
+	questionText string,
+	charLimit int,
+	analysisResult any,
+	onChunk ai.StreamCallback,
+) (ai.LLMResponse, error) {
+	llmReq, err := s.buildDraftRequest(ctx, userID, applicationID, experienceIDs, questionText, charLimit)
+	if err != nil {
+		return ai.LLMResponse{}, err
+	}
+
+	resp, err := s.aiProvider.Stream(ctx, llmReq, onChunk)
+	if err != nil {
+		return ai.LLMResponse{}, fmt.Errorf("AI streaming failed: %w", err)
+	}
+
+	return resp, nil
+}
+
+// DraftResult contains IDs created after a successful draft generation.
+type DraftResult struct {
+	CoverLetterID uuid.UUID
+	SessionID     uuid.UUID
+}
+
+// SaveDraftResult creates cover_letter + version + coaching_session after streaming completes.
+func (s *CoachingService) SaveDraftResult(
+	ctx context.Context,
+	userID uuid.UUID,
+	applicationID uuid.UUID,
+	questionText string,
+	charLimit int,
+	content string,
+	inputTokens int,
+	outputTokens int,
+) (*DraftResult, error) {
+	// 1. Create cover letter
+	cl, err := s.entClient.CoverLetter.Create().
+		SetUserID(userID).
+		SetApplicationID(applicationID).
+		SetQuestionText(questionText).
+		SetCharLimit(charLimit).
+		SetCurrentContent(content).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cover letter: %w", err)
+	}
+
+	// 2. Create version 1
+	_, err = s.entClient.CoverLetterVersion.Create().
+		SetCoverLetter(cl).
+		SetVersionNumber(1).
+		SetContent(content).
+		SetCharCount(len([]rune(content))).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create version: %w", err)
+	}
+
+	// 3. Record coaching session
+	session, err := s.RecordSession(ctx, userID, cl.ID, "draft", "", "", content, inputTokens, outputTokens)
+	if err != nil {
+		return nil, fmt.Errorf("failed to record session: %w", err)
+	}
+
+	return &DraftResult{
+		CoverLetterID: cl.ID,
+		SessionID:     session.ID,
+	}, nil
 }
 
 // RecordSession records a coaching session to coaching_sessions table

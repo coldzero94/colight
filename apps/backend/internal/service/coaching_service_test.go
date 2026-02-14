@@ -14,9 +14,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// MockLLMForCoaching mocks AI for coaching tests
+// MockLLMForCoaching mocks AI for coaching tests (implements StreamingLLMProvider)
 type MockLLMForCoaching struct {
 	response ai.LLMResponse
+	chunks   []string // for streaming tests
 	err      error
 	calls    int
 }
@@ -24,6 +25,20 @@ type MockLLMForCoaching struct {
 func (m *MockLLMForCoaching) Call(ctx context.Context, req ai.LLMRequest) (ai.LLMResponse, error) {
 	m.calls++
 	return m.response, m.err
+}
+
+func (m *MockLLMForCoaching) Stream(ctx context.Context, req ai.LLMRequest, onChunk ai.StreamCallback) (ai.LLMResponse, error) {
+	m.calls++
+	if m.err != nil {
+		return ai.LLMResponse{}, m.err
+	}
+	for _, chunk := range m.chunks {
+		if ctx.Err() != nil {
+			return ai.LLMResponse{}, ctx.Err()
+		}
+		onChunk(chunk)
+	}
+	return m.response, nil
 }
 
 func createTestCoachingData(t *testing.T, client *ent.Client) (uuid.UUID, uuid.UUID, []uuid.UUID) {
@@ -314,4 +329,77 @@ func TestRecordSession_TokenUsageTracked(t *testing.T) {
 	// Verify token usage is tracked (int fields, not pointers)
 	assert.Equal(t, inputTokens, session.InputTokens)
 	assert.Equal(t, outputTokens, session.OutputTokens)
+}
+
+func TestGenerateDraftStream_StreamsChunks(t *testing.T) {
+	chunks := []string{"[상황]\n", "프로젝트에서 ", "리더로서 "}
+	mockAI := &MockLLMForCoaching{
+		response: ai.LLMResponse{
+			Content:      "[상황]\n프로젝트에서 리더로서 ",
+			InputTokens:  100,
+			OutputTokens: 50,
+		},
+		chunks: chunks,
+	}
+
+	client := testutil.NewTestClient(t)
+	svc := NewCoachingService(client, mockAI)
+	ctx := context.Background()
+
+	userID, appID, expIDs := createTestCoachingData(t, client)
+	ensureCoachingPrompt(t, client)
+
+	var received []string
+	resp, err := svc.GenerateDraftStream(ctx, userID, appID, expIDs, "문항 텍스트", 800, nil,
+		func(chunk string) {
+			received = append(received, chunk)
+		},
+	)
+	require.NoError(t, err)
+	assert.Equal(t, chunks, received)
+	assert.Equal(t, 100, resp.InputTokens)
+	assert.Equal(t, 50, resp.OutputTokens)
+}
+
+func TestGenerateDraftStream_ErrorHandling(t *testing.T) {
+	mockAI := &MockLLMForCoaching{
+		err: fmt.Errorf("streaming failed"),
+	}
+
+	client := testutil.NewTestClient(t)
+	svc := NewCoachingService(client, mockAI)
+	ctx := context.Background()
+
+	userID, appID, expIDs := createTestCoachingData(t, client)
+	ensureCoachingPrompt(t, client)
+
+	_, err := svc.GenerateDraftStream(ctx, userID, appID, expIDs, "문항", 800, nil, func(string) {})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "streaming failed")
+}
+
+func TestSaveDraftResult_CreatesAllRecords(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewCoachingService(client, nil)
+	ctx := context.Background()
+
+	userID, appID, _ := createTestCoachingData(t, client)
+
+	result, err := svc.SaveDraftResult(ctx, userID, appID,
+		"문항 텍스트", 800, "[상황]\n초안 내용", 500, 300)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.NotEqual(t, uuid.Nil, result.CoverLetterID)
+	assert.NotEqual(t, uuid.Nil, result.SessionID)
+
+	// Verify cover letter was created
+	cl, err := client.CoverLetter.Get(ctx, result.CoverLetterID)
+	require.NoError(t, err)
+	assert.Equal(t, "[상황]\n초안 내용", cl.CurrentContent)
+
+	// Verify version was created
+	versions, err := cl.QueryVersions().All(ctx)
+	require.NoError(t, err)
+	assert.Len(t, versions, 1)
+	assert.Equal(t, 1, versions[0].VersionNumber)
 }
