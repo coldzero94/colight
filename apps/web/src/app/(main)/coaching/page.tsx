@@ -1,13 +1,26 @@
-"use client";
+import { QuestionInputForm } from "@/components/coaching/question-input-form";
 
-import { EmptyState } from "@/components/common/empty-state";
+export default async function CoachingPage() {
+  // TODO: Fetch user's analysis history from Go backend
+  // For now, use empty array to show empty state
+  const companies: any[] = [];
 
-export default function CoachingPage() {
+  const handleSubmit = async (data: any) => {
+    "use server";
+    // TODO: Call Go backend API for question analysis
+    console.log("Question analysis request:", data);
+  };
+
   return (
-    <EmptyState
-      icon={<span>✍️</span>}
-      title="작성 중인 자소서가 없습니다"
-      description="기업 분석 후 코칭을 시작하세요"
-    />
+    <div className="container mx-auto max-w-3xl px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">AI 자소서 코칭</h1>
+        <p className="mt-2 text-gray-600">
+          자소서 문항을 분석하고, 적합한 경험을 추천받으세요
+        </p>
+      </div>
+
+      <QuestionInputForm companies={companies} onSubmit={handleSubmit} />
+    </div>
   );
 }
