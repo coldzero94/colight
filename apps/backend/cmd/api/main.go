@@ -72,7 +72,7 @@ func main() {
 
 	var coachingService *service.CoachingService
 	if aiProvider != nil {
-		coachingService = service.NewCoachingService(db, aiProvider.Heavy())
+		coachingService = service.NewCoachingService(db, aiProvider.HeavyStreaming())
 	}
 
 	editorService := service.NewEditorService(db)

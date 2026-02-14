@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/coby/colight/apps/backend/ent"
@@ -16,15 +17,30 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type mockLLMForCoaching struct {
 	response ai.LLMResponse
+	chunks   []string
 	err      error
 }
 
 func (m *mockLLMForCoaching) Call(ctx context.Context, req ai.LLMRequest) (ai.LLMResponse, error) {
 	return m.response, m.err
+}
+
+func (m *mockLLMForCoaching) Stream(ctx context.Context, req ai.LLMRequest, onChunk ai.StreamCallback) (ai.LLMResponse, error) {
+	if m.err != nil {
+		return ai.LLMResponse{}, m.err
+	}
+	for _, chunk := range m.chunks {
+		if ctx.Err() != nil {
+			return ai.LLMResponse{}, ctx.Err()
+		}
+		onChunk(chunk)
+	}
+	return m.response, nil
 }
 
 func setupCoachingTestRouter(t *testing.T, mockAI *mockLLMForCoaching) (*gin.Engine, *ent.Client) {
@@ -92,6 +108,41 @@ func ensureCoachingPrompt(t *testing.T, client *ent.Client) {
 	}
 }
 
+// sseEvent represents a parsed SSE event.
+type sseEvent struct {
+	Event string
+	Data  map[string]interface{}
+}
+
+// parseSSEEvents parses the raw SSE body into structured events.
+func parseSSEEvents(body string) []sseEvent {
+	var events []sseEvent
+	blocks := strings.Split(body, "\n\n")
+	for _, block := range blocks {
+		block = strings.TrimSpace(block)
+		if block == "" {
+			continue
+		}
+		var eventType, dataStr string
+		for _, line := range strings.Split(block, "\n") {
+			if strings.HasPrefix(line, "event: ") {
+				eventType = strings.TrimPrefix(line, "event: ")
+			} else if strings.HasPrefix(line, "data: ") {
+				dataStr = strings.TrimPrefix(line, "data: ")
+			}
+		}
+		if eventType == "" && dataStr == "" {
+			continue
+		}
+		var data map[string]interface{}
+		if dataStr != "" {
+			_ = json.Unmarshal([]byte(dataStr), &data)
+		}
+		events = append(events, sseEvent{Event: eventType, Data: data})
+	}
+	return events
+}
+
 func TestPostDraft_Unauthorized(t *testing.T) {
 	mockAI := &mockLLMForCoaching{
 		response: ai.LLMResponse{Content: "[상황]\n초안"},
@@ -109,10 +160,13 @@ func TestPostDraft_Unauthorized(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
 
-func TestPostDraft_StreamingHeaders(t *testing.T) {
+func TestPostDraft_SSEHeaders(t *testing.T) {
 	mockAI := &mockLLMForCoaching{
+		chunks: []string{"[상황]\n", "스트리밍 테스트"},
 		response: ai.LLMResponse{
-			Content: "[상황]\n스트리밍 테스트",
+			Content:      "[상황]\n스트리밍 테스트",
+			InputTokens:  10,
+			OutputTokens: 20,
 		},
 	}
 
@@ -148,15 +202,18 @@ func TestPostDraft_StreamingHeaders(t *testing.T) {
 		"char_limit":     800,
 	}, user.ID)
 
-	// For SSE streaming, expect 200 OK
 	assert.Equal(t, http.StatusOK, w.Code)
-	// Note: SSE headers are hard to test in httptest, but we verify no error
+	assert.Equal(t, "text/event-stream", w.Header().Get("Content-Type"))
+	assert.Equal(t, "no-cache", w.Header().Get("Cache-Control"))
 }
 
-func TestPostDraft_SavesOnCompletion(t *testing.T) {
+func TestPostDraft_StreamsChunksAndSaves(t *testing.T) {
 	mockAI := &mockLLMForCoaching{
+		chunks: []string{"[상황]\n", "초안 내용\n", "[결과]\n", "성과"},
 		response: ai.LLMResponse{
-			Content: "[상황]\n초안 내용\n[결과]\n성과",
+			Content:      "[상황]\n초안 내용\n[결과]\n성과",
+			InputTokens:  50,
+			OutputTokens: 100,
 		},
 	}
 
@@ -194,16 +251,40 @@ func TestPostDraft_SavesOnCompletion(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	// Verify cover letter was created (after streaming completes)
-	// Note: In actual SSE implementation, this happens asynchronously
-	// For testing, we check the service creates the record
+	events := parseSSEEvents(w.Body.String())
+
+	// Should have 4 text events + 1 done event
+	require.GreaterOrEqual(t, len(events), 5)
+
+	// Verify text events
+	for i := 0; i < 4; i++ {
+		assert.Equal(t, "text", events[i].Event)
+		assert.Equal(t, "text", events[i].Data["type"])
+	}
+	assert.Equal(t, "[상황]\n", events[0].Data["content"])
+	assert.Equal(t, "성과", events[3].Data["content"])
+
+	// Verify done event
+	doneEvent := events[len(events)-1]
+	assert.Equal(t, "done", doneEvent.Event)
+	assert.Equal(t, "done", doneEvent.Data["type"])
+	assert.NotEmpty(t, doneEvent.Data["cover_letter_id"])
+	assert.NotEmpty(t, doneEvent.Data["session_id"])
+
+	// Verify DB records were created
+	clID, err := uuid.Parse(doneEvent.Data["cover_letter_id"].(string))
+	require.NoError(t, err)
+
+	cl, err := client.CoverLetter.Get(ctx, clID)
+	require.NoError(t, err)
+	assert.Equal(t, "[상황]\n초안 내용\n[결과]\n성과", cl.CurrentContent)
+	require.NotNil(t, cl.CharLimit)
+	assert.Equal(t, 800, *cl.CharLimit)
 }
 
-func TestPostDraft_GracefulDisconnect(t *testing.T) {
+func TestPostDraft_StreamError(t *testing.T) {
 	mockAI := &mockLLMForCoaching{
-		response: ai.LLMResponse{
-			Content: "[상황]\n연결 테스트",
-		},
+		err: assert.AnError,
 	}
 
 	router, client := setupCoachingTestRouter(t, mockAI)
@@ -211,7 +292,7 @@ func TestPostDraft_GracefulDisconnect(t *testing.T) {
 	ensureCoachingPrompt(t, client)
 
 	user := client.UserProfile.Create().
-		SetEmail("disconnect-test@example.com").
+		SetEmail("error-test@example.com").
 		SetPasswordHash("hash").
 		SetRole("user").
 		SaveX(ctx)
@@ -238,8 +319,14 @@ func TestPostDraft_GracefulDisconnect(t *testing.T) {
 		"char_limit":     800,
 	}, user.ID)
 
-	// Should not panic or error on disconnect
-	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code) // SSE always returns 200
+
+	events := parseSSEEvents(w.Body.String())
+	require.GreaterOrEqual(t, len(events), 1)
+
+	lastEvent := events[len(events)-1]
+	assert.Equal(t, "error", lastEvent.Event)
+	assert.Equal(t, "error", lastEvent.Data["type"])
 }
 
 func TestGetSessions_Success(t *testing.T) {

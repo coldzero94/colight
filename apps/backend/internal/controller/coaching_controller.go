@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/coby/colight/apps/backend/internal/service"
@@ -18,7 +20,7 @@ func NewCoachingController(coachingService *service.CoachingService) *CoachingCo
 	}
 }
 
-// PostDraft handles POST /v1/coaching/draft
+// PostDraft handles POST /v1/coaching/draft with SSE streaming
 func (c *CoachingController) PostDraft(ctx *gin.Context) {
 	// Get user ID from auth middleware
 	userID, exists := ctx.Get("user_id")
@@ -30,11 +32,11 @@ func (c *CoachingController) PostDraft(ctx *gin.Context) {
 	}
 
 	var req struct {
-		ApplicationID string   `json:"application_id" binding:"required,uuid"`
-		ExperienceIDs []string `json:"experience_ids" binding:"required,min=1,max=3,dive,uuid"`
-		QuestionText  string   `json:"question_text" binding:"required,min=10"`
-		CharLimit     int      `json:"char_limit" binding:"required,min=200,max=2000"`
-		AnalysisResult any     `json:"analysis_result"` // Optional
+		ApplicationID  string   `json:"application_id" binding:"required,uuid"`
+		ExperienceIDs  []string `json:"experience_ids" binding:"required,min=1,max=3,dive,uuid"`
+		QuestionText   string   `json:"question_text" binding:"required,min=10"`
+		CharLimit      int      `json:"char_limit" binding:"required,min=200,max=2000"`
+		AnalysisResult any      `json:"analysis_result"` // Optional
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -65,43 +67,72 @@ func (c *CoachingController) PostDraft(ctx *gin.Context) {
 		expIDs[i] = parsed
 	}
 
-	// Generate draft
-	draft, err := c.coachingService.GenerateDraft(
+	// Set SSE headers
+	ctx.Writer.Header().Set("Content-Type", "text/event-stream")
+	ctx.Writer.Header().Set("Cache-Control", "no-cache")
+	ctx.Writer.Header().Set("Connection", "keep-alive")
+	ctx.Writer.Header().Set("X-Accel-Buffering", "no")
+	ctx.Status(http.StatusOK)
+
+	uid := userID.(uuid.UUID)
+
+	// Stream draft via SSE
+	resp, err := c.coachingService.GenerateDraftStream(
 		ctx.Request.Context(),
-		userID.(uuid.UUID),
+		uid,
 		appID,
 		expIDs,
 		req.QuestionText,
 		req.CharLimit,
 		req.AnalysisResult,
+		func(chunk string) {
+			data, _ := json.Marshal(gin.H{"type": "text", "content": chunk})
+			fmt.Fprintf(ctx.Writer, "event: text\ndata: %s\n\n", data)
+			ctx.Writer.Flush()
+		},
 	)
 
 	if err != nil {
-		// Check for specific errors
+		// Send error as SSE event (headers already sent, can't change status code)
+		errMsg := "AI 초안 생성 중 오류가 발생했습니다"
 		if err == service.ErrApplicationNotFound {
-			ctx.JSON(http.StatusNotFound, gin.H{
-				"error": "지원 정보를 찾을 수 없습니다",
-			})
-			return
+			errMsg = "지원 정보를 찾을 수 없습니다"
+		} else if err == service.ErrApplicationForbidden || err == service.ErrExperienceForbidden {
+			errMsg = "접근 권한이 없습니다"
 		}
-		if err == service.ErrApplicationForbidden || err == service.ErrExperienceForbidden {
-			ctx.JSON(http.StatusForbidden, gin.H{
-				"error": "접근 권한이 없습니다",
-			})
-			return
-		}
-
-		// AI failure or other errors
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": "AI 초안 생성 중 오류가 발생했습니다: " + err.Error(),
-		})
+		data, _ := json.Marshal(gin.H{"type": "error", "message": errMsg})
+		fmt.Fprintf(ctx.Writer, "event: error\ndata: %s\n\n", data)
+		ctx.Writer.Flush()
 		return
 	}
 
-	// Return draft as JSON (SSE streaming will be added later)
-	ctx.JSON(http.StatusOK, gin.H{
-		"draft": draft,
+	// Save results after successful streaming
+	result, err := c.coachingService.SaveDraftResult(
+		ctx.Request.Context(),
+		uid,
+		appID,
+		req.QuestionText,
+		req.CharLimit,
+		resp.Content,
+		resp.InputTokens,
+		resp.OutputTokens,
+	)
+
+	if err != nil {
+		data, _ := json.Marshal(gin.H{"type": "error", "message": "결과 저장 중 오류가 발생했습니다"})
+		fmt.Fprintf(ctx.Writer, "event: error\ndata: %s\n\n", data)
+		ctx.Writer.Flush()
+		return
+	}
+
+	// Send done event with IDs
+	data, _ := json.Marshal(gin.H{
+		"type":            "done",
+		"cover_letter_id": result.CoverLetterID.String(),
+		"session_id":      result.SessionID.String(),
 	})
+	fmt.Fprintf(ctx.Writer, "event: done\ndata: %s\n\n", data)
+	ctx.Writer.Flush()
 }
 
 // GetSessions handles GET /v1/coaching/sessions
