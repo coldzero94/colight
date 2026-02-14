@@ -127,3 +127,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Tiptap STAR tag highlighting */
+.tiptap-editor .star-tag-situation {
+  @apply inline-block rounded bg-blue-50 px-2 py-1 font-semibold text-blue-700;
+}
+
+.tiptap-editor .star-tag-task {
+  @apply inline-block rounded bg-amber-50 px-2 py-1 font-semibold text-amber-700;
+}
+
+.tiptap-editor .star-tag-action {
+  @apply inline-block rounded bg-green-50 px-2 py-1 font-semibold text-green-700;
+}
+
+.tiptap-editor .star-tag-result {
+  @apply inline-block rounded bg-purple-50 px-2 py-1 font-semibold text-purple-700;
+}

@@ -3,6 +3,7 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import CharacterCount from "@tiptap/extension-character-count";
+import { StarTagHighlight } from "@/lib/tiptap/star-tag-highlight";
 import { EditorToolbar } from "./editor-toolbar";
 import { CharCounter } from "./char-counter";
 
@@ -25,6 +26,7 @@ export function TiptapEditor({
       CharacterCount.configure({
         limit: charLimit,
       }),
+      StarTagHighlight,
     ],
     content,
     editable,
@@ -33,7 +35,7 @@ export function TiptapEditor({
     },
     editorProps: {
       attributes: {
-        class: "prose prose-sm max-w-none p-4 min-h-[400px] focus:outline-none",
+        class: "prose prose-sm max-w-none p-4 min-h-[400px] focus:outline-none tiptap-editor",
         role: "textbox",
       },
     },

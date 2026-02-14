@@ -127,8 +127,7 @@ describe("TiptapEditor", () => {
     // In Tiptap, contenteditable="false" makes it read-only
   });
 
-  // SKIP: STAR tag highlighting tested in StarHighlighter component
-  it.skip("highlights STAR tags visually", () => {
+  it("highlights STAR tags visually", () => {
     const onChange = vi.fn();
 
     render(
