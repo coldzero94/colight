@@ -7,8 +7,19 @@ import * as coachingApi from "@/lib/api/coaching";
 vi.mock("@/lib/api/coaching", () => ({
   getApplications: vi.fn(),
   analyzeQuestion: vi.fn(),
-  generateDraft: vi.fn(),
   recommendExperiences: vi.fn(),
+}));
+
+vi.mock("@/hooks/use-draft-streaming", () => ({
+  useDraftStreaming: () => ({
+    content: "",
+    isStreaming: false,
+    error: null,
+    coverLetterId: null,
+    sessionId: null,
+    streamDraft: vi.fn(),
+    abort: vi.fn(),
+  }),
 }));
 
 vi.mock("next/navigation", () => ({

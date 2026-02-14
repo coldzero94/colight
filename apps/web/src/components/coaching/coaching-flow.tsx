@@ -10,7 +10,7 @@ import { AnalysisResult } from "./analysis-result";
 import { ExperienceSelector } from "./experience-selector";
 import { DraftStreaming } from "./draft-streaming";
 import { useQuestionAnalysis } from "@/hooks/use-question-analysis";
-import { useDraftCoaching } from "@/hooks/use-draft-coaching";
+import { useDraftStreaming } from "@/hooks/use-draft-streaming";
 import {
   getApplications,
   recommendExperiences,
@@ -40,7 +40,7 @@ export function CoachingFlow() {
   });
 
   const questionAnalysis = useQuestionAnalysis();
-  const draftCoaching = useDraftCoaching();
+  const draftStreaming = useDraftStreaming();
 
   const experienceRecommend = useMutation({
     mutationFn: (requiredWeapons: QuestionAnalysisResult["required_weapons"]) =>
@@ -68,20 +68,23 @@ export function CoachingFlow() {
   // Handle experience selection confirm
   const handleExperienceConfirm = async (selectedIds: string[]) => {
     if (!formData) return;
-    draftCoaching.mutate({
+    setStep("draft");
+    draftStreaming.streamDraft({
       application_id: formData.application_id,
       experience_ids: selectedIds,
       question_text: formData.question_text,
       char_limit: formData.char_limit,
       analysis_result: analysisResult ?? undefined,
     });
-    setStep("draft");
   };
 
   // Handle draft complete - navigate to editor
   const handleDraftComplete = () => {
-    // TODO: Navigate to editor with actual cover letter ID from draft response
-    router.push("/coaching");
+    if (draftStreaming.coverLetterId) {
+      router.push(`/coaching/${draftStreaming.coverLetterId}/edit`);
+    } else {
+      router.push("/coaching");
+    }
   };
 
   // Loading state
@@ -183,8 +186,8 @@ export function CoachingFlow() {
       {/* Step 4: Draft Generation */}
       {step === "draft" && (
         <DraftStreaming
-          content={draftCoaching.data?.draft ?? ""}
-          isStreaming={draftCoaching.isPending}
+          content={draftStreaming.content}
+          isStreaming={draftStreaming.isStreaming}
           charLimit={formData?.char_limit ?? 800}
           onComplete={handleDraftComplete}
         />
@@ -205,10 +208,9 @@ export function CoachingFlow() {
         </div>
       )}
 
-      {draftCoaching.isError && (
+      {draftStreaming.error && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-          초안 생성 중 오류가 발생했습니다:{" "}
-          {draftCoaching.error?.message ?? "알 수 없는 오류"}
+          초안 생성 중 오류가 발생했습니다: {draftStreaming.error}
         </div>
       )}
     </div>
