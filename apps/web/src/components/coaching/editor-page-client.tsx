@@ -1,13 +1,23 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { EditorLayout } from "./editor-layout";
 import { VersionHistory } from "./version-history";
-import { getCoverLetter, getVersions } from "@/lib/api/coaching";
+import { RollbackDialog } from "./rollback-dialog";
+import {
+  getCoverLetter,
+  getVersions,
+  createVersion,
+  updateCoverLetter,
+} from "@/lib/api/coaching";
 import { useReview } from "@/hooks/use-review";
-import type { ReviewResult, ReviewScores } from "@/lib/api/coaching";
+import type {
+  CoverLetterVersion,
+  ReviewResult,
+  ReviewScores,
+} from "@/lib/api/coaching";
 import type { ReviewEntry } from "./review/review-timeline";
 
 interface EditorPageClientProps {
@@ -15,9 +25,15 @@ interface EditorPageClientProps {
 }
 
 export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
-  const [previousScores, setPreviousScores] = useState<ReviewScores | undefined>();
+  const queryClient = useQueryClient();
+  const [previousScores, setPreviousScores] = useState<
+    ReviewScores | undefined
+  >();
   const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
   const [reviewHistory, setReviewHistory] = useState<ReviewEntry[]>([]);
+  const [selectedVersion, setSelectedVersion] =
+    useState<CoverLetterVersion | null>(null);
+  const [rollbackDialogOpen, setRollbackDialogOpen] = useState(false);
 
   const {
     data: coverLetter,
@@ -35,10 +51,31 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
 
   const reviewMutation = useReview();
 
+  const rollbackMutation = useMutation({
+    mutationFn: async (version: CoverLetterVersion) => {
+      // Save current content as a new version first, then restore
+      await createVersion(
+        coverLetterId,
+        version.content,
+        `v${version.version_number}에서 복원`
+      );
+      await updateCoverLetter(coverLetterId, version.content);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["cover-letter", coverLetterId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["cover-letter-versions", coverLetterId],
+      });
+      setSelectedVersion(null);
+      setRollbackDialogOpen(false);
+    },
+  });
+
   const handleRequestReview = useCallback(() => {
     if (!coverLetter) return;
 
-    // Store previous scores for comparison on re-review
     if (reviewResult) {
       setPreviousScores(reviewResult.scores);
     }
@@ -60,9 +97,29 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
             },
           ]);
         },
-      },
+      }
     );
   }, [coverLetter, coverLetterId, reviewMutation, reviewResult]);
+
+  const handleSelectVersion = useCallback(
+    (version: CoverLetterVersion) => {
+      setSelectedVersion(version);
+    },
+    []
+  );
+
+  const handleClosePreview = useCallback(() => {
+    setSelectedVersion(null);
+  }, []);
+
+  const handleRestore = useCallback(() => {
+    setRollbackDialogOpen(true);
+  }, []);
+
+  const handleConfirmRollback = useCallback(() => {
+    if (!selectedVersion) return;
+    rollbackMutation.mutate(selectedVersion);
+  }, [selectedVersion, rollbackMutation]);
 
   if (isLoading) {
     return (
@@ -86,7 +143,6 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
     );
   }
 
-  // Build EditorLayout props from API data
   const editorCoverLetter = {
     id: coverLetter.id,
     question_text: coverLetter.question_text ?? "",
@@ -96,7 +152,6 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
     position: "",
   };
 
-  // Placeholder analysis - will be populated from coaching session data
   const analysis = {
     required_weapons: {
       primary: { weapon_id: "", weapon_name: "", reason: "" },
@@ -132,11 +187,25 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
         reviewHistory={reviewHistory}
         isReviewing={reviewMutation.isPending}
         onRequestReview={handleRequestReview}
+        selectedVersion={selectedVersion}
+        onClosePreview={handleClosePreview}
+        onRestore={handleRestore}
       />
       {versions.length > 0 && (
         <VersionHistory
           versions={versions}
           coverLetterId={coverLetterId}
+          selectedVersionId={selectedVersion?.id}
+          onSelectVersion={handleSelectVersion}
+        />
+      )}
+      {selectedVersion && (
+        <RollbackDialog
+          open={rollbackDialogOpen}
+          onOpenChange={setRollbackDialogOpen}
+          versionNumber={selectedVersion.version_number}
+          isLoading={rollbackMutation.isPending}
+          onConfirm={handleConfirmRollback}
         />
       )}
     </div>

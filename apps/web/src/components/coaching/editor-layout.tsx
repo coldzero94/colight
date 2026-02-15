@@ -8,11 +8,13 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { SaveIndicator } from "./save-indicator";
 import { AnalysisSidebar } from "./analysis-sidebar";
+import { VersionPreview } from "./version-preview";
 import { ReviewResult as ReviewResultPanel } from "./review/review-result";
 import { ReviewTimeline } from "./review/review-timeline";
 import type { ReviewEntry } from "./review/review-timeline";
 import { useAutoSave } from "@/hooks/use-auto-save";
 import type {
+  CoverLetterVersion,
   ReviewResult,
   ReviewScores,
   SpecificSuggestion,
@@ -79,6 +81,9 @@ interface EditorLayoutProps {
   reviewHistory?: ReviewEntry[];
   isReviewing?: boolean;
   onRequestReview?: () => void;
+  selectedVersion?: CoverLetterVersion | null;
+  onClosePreview?: () => void;
+  onRestore?: () => void;
 }
 
 export function EditorLayout({
@@ -91,6 +96,9 @@ export function EditorLayout({
   reviewHistory = [],
   isReviewing,
   onRequestReview,
+  selectedVersion,
+  onClosePreview,
+  onRestore,
 }: EditorLayoutProps) {
   const [content, setContent] = useState(coverLetter.current_content);
   const [editorKey, setEditorKey] = useState(0);
@@ -209,44 +217,55 @@ export function EditorLayout({
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Editor area */}
-        <div className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <TiptapEditor
-            key={editorKey}
-            content={content}
-            charLimit={coverLetter.char_limit}
-            onChange={handleChange}
-            editable={true}
-          />
+        <div className="flex-1 overflow-hidden">
+          {selectedVersion && onClosePreview && onRestore ? (
+            <VersionPreview
+              version={selectedVersion}
+              currentContent={content}
+              onRestore={onRestore}
+              onClose={onClosePreview}
+            />
+          ) : (
+            <div className="h-full overflow-y-auto p-4 lg:p-6">
+              <TiptapEditor
+                key={editorKey}
+                content={content}
+                charLimit={coverLetter.char_limit}
+                onChange={handleChange}
+                editable={true}
+              />
 
-          {/* Actions */}
-          <div className="mt-4 flex gap-3">
-            <button
-              onClick={handleSave}
-              disabled={status === "saved"}
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
-            >
-              버전 저장
-            </button>
-            {onRequestReview && (
-              <button
-                onClick={onRequestReview}
-                disabled={isReviewing}
-                className="flex items-center gap-2 rounded-lg border border-gray-900 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 disabled:opacity-50"
-              >
-                {isReviewing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    첨삭 중...
-                  </>
-                ) : (
-                  <>
-                    <MessageSquareText className="h-4 w-4" />
-                    첨삭 요청
-                  </>
+              {/* Actions */}
+              <div className="mt-4 flex gap-3">
+                <button
+                  onClick={handleSave}
+                  disabled={status === "saved"}
+                  className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                >
+                  버전 저장
+                </button>
+                {onRequestReview && (
+                  <button
+                    onClick={onRequestReview}
+                    disabled={isReviewing}
+                    className="flex items-center gap-2 rounded-lg border border-gray-900 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 disabled:opacity-50"
+                  >
+                    {isReviewing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        첨삭 중...
+                      </>
+                    ) : (
+                      <>
+                        <MessageSquareText className="h-4 w-4" />
+                        첨삭 요청
+                      </>
+                    )}
+                  </button>
                 )}
-              </button>
-            )}
-          </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Desktop sidebar */}
