@@ -88,6 +88,7 @@ func main() {
 	editorService := service.NewEditorService(db)
 	usageService := service.NewUsageService(db)
 	feedbackService := service.NewFeedbackService(db)
+	applicationService := service.NewApplicationService(db)
 
 	// Controllers
 	authCtrl := controller.NewAuthController(authService, cfg)
@@ -139,6 +140,7 @@ func main() {
 
 	editorCtrl := controller.NewEditorController(editorService)
 	feedbackCtrl := controller.NewFeedbackController(feedbackService)
+	applicationCtrl := controller.NewApplicationController(applicationService)
 
 	// Router
 	r := gin.Default()
@@ -198,10 +200,10 @@ func main() {
 			protected.POST("/match", matchingCtrl.MatchExperiences)
 		}
 
-		// Applications list (for coaching page company select)
-		if questionCtrl != nil {
-			protected.GET("/applications", questionCtrl.GetApplications)
-		}
+		// Applications (dashboard + coaching page)
+		protected.GET("/applications", applicationCtrl.ListApplications)
+		protected.PATCH("/applications/:id/status", applicationCtrl.UpdateStatus)
+		protected.GET("/applications/stats", applicationCtrl.GetStats)
 
 		// Question analysis (AI-powered question intent analysis)
 		if questionCtrl != nil {
