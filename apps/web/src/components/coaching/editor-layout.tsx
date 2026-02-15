@@ -2,9 +2,10 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, Loader2, MessageSquareText } from "lucide-react";
+import dynamic from "next/dynamic";
+import { ArrowLeft, Loader2, MessageSquareText, PanelRight } from "lucide-react";
 import * as Tabs from "@radix-ui/react-tabs";
-import { TiptapEditor } from "./tiptap-editor";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { SaveIndicator } from "./save-indicator";
 import { AnalysisSidebar } from "./analysis-sidebar";
 import { ReviewResult as ReviewResultPanel } from "./review/review-result";
@@ -16,6 +17,22 @@ import type {
   ReviewScores,
   SpecificSuggestion,
 } from "@/lib/api/coaching";
+
+const TiptapEditor = dynamic(
+  () => import("./tiptap-editor").then((m) => m.TiptapEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-3 p-4" data-testid="editor-skeleton">
+        <div className="h-8 w-48 animate-pulse rounded bg-gray-200" />
+        <div className="h-4 w-full animate-pulse rounded bg-gray-100" />
+        <div className="h-4 w-3/4 animate-pulse rounded bg-gray-100" />
+        <div className="h-4 w-5/6 animate-pulse rounded bg-gray-100" />
+        <div className="h-4 w-2/3 animate-pulse rounded bg-gray-100" />
+      </div>
+    ),
+  },
+);
 
 interface CoverLetter {
   id: string;
@@ -105,35 +122,94 @@ export function EditorLayout({
     [content, debouncedSave],
   );
 
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const sidebarContent = (
+    <Tabs.Root defaultValue="analysis" className="flex h-full flex-col">
+      <Tabs.List className="flex shrink-0 border-b border-gray-200">
+        <Tabs.Trigger
+          value="analysis"
+          className="flex-1 px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:border-b-2 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900"
+        >
+          분석
+        </Tabs.Trigger>
+        <Tabs.Trigger
+          value="review"
+          className="flex-1 px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:border-b-2 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900"
+        >
+          첨삭 결과
+        </Tabs.Trigger>
+      </Tabs.List>
+
+      <Tabs.Content value="analysis" className="flex-1 overflow-y-auto p-6">
+        <AnalysisSidebar analysis={analysis} experiences={experiences} />
+      </Tabs.Content>
+
+      <Tabs.Content value="review" className="flex-1 overflow-y-auto p-6">
+        {reviewResult ? (
+          <div className="space-y-6">
+            <ReviewResultPanel
+              review={reviewResult}
+              previousScores={previousScores}
+              onApplySuggestion={handleApplySuggestion}
+            />
+            {reviewHistory.length > 1 && (
+              <ReviewTimeline entries={reviewHistory} />
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <MessageSquareText className="mb-3 h-8 w-8 text-gray-300" />
+            <p className="text-sm text-gray-500">
+              첨삭 결과가 없습니다
+            </p>
+            <p className="mt-1 text-xs text-gray-400">
+              &quot;첨삭 요청&quot; 버튼을 눌러 AI 첨삭을 받아보세요
+            </p>
+          </div>
+        )}
+      </Tabs.Content>
+    </Tabs.Root>
+  );
+
   return (
     <div className="flex h-screen flex-col">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white px-6 py-4">
+      <div className="border-b border-gray-200 bg-white px-4 py-4 lg:px-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 min-w-0">
             <Link
               href="/coaching"
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+              className="flex shrink-0 items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="h-4 w-4" />
-              코칭 목록
+              <span className="hidden sm:inline">코칭 목록</span>
             </Link>
-            <div className="h-4 w-px bg-gray-300" />
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">
+            <div className="h-4 w-px bg-gray-300 hidden sm:block" />
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-semibold text-gray-900">
                 {coverLetter.company_name} - {coverLetter.position}
               </h1>
-              <p className="text-sm text-gray-600">{coverLetter.question_text}</p>
+              <p className="truncate text-sm text-gray-600">{coverLetter.question_text}</p>
             </div>
           </div>
-          <SaveIndicator status={status} />
+          <div className="flex items-center gap-2">
+            <SaveIndicator status={status} />
+            <button
+              onClick={() => setSheetOpen(true)}
+              className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 lg:hidden"
+              aria-label="사이드바 열기"
+            >
+              <PanelRight className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Editor area */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6">
           <TiptapEditor
             key={editorKey}
             content={content}
@@ -173,55 +249,18 @@ export function EditorLayout({
           </div>
         </div>
 
-        {/* Sidebar with tabs */}
-        <Tabs.Root
-          defaultValue="analysis"
-          className="flex w-80 flex-col border-l border-gray-200 bg-gray-50"
-        >
-          <Tabs.List className="flex shrink-0 border-b border-gray-200">
-            <Tabs.Trigger
-              value="analysis"
-              className="flex-1 px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:border-b-2 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900"
-            >
-              분석
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="review"
-              className="flex-1 px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:border-b-2 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900"
-            >
-              첨삭 결과
-            </Tabs.Trigger>
-          </Tabs.List>
+        {/* Desktop sidebar */}
+        <div className="hidden lg:flex w-80 flex-col border-l border-gray-200 bg-gray-50">
+          {sidebarContent}
+        </div>
 
-          <Tabs.Content value="analysis" className="flex-1 overflow-y-auto p-6">
-            <AnalysisSidebar analysis={analysis} experiences={experiences} />
-          </Tabs.Content>
-
-          <Tabs.Content value="review" className="flex-1 overflow-y-auto p-6">
-            {reviewResult ? (
-              <div className="space-y-6">
-                <ReviewResultPanel
-                  review={reviewResult}
-                  previousScores={previousScores}
-                  onApplySuggestion={handleApplySuggestion}
-                />
-                {reviewHistory.length > 1 && (
-                  <ReviewTimeline entries={reviewHistory} />
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <MessageSquareText className="mb-3 h-8 w-8 text-gray-300" />
-                <p className="text-sm text-gray-500">
-                  첨삭 결과가 없습니다
-                </p>
-                <p className="mt-1 text-xs text-gray-400">
-                  &quot;첨삭 요청&quot; 버튼을 눌러 AI 첨삭을 받아보세요
-                </p>
-              </div>
-            )}
-          </Tabs.Content>
-        </Tabs.Root>
+        {/* Mobile sidebar (Sheet) */}
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetContent side="right" className="w-80 p-0 sm:max-w-80">
+            <SheetTitle className="sr-only">분석 및 첨삭</SheetTitle>
+            {sidebarContent}
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );

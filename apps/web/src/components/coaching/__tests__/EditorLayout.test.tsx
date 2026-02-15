@@ -1,5 +1,18 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+
+vi.mock("next/dynamic", () => ({
+  default: (loader: () => Promise<{ TiptapEditor: React.ComponentType<{ content: string }> }>) => {
+    const Component = (props: { content: string }) => (
+      <div data-testid="tiptap-editor">{props.content}</div>
+    );
+    Component.displayName = "DynamicTiptapEditor";
+    // Immediately resolve the loader to avoid stale closure
+    void loader();
+    return Component;
+  },
+}));
+
 import { EditorLayout } from "../editor-layout";
 
 const mockCoverLetter = {

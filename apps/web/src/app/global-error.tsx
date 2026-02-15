@@ -23,6 +23,7 @@ export default function GlobalError({
             >
               다시 시도
             </button>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- global-error has no Next.js router context */}
             <a
               href="/"
               className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
