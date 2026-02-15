@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { EditorLayout } from "../editor-layout";
 
 const mockCoverLetter = {
@@ -52,7 +52,6 @@ describe("EditorLayout", () => {
       />
     );
 
-    // Editor should render initial content
     expect(screen.getByText(/초안 내용/)).toBeInTheDocument();
   });
 
@@ -68,14 +67,14 @@ describe("EditorLayout", () => {
       />
     );
 
-    // Weapon badges (use getAllByText since they appear in multiple places)
+    // Weapon badges
     const problemSolving = screen.getAllByText("문제해결");
     expect(problemSolving.length).toBeGreaterThan(0);
 
     const teamwork = screen.getAllByText("협업");
     expect(teamwork.length).toBeGreaterThan(0);
 
-    // Writing structure (text may be split across elements)
+    // Writing structure
     expect(screen.getByText("상황")).toBeInTheDocument();
     expect(screen.getByText(/20%.*160/)).toBeInTheDocument();
     expect(screen.getByText("과제")).toBeInTheDocument();
@@ -94,7 +93,6 @@ describe("EditorLayout", () => {
       />
     );
 
-    // Header info (use getByRole for heading)
     const heading = screen.getByRole("heading", { level: 1 });
     expect(heading).toHaveTextContent("삼성전자");
     expect(heading).toHaveTextContent("소프트웨어 개발직");
@@ -113,7 +111,68 @@ describe("EditorLayout", () => {
       />
     );
 
-    // Save status should be visible
     expect(screen.getByTestId("save-indicator")).toBeInTheDocument();
+  });
+
+  it("shows tabbed sidebar with analysis and review tabs", () => {
+    render(
+      <EditorLayout
+        coverLetter={mockCoverLetter}
+        analysis={mockAnalysis}
+        experiences={mockExperiences}
+        onSave={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole("tab", { name: "분석" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "첨삭 결과" })).toBeInTheDocument();
+  });
+
+  it("shows review request button when onRequestReview is provided", () => {
+    const onRequestReview = vi.fn();
+
+    render(
+      <EditorLayout
+        coverLetter={mockCoverLetter}
+        analysis={mockAnalysis}
+        experiences={mockExperiences}
+        onSave={vi.fn()}
+        onRequestReview={onRequestReview}
+      />
+    );
+
+    const reviewButton = screen.getByRole("button", { name: /첨삭 요청/ });
+    expect(reviewButton).toBeInTheDocument();
+
+    fireEvent.click(reviewButton);
+    expect(onRequestReview).toHaveBeenCalledOnce();
+  });
+
+  it("shows loading state on review button when isReviewing", () => {
+    render(
+      <EditorLayout
+        coverLetter={mockCoverLetter}
+        analysis={mockAnalysis}
+        experiences={mockExperiences}
+        onSave={vi.fn()}
+        onRequestReview={vi.fn()}
+        isReviewing={true}
+      />
+    );
+
+    expect(screen.getByText("첨삭 중...")).toBeInTheDocument();
+  });
+
+  it("does not show review button when onRequestReview is not provided", () => {
+    render(
+      <EditorLayout
+        coverLetter={mockCoverLetter}
+        analysis={mockAnalysis}
+        experiences={mockExperiences}
+        onSave={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByRole("button", { name: /첨삭 요청/ })).not.toBeInTheDocument();
   });
 });

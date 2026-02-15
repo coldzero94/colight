@@ -9,6 +9,7 @@ vi.mock("@/lib/api/coaching", () => ({
   getVersions: vi.fn(),
   updateCoverLetter: vi.fn(),
   createVersion: vi.fn(),
+  requestReview: vi.fn(),
 }));
 
 vi.mock("next/link", () => ({
@@ -67,7 +68,7 @@ describe("EditorPageClient", () => {
     );
   });
 
-  it("renders editor when data loads successfully", async () => {
+  it("renders editor with review button when data loads", async () => {
     mockGetCoverLetter.mockResolvedValue({
       id: "cl-123",
       question_text: "테스트 문항",
@@ -85,5 +86,8 @@ describe("EditorPageClient", () => {
     await waitFor(() =>
       expect(screen.getByText("테스트 문항")).toBeInTheDocument()
     );
+
+    // Review button should be present
+    expect(screen.getByRole("button", { name: /첨삭 요청/ })).toBeInTheDocument();
   });
 });

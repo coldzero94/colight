@@ -1,16 +1,22 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { EditorLayout } from "./editor-layout";
 import { VersionHistory } from "./version-history";
 import { getCoverLetter, getVersions } from "@/lib/api/coaching";
+import { useReview } from "@/hooks/use-review";
+import type { ReviewResult, ReviewScores } from "@/lib/api/coaching";
 
 interface EditorPageClientProps {
   coverLetterId: string;
 }
 
 export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
+  const [previousScores, setPreviousScores] = useState<ReviewScores | undefined>();
+  const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
+
   const {
     data: coverLetter,
     isLoading,
@@ -24,6 +30,29 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
     queryKey: ["cover-letter-versions", coverLetterId],
     queryFn: () => getVersions(coverLetterId),
   });
+
+  const reviewMutation = useReview();
+
+  const handleRequestReview = useCallback(() => {
+    if (!coverLetter) return;
+
+    // Store previous scores for comparison on re-review
+    if (reviewResult) {
+      setPreviousScores(reviewResult.scores);
+    }
+
+    reviewMutation.mutate(
+      {
+        cover_letter_id: coverLetterId,
+        content: coverLetter.current_content ?? "",
+      },
+      {
+        onSuccess: (data) => {
+          setReviewResult(data);
+        },
+      },
+    );
+  }, [coverLetter, coverLetterId, reviewMutation, reviewResult]);
 
   if (isLoading) {
     return (
@@ -88,6 +117,10 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
         analysis={analysis}
         experiences={[]}
         onSave={() => {}}
+        reviewResult={reviewResult}
+        previousScores={previousScores}
+        isReviewing={reviewMutation.isPending}
+        onRequestReview={handleRequestReview}
       />
       {versions.length > 0 && (
         <VersionHistory
