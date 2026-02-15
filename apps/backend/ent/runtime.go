@@ -19,6 +19,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
 	"github.com/coby/colight/apps/backend/ent/schema"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
+	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/coby/colight/apps/backend/ent/weaponcategory"
 	"github.com/google/uuid"
@@ -663,6 +664,23 @@ func init() {
 	talentprofileDescID := talentprofileMixinFields0[0].Descriptor()
 	// talentprofile.DefaultID holds the default value on creation for the id field.
 	talentprofile.DefaultID = talentprofileDescID.Default.(func() uuid.UUID)
+	usagelogMixin := schema.UsageLog{}.Mixin()
+	usagelogMixinFields0 := usagelogMixin[0].Fields()
+	_ = usagelogMixinFields0
+	usagelogFields := schema.UsageLog{}.Fields()
+	_ = usagelogFields
+	// usagelogDescCreatedAt is the schema descriptor for created_at field.
+	usagelogDescCreatedAt := usagelogMixinFields0[1].Descriptor()
+	// usagelog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	usagelog.DefaultCreatedAt = usagelogDescCreatedAt.Default.(func() time.Time)
+	// usagelogDescFeature is the schema descriptor for feature field.
+	usagelogDescFeature := usagelogFields[1].Descriptor()
+	// usagelog.FeatureValidator is a validator for the "feature" field. It is called by the builders before save.
+	usagelog.FeatureValidator = usagelogDescFeature.Validators[0].(func(string) error)
+	// usagelogDescID is the schema descriptor for id field.
+	usagelogDescID := usagelogMixinFields0[0].Descriptor()
+	// usagelog.DefaultID holds the default value on creation for the id field.
+	usagelog.DefaultID = usagelogDescID.Default.(func() uuid.UUID)
 	userprofileMixin := schema.UserProfile{}.Mixin()
 	userprofileMixinFields0 := userprofileMixin[0].Fields()
 	_ = userprofileMixinFields0

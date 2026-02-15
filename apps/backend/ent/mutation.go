@@ -25,6 +25,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
+	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/coby/colight/apps/backend/ent/weaponcategory"
 	"github.com/google/uuid"
@@ -52,6 +53,7 @@ const (
 	TypePromptTemplate       = "PromptTemplate"
 	TypeQuestionPattern      = "QuestionPattern"
 	TypeTalentProfile        = "TalentProfile"
+	TypeUsageLog             = "UsageLog"
 	TypeUserProfile          = "UserProfile"
 	TypeWeaponCategory       = "WeaponCategory"
 )
@@ -14117,6 +14119,576 @@ func (m *TalentProfileMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown TalentProfile edge %s", name)
 }
 
+// UsageLogMutation represents an operation that mutates the UsageLog nodes in the graph.
+type UsageLogMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	created_at    *time.Time
+	feature       *string
+	metadata      *map[string]interface{}
+	clearedFields map[string]struct{}
+	user          *uuid.UUID
+	cleareduser   bool
+	done          bool
+	oldValue      func(context.Context) (*UsageLog, error)
+	predicates    []predicate.UsageLog
+}
+
+var _ ent.Mutation = (*UsageLogMutation)(nil)
+
+// usagelogOption allows management of the mutation configuration using functional options.
+type usagelogOption func(*UsageLogMutation)
+
+// newUsageLogMutation creates new mutation for the UsageLog entity.
+func newUsageLogMutation(c config, op Op, opts ...usagelogOption) *UsageLogMutation {
+	m := &UsageLogMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUsageLog,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUsageLogID sets the ID field of the mutation.
+func withUsageLogID(id uuid.UUID) usagelogOption {
+	return func(m *UsageLogMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *UsageLog
+		)
+		m.oldValue = func(ctx context.Context) (*UsageLog, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UsageLog.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUsageLog sets the old UsageLog of the mutation.
+func withUsageLog(node *UsageLog) usagelogOption {
+	return func(m *UsageLogMutation) {
+		m.oldValue = func(context.Context) (*UsageLog, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UsageLogMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UsageLogMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of UsageLog entities.
+func (m *UsageLogMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *UsageLogMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *UsageLogMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().UsageLog.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *UsageLogMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *UsageLogMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *UsageLogMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *UsageLogMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *UsageLogMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *UsageLogMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetFeature sets the "feature" field.
+func (m *UsageLogMutation) SetFeature(s string) {
+	m.feature = &s
+}
+
+// Feature returns the value of the "feature" field in the mutation.
+func (m *UsageLogMutation) Feature() (r string, exists bool) {
+	v := m.feature
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeature returns the old "feature" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldFeature(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeature is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeature requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeature: %w", err)
+	}
+	return oldValue.Feature, nil
+}
+
+// ResetFeature resets all changes to the "feature" field.
+func (m *UsageLogMutation) ResetFeature() {
+	m.feature = nil
+}
+
+// SetMetadata sets the "metadata" field.
+func (m *UsageLogMutation) SetMetadata(value map[string]interface{}) {
+	m.metadata = &value
+}
+
+// Metadata returns the value of the "metadata" field in the mutation.
+func (m *UsageLogMutation) Metadata() (r map[string]interface{}, exists bool) {
+	v := m.metadata
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMetadata returns the old "metadata" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldMetadata(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMetadata is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMetadata requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMetadata: %w", err)
+	}
+	return oldValue.Metadata, nil
+}
+
+// ClearMetadata clears the value of the "metadata" field.
+func (m *UsageLogMutation) ClearMetadata() {
+	m.metadata = nil
+	m.clearedFields[usagelog.FieldMetadata] = struct{}{}
+}
+
+// MetadataCleared returns if the "metadata" field was cleared in this mutation.
+func (m *UsageLogMutation) MetadataCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldMetadata]
+	return ok
+}
+
+// ResetMetadata resets all changes to the "metadata" field.
+func (m *UsageLogMutation) ResetMetadata() {
+	m.metadata = nil
+	delete(m.clearedFields, usagelog.FieldMetadata)
+}
+
+// ClearUser clears the "user" edge to the UserProfile entity.
+func (m *UsageLogMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[usagelog.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the UserProfile entity was cleared.
+func (m *UsageLogMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *UsageLogMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *UsageLogMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the UsageLogMutation builder.
+func (m *UsageLogMutation) Where(ps ...predicate.UsageLog) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the UsageLogMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UsageLogMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UsageLog, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *UsageLogMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UsageLogMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (UsageLog).
+func (m *UsageLogMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *UsageLogMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, usagelog.FieldCreatedAt)
+	}
+	if m.user != nil {
+		fields = append(fields, usagelog.FieldUserID)
+	}
+	if m.feature != nil {
+		fields = append(fields, usagelog.FieldFeature)
+	}
+	if m.metadata != nil {
+		fields = append(fields, usagelog.FieldMetadata)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *UsageLogMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case usagelog.FieldCreatedAt:
+		return m.CreatedAt()
+	case usagelog.FieldUserID:
+		return m.UserID()
+	case usagelog.FieldFeature:
+		return m.Feature()
+	case usagelog.FieldMetadata:
+		return m.Metadata()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *UsageLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case usagelog.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case usagelog.FieldUserID:
+		return m.OldUserID(ctx)
+	case usagelog.FieldFeature:
+		return m.OldFeature(ctx)
+	case usagelog.FieldMetadata:
+		return m.OldMetadata(ctx)
+	}
+	return nil, fmt.Errorf("unknown UsageLog field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UsageLogMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case usagelog.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case usagelog.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case usagelog.FieldFeature:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeature(v)
+		return nil
+	case usagelog.FieldMetadata:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMetadata(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UsageLog field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *UsageLogMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *UsageLogMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UsageLogMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown UsageLog numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *UsageLogMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(usagelog.FieldMetadata) {
+		fields = append(fields, usagelog.FieldMetadata)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *UsageLogMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UsageLogMutation) ClearField(name string) error {
+	switch name {
+	case usagelog.FieldMetadata:
+		m.ClearMetadata()
+		return nil
+	}
+	return fmt.Errorf("unknown UsageLog nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *UsageLogMutation) ResetField(name string) error {
+	switch name {
+	case usagelog.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case usagelog.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case usagelog.FieldFeature:
+		m.ResetFeature()
+		return nil
+	case usagelog.FieldMetadata:
+		m.ResetMetadata()
+		return nil
+	}
+	return fmt.Errorf("unknown UsageLog field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *UsageLogMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, usagelog.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *UsageLogMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case usagelog.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *UsageLogMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *UsageLogMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *UsageLogMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, usagelog.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *UsageLogMutation) EdgeCleared(name string) bool {
+	switch name {
+	case usagelog.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *UsageLogMutation) ClearEdge(name string) error {
+	switch name {
+	case usagelog.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown UsageLog unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *UsageLogMutation) ResetEdge(name string) error {
+	switch name {
+	case usagelog.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown UsageLog edge %s", name)
+}
+
 // UserProfileMutation represents an operation that mutates the UserProfile nodes in the graph.
 type UserProfileMutation struct {
 	config
@@ -14141,6 +14713,7 @@ type UserProfileMutation struct {
 	experience_years         *int
 	addexperience_years      *int
 	onboarding_completed     *bool
+	plan                     *userprofile.Plan
 	clearedFields            map[string]struct{}
 	experiences              map[uuid.UUID]struct{}
 	removedexperiences       map[uuid.UUID]struct{}
@@ -14160,6 +14733,9 @@ type UserProfileMutation struct {
 	experience_usages        map[uuid.UUID]struct{}
 	removedexperience_usages map[uuid.UUID]struct{}
 	clearedexperience_usages bool
+	usage_logs               map[uuid.UUID]struct{}
+	removedusage_logs        map[uuid.UUID]struct{}
+	clearedusage_logs        bool
 	done                     bool
 	oldValue                 func(context.Context) (*UserProfile, error)
 	predicates               []predicate.UserProfile
@@ -15003,6 +15579,42 @@ func (m *UserProfileMutation) ResetOnboardingCompleted() {
 	m.onboarding_completed = nil
 }
 
+// SetPlan sets the "plan" field.
+func (m *UserProfileMutation) SetPlan(u userprofile.Plan) {
+	m.plan = &u
+}
+
+// Plan returns the value of the "plan" field in the mutation.
+func (m *UserProfileMutation) Plan() (r userprofile.Plan, exists bool) {
+	v := m.plan
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPlan returns the old "plan" field's value of the UserProfile entity.
+// If the UserProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserProfileMutation) OldPlan(ctx context.Context) (v userprofile.Plan, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPlan is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPlan requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPlan: %w", err)
+	}
+	return oldValue.Plan, nil
+}
+
+// ResetPlan resets all changes to the "plan" field.
+func (m *UserProfileMutation) ResetPlan() {
+	m.plan = nil
+}
+
 // AddExperienceIDs adds the "experiences" edge to the Experience entity by ids.
 func (m *UserProfileMutation) AddExperienceIDs(ids ...uuid.UUID) {
 	if m.experiences == nil {
@@ -15327,6 +15939,60 @@ func (m *UserProfileMutation) ResetExperienceUsages() {
 	m.removedexperience_usages = nil
 }
 
+// AddUsageLogIDs adds the "usage_logs" edge to the UsageLog entity by ids.
+func (m *UserProfileMutation) AddUsageLogIDs(ids ...uuid.UUID) {
+	if m.usage_logs == nil {
+		m.usage_logs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.usage_logs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUsageLogs clears the "usage_logs" edge to the UsageLog entity.
+func (m *UserProfileMutation) ClearUsageLogs() {
+	m.clearedusage_logs = true
+}
+
+// UsageLogsCleared reports if the "usage_logs" edge to the UsageLog entity was cleared.
+func (m *UserProfileMutation) UsageLogsCleared() bool {
+	return m.clearedusage_logs
+}
+
+// RemoveUsageLogIDs removes the "usage_logs" edge to the UsageLog entity by IDs.
+func (m *UserProfileMutation) RemoveUsageLogIDs(ids ...uuid.UUID) {
+	if m.removedusage_logs == nil {
+		m.removedusage_logs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.usage_logs, ids[i])
+		m.removedusage_logs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUsageLogs returns the removed IDs of the "usage_logs" edge to the UsageLog entity.
+func (m *UserProfileMutation) RemovedUsageLogsIDs() (ids []uuid.UUID) {
+	for id := range m.removedusage_logs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UsageLogsIDs returns the "usage_logs" edge IDs in the mutation.
+func (m *UserProfileMutation) UsageLogsIDs() (ids []uuid.UUID) {
+	for id := range m.usage_logs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUsageLogs resets all changes to the "usage_logs" edge.
+func (m *UserProfileMutation) ResetUsageLogs() {
+	m.usage_logs = nil
+	m.clearedusage_logs = false
+	m.removedusage_logs = nil
+}
+
 // Where appends a list predicates to the UserProfileMutation builder.
 func (m *UserProfileMutation) Where(ps ...predicate.UserProfile) {
 	m.predicates = append(m.predicates, ps...)
@@ -15361,7 +16027,7 @@ func (m *UserProfileMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserProfileMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, userprofile.FieldCreatedAt)
 	}
@@ -15410,6 +16076,9 @@ func (m *UserProfileMutation) Fields() []string {
 	if m.onboarding_completed != nil {
 		fields = append(fields, userprofile.FieldOnboardingCompleted)
 	}
+	if m.plan != nil {
+		fields = append(fields, userprofile.FieldPlan)
+	}
 	return fields
 }
 
@@ -15450,6 +16119,8 @@ func (m *UserProfileMutation) Field(name string) (ent.Value, bool) {
 		return m.ExperienceYears()
 	case userprofile.FieldOnboardingCompleted:
 		return m.OnboardingCompleted()
+	case userprofile.FieldPlan:
+		return m.Plan()
 	}
 	return nil, false
 }
@@ -15491,6 +16162,8 @@ func (m *UserProfileMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldExperienceYears(ctx)
 	case userprofile.FieldOnboardingCompleted:
 		return m.OldOnboardingCompleted(ctx)
+	case userprofile.FieldPlan:
+		return m.OldPlan(ctx)
 	}
 	return nil, fmt.Errorf("unknown UserProfile field %s", name)
 }
@@ -15611,6 +16284,13 @@ func (m *UserProfileMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOnboardingCompleted(v)
+		return nil
+	case userprofile.FieldPlan:
+		v, ok := value.(userprofile.Plan)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPlan(v)
 		return nil
 	}
 	return fmt.Errorf("unknown UserProfile field %s", name)
@@ -15793,13 +16473,16 @@ func (m *UserProfileMutation) ResetField(name string) error {
 	case userprofile.FieldOnboardingCompleted:
 		m.ResetOnboardingCompleted()
 		return nil
+	case userprofile.FieldPlan:
+		m.ResetPlan()
+		return nil
 	}
 	return fmt.Errorf("unknown UserProfile field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserProfileMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.experiences != nil {
 		edges = append(edges, userprofile.EdgeExperiences)
 	}
@@ -15817,6 +16500,9 @@ func (m *UserProfileMutation) AddedEdges() []string {
 	}
 	if m.experience_usages != nil {
 		edges = append(edges, userprofile.EdgeExperienceUsages)
+	}
+	if m.usage_logs != nil {
+		edges = append(edges, userprofile.EdgeUsageLogs)
 	}
 	return edges
 }
@@ -15861,13 +16547,19 @@ func (m *UserProfileMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case userprofile.EdgeUsageLogs:
+		ids := make([]ent.Value, 0, len(m.usage_logs))
+		for id := range m.usage_logs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserProfileMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedexperiences != nil {
 		edges = append(edges, userprofile.EdgeExperiences)
 	}
@@ -15885,6 +16577,9 @@ func (m *UserProfileMutation) RemovedEdges() []string {
 	}
 	if m.removedexperience_usages != nil {
 		edges = append(edges, userprofile.EdgeExperienceUsages)
+	}
+	if m.removedusage_logs != nil {
+		edges = append(edges, userprofile.EdgeUsageLogs)
 	}
 	return edges
 }
@@ -15929,13 +16624,19 @@ func (m *UserProfileMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case userprofile.EdgeUsageLogs:
+		ids := make([]ent.Value, 0, len(m.removedusage_logs))
+		for id := range m.removedusage_logs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserProfileMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedexperiences {
 		edges = append(edges, userprofile.EdgeExperiences)
 	}
@@ -15953,6 +16654,9 @@ func (m *UserProfileMutation) ClearedEdges() []string {
 	}
 	if m.clearedexperience_usages {
 		edges = append(edges, userprofile.EdgeExperienceUsages)
+	}
+	if m.clearedusage_logs {
+		edges = append(edges, userprofile.EdgeUsageLogs)
 	}
 	return edges
 }
@@ -15973,6 +16677,8 @@ func (m *UserProfileMutation) EdgeCleared(name string) bool {
 		return m.clearedcoaching_sessions
 	case userprofile.EdgeExperienceUsages:
 		return m.clearedexperience_usages
+	case userprofile.EdgeUsageLogs:
+		return m.clearedusage_logs
 	}
 	return false
 }
@@ -16006,6 +16712,9 @@ func (m *UserProfileMutation) ResetEdge(name string) error {
 		return nil
 	case userprofile.EdgeExperienceUsages:
 		m.ResetExperienceUsages()
+		return nil
+	case userprofile.EdgeUsageLogs:
+		m.ResetUsageLogs()
 		return nil
 	}
 	return fmt.Errorf("unknown UserProfile edge %s", name)

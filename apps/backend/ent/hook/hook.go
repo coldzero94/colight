@@ -165,6 +165,18 @@ func (f TalentProfileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TalentProfileMutation", m)
 }
 
+// The UsageLogFunc type is an adapter to allow the use of ordinary
+// function as UsageLog mutator.
+type UsageLogFunc func(context.Context, *ent.UsageLogMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UsageLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UsageLogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UsageLogMutation", m)
+}
+
 // The UserProfileFunc type is an adapter to allow the use of ordinary
 // function as UserProfile mutator.
 type UserProfileFunc func(context.Context, *ent.UserProfileMutation) (ent.Value, error)

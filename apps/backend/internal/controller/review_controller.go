@@ -74,5 +74,6 @@ func (c *ReviewController) PostReview(ctx *gin.Context) {
 		return
 	}
 
+	TrackUsageAfterSuccess(ctx, map[string]interface{}{"cover_letter_id": req.CoverLetterID})
 	ctx.JSON(http.StatusOK, result)
 }

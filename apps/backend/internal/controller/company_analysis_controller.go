@@ -36,5 +36,6 @@ func (c *CompanyAnalysisController) AnalyzeCompany(ctx *gin.Context) {
 		return
 	}
 
+	TrackUsageAfterSuccess(ctx, map[string]interface{}{"company_name": req.CompanyName})
 	ctx.JSON(http.StatusOK, result)
 }

@@ -125,6 +125,9 @@ func (c *CoachingController) PostDraft(ctx *gin.Context) {
 		return
 	}
 
+	// Track usage after successful draft
+	TrackUsageAfterSuccess(ctx, map[string]interface{}{"cover_letter_id": result.CoverLetterID.String()})
+
 	// Send done event with IDs
 	data, _ := json.Marshal(gin.H{
 		"type":            "done",

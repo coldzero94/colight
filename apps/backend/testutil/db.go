@@ -41,6 +41,7 @@ func NewTestClient(t *testing.T) *ent.Client {
 // CleanAllTables truncates all tables. Call from TestMain before tests run.
 func CleanAllTables(client *ent.Client) {
 	ctx := context.Background()
+	client.UsageLog.Delete().ExecX(ctx)
 	client.ExperienceUsage.Delete().ExecX(ctx)
 	client.ExperienceWeapon.Delete().ExecX(ctx)
 	client.ExperienceTag.Delete().ExecX(ctx)

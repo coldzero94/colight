@@ -29,6 +29,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
+	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/coby/colight/apps/backend/ent/weaponcategory"
 )
@@ -64,6 +65,8 @@ type Client struct {
 	QuestionPattern *QuestionPatternClient
 	// TalentProfile is the client for interacting with the TalentProfile builders.
 	TalentProfile *TalentProfileClient
+	// UsageLog is the client for interacting with the UsageLog builders.
+	UsageLog *UsageLogClient
 	// UserProfile is the client for interacting with the UserProfile builders.
 	UserProfile *UserProfileClient
 	// WeaponCategory is the client for interacting with the WeaponCategory builders.
@@ -92,6 +95,7 @@ func (c *Client) init() {
 	c.PromptTemplate = NewPromptTemplateClient(c.config)
 	c.QuestionPattern = NewQuestionPatternClient(c.config)
 	c.TalentProfile = NewTalentProfileClient(c.config)
+	c.UsageLog = NewUsageLogClient(c.config)
 	c.UserProfile = NewUserProfileClient(c.config)
 	c.WeaponCategory = NewWeaponCategoryClient(c.config)
 }
@@ -199,6 +203,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PromptTemplate:       NewPromptTemplateClient(cfg),
 		QuestionPattern:      NewQuestionPatternClient(cfg),
 		TalentProfile:        NewTalentProfileClient(cfg),
+		UsageLog:             NewUsageLogClient(cfg),
 		UserProfile:          NewUserProfileClient(cfg),
 		WeaponCategory:       NewWeaponCategoryClient(cfg),
 	}, nil
@@ -233,6 +238,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PromptTemplate:       NewPromptTemplateClient(cfg),
 		QuestionPattern:      NewQuestionPatternClient(cfg),
 		TalentProfile:        NewTalentProfileClient(cfg),
+		UsageLog:             NewUsageLogClient(cfg),
 		UserProfile:          NewUserProfileClient(cfg),
 		WeaponCategory:       NewWeaponCategoryClient(cfg),
 	}, nil
@@ -267,7 +273,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Application, c.CoachingSession, c.CompanyAnalysis, c.CompanyAnalysisCache,
 		c.CoverLetter, c.CoverLetterVersion, c.Experience, c.ExperienceTag,
 		c.ExperienceUsage, c.ExperienceWeapon, c.PromptTemplate, c.QuestionPattern,
-		c.TalentProfile, c.UserProfile, c.WeaponCategory,
+		c.TalentProfile, c.UsageLog, c.UserProfile, c.WeaponCategory,
 	} {
 		n.Use(hooks...)
 	}
@@ -280,7 +286,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Application, c.CoachingSession, c.CompanyAnalysis, c.CompanyAnalysisCache,
 		c.CoverLetter, c.CoverLetterVersion, c.Experience, c.ExperienceTag,
 		c.ExperienceUsage, c.ExperienceWeapon, c.PromptTemplate, c.QuestionPattern,
-		c.TalentProfile, c.UserProfile, c.WeaponCategory,
+		c.TalentProfile, c.UsageLog, c.UserProfile, c.WeaponCategory,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -315,6 +321,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.QuestionPattern.mutate(ctx, m)
 	case *TalentProfileMutation:
 		return c.TalentProfile.mutate(ctx, m)
+	case *UsageLogMutation:
+		return c.UsageLog.mutate(ctx, m)
 	case *UserProfileMutation:
 		return c.UserProfile.mutate(ctx, m)
 	case *WeaponCategoryMutation:
@@ -2533,6 +2541,155 @@ func (c *TalentProfileClient) mutate(ctx context.Context, m *TalentProfileMutati
 	}
 }
 
+// UsageLogClient is a client for the UsageLog schema.
+type UsageLogClient struct {
+	config
+}
+
+// NewUsageLogClient returns a client for the UsageLog from the given config.
+func NewUsageLogClient(c config) *UsageLogClient {
+	return &UsageLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `usagelog.Hooks(f(g(h())))`.
+func (c *UsageLogClient) Use(hooks ...Hook) {
+	c.hooks.UsageLog = append(c.hooks.UsageLog, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `usagelog.Intercept(f(g(h())))`.
+func (c *UsageLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UsageLog = append(c.inters.UsageLog, interceptors...)
+}
+
+// Create returns a builder for creating a UsageLog entity.
+func (c *UsageLogClient) Create() *UsageLogCreate {
+	mutation := newUsageLogMutation(c.config, OpCreate)
+	return &UsageLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UsageLog entities.
+func (c *UsageLogClient) CreateBulk(builders ...*UsageLogCreate) *UsageLogCreateBulk {
+	return &UsageLogCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UsageLogClient) MapCreateBulk(slice any, setFunc func(*UsageLogCreate, int)) *UsageLogCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UsageLogCreateBulk{err: fmt.Errorf("calling to UsageLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UsageLogCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UsageLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UsageLog.
+func (c *UsageLogClient) Update() *UsageLogUpdate {
+	mutation := newUsageLogMutation(c.config, OpUpdate)
+	return &UsageLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UsageLogClient) UpdateOne(_m *UsageLog) *UsageLogUpdateOne {
+	mutation := newUsageLogMutation(c.config, OpUpdateOne, withUsageLog(_m))
+	return &UsageLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UsageLogClient) UpdateOneID(id uuid.UUID) *UsageLogUpdateOne {
+	mutation := newUsageLogMutation(c.config, OpUpdateOne, withUsageLogID(id))
+	return &UsageLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UsageLog.
+func (c *UsageLogClient) Delete() *UsageLogDelete {
+	mutation := newUsageLogMutation(c.config, OpDelete)
+	return &UsageLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UsageLogClient) DeleteOne(_m *UsageLog) *UsageLogDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UsageLogClient) DeleteOneID(id uuid.UUID) *UsageLogDeleteOne {
+	builder := c.Delete().Where(usagelog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UsageLogDeleteOne{builder}
+}
+
+// Query returns a query builder for UsageLog.
+func (c *UsageLogClient) Query() *UsageLogQuery {
+	return &UsageLogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUsageLog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UsageLog entity by its id.
+func (c *UsageLogClient) Get(ctx context.Context, id uuid.UUID) (*UsageLog, error) {
+	return c.Query().Where(usagelog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UsageLogClient) GetX(ctx context.Context, id uuid.UUID) *UsageLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a UsageLog.
+func (c *UsageLogClient) QueryUser(_m *UsageLog) *UserProfileQuery {
+	query := (&UserProfileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usagelog.Table, usagelog.FieldID, id),
+			sqlgraph.To(userprofile.Table, userprofile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, usagelog.UserTable, usagelog.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UsageLogClient) Hooks() []Hook {
+	return c.hooks.UsageLog
+}
+
+// Interceptors returns the client interceptors.
+func (c *UsageLogClient) Interceptors() []Interceptor {
+	return c.inters.UsageLog
+}
+
+func (c *UsageLogClient) mutate(ctx context.Context, m *UsageLogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UsageLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UsageLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UsageLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UsageLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UsageLog mutation op: %q", m.Op())
+	}
+}
+
 // UserProfileClient is a client for the UserProfile schema.
 type UserProfileClient struct {
 	config
@@ -2737,6 +2894,22 @@ func (c *UserProfileClient) QueryExperienceUsages(_m *UserProfile) *ExperienceUs
 	return query
 }
 
+// QueryUsageLogs queries the usage_logs edge of a UserProfile.
+func (c *UserProfileClient) QueryUsageLogs(_m *UserProfile) *UsageLogQuery {
+	query := (&UsageLogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userprofile.Table, userprofile.FieldID, id),
+			sqlgraph.To(usagelog.Table, usagelog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, userprofile.UsageLogsTable, userprofile.UsageLogsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserProfileClient) Hooks() []Hook {
 	return c.hooks.UserProfile
@@ -2916,13 +3089,13 @@ type (
 	hooks struct {
 		Application, CoachingSession, CompanyAnalysis, CompanyAnalysisCache,
 		CoverLetter, CoverLetterVersion, Experience, ExperienceTag, ExperienceUsage,
-		ExperienceWeapon, PromptTemplate, QuestionPattern, TalentProfile, UserProfile,
-		WeaponCategory []ent.Hook
+		ExperienceWeapon, PromptTemplate, QuestionPattern, TalentProfile, UsageLog,
+		UserProfile, WeaponCategory []ent.Hook
 	}
 	inters struct {
 		Application, CoachingSession, CompanyAnalysis, CompanyAnalysisCache,
 		CoverLetter, CoverLetterVersion, Experience, ExperienceTag, ExperienceUsage,
-		ExperienceWeapon, PromptTemplate, QuestionPattern, TalentProfile, UserProfile,
-		WeaponCategory []ent.Interceptor
+		ExperienceWeapon, PromptTemplate, QuestionPattern, TalentProfile, UsageLog,
+		UserProfile, WeaponCategory []ent.Interceptor
 	}
 )

@@ -89,6 +89,7 @@ func (ctrl *ExperienceController) Create(c *gin.Context) {
 		return
 	}
 
+	TrackUsageAfterSuccess(c, map[string]interface{}{"experience_id": exp.ID.String()})
 	c.JSON(http.StatusCreated, gin.H{"id": exp.ID.String()})
 }
 

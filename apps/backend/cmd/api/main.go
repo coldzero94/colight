@@ -81,11 +81,13 @@ func main() {
 	}
 
 	editorService := service.NewEditorService(db)
+	usageService := service.NewUsageService(db)
 
 	// Controllers
 	authCtrl := controller.NewAuthController(authService, cfg)
 	adminCtrl := controller.NewAdminController(db)
 	experienceCtrl := controller.NewExperienceController(experienceService)
+	usageCtrl := controller.NewUsageController(usageService)
 
 	var weaponTaggingCtrl *controller.WeaponTaggingController
 	if weaponTaggingService != nil {
@@ -151,8 +153,11 @@ func main() {
 		protected.GET("/auth/me", authCtrl.Me)
 		protected.POST("/auth/logout", authCtrl.Logout)
 
-		// Experience CRUD
-		protected.POST("/experiences", experienceCtrl.Create)
+		// Usage tracking
+		protected.GET("/usage", usageCtrl.GetUsage)
+
+		// Experience CRUD (create has usage limit)
+		protected.POST("/experiences", controller.UsageLimitMiddleware(usageService, "experience"), experienceCtrl.Create)
 		protected.GET("/experiences", experienceCtrl.List)
 		protected.GET("/experiences/:id", experienceCtrl.Get)
 		protected.PATCH("/experiences/:id", experienceCtrl.Update)
@@ -173,7 +178,7 @@ func main() {
 
 		// Company analysis (AI-powered talent profile analysis)
 		if companyAnalysisCtrl != nil {
-			protected.POST("/analyze-company", companyAnalysisCtrl.AnalyzeCompany)
+			protected.POST("/analyze-company", controller.UsageLimitMiddleware(usageService, "analysis"), companyAnalysisCtrl.AnalyzeCompany)
 		}
 
 		// Experience matching (AI-powered experience-company matching)
@@ -188,19 +193,19 @@ func main() {
 
 		// Question analysis (AI-powered question intent analysis)
 		if questionCtrl != nil {
-			protected.POST("/coaching/question-analysis", questionCtrl.PostQuestionAnalysis)
+			protected.POST("/coaching/question-analysis", controller.UsageLimitMiddleware(usageService, "question_analysis"), questionCtrl.PostQuestionAnalysis)
 			protected.POST("/coaching/recommend-experiences", questionCtrl.PostRecommendExperiences)
 		}
 
 		// Draft coaching (AI-powered draft generation)
 		if coachingCtrl != nil {
-			protected.POST("/coaching/draft", coachingCtrl.PostDraft)
+			protected.POST("/coaching/draft", controller.UsageLimitMiddleware(usageService, "draft"), coachingCtrl.PostDraft)
 			protected.GET("/coaching/sessions", coachingCtrl.GetSessions)
 		}
 
 		// Review coaching (AI-powered cover letter review)
 		if reviewCtrl != nil {
-			protected.POST("/coaching/review", reviewCtrl.PostReview)
+			protected.POST("/coaching/review", controller.UsageLimitMiddleware(usageService, "review"), reviewCtrl.PostReview)
 		}
 
 		// Cover letter editor (CRUD + versioning)

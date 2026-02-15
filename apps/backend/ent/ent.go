@@ -25,6 +25,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
+	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/coby/colight/apps/backend/ent/weaponcategory"
 )
@@ -100,6 +101,7 @@ func checkColumn(t, c string) error {
 			prompttemplate.Table:       prompttemplate.ValidColumn,
 			questionpattern.Table:      questionpattern.ValidColumn,
 			talentprofile.Table:        talentprofile.ValidColumn,
+			usagelog.Table:             usagelog.ValidColumn,
 			userprofile.Table:          userprofile.ValidColumn,
 			weaponcategory.Table:       weaponcategory.ValidColumn,
 		})

@@ -16,6 +16,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/coverletter"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
+	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/google/uuid"
 )
@@ -251,6 +252,20 @@ func (_c *UserProfileCreate) SetNillableOnboardingCompleted(v *bool) *UserProfil
 	return _c
 }
 
+// SetPlan sets the "plan" field.
+func (_c *UserProfileCreate) SetPlan(v userprofile.Plan) *UserProfileCreate {
+	_c.mutation.SetPlan(v)
+	return _c
+}
+
+// SetNillablePlan sets the "plan" field if the given value is not nil.
+func (_c *UserProfileCreate) SetNillablePlan(v *userprofile.Plan) *UserProfileCreate {
+	if v != nil {
+		_c.SetPlan(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UserProfileCreate) SetID(v uuid.UUID) *UserProfileCreate {
 	_c.mutation.SetID(v)
@@ -355,6 +370,21 @@ func (_c *UserProfileCreate) AddExperienceUsages(v ...*ExperienceUsage) *UserPro
 	return _c.AddExperienceUsageIDs(ids...)
 }
 
+// AddUsageLogIDs adds the "usage_logs" edge to the UsageLog entity by IDs.
+func (_c *UserProfileCreate) AddUsageLogIDs(ids ...uuid.UUID) *UserProfileCreate {
+	_c.mutation.AddUsageLogIDs(ids...)
+	return _c
+}
+
+// AddUsageLogs adds the "usage_logs" edges to the UsageLog entity.
+func (_c *UserProfileCreate) AddUsageLogs(v ...*UsageLog) *UserProfileCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUsageLogIDs(ids...)
+}
+
 // Mutation returns the UserProfileMutation object of the builder.
 func (_c *UserProfileCreate) Mutation() *UserProfileMutation {
 	return _c.mutation
@@ -417,6 +447,10 @@ func (_c *UserProfileCreate) defaults() {
 	if _, ok := _c.mutation.OnboardingCompleted(); !ok {
 		v := userprofile.DefaultOnboardingCompleted
 		_c.mutation.SetOnboardingCompleted(v)
+	}
+	if _, ok := _c.mutation.Plan(); !ok {
+		v := userprofile.DefaultPlan
+		_c.mutation.SetPlan(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := userprofile.DefaultID()
@@ -491,6 +525,14 @@ func (_c *UserProfileCreate) check() error {
 	}
 	if _, ok := _c.mutation.OnboardingCompleted(); !ok {
 		return &ValidationError{Name: "onboarding_completed", err: errors.New(`ent: missing required field "UserProfile.onboarding_completed"`)}
+	}
+	if _, ok := _c.mutation.Plan(); !ok {
+		return &ValidationError{Name: "plan", err: errors.New(`ent: missing required field "UserProfile.plan"`)}
+	}
+	if v, ok := _c.mutation.Plan(); ok {
+		if err := userprofile.PlanValidator(v); err != nil {
+			return &ValidationError{Name: "plan", err: fmt.Errorf(`ent: validator failed for field "UserProfile.plan": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -591,6 +633,10 @@ func (_c *UserProfileCreate) createSpec() (*UserProfile, *sqlgraph.CreateSpec) {
 		_spec.SetField(userprofile.FieldOnboardingCompleted, field.TypeBool, value)
 		_node.OnboardingCompleted = value
 	}
+	if value, ok := _c.mutation.Plan(); ok {
+		_spec.SetField(userprofile.FieldPlan, field.TypeEnum, value)
+		_node.Plan = value
+	}
 	if nodes := _c.mutation.ExperiencesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -680,6 +726,22 @@ func (_c *UserProfileCreate) createSpec() (*UserProfile, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(experienceusage.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.UsageLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.UsageLogsTable,
+			Columns: []string{userprofile.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

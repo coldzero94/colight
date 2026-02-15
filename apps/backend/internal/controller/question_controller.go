@@ -118,6 +118,7 @@ func (c *QuestionController) PostQuestionAnalysis(ctx *gin.Context) {
 		return
 	}
 
+	TrackUsageAfterSuccess(ctx, map[string]interface{}{"application_id": req.ApplicationID})
 	ctx.JSON(http.StatusOK, result)
 }
 

@@ -19,6 +19,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
 	"github.com/coby/colight/apps/backend/ent/predicate"
+	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/google/uuid"
 )
@@ -36,6 +37,7 @@ type UserProfileQuery struct {
 	withCoverLetters     *CoverLetterQuery
 	withCoachingSessions *CoachingSessionQuery
 	withExperienceUsages *ExperienceUsageQuery
+	withUsageLogs        *UsageLogQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -197,6 +199,28 @@ func (_q *UserProfileQuery) QueryExperienceUsages() *ExperienceUsageQuery {
 			sqlgraph.From(userprofile.Table, userprofile.FieldID, selector),
 			sqlgraph.To(experienceusage.Table, experienceusage.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, userprofile.ExperienceUsagesTable, userprofile.ExperienceUsagesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUsageLogs chains the current query on the "usage_logs" edge.
+func (_q *UserProfileQuery) QueryUsageLogs() *UsageLogQuery {
+	query := (&UsageLogClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userprofile.Table, userprofile.FieldID, selector),
+			sqlgraph.To(usagelog.Table, usagelog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, userprofile.UsageLogsTable, userprofile.UsageLogsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -402,6 +426,7 @@ func (_q *UserProfileQuery) Clone() *UserProfileQuery {
 		withCoverLetters:     _q.withCoverLetters.Clone(),
 		withCoachingSessions: _q.withCoachingSessions.Clone(),
 		withExperienceUsages: _q.withExperienceUsages.Clone(),
+		withUsageLogs:        _q.withUsageLogs.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -471,6 +496,17 @@ func (_q *UserProfileQuery) WithExperienceUsages(opts ...func(*ExperienceUsageQu
 		opt(query)
 	}
 	_q.withExperienceUsages = query
+	return _q
+}
+
+// WithUsageLogs tells the query-builder to eager-load the nodes that are connected to
+// the "usage_logs" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserProfileQuery) WithUsageLogs(opts ...func(*UsageLogQuery)) *UserProfileQuery {
+	query := (&UsageLogClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUsageLogs = query
 	return _q
 }
 
@@ -552,13 +588,14 @@ func (_q *UserProfileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*UserProfile{}
 		_spec       = _q.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			_q.withExperiences != nil,
 			_q.withApplications != nil,
 			_q.withCompanyAnalyses != nil,
 			_q.withCoverLetters != nil,
 			_q.withCoachingSessions != nil,
 			_q.withExperienceUsages != nil,
+			_q.withUsageLogs != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -622,6 +659,13 @@ func (_q *UserProfileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			func(n *UserProfile, e *ExperienceUsage) {
 				n.Edges.ExperienceUsages = append(n.Edges.ExperienceUsages, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withUsageLogs; query != nil {
+		if err := _q.loadUsageLogs(ctx, query, nodes,
+			func(n *UserProfile) { n.Edges.UsageLogs = []*UsageLog{} },
+			func(n *UserProfile, e *UsageLog) { n.Edges.UsageLogs = append(n.Edges.UsageLogs, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -797,6 +841,36 @@ func (_q *UserProfileQuery) loadExperienceUsages(ctx context.Context, query *Exp
 	}
 	query.Where(predicate.ExperienceUsage(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(userprofile.ExperienceUsagesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserProfileQuery) loadUsageLogs(ctx context.Context, query *UsageLogQuery, nodes []*UserProfile, init func(*UserProfile), assign func(*UserProfile, *UsageLog)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*UserProfile)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(usagelog.FieldUserID)
+	}
+	query.Where(predicate.UsageLog(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(userprofile.UsageLogsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

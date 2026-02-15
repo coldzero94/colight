@@ -45,6 +45,9 @@ type QuestionPattern func(*sql.Selector)
 // TalentProfile is the predicate function for talentprofile builders.
 type TalentProfile func(*sql.Selector)
 
+// UsageLog is the predicate function for usagelog builders.
+type UsageLog func(*sql.Selector)
+
 // UserProfile is the predicate function for userprofile builders.
 type UserProfile func(*sql.Selector)
 

@@ -564,6 +564,35 @@ var (
 			},
 		},
 	}
+	// UsageLogsColumns holds the columns for the "usage_logs" table.
+	UsageLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "feature", Type: field.TypeString, Size: 30},
+		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// UsageLogsTable holds the schema information for the "usage_logs" table.
+	UsageLogsTable = &schema.Table{
+		Name:       "usage_logs",
+		Columns:    UsageLogsColumns,
+		PrimaryKey: []*schema.Column{UsageLogsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "usage_logs_user_profiles_usage_logs",
+				Columns:    []*schema.Column{UsageLogsColumns[4]},
+				RefColumns: []*schema.Column{UserProfilesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "usagelog_user_id_feature_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{UsageLogsColumns[4], UsageLogsColumns[2], UsageLogsColumns[1]},
+			},
+		},
+	}
 	// UserProfilesColumns holds the columns for the "user_profiles" table.
 	UserProfilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -583,6 +612,7 @@ var (
 		{Name: "graduation_year", Type: field.TypeInt, Nullable: true},
 		{Name: "experience_years", Type: field.TypeInt, Default: 0},
 		{Name: "onboarding_completed", Type: field.TypeBool, Default: false},
+		{Name: "plan", Type: field.TypeEnum, Enums: []string{"free", "starter", "pro", "season"}, Default: "free"},
 	}
 	// UserProfilesTable holds the schema information for the "user_profiles" table.
 	UserProfilesTable = &schema.Table{
@@ -655,6 +685,7 @@ var (
 		PromptTemplatesTable,
 		QuestionPatternsTable,
 		TalentProfilesTable,
+		UsageLogsTable,
 		UserProfilesTable,
 		WeaponCategoriesTable,
 	}
@@ -680,4 +711,5 @@ func init() {
 	ExperienceWeaponsTable.ForeignKeys[0].RefTable = ExperiencesTable
 	ExperienceWeaponsTable.ForeignKeys[1].RefTable = WeaponCategoriesTable
 	QuestionPatternsTable.ForeignKeys[0].RefTable = PromptTemplatesTable
+	UsageLogsTable.ForeignKeys[0].RefTable = UserProfilesTable
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
 	"github.com/coby/colight/apps/backend/ent/predicate"
+	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/google/uuid"
 )
@@ -305,6 +306,20 @@ func (_u *UserProfileUpdate) SetNillableOnboardingCompleted(v *bool) *UserProfil
 	return _u
 }
 
+// SetPlan sets the "plan" field.
+func (_u *UserProfileUpdate) SetPlan(v userprofile.Plan) *UserProfileUpdate {
+	_u.mutation.SetPlan(v)
+	return _u
+}
+
+// SetNillablePlan sets the "plan" field if the given value is not nil.
+func (_u *UserProfileUpdate) SetNillablePlan(v *userprofile.Plan) *UserProfileUpdate {
+	if v != nil {
+		_u.SetPlan(*v)
+	}
+	return _u
+}
+
 // AddExperienceIDs adds the "experiences" edge to the Experience entity by IDs.
 func (_u *UserProfileUpdate) AddExperienceIDs(ids ...uuid.UUID) *UserProfileUpdate {
 	_u.mutation.AddExperienceIDs(ids...)
@@ -393,6 +408,21 @@ func (_u *UserProfileUpdate) AddExperienceUsages(v ...*ExperienceUsage) *UserPro
 		ids[i] = v[i].ID
 	}
 	return _u.AddExperienceUsageIDs(ids...)
+}
+
+// AddUsageLogIDs adds the "usage_logs" edge to the UsageLog entity by IDs.
+func (_u *UserProfileUpdate) AddUsageLogIDs(ids ...uuid.UUID) *UserProfileUpdate {
+	_u.mutation.AddUsageLogIDs(ids...)
+	return _u
+}
+
+// AddUsageLogs adds the "usage_logs" edges to the UsageLog entity.
+func (_u *UserProfileUpdate) AddUsageLogs(v ...*UsageLog) *UserProfileUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUsageLogIDs(ids...)
 }
 
 // Mutation returns the UserProfileMutation object of the builder.
@@ -526,6 +556,27 @@ func (_u *UserProfileUpdate) RemoveExperienceUsages(v ...*ExperienceUsage) *User
 	return _u.RemoveExperienceUsageIDs(ids...)
 }
 
+// ClearUsageLogs clears all "usage_logs" edges to the UsageLog entity.
+func (_u *UserProfileUpdate) ClearUsageLogs() *UserProfileUpdate {
+	_u.mutation.ClearUsageLogs()
+	return _u
+}
+
+// RemoveUsageLogIDs removes the "usage_logs" edge to UsageLog entities by IDs.
+func (_u *UserProfileUpdate) RemoveUsageLogIDs(ids ...uuid.UUID) *UserProfileUpdate {
+	_u.mutation.RemoveUsageLogIDs(ids...)
+	return _u
+}
+
+// RemoveUsageLogs removes "usage_logs" edges to UsageLog entities.
+func (_u *UserProfileUpdate) RemoveUsageLogs(v ...*UsageLog) *UserProfileUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUsageLogIDs(ids...)
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *UserProfileUpdate) Save(ctx context.Context) (int, error) {
 	_u.defaults()
@@ -607,6 +658,11 @@ func (_u *UserProfileUpdate) check() error {
 	if v, ok := _u.mutation.EducationLevel(); ok {
 		if err := userprofile.EducationLevelValidator(v); err != nil {
 			return &ValidationError{Name: "education_level", err: fmt.Errorf(`ent: validator failed for field "UserProfile.education_level": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Plan(); ok {
+		if err := userprofile.PlanValidator(v); err != nil {
+			return &ValidationError{Name: "plan", err: fmt.Errorf(`ent: validator failed for field "UserProfile.plan": %w`, err)}
 		}
 	}
 	return nil
@@ -701,6 +757,9 @@ func (_u *UserProfileUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.OnboardingCompleted(); ok {
 		_spec.SetField(userprofile.FieldOnboardingCompleted, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Plan(); ok {
+		_spec.SetField(userprofile.FieldPlan, field.TypeEnum, value)
 	}
 	if _u.mutation.ExperiencesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -965,6 +1024,51 @@ func (_u *UserProfileUpdate) sqlSave(ctx context.Context) (_node int, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(experienceusage.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UsageLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.UsageLogsTable,
+			Columns: []string{userprofile.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUsageLogsIDs(); len(nodes) > 0 && !_u.mutation.UsageLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.UsageLogsTable,
+			Columns: []string{userprofile.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UsageLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.UsageLogsTable,
+			Columns: []string{userprofile.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1262,6 +1366,20 @@ func (_u *UserProfileUpdateOne) SetNillableOnboardingCompleted(v *bool) *UserPro
 	return _u
 }
 
+// SetPlan sets the "plan" field.
+func (_u *UserProfileUpdateOne) SetPlan(v userprofile.Plan) *UserProfileUpdateOne {
+	_u.mutation.SetPlan(v)
+	return _u
+}
+
+// SetNillablePlan sets the "plan" field if the given value is not nil.
+func (_u *UserProfileUpdateOne) SetNillablePlan(v *userprofile.Plan) *UserProfileUpdateOne {
+	if v != nil {
+		_u.SetPlan(*v)
+	}
+	return _u
+}
+
 // AddExperienceIDs adds the "experiences" edge to the Experience entity by IDs.
 func (_u *UserProfileUpdateOne) AddExperienceIDs(ids ...uuid.UUID) *UserProfileUpdateOne {
 	_u.mutation.AddExperienceIDs(ids...)
@@ -1350,6 +1468,21 @@ func (_u *UserProfileUpdateOne) AddExperienceUsages(v ...*ExperienceUsage) *User
 		ids[i] = v[i].ID
 	}
 	return _u.AddExperienceUsageIDs(ids...)
+}
+
+// AddUsageLogIDs adds the "usage_logs" edge to the UsageLog entity by IDs.
+func (_u *UserProfileUpdateOne) AddUsageLogIDs(ids ...uuid.UUID) *UserProfileUpdateOne {
+	_u.mutation.AddUsageLogIDs(ids...)
+	return _u
+}
+
+// AddUsageLogs adds the "usage_logs" edges to the UsageLog entity.
+func (_u *UserProfileUpdateOne) AddUsageLogs(v ...*UsageLog) *UserProfileUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUsageLogIDs(ids...)
 }
 
 // Mutation returns the UserProfileMutation object of the builder.
@@ -1483,6 +1616,27 @@ func (_u *UserProfileUpdateOne) RemoveExperienceUsages(v ...*ExperienceUsage) *U
 	return _u.RemoveExperienceUsageIDs(ids...)
 }
 
+// ClearUsageLogs clears all "usage_logs" edges to the UsageLog entity.
+func (_u *UserProfileUpdateOne) ClearUsageLogs() *UserProfileUpdateOne {
+	_u.mutation.ClearUsageLogs()
+	return _u
+}
+
+// RemoveUsageLogIDs removes the "usage_logs" edge to UsageLog entities by IDs.
+func (_u *UserProfileUpdateOne) RemoveUsageLogIDs(ids ...uuid.UUID) *UserProfileUpdateOne {
+	_u.mutation.RemoveUsageLogIDs(ids...)
+	return _u
+}
+
+// RemoveUsageLogs removes "usage_logs" edges to UsageLog entities.
+func (_u *UserProfileUpdateOne) RemoveUsageLogs(v ...*UsageLog) *UserProfileUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUsageLogIDs(ids...)
+}
+
 // Where appends a list predicates to the UserProfileUpdate builder.
 func (_u *UserProfileUpdateOne) Where(ps ...predicate.UserProfile) *UserProfileUpdateOne {
 	_u.mutation.Where(ps...)
@@ -1577,6 +1731,11 @@ func (_u *UserProfileUpdateOne) check() error {
 	if v, ok := _u.mutation.EducationLevel(); ok {
 		if err := userprofile.EducationLevelValidator(v); err != nil {
 			return &ValidationError{Name: "education_level", err: fmt.Errorf(`ent: validator failed for field "UserProfile.education_level": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Plan(); ok {
+		if err := userprofile.PlanValidator(v); err != nil {
+			return &ValidationError{Name: "plan", err: fmt.Errorf(`ent: validator failed for field "UserProfile.plan": %w`, err)}
 		}
 	}
 	return nil
@@ -1688,6 +1847,9 @@ func (_u *UserProfileUpdateOne) sqlSave(ctx context.Context) (_node *UserProfile
 	}
 	if value, ok := _u.mutation.OnboardingCompleted(); ok {
 		_spec.SetField(userprofile.FieldOnboardingCompleted, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Plan(); ok {
+		_spec.SetField(userprofile.FieldPlan, field.TypeEnum, value)
 	}
 	if _u.mutation.ExperiencesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1952,6 +2114,51 @@ func (_u *UserProfileUpdateOne) sqlSave(ctx context.Context) (_node *UserProfile
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(experienceusage.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UsageLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.UsageLogsTable,
+			Columns: []string{userprofile.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUsageLogsIDs(); len(nodes) > 0 && !_u.mutation.UsageLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.UsageLogsTable,
+			Columns: []string{userprofile.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UsageLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.UsageLogsTable,
+			Columns: []string{userprofile.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

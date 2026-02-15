@@ -23,4 +23,8 @@ var (
 	// Cover letter errors
 	ErrCoverLetterNotFound  = errors.New("cover letter not found")
 	ErrCoverLetterForbidden = errors.New("forbidden: not the owner of this cover letter")
+
+	// Usage errors
+	ErrUsageLimitExceeded = errors.New("usage limit exceeded")
+	ErrInvalidFeature     = errors.New("invalid feature name")
 )

@@ -51,6 +51,8 @@ type UserProfile struct {
 	ExperienceYears int `json:"experience_years,omitempty"`
 	// Whether onboarding is completed
 	OnboardingCompleted bool `json:"onboarding_completed,omitempty"`
+	// Subscription plan
+	Plan userprofile.Plan `json:"plan,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserProfileQuery when eager-loading is set.
 	Edges        UserProfileEdges `json:"edges"`
@@ -71,9 +73,11 @@ type UserProfileEdges struct {
 	CoachingSessions []*CoachingSession `json:"coaching_sessions,omitempty"`
 	// ExperienceUsages holds the value of the experience_usages edge.
 	ExperienceUsages []*ExperienceUsage `json:"experience_usages,omitempty"`
+	// UsageLogs holds the value of the usage_logs edge.
+	UsageLogs []*UsageLog `json:"usage_logs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // ExperiencesOrErr returns the Experiences value or an error if the edge
@@ -130,6 +134,15 @@ func (e UserProfileEdges) ExperienceUsagesOrErr() ([]*ExperienceUsage, error) {
 	return nil, &NotLoadedError{edge: "experience_usages"}
 }
 
+// UsageLogsOrErr returns the UsageLogs value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserProfileEdges) UsageLogsOrErr() ([]*UsageLog, error) {
+	if e.loadedTypes[6] {
+		return e.UsageLogs, nil
+	}
+	return nil, &NotLoadedError{edge: "usage_logs"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*UserProfile) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -139,7 +152,7 @@ func (*UserProfile) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case userprofile.FieldGraduationYear, userprofile.FieldExperienceYears:
 			values[i] = new(sql.NullInt64)
-		case userprofile.FieldEmail, userprofile.FieldPasswordHash, userprofile.FieldNaverID, userprofile.FieldAuthProvider, userprofile.FieldRole, userprofile.FieldNickname, userprofile.FieldTargetJob, userprofile.FieldTargetIndustry, userprofile.FieldEducationLevel:
+		case userprofile.FieldEmail, userprofile.FieldPasswordHash, userprofile.FieldNaverID, userprofile.FieldAuthProvider, userprofile.FieldRole, userprofile.FieldNickname, userprofile.FieldTargetJob, userprofile.FieldTargetIndustry, userprofile.FieldEducationLevel, userprofile.FieldPlan:
 			values[i] = new(sql.NullString)
 		case userprofile.FieldCreatedAt, userprofile.FieldUpdatedAt, userprofile.FieldLastLoginAt:
 			values[i] = new(sql.NullTime)
@@ -267,6 +280,12 @@ func (_m *UserProfile) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.OnboardingCompleted = value.Bool
 			}
+		case userprofile.FieldPlan:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field plan", values[i])
+			} else if value.Valid {
+				_m.Plan = userprofile.Plan(value.String)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -308,6 +327,11 @@ func (_m *UserProfile) QueryCoachingSessions() *CoachingSessionQuery {
 // QueryExperienceUsages queries the "experience_usages" edge of the UserProfile entity.
 func (_m *UserProfile) QueryExperienceUsages() *ExperienceUsageQuery {
 	return NewUserProfileClient(_m.config).QueryExperienceUsages(_m)
+}
+
+// QueryUsageLogs queries the "usage_logs" edge of the UserProfile entity.
+func (_m *UserProfile) QueryUsageLogs() *UsageLogQuery {
+	return NewUserProfileClient(_m.config).QueryUsageLogs(_m)
 }
 
 // Update returns a builder for updating this UserProfile.
@@ -387,6 +411,9 @@ func (_m *UserProfile) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("onboarding_completed=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OnboardingCompleted))
+	builder.WriteString(", ")
+	builder.WriteString("plan=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Plan))
 	builder.WriteByte(')')
 	return builder.String()
 }

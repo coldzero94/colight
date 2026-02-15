@@ -931,6 +931,26 @@ func OnboardingCompletedNEQ(v bool) predicate.UserProfile {
 	return predicate.UserProfile(sql.FieldNEQ(FieldOnboardingCompleted, v))
 }
 
+// PlanEQ applies the EQ predicate on the "plan" field.
+func PlanEQ(v Plan) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldEQ(FieldPlan, v))
+}
+
+// PlanNEQ applies the NEQ predicate on the "plan" field.
+func PlanNEQ(v Plan) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldNEQ(FieldPlan, v))
+}
+
+// PlanIn applies the In predicate on the "plan" field.
+func PlanIn(vs ...Plan) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldIn(FieldPlan, vs...))
+}
+
+// PlanNotIn applies the NotIn predicate on the "plan" field.
+func PlanNotIn(vs ...Plan) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldNotIn(FieldPlan, vs...))
+}
+
 // HasExperiences applies the HasEdge predicate on the "experiences" edge.
 func HasExperiences() predicate.UserProfile {
 	return predicate.UserProfile(func(s *sql.Selector) {
@@ -1061,6 +1081,29 @@ func HasExperienceUsages() predicate.UserProfile {
 func HasExperienceUsagesWith(preds ...predicate.ExperienceUsage) predicate.UserProfile {
 	return predicate.UserProfile(func(s *sql.Selector) {
 		step := newExperienceUsagesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUsageLogs applies the HasEdge predicate on the "usage_logs" edge.
+func HasUsageLogs() predicate.UserProfile {
+	return predicate.UserProfile(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UsageLogsTable, UsageLogsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUsageLogsWith applies the HasEdge predicate on the "usage_logs" edge with a given conditions (other predicates).
+func HasUsageLogsWith(preds ...predicate.UsageLog) predicate.UserProfile {
+	return predicate.UserProfile(func(s *sql.Selector) {
+		step := newUsageLogsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

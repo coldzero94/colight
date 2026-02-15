@@ -38,6 +38,8 @@ type Tx struct {
 	QuestionPattern *QuestionPatternClient
 	// TalentProfile is the client for interacting with the TalentProfile builders.
 	TalentProfile *TalentProfileClient
+	// UsageLog is the client for interacting with the UsageLog builders.
+	UsageLog *UsageLogClient
 	// UserProfile is the client for interacting with the UserProfile builders.
 	UserProfile *UserProfileClient
 	// WeaponCategory is the client for interacting with the WeaponCategory builders.
@@ -186,6 +188,7 @@ func (tx *Tx) init() {
 	tx.PromptTemplate = NewPromptTemplateClient(tx.config)
 	tx.QuestionPattern = NewQuestionPatternClient(tx.config)
 	tx.TalentProfile = NewTalentProfileClient(tx.config)
+	tx.UsageLog = NewUsageLogClient(tx.config)
 	tx.UserProfile = NewUserProfileClient(tx.config)
 	tx.WeaponCategory = NewWeaponCategoryClient(tx.config)
 }

@@ -48,6 +48,8 @@ const (
 	FieldExperienceYears = "experience_years"
 	// FieldOnboardingCompleted holds the string denoting the onboarding_completed field in the database.
 	FieldOnboardingCompleted = "onboarding_completed"
+	// FieldPlan holds the string denoting the plan field in the database.
+	FieldPlan = "plan"
 	// EdgeExperiences holds the string denoting the experiences edge name in mutations.
 	EdgeExperiences = "experiences"
 	// EdgeApplications holds the string denoting the applications edge name in mutations.
@@ -60,6 +62,8 @@ const (
 	EdgeCoachingSessions = "coaching_sessions"
 	// EdgeExperienceUsages holds the string denoting the experience_usages edge name in mutations.
 	EdgeExperienceUsages = "experience_usages"
+	// EdgeUsageLogs holds the string denoting the usage_logs edge name in mutations.
+	EdgeUsageLogs = "usage_logs"
 	// Table holds the table name of the userprofile in the database.
 	Table = "user_profiles"
 	// ExperiencesTable is the table that holds the experiences relation/edge.
@@ -104,6 +108,13 @@ const (
 	ExperienceUsagesInverseTable = "experience_usages"
 	// ExperienceUsagesColumn is the table column denoting the experience_usages relation/edge.
 	ExperienceUsagesColumn = "user_id"
+	// UsageLogsTable is the table that holds the usage_logs relation/edge.
+	UsageLogsTable = "usage_logs"
+	// UsageLogsInverseTable is the table name for the UsageLog entity.
+	// It exists in this package in order to avoid circular dependency with the "usagelog" package.
+	UsageLogsInverseTable = "usage_logs"
+	// UsageLogsColumn is the table column denoting the usage_logs relation/edge.
+	UsageLogsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for userprofile fields.
@@ -125,6 +136,7 @@ var Columns = []string{
 	FieldGraduationYear,
 	FieldExperienceYears,
 	FieldOnboardingCompleted,
+	FieldPlan,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -220,6 +232,34 @@ func RoleValidator(r Role) error {
 	}
 }
 
+// Plan defines the type for the "plan" enum field.
+type Plan string
+
+// PlanFree is the default value of the Plan enum.
+const DefaultPlan = PlanFree
+
+// Plan values.
+const (
+	PlanFree    Plan = "free"
+	PlanStarter Plan = "starter"
+	PlanPro     Plan = "pro"
+	PlanSeason  Plan = "season"
+)
+
+func (pl Plan) String() string {
+	return string(pl)
+}
+
+// PlanValidator is a validator for the "plan" field enum values. It is called by the builders before save.
+func PlanValidator(pl Plan) error {
+	switch pl {
+	case PlanFree, PlanStarter, PlanPro, PlanSeason:
+		return nil
+	default:
+		return fmt.Errorf("userprofile: invalid enum value for plan field: %q", pl)
+	}
+}
+
 // OrderOption defines the ordering options for the UserProfile queries.
 type OrderOption func(*sql.Selector)
 
@@ -308,6 +348,11 @@ func ByOnboardingCompleted(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOnboardingCompleted, opts...).ToFunc()
 }
 
+// ByPlan orders the results by the plan field.
+func ByPlan(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPlan, opts...).ToFunc()
+}
+
 // ByExperiencesCount orders the results by experiences count.
 func ByExperiencesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -391,6 +436,20 @@ func ByExperienceUsages(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption 
 		sqlgraph.OrderByNeighborTerms(s, newExperienceUsagesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByUsageLogsCount orders the results by usage_logs count.
+func ByUsageLogsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUsageLogsStep(), opts...)
+	}
+}
+
+// ByUsageLogs orders the results by usage_logs terms.
+func ByUsageLogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUsageLogsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newExperiencesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -431,5 +490,12 @@ func newExperienceUsagesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ExperienceUsagesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ExperienceUsagesTable, ExperienceUsagesColumn),
+	)
+}
+func newUsageLogsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UsageLogsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UsageLogsTable, UsageLogsColumn),
 	)
 }

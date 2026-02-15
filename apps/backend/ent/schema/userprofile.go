@@ -79,6 +79,10 @@ func (UserProfile) Fields() []ent.Field {
 		field.Bool("onboarding_completed").
 			Default(false).
 			Comment("Whether onboarding is completed"),
+		field.Enum("plan").
+			Values("free", "starter", "pro", "season").
+			Default("free").
+			Comment("Subscription plan"),
 	}
 }
 
@@ -90,6 +94,7 @@ func (UserProfile) Edges() []ent.Edge {
 		edge.To("cover_letters", CoverLetter.Type),
 		edge.To("coaching_sessions", CoachingSession.Type),
 		edge.To("experience_usages", ExperienceUsage.Type),
+		edge.To("usage_logs", UsageLog.Type),
 	}
 }
 
