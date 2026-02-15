@@ -82,6 +82,7 @@ func main() {
 
 	editorService := service.NewEditorService(db)
 	usageService := service.NewUsageService(db)
+	feedbackService := service.NewFeedbackService(db)
 
 	// Controllers
 	authCtrl := controller.NewAuthController(authService, cfg)
@@ -127,6 +128,7 @@ func main() {
 	}
 
 	editorCtrl := controller.NewEditorController(editorService)
+	feedbackCtrl := controller.NewFeedbackController(feedbackService)
 
 	// Router
 	r := gin.Default()
@@ -207,6 +209,9 @@ func main() {
 		if reviewCtrl != nil {
 			protected.POST("/coaching/review", controller.UsageLimitMiddleware(usageService, "review"), reviewCtrl.PostReview)
 		}
+
+		// Feedback
+		protected.POST("/feedback", feedbackCtrl.SubmitFeedback)
 
 		// Cover letter editor (CRUD + versioning)
 		protected.GET("/coaching/cover-letters/:id", editorCtrl.GetCoverLetter)

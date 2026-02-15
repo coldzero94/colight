@@ -22,6 +22,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/experiencetag"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
 	"github.com/coby/colight/apps/backend/ent/experienceweapon"
+	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
@@ -98,6 +99,7 @@ func checkColumn(t, c string) error {
 			experiencetag.Table:        experiencetag.ValidColumn,
 			experienceusage.Table:      experienceusage.ValidColumn,
 			experienceweapon.Table:     experienceweapon.ValidColumn,
+			feedback.Table:             feedback.ValidColumn,
 			prompttemplate.Table:       prompttemplate.ValidColumn,
 			questionpattern.Table:      questionpattern.ValidColumn,
 			talentprofile.Table:        talentprofile.ValidColumn,

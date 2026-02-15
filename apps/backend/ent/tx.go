@@ -32,6 +32,8 @@ type Tx struct {
 	ExperienceUsage *ExperienceUsageClient
 	// ExperienceWeapon is the client for interacting with the ExperienceWeapon builders.
 	ExperienceWeapon *ExperienceWeaponClient
+	// Feedback is the client for interacting with the Feedback builders.
+	Feedback *FeedbackClient
 	// PromptTemplate is the client for interacting with the PromptTemplate builders.
 	PromptTemplate *PromptTemplateClient
 	// QuestionPattern is the client for interacting with the QuestionPattern builders.
@@ -185,6 +187,7 @@ func (tx *Tx) init() {
 	tx.ExperienceTag = NewExperienceTagClient(tx.config)
 	tx.ExperienceUsage = NewExperienceUsageClient(tx.config)
 	tx.ExperienceWeapon = NewExperienceWeaponClient(tx.config)
+	tx.Feedback = NewFeedbackClient(tx.config)
 	tx.PromptTemplate = NewPromptTemplateClient(tx.config)
 	tx.QuestionPattern = NewQuestionPatternClient(tx.config)
 	tx.TalentProfile = NewTalentProfileClient(tx.config)

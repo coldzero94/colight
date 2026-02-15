@@ -21,6 +21,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/experiencetag"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
 	"github.com/coby/colight/apps/backend/ent/experienceweapon"
+	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/predicate"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
@@ -50,6 +51,7 @@ const (
 	TypeExperienceTag        = "ExperienceTag"
 	TypeExperienceUsage      = "ExperienceUsage"
 	TypeExperienceWeapon     = "ExperienceWeapon"
+	TypeFeedback             = "Feedback"
 	TypePromptTemplate       = "PromptTemplate"
 	TypeQuestionPattern      = "QuestionPattern"
 	TypeTalentProfile        = "TalentProfile"
@@ -10595,6 +10597,703 @@ func (m *ExperienceWeaponMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown ExperienceWeapon edge %s", name)
 }
 
+// FeedbackMutation represents an operation that mutates the Feedback nodes in the graph.
+type FeedbackMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	created_at    *time.Time
+	category      *feedback.Category
+	content       *string
+	page_url      *string
+	user_agent    *string
+	clearedFields map[string]struct{}
+	user          *uuid.UUID
+	cleareduser   bool
+	done          bool
+	oldValue      func(context.Context) (*Feedback, error)
+	predicates    []predicate.Feedback
+}
+
+var _ ent.Mutation = (*FeedbackMutation)(nil)
+
+// feedbackOption allows management of the mutation configuration using functional options.
+type feedbackOption func(*FeedbackMutation)
+
+// newFeedbackMutation creates new mutation for the Feedback entity.
+func newFeedbackMutation(c config, op Op, opts ...feedbackOption) *FeedbackMutation {
+	m := &FeedbackMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFeedback,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFeedbackID sets the ID field of the mutation.
+func withFeedbackID(id uuid.UUID) feedbackOption {
+	return func(m *FeedbackMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Feedback
+		)
+		m.oldValue = func(ctx context.Context) (*Feedback, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Feedback.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFeedback sets the old Feedback of the mutation.
+func withFeedback(node *Feedback) feedbackOption {
+	return func(m *FeedbackMutation) {
+		m.oldValue = func(context.Context) (*Feedback, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FeedbackMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FeedbackMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Feedback entities.
+func (m *FeedbackMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FeedbackMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FeedbackMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Feedback.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FeedbackMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FeedbackMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Feedback entity.
+// If the Feedback object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeedbackMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FeedbackMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *FeedbackMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *FeedbackMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the Feedback entity.
+// If the Feedback object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeedbackMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *FeedbackMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetCategory sets the "category" field.
+func (m *FeedbackMutation) SetCategory(f feedback.Category) {
+	m.category = &f
+}
+
+// Category returns the value of the "category" field in the mutation.
+func (m *FeedbackMutation) Category() (r feedback.Category, exists bool) {
+	v := m.category
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCategory returns the old "category" field's value of the Feedback entity.
+// If the Feedback object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeedbackMutation) OldCategory(ctx context.Context) (v feedback.Category, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCategory is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCategory requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCategory: %w", err)
+	}
+	return oldValue.Category, nil
+}
+
+// ResetCategory resets all changes to the "category" field.
+func (m *FeedbackMutation) ResetCategory() {
+	m.category = nil
+}
+
+// SetContent sets the "content" field.
+func (m *FeedbackMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *FeedbackMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the Feedback entity.
+// If the Feedback object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeedbackMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *FeedbackMutation) ResetContent() {
+	m.content = nil
+}
+
+// SetPageURL sets the "page_url" field.
+func (m *FeedbackMutation) SetPageURL(s string) {
+	m.page_url = &s
+}
+
+// PageURL returns the value of the "page_url" field in the mutation.
+func (m *FeedbackMutation) PageURL() (r string, exists bool) {
+	v := m.page_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPageURL returns the old "page_url" field's value of the Feedback entity.
+// If the Feedback object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeedbackMutation) OldPageURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPageURL: %w", err)
+	}
+	return oldValue.PageURL, nil
+}
+
+// ClearPageURL clears the value of the "page_url" field.
+func (m *FeedbackMutation) ClearPageURL() {
+	m.page_url = nil
+	m.clearedFields[feedback.FieldPageURL] = struct{}{}
+}
+
+// PageURLCleared returns if the "page_url" field was cleared in this mutation.
+func (m *FeedbackMutation) PageURLCleared() bool {
+	_, ok := m.clearedFields[feedback.FieldPageURL]
+	return ok
+}
+
+// ResetPageURL resets all changes to the "page_url" field.
+func (m *FeedbackMutation) ResetPageURL() {
+	m.page_url = nil
+	delete(m.clearedFields, feedback.FieldPageURL)
+}
+
+// SetUserAgent sets the "user_agent" field.
+func (m *FeedbackMutation) SetUserAgent(s string) {
+	m.user_agent = &s
+}
+
+// UserAgent returns the value of the "user_agent" field in the mutation.
+func (m *FeedbackMutation) UserAgent() (r string, exists bool) {
+	v := m.user_agent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserAgent returns the old "user_agent" field's value of the Feedback entity.
+// If the Feedback object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeedbackMutation) OldUserAgent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserAgent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserAgent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserAgent: %w", err)
+	}
+	return oldValue.UserAgent, nil
+}
+
+// ClearUserAgent clears the value of the "user_agent" field.
+func (m *FeedbackMutation) ClearUserAgent() {
+	m.user_agent = nil
+	m.clearedFields[feedback.FieldUserAgent] = struct{}{}
+}
+
+// UserAgentCleared returns if the "user_agent" field was cleared in this mutation.
+func (m *FeedbackMutation) UserAgentCleared() bool {
+	_, ok := m.clearedFields[feedback.FieldUserAgent]
+	return ok
+}
+
+// ResetUserAgent resets all changes to the "user_agent" field.
+func (m *FeedbackMutation) ResetUserAgent() {
+	m.user_agent = nil
+	delete(m.clearedFields, feedback.FieldUserAgent)
+}
+
+// ClearUser clears the "user" edge to the UserProfile entity.
+func (m *FeedbackMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[feedback.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the UserProfile entity was cleared.
+func (m *FeedbackMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *FeedbackMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *FeedbackMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the FeedbackMutation builder.
+func (m *FeedbackMutation) Where(ps ...predicate.Feedback) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FeedbackMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FeedbackMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Feedback, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FeedbackMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FeedbackMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Feedback).
+func (m *FeedbackMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FeedbackMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, feedback.FieldCreatedAt)
+	}
+	if m.user != nil {
+		fields = append(fields, feedback.FieldUserID)
+	}
+	if m.category != nil {
+		fields = append(fields, feedback.FieldCategory)
+	}
+	if m.content != nil {
+		fields = append(fields, feedback.FieldContent)
+	}
+	if m.page_url != nil {
+		fields = append(fields, feedback.FieldPageURL)
+	}
+	if m.user_agent != nil {
+		fields = append(fields, feedback.FieldUserAgent)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FeedbackMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case feedback.FieldCreatedAt:
+		return m.CreatedAt()
+	case feedback.FieldUserID:
+		return m.UserID()
+	case feedback.FieldCategory:
+		return m.Category()
+	case feedback.FieldContent:
+		return m.Content()
+	case feedback.FieldPageURL:
+		return m.PageURL()
+	case feedback.FieldUserAgent:
+		return m.UserAgent()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FeedbackMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case feedback.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case feedback.FieldUserID:
+		return m.OldUserID(ctx)
+	case feedback.FieldCategory:
+		return m.OldCategory(ctx)
+	case feedback.FieldContent:
+		return m.OldContent(ctx)
+	case feedback.FieldPageURL:
+		return m.OldPageURL(ctx)
+	case feedback.FieldUserAgent:
+		return m.OldUserAgent(ctx)
+	}
+	return nil, fmt.Errorf("unknown Feedback field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FeedbackMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case feedback.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case feedback.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case feedback.FieldCategory:
+		v, ok := value.(feedback.Category)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCategory(v)
+		return nil
+	case feedback.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case feedback.FieldPageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPageURL(v)
+		return nil
+	case feedback.FieldUserAgent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserAgent(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Feedback field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FeedbackMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FeedbackMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FeedbackMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Feedback numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FeedbackMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(feedback.FieldPageURL) {
+		fields = append(fields, feedback.FieldPageURL)
+	}
+	if m.FieldCleared(feedback.FieldUserAgent) {
+		fields = append(fields, feedback.FieldUserAgent)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FeedbackMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FeedbackMutation) ClearField(name string) error {
+	switch name {
+	case feedback.FieldPageURL:
+		m.ClearPageURL()
+		return nil
+	case feedback.FieldUserAgent:
+		m.ClearUserAgent()
+		return nil
+	}
+	return fmt.Errorf("unknown Feedback nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FeedbackMutation) ResetField(name string) error {
+	switch name {
+	case feedback.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case feedback.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case feedback.FieldCategory:
+		m.ResetCategory()
+		return nil
+	case feedback.FieldContent:
+		m.ResetContent()
+		return nil
+	case feedback.FieldPageURL:
+		m.ResetPageURL()
+		return nil
+	case feedback.FieldUserAgent:
+		m.ResetUserAgent()
+		return nil
+	}
+	return fmt.Errorf("unknown Feedback field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FeedbackMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, feedback.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FeedbackMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case feedback.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FeedbackMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FeedbackMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FeedbackMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, feedback.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FeedbackMutation) EdgeCleared(name string) bool {
+	switch name {
+	case feedback.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FeedbackMutation) ClearEdge(name string) error {
+	switch name {
+	case feedback.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown Feedback unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FeedbackMutation) ResetEdge(name string) error {
+	switch name {
+	case feedback.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown Feedback edge %s", name)
+}
+
 // PromptTemplateMutation represents an operation that mutates the PromptTemplate nodes in the graph.
 type PromptTemplateMutation struct {
 	config
@@ -14736,6 +15435,9 @@ type UserProfileMutation struct {
 	usage_logs               map[uuid.UUID]struct{}
 	removedusage_logs        map[uuid.UUID]struct{}
 	clearedusage_logs        bool
+	feedbacks                map[uuid.UUID]struct{}
+	removedfeedbacks         map[uuid.UUID]struct{}
+	clearedfeedbacks         bool
 	done                     bool
 	oldValue                 func(context.Context) (*UserProfile, error)
 	predicates               []predicate.UserProfile
@@ -15993,6 +16695,60 @@ func (m *UserProfileMutation) ResetUsageLogs() {
 	m.removedusage_logs = nil
 }
 
+// AddFeedbackIDs adds the "feedbacks" edge to the Feedback entity by ids.
+func (m *UserProfileMutation) AddFeedbackIDs(ids ...uuid.UUID) {
+	if m.feedbacks == nil {
+		m.feedbacks = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.feedbacks[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFeedbacks clears the "feedbacks" edge to the Feedback entity.
+func (m *UserProfileMutation) ClearFeedbacks() {
+	m.clearedfeedbacks = true
+}
+
+// FeedbacksCleared reports if the "feedbacks" edge to the Feedback entity was cleared.
+func (m *UserProfileMutation) FeedbacksCleared() bool {
+	return m.clearedfeedbacks
+}
+
+// RemoveFeedbackIDs removes the "feedbacks" edge to the Feedback entity by IDs.
+func (m *UserProfileMutation) RemoveFeedbackIDs(ids ...uuid.UUID) {
+	if m.removedfeedbacks == nil {
+		m.removedfeedbacks = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.feedbacks, ids[i])
+		m.removedfeedbacks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFeedbacks returns the removed IDs of the "feedbacks" edge to the Feedback entity.
+func (m *UserProfileMutation) RemovedFeedbacksIDs() (ids []uuid.UUID) {
+	for id := range m.removedfeedbacks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FeedbacksIDs returns the "feedbacks" edge IDs in the mutation.
+func (m *UserProfileMutation) FeedbacksIDs() (ids []uuid.UUID) {
+	for id := range m.feedbacks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFeedbacks resets all changes to the "feedbacks" edge.
+func (m *UserProfileMutation) ResetFeedbacks() {
+	m.feedbacks = nil
+	m.clearedfeedbacks = false
+	m.removedfeedbacks = nil
+}
+
 // Where appends a list predicates to the UserProfileMutation builder.
 func (m *UserProfileMutation) Where(ps ...predicate.UserProfile) {
 	m.predicates = append(m.predicates, ps...)
@@ -16482,7 +17238,7 @@ func (m *UserProfileMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserProfileMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.experiences != nil {
 		edges = append(edges, userprofile.EdgeExperiences)
 	}
@@ -16503,6 +17259,9 @@ func (m *UserProfileMutation) AddedEdges() []string {
 	}
 	if m.usage_logs != nil {
 		edges = append(edges, userprofile.EdgeUsageLogs)
+	}
+	if m.feedbacks != nil {
+		edges = append(edges, userprofile.EdgeFeedbacks)
 	}
 	return edges
 }
@@ -16553,13 +17312,19 @@ func (m *UserProfileMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case userprofile.EdgeFeedbacks:
+		ids := make([]ent.Value, 0, len(m.feedbacks))
+		for id := range m.feedbacks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserProfileMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.removedexperiences != nil {
 		edges = append(edges, userprofile.EdgeExperiences)
 	}
@@ -16580,6 +17345,9 @@ func (m *UserProfileMutation) RemovedEdges() []string {
 	}
 	if m.removedusage_logs != nil {
 		edges = append(edges, userprofile.EdgeUsageLogs)
+	}
+	if m.removedfeedbacks != nil {
+		edges = append(edges, userprofile.EdgeFeedbacks)
 	}
 	return edges
 }
@@ -16630,13 +17398,19 @@ func (m *UserProfileMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case userprofile.EdgeFeedbacks:
+		ids := make([]ent.Value, 0, len(m.removedfeedbacks))
+		for id := range m.removedfeedbacks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserProfileMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.clearedexperiences {
 		edges = append(edges, userprofile.EdgeExperiences)
 	}
@@ -16657,6 +17431,9 @@ func (m *UserProfileMutation) ClearedEdges() []string {
 	}
 	if m.clearedusage_logs {
 		edges = append(edges, userprofile.EdgeUsageLogs)
+	}
+	if m.clearedfeedbacks {
+		edges = append(edges, userprofile.EdgeFeedbacks)
 	}
 	return edges
 }
@@ -16679,6 +17456,8 @@ func (m *UserProfileMutation) EdgeCleared(name string) bool {
 		return m.clearedexperience_usages
 	case userprofile.EdgeUsageLogs:
 		return m.clearedusage_logs
+	case userprofile.EdgeFeedbacks:
+		return m.clearedfeedbacks
 	}
 	return false
 }
@@ -16715,6 +17494,9 @@ func (m *UserProfileMutation) ResetEdge(name string) error {
 		return nil
 	case userprofile.EdgeUsageLogs:
 		m.ResetUsageLogs()
+		return nil
+	case userprofile.EdgeFeedbacks:
+		m.ResetFeedbacks()
 		return nil
 	}
 	return fmt.Errorf("unknown UserProfile edge %s", name)

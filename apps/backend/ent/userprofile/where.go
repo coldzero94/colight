@@ -1112,6 +1112,29 @@ func HasUsageLogsWith(preds ...predicate.UsageLog) predicate.UserProfile {
 	})
 }
 
+// HasFeedbacks applies the HasEdge predicate on the "feedbacks" edge.
+func HasFeedbacks() predicate.UserProfile {
+	return predicate.UserProfile(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FeedbacksTable, FeedbacksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFeedbacksWith applies the HasEdge predicate on the "feedbacks" edge with a given conditions (other predicates).
+func HasFeedbacksWith(preds ...predicate.Feedback) predicate.UserProfile {
+	return predicate.UserProfile(func(s *sql.Selector) {
+		step := newFeedbacksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.UserProfile) predicate.UserProfile {
 	return predicate.UserProfile(sql.AndPredicates(predicates...))

@@ -36,6 +36,9 @@ type ExperienceUsage func(*sql.Selector)
 // ExperienceWeapon is the predicate function for experienceweapon builders.
 type ExperienceWeapon func(*sql.Selector)
 
+// Feedback is the predicate function for feedback builders.
+type Feedback func(*sql.Selector)
+
 // PromptTemplate is the predicate function for prompttemplate builders.
 type PromptTemplate func(*sql.Selector)
 

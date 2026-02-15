@@ -129,6 +129,18 @@ func (f ExperienceWeaponFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExperienceWeaponMutation", m)
 }
 
+// The FeedbackFunc type is an adapter to allow the use of ordinary
+// function as Feedback mutator.
+type FeedbackFunc func(context.Context, *ent.FeedbackMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FeedbackFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FeedbackMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FeedbackMutation", m)
+}
+
 // The PromptTemplateFunc type is an adapter to allow the use of ordinary
 // function as PromptTemplate mutator.
 type PromptTemplateFunc func(context.Context, *ent.PromptTemplateMutation) (ent.Value, error)

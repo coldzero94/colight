@@ -16,6 +16,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/coverletter"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
+	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/google/uuid"
@@ -385,6 +386,21 @@ func (_c *UserProfileCreate) AddUsageLogs(v ...*UsageLog) *UserProfileCreate {
 	return _c.AddUsageLogIDs(ids...)
 }
 
+// AddFeedbackIDs adds the "feedbacks" edge to the Feedback entity by IDs.
+func (_c *UserProfileCreate) AddFeedbackIDs(ids ...uuid.UUID) *UserProfileCreate {
+	_c.mutation.AddFeedbackIDs(ids...)
+	return _c
+}
+
+// AddFeedbacks adds the "feedbacks" edges to the Feedback entity.
+func (_c *UserProfileCreate) AddFeedbacks(v ...*Feedback) *UserProfileCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFeedbackIDs(ids...)
+}
+
 // Mutation returns the UserProfileMutation object of the builder.
 func (_c *UserProfileCreate) Mutation() *UserProfileMutation {
 	return _c.mutation
@@ -742,6 +758,22 @@ func (_c *UserProfileCreate) createSpec() (*UserProfile, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FeedbacksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.FeedbacksTable,
+			Columns: []string{userprofile.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

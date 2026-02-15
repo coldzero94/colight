@@ -17,6 +17,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/coverletter"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
+	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/predicate"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
@@ -425,6 +426,21 @@ func (_u *UserProfileUpdate) AddUsageLogs(v ...*UsageLog) *UserProfileUpdate {
 	return _u.AddUsageLogIDs(ids...)
 }
 
+// AddFeedbackIDs adds the "feedbacks" edge to the Feedback entity by IDs.
+func (_u *UserProfileUpdate) AddFeedbackIDs(ids ...uuid.UUID) *UserProfileUpdate {
+	_u.mutation.AddFeedbackIDs(ids...)
+	return _u
+}
+
+// AddFeedbacks adds the "feedbacks" edges to the Feedback entity.
+func (_u *UserProfileUpdate) AddFeedbacks(v ...*Feedback) *UserProfileUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeedbackIDs(ids...)
+}
+
 // Mutation returns the UserProfileMutation object of the builder.
 func (_u *UserProfileUpdate) Mutation() *UserProfileMutation {
 	return _u.mutation
@@ -575,6 +591,27 @@ func (_u *UserProfileUpdate) RemoveUsageLogs(v ...*UsageLog) *UserProfileUpdate 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUsageLogIDs(ids...)
+}
+
+// ClearFeedbacks clears all "feedbacks" edges to the Feedback entity.
+func (_u *UserProfileUpdate) ClearFeedbacks() *UserProfileUpdate {
+	_u.mutation.ClearFeedbacks()
+	return _u
+}
+
+// RemoveFeedbackIDs removes the "feedbacks" edge to Feedback entities by IDs.
+func (_u *UserProfileUpdate) RemoveFeedbackIDs(ids ...uuid.UUID) *UserProfileUpdate {
+	_u.mutation.RemoveFeedbackIDs(ids...)
+	return _u
+}
+
+// RemoveFeedbacks removes "feedbacks" edges to Feedback entities.
+func (_u *UserProfileUpdate) RemoveFeedbacks(v ...*Feedback) *UserProfileUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeedbackIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1076,6 +1113,51 @@ func (_u *UserProfileUpdate) sqlSave(ctx context.Context) (_node int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FeedbacksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.FeedbacksTable,
+			Columns: []string{userprofile.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeedbacksIDs(); len(nodes) > 0 && !_u.mutation.FeedbacksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.FeedbacksTable,
+			Columns: []string{userprofile.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeedbacksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.FeedbacksTable,
+			Columns: []string{userprofile.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{userprofile.Label}
@@ -1485,6 +1567,21 @@ func (_u *UserProfileUpdateOne) AddUsageLogs(v ...*UsageLog) *UserProfileUpdateO
 	return _u.AddUsageLogIDs(ids...)
 }
 
+// AddFeedbackIDs adds the "feedbacks" edge to the Feedback entity by IDs.
+func (_u *UserProfileUpdateOne) AddFeedbackIDs(ids ...uuid.UUID) *UserProfileUpdateOne {
+	_u.mutation.AddFeedbackIDs(ids...)
+	return _u
+}
+
+// AddFeedbacks adds the "feedbacks" edges to the Feedback entity.
+func (_u *UserProfileUpdateOne) AddFeedbacks(v ...*Feedback) *UserProfileUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeedbackIDs(ids...)
+}
+
 // Mutation returns the UserProfileMutation object of the builder.
 func (_u *UserProfileUpdateOne) Mutation() *UserProfileMutation {
 	return _u.mutation
@@ -1635,6 +1732,27 @@ func (_u *UserProfileUpdateOne) RemoveUsageLogs(v ...*UsageLog) *UserProfileUpda
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUsageLogIDs(ids...)
+}
+
+// ClearFeedbacks clears all "feedbacks" edges to the Feedback entity.
+func (_u *UserProfileUpdateOne) ClearFeedbacks() *UserProfileUpdateOne {
+	_u.mutation.ClearFeedbacks()
+	return _u
+}
+
+// RemoveFeedbackIDs removes the "feedbacks" edge to Feedback entities by IDs.
+func (_u *UserProfileUpdateOne) RemoveFeedbackIDs(ids ...uuid.UUID) *UserProfileUpdateOne {
+	_u.mutation.RemoveFeedbackIDs(ids...)
+	return _u
+}
+
+// RemoveFeedbacks removes "feedbacks" edges to Feedback entities.
+func (_u *UserProfileUpdateOne) RemoveFeedbacks(v ...*Feedback) *UserProfileUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeedbackIDs(ids...)
 }
 
 // Where appends a list predicates to the UserProfileUpdate builder.
@@ -2159,6 +2277,51 @@ func (_u *UserProfileUpdateOne) sqlSave(ctx context.Context) (_node *UserProfile
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FeedbacksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.FeedbacksTable,
+			Columns: []string{userprofile.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeedbacksIDs(); len(nodes) > 0 && !_u.mutation.FeedbacksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.FeedbacksTable,
+			Columns: []string{userprofile.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeedbacksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.FeedbacksTable,
+			Columns: []string{userprofile.FeedbacksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

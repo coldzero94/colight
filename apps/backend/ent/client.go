@@ -26,6 +26,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/experiencetag"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
 	"github.com/coby/colight/apps/backend/ent/experienceweapon"
+	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
@@ -59,6 +60,8 @@ type Client struct {
 	ExperienceUsage *ExperienceUsageClient
 	// ExperienceWeapon is the client for interacting with the ExperienceWeapon builders.
 	ExperienceWeapon *ExperienceWeaponClient
+	// Feedback is the client for interacting with the Feedback builders.
+	Feedback *FeedbackClient
 	// PromptTemplate is the client for interacting with the PromptTemplate builders.
 	PromptTemplate *PromptTemplateClient
 	// QuestionPattern is the client for interacting with the QuestionPattern builders.
@@ -92,6 +95,7 @@ func (c *Client) init() {
 	c.ExperienceTag = NewExperienceTagClient(c.config)
 	c.ExperienceUsage = NewExperienceUsageClient(c.config)
 	c.ExperienceWeapon = NewExperienceWeaponClient(c.config)
+	c.Feedback = NewFeedbackClient(c.config)
 	c.PromptTemplate = NewPromptTemplateClient(c.config)
 	c.QuestionPattern = NewQuestionPatternClient(c.config)
 	c.TalentProfile = NewTalentProfileClient(c.config)
@@ -200,6 +204,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ExperienceTag:        NewExperienceTagClient(cfg),
 		ExperienceUsage:      NewExperienceUsageClient(cfg),
 		ExperienceWeapon:     NewExperienceWeaponClient(cfg),
+		Feedback:             NewFeedbackClient(cfg),
 		PromptTemplate:       NewPromptTemplateClient(cfg),
 		QuestionPattern:      NewQuestionPatternClient(cfg),
 		TalentProfile:        NewTalentProfileClient(cfg),
@@ -235,6 +240,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ExperienceTag:        NewExperienceTagClient(cfg),
 		ExperienceUsage:      NewExperienceUsageClient(cfg),
 		ExperienceWeapon:     NewExperienceWeaponClient(cfg),
+		Feedback:             NewFeedbackClient(cfg),
 		PromptTemplate:       NewPromptTemplateClient(cfg),
 		QuestionPattern:      NewQuestionPatternClient(cfg),
 		TalentProfile:        NewTalentProfileClient(cfg),
@@ -272,8 +278,9 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Application, c.CoachingSession, c.CompanyAnalysis, c.CompanyAnalysisCache,
 		c.CoverLetter, c.CoverLetterVersion, c.Experience, c.ExperienceTag,
-		c.ExperienceUsage, c.ExperienceWeapon, c.PromptTemplate, c.QuestionPattern,
-		c.TalentProfile, c.UsageLog, c.UserProfile, c.WeaponCategory,
+		c.ExperienceUsage, c.ExperienceWeapon, c.Feedback, c.PromptTemplate,
+		c.QuestionPattern, c.TalentProfile, c.UsageLog, c.UserProfile,
+		c.WeaponCategory,
 	} {
 		n.Use(hooks...)
 	}
@@ -285,8 +292,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Application, c.CoachingSession, c.CompanyAnalysis, c.CompanyAnalysisCache,
 		c.CoverLetter, c.CoverLetterVersion, c.Experience, c.ExperienceTag,
-		c.ExperienceUsage, c.ExperienceWeapon, c.PromptTemplate, c.QuestionPattern,
-		c.TalentProfile, c.UsageLog, c.UserProfile, c.WeaponCategory,
+		c.ExperienceUsage, c.ExperienceWeapon, c.Feedback, c.PromptTemplate,
+		c.QuestionPattern, c.TalentProfile, c.UsageLog, c.UserProfile,
+		c.WeaponCategory,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -315,6 +323,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ExperienceUsage.mutate(ctx, m)
 	case *ExperienceWeaponMutation:
 		return c.ExperienceWeapon.mutate(ctx, m)
+	case *FeedbackMutation:
+		return c.Feedback.mutate(ctx, m)
 	case *PromptTemplateMutation:
 		return c.PromptTemplate.mutate(ctx, m)
 	case *QuestionPatternMutation:
@@ -2094,6 +2104,155 @@ func (c *ExperienceWeaponClient) mutate(ctx context.Context, m *ExperienceWeapon
 	}
 }
 
+// FeedbackClient is a client for the Feedback schema.
+type FeedbackClient struct {
+	config
+}
+
+// NewFeedbackClient returns a client for the Feedback from the given config.
+func NewFeedbackClient(c config) *FeedbackClient {
+	return &FeedbackClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `feedback.Hooks(f(g(h())))`.
+func (c *FeedbackClient) Use(hooks ...Hook) {
+	c.hooks.Feedback = append(c.hooks.Feedback, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `feedback.Intercept(f(g(h())))`.
+func (c *FeedbackClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Feedback = append(c.inters.Feedback, interceptors...)
+}
+
+// Create returns a builder for creating a Feedback entity.
+func (c *FeedbackClient) Create() *FeedbackCreate {
+	mutation := newFeedbackMutation(c.config, OpCreate)
+	return &FeedbackCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Feedback entities.
+func (c *FeedbackClient) CreateBulk(builders ...*FeedbackCreate) *FeedbackCreateBulk {
+	return &FeedbackCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FeedbackClient) MapCreateBulk(slice any, setFunc func(*FeedbackCreate, int)) *FeedbackCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FeedbackCreateBulk{err: fmt.Errorf("calling to FeedbackClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FeedbackCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FeedbackCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Feedback.
+func (c *FeedbackClient) Update() *FeedbackUpdate {
+	mutation := newFeedbackMutation(c.config, OpUpdate)
+	return &FeedbackUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FeedbackClient) UpdateOne(_m *Feedback) *FeedbackUpdateOne {
+	mutation := newFeedbackMutation(c.config, OpUpdateOne, withFeedback(_m))
+	return &FeedbackUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FeedbackClient) UpdateOneID(id uuid.UUID) *FeedbackUpdateOne {
+	mutation := newFeedbackMutation(c.config, OpUpdateOne, withFeedbackID(id))
+	return &FeedbackUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Feedback.
+func (c *FeedbackClient) Delete() *FeedbackDelete {
+	mutation := newFeedbackMutation(c.config, OpDelete)
+	return &FeedbackDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FeedbackClient) DeleteOne(_m *Feedback) *FeedbackDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FeedbackClient) DeleteOneID(id uuid.UUID) *FeedbackDeleteOne {
+	builder := c.Delete().Where(feedback.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FeedbackDeleteOne{builder}
+}
+
+// Query returns a query builder for Feedback.
+func (c *FeedbackClient) Query() *FeedbackQuery {
+	return &FeedbackQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFeedback},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Feedback entity by its id.
+func (c *FeedbackClient) Get(ctx context.Context, id uuid.UUID) (*Feedback, error) {
+	return c.Query().Where(feedback.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FeedbackClient) GetX(ctx context.Context, id uuid.UUID) *Feedback {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Feedback.
+func (c *FeedbackClient) QueryUser(_m *Feedback) *UserProfileQuery {
+	query := (&UserProfileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(feedback.Table, feedback.FieldID, id),
+			sqlgraph.To(userprofile.Table, userprofile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, feedback.UserTable, feedback.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FeedbackClient) Hooks() []Hook {
+	return c.hooks.Feedback
+}
+
+// Interceptors returns the client interceptors.
+func (c *FeedbackClient) Interceptors() []Interceptor {
+	return c.inters.Feedback
+}
+
+func (c *FeedbackClient) mutate(ctx context.Context, m *FeedbackMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FeedbackCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FeedbackUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FeedbackUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FeedbackDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Feedback mutation op: %q", m.Op())
+	}
+}
+
 // PromptTemplateClient is a client for the PromptTemplate schema.
 type PromptTemplateClient struct {
 	config
@@ -2910,6 +3069,22 @@ func (c *UserProfileClient) QueryUsageLogs(_m *UserProfile) *UsageLogQuery {
 	return query
 }
 
+// QueryFeedbacks queries the feedbacks edge of a UserProfile.
+func (c *UserProfileClient) QueryFeedbacks(_m *UserProfile) *FeedbackQuery {
+	query := (&FeedbackClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userprofile.Table, userprofile.FieldID, id),
+			sqlgraph.To(feedback.Table, feedback.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, userprofile.FeedbacksTable, userprofile.FeedbacksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserProfileClient) Hooks() []Hook {
 	return c.hooks.UserProfile
@@ -3089,13 +3264,13 @@ type (
 	hooks struct {
 		Application, CoachingSession, CompanyAnalysis, CompanyAnalysisCache,
 		CoverLetter, CoverLetterVersion, Experience, ExperienceTag, ExperienceUsage,
-		ExperienceWeapon, PromptTemplate, QuestionPattern, TalentProfile, UsageLog,
-		UserProfile, WeaponCategory []ent.Hook
+		ExperienceWeapon, Feedback, PromptTemplate, QuestionPattern, TalentProfile,
+		UsageLog, UserProfile, WeaponCategory []ent.Hook
 	}
 	inters struct {
 		Application, CoachingSession, CompanyAnalysis, CompanyAnalysisCache,
 		CoverLetter, CoverLetterVersion, Experience, ExperienceTag, ExperienceUsage,
-		ExperienceWeapon, PromptTemplate, QuestionPattern, TalentProfile, UsageLog,
-		UserProfile, WeaponCategory []ent.Interceptor
+		ExperienceWeapon, Feedback, PromptTemplate, QuestionPattern, TalentProfile,
+		UsageLog, UserProfile, WeaponCategory []ent.Interceptor
 	}
 )

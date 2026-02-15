@@ -459,6 +459,37 @@ var (
 			},
 		},
 	}
+	// FeedbacksColumns holds the columns for the "feedbacks" table.
+	FeedbacksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "category", Type: field.TypeEnum, Enums: []string{"bug", "improvement", "other"}},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "page_url", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "user_agent", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// FeedbacksTable holds the schema information for the "feedbacks" table.
+	FeedbacksTable = &schema.Table{
+		Name:       "feedbacks",
+		Columns:    FeedbacksColumns,
+		PrimaryKey: []*schema.Column{FeedbacksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "feedbacks_user_profiles_feedbacks",
+				Columns:    []*schema.Column{FeedbacksColumns[6]},
+				RefColumns: []*schema.Column{UserProfilesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "feedback_user_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{FeedbacksColumns[6], FeedbacksColumns[1]},
+			},
+		},
+	}
 	// PromptTemplatesColumns holds the columns for the "prompt_templates" table.
 	PromptTemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -682,6 +713,7 @@ var (
 		ExperienceTagsTable,
 		ExperienceUsagesTable,
 		ExperienceWeaponsTable,
+		FeedbacksTable,
 		PromptTemplatesTable,
 		QuestionPatternsTable,
 		TalentProfilesTable,
@@ -710,6 +742,7 @@ func init() {
 	ExperienceUsagesTable.ForeignKeys[3].RefTable = UserProfilesTable
 	ExperienceWeaponsTable.ForeignKeys[0].RefTable = ExperiencesTable
 	ExperienceWeaponsTable.ForeignKeys[1].RefTable = WeaponCategoriesTable
+	FeedbacksTable.ForeignKeys[0].RefTable = UserProfilesTable
 	QuestionPatternsTable.ForeignKeys[0].RefTable = PromptTemplatesTable
 	UsageLogsTable.ForeignKeys[0].RefTable = UserProfilesTable
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/coverletter"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
+	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/predicate"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
@@ -38,6 +39,7 @@ type UserProfileQuery struct {
 	withCoachingSessions *CoachingSessionQuery
 	withExperienceUsages *ExperienceUsageQuery
 	withUsageLogs        *UsageLogQuery
+	withFeedbacks        *FeedbackQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -221,6 +223,28 @@ func (_q *UserProfileQuery) QueryUsageLogs() *UsageLogQuery {
 			sqlgraph.From(userprofile.Table, userprofile.FieldID, selector),
 			sqlgraph.To(usagelog.Table, usagelog.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, userprofile.UsageLogsTable, userprofile.UsageLogsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFeedbacks chains the current query on the "feedbacks" edge.
+func (_q *UserProfileQuery) QueryFeedbacks() *FeedbackQuery {
+	query := (&FeedbackClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userprofile.Table, userprofile.FieldID, selector),
+			sqlgraph.To(feedback.Table, feedback.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, userprofile.FeedbacksTable, userprofile.FeedbacksColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -427,6 +451,7 @@ func (_q *UserProfileQuery) Clone() *UserProfileQuery {
 		withCoachingSessions: _q.withCoachingSessions.Clone(),
 		withExperienceUsages: _q.withExperienceUsages.Clone(),
 		withUsageLogs:        _q.withUsageLogs.Clone(),
+		withFeedbacks:        _q.withFeedbacks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -510,6 +535,17 @@ func (_q *UserProfileQuery) WithUsageLogs(opts ...func(*UsageLogQuery)) *UserPro
 	return _q
 }
 
+// WithFeedbacks tells the query-builder to eager-load the nodes that are connected to
+// the "feedbacks" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserProfileQuery) WithFeedbacks(opts ...func(*FeedbackQuery)) *UserProfileQuery {
+	query := (&FeedbackClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFeedbacks = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -588,7 +624,7 @@ func (_q *UserProfileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*UserProfile{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			_q.withExperiences != nil,
 			_q.withApplications != nil,
 			_q.withCompanyAnalyses != nil,
@@ -596,6 +632,7 @@ func (_q *UserProfileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			_q.withCoachingSessions != nil,
 			_q.withExperienceUsages != nil,
 			_q.withUsageLogs != nil,
+			_q.withFeedbacks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -666,6 +703,13 @@ func (_q *UserProfileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := _q.loadUsageLogs(ctx, query, nodes,
 			func(n *UserProfile) { n.Edges.UsageLogs = []*UsageLog{} },
 			func(n *UserProfile, e *UsageLog) { n.Edges.UsageLogs = append(n.Edges.UsageLogs, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFeedbacks; query != nil {
+		if err := _q.loadFeedbacks(ctx, query, nodes,
+			func(n *UserProfile) { n.Edges.Feedbacks = []*Feedback{} },
+			func(n *UserProfile, e *Feedback) { n.Edges.Feedbacks = append(n.Edges.Feedbacks, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -871,6 +915,36 @@ func (_q *UserProfileQuery) loadUsageLogs(ctx context.Context, query *UsageLogQu
 	}
 	query.Where(predicate.UsageLog(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(userprofile.UsageLogsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserProfileQuery) loadFeedbacks(ctx context.Context, query *FeedbackQuery, nodes []*UserProfile, init func(*UserProfile), assign func(*UserProfile, *Feedback)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*UserProfile)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(feedback.FieldUserID)
+	}
+	query.Where(predicate.Feedback(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(userprofile.FeedbacksColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

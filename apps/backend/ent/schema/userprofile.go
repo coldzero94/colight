@@ -95,6 +95,7 @@ func (UserProfile) Edges() []ent.Edge {
 		edge.To("coaching_sessions", CoachingSession.Type),
 		edge.To("experience_usages", ExperienceUsage.Type),
 		edge.To("usage_logs", UsageLog.Type),
+		edge.To("feedbacks", Feedback.Type),
 	}
 }
 

@@ -15,6 +15,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/experiencetag"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
 	"github.com/coby/colight/apps/backend/ent/experienceweapon"
+	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
 	"github.com/coby/colight/apps/backend/ent/schema"
@@ -435,6 +436,31 @@ func init() {
 	experienceweaponDescID := experienceweaponMixinFields0[0].Descriptor()
 	// experienceweapon.DefaultID holds the default value on creation for the id field.
 	experienceweapon.DefaultID = experienceweaponDescID.Default.(func() uuid.UUID)
+	feedbackMixin := schema.Feedback{}.Mixin()
+	feedbackMixinFields0 := feedbackMixin[0].Fields()
+	_ = feedbackMixinFields0
+	feedbackFields := schema.Feedback{}.Fields()
+	_ = feedbackFields
+	// feedbackDescCreatedAt is the schema descriptor for created_at field.
+	feedbackDescCreatedAt := feedbackMixinFields0[1].Descriptor()
+	// feedback.DefaultCreatedAt holds the default value on creation for the created_at field.
+	feedback.DefaultCreatedAt = feedbackDescCreatedAt.Default.(func() time.Time)
+	// feedbackDescContent is the schema descriptor for content field.
+	feedbackDescContent := feedbackFields[2].Descriptor()
+	// feedback.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	feedback.ContentValidator = feedbackDescContent.Validators[0].(func(string) error)
+	// feedbackDescPageURL is the schema descriptor for page_url field.
+	feedbackDescPageURL := feedbackFields[3].Descriptor()
+	// feedback.PageURLValidator is a validator for the "page_url" field. It is called by the builders before save.
+	feedback.PageURLValidator = feedbackDescPageURL.Validators[0].(func(string) error)
+	// feedbackDescUserAgent is the schema descriptor for user_agent field.
+	feedbackDescUserAgent := feedbackFields[4].Descriptor()
+	// feedback.UserAgentValidator is a validator for the "user_agent" field. It is called by the builders before save.
+	feedback.UserAgentValidator = feedbackDescUserAgent.Validators[0].(func(string) error)
+	// feedbackDescID is the schema descriptor for id field.
+	feedbackDescID := feedbackMixinFields0[0].Descriptor()
+	// feedback.DefaultID holds the default value on creation for the id field.
+	feedback.DefaultID = feedbackDescID.Default.(func() uuid.UUID)
 	prompttemplateMixin := schema.PromptTemplate{}.Mixin()
 	prompttemplateMixinFields0 := prompttemplateMixin[0].Fields()
 	_ = prompttemplateMixinFields0

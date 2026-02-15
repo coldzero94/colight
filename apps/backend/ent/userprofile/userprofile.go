@@ -64,6 +64,8 @@ const (
 	EdgeExperienceUsages = "experience_usages"
 	// EdgeUsageLogs holds the string denoting the usage_logs edge name in mutations.
 	EdgeUsageLogs = "usage_logs"
+	// EdgeFeedbacks holds the string denoting the feedbacks edge name in mutations.
+	EdgeFeedbacks = "feedbacks"
 	// Table holds the table name of the userprofile in the database.
 	Table = "user_profiles"
 	// ExperiencesTable is the table that holds the experiences relation/edge.
@@ -115,6 +117,13 @@ const (
 	UsageLogsInverseTable = "usage_logs"
 	// UsageLogsColumn is the table column denoting the usage_logs relation/edge.
 	UsageLogsColumn = "user_id"
+	// FeedbacksTable is the table that holds the feedbacks relation/edge.
+	FeedbacksTable = "feedbacks"
+	// FeedbacksInverseTable is the table name for the Feedback entity.
+	// It exists in this package in order to avoid circular dependency with the "feedback" package.
+	FeedbacksInverseTable = "feedbacks"
+	// FeedbacksColumn is the table column denoting the feedbacks relation/edge.
+	FeedbacksColumn = "user_id"
 )
 
 // Columns holds all SQL columns for userprofile fields.
@@ -450,6 +459,20 @@ func ByUsageLogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUsageLogsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFeedbacksCount orders the results by feedbacks count.
+func ByFeedbacksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFeedbacksStep(), opts...)
+	}
+}
+
+// ByFeedbacks orders the results by feedbacks terms.
+func ByFeedbacks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeedbacksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newExperiencesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -497,5 +520,12 @@ func newUsageLogsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UsageLogsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, UsageLogsTable, UsageLogsColumn),
+	)
+}
+func newFeedbacksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeedbacksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FeedbacksTable, FeedbacksColumn),
 	)
 }

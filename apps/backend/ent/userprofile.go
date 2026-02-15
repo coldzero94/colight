@@ -75,9 +75,11 @@ type UserProfileEdges struct {
 	ExperienceUsages []*ExperienceUsage `json:"experience_usages,omitempty"`
 	// UsageLogs holds the value of the usage_logs edge.
 	UsageLogs []*UsageLog `json:"usage_logs,omitempty"`
+	// Feedbacks holds the value of the feedbacks edge.
+	Feedbacks []*Feedback `json:"feedbacks,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // ExperiencesOrErr returns the Experiences value or an error if the edge
@@ -141,6 +143,15 @@ func (e UserProfileEdges) UsageLogsOrErr() ([]*UsageLog, error) {
 		return e.UsageLogs, nil
 	}
 	return nil, &NotLoadedError{edge: "usage_logs"}
+}
+
+// FeedbacksOrErr returns the Feedbacks value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserProfileEdges) FeedbacksOrErr() ([]*Feedback, error) {
+	if e.loadedTypes[7] {
+		return e.Feedbacks, nil
+	}
+	return nil, &NotLoadedError{edge: "feedbacks"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -332,6 +343,11 @@ func (_m *UserProfile) QueryExperienceUsages() *ExperienceUsageQuery {
 // QueryUsageLogs queries the "usage_logs" edge of the UserProfile entity.
 func (_m *UserProfile) QueryUsageLogs() *UsageLogQuery {
 	return NewUserProfileClient(_m.config).QueryUsageLogs(_m)
+}
+
+// QueryFeedbacks queries the "feedbacks" edge of the UserProfile entity.
+func (_m *UserProfile) QueryFeedbacks() *FeedbackQuery {
+	return NewUserProfileClient(_m.config).QueryFeedbacks(_m)
 }
 
 // Update returns a builder for updating this UserProfile.

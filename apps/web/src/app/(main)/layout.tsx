@@ -1,6 +1,7 @@
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { FeedbackButton } from "@/components/feedback/feedback-button";
 
 export default function MainLayout({
   children,
@@ -19,6 +20,7 @@ export default function MainLayout({
           <main className="flex-1 overflow-auto p-6">{children}</main>
         </div>
       </div>
+      <FeedbackButton />
     </AuthGuard>
   );
 }
