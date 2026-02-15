@@ -12,6 +12,7 @@
     "generate:client": "openapi-ts"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "@hey-api/client-axios": "^0.9.1",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-avatar": "^1.1.11",
