@@ -24,7 +24,7 @@
 | Phase 6 | 첨삭 코칭 | ✅ | Sprint 6 | 2일 | F14 |
 | Phase 6.1 | 프리미엄 & 마무리 | ✅ | Sprint 6 | 2일 | - |
 | Phase 6.2 | 랜딩 & 베타 | ✅ | Sprint 6 | 1일 | - |
-| Phase 7 | AI 인터뷰 | ⬜ | Sprint 7 | 2일 | F02 |
+| Phase 7 | AI 인터뷰 | ✅ | Sprint 7 | 2일 | F02 |
 | Phase 7.1 | 경험 추천 강화 | ⬜ | Sprint 7 | 1일 | F12 |
 | Phase 8 | 대시보드 칸반 | ⬜ | Sprint 7-8 | 1.5일 | F18 |
 | Phase 8.1 | 버전 관리 | ⬜ | Sprint 8 | 1일 | F20 |
