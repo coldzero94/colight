@@ -15,8 +15,8 @@
 
 ## 진행 상태
 
-- [ ] 7.1.1 추천 로직 강화
-- [ ] 7.1.2 추천 UI 개선
+- [x] 7.1.1 추천 로직 강화
+- [x] 7.1.2 추천 UI 개선
 
 ---
 
@@ -76,15 +76,15 @@
 
 ## 완료 체크리스트
 
-- [ ] 추천 결과에 무기 매칭 + 키워드 오버랩 반영
-- [ ] 이미 사용된 경험 구분 표시
-- [ ] 추천 사유 사용자에게 표시
-- [ ] 기존 추천 대비 적합도 향상 확인
-- [ ] phases/README.md 상태 업데이트
-- [ ] `moon run backend:test` → 전체 통과
-- [ ] `moon run web:test` → 전체 통과
-- [ ] `moon run :lint` → 경고 0건
-- [ ] `moon run web:build` → 빌드 성공
+- [x] 추천 결과에 무기 매칭 + 키워드 오버랩 반영
+- [x] 이미 사용된 경험 구분 표시
+- [x] 추천 사유 사용자에게 표시
+- [x] 기존 추천 대비 적합도 향상 확인
+- [x] phases/README.md 상태 업데이트
+- [x] `moon run backend:test` → 전체 통과
+- [x] `moon run web:test` → 전체 통과
+- [x] `moon run :lint` → 경고 0건
+- [x] `moon run web:build` → 빌드 성공
 
 ---
 
