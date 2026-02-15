@@ -28,8 +28,9 @@
 | Phase 7.1 | 경험 추천 강화 | ✅ | Sprint 7 | 1일 | F12 |
 | Phase 8 | 대시보드 칸반 | ✅ | Sprint 7-8 | 1.5일 | F18 |
 | Phase 8.1 | 버전 관리 | ✅ | Sprint 8 | 1일 | F20 |
-| Phase 9 | 결제 연동 | ⬜ | Sprint 8 | 2일 | - |
-| Phase 10 | 성장 기능 | ⬜ | Sprint 9+ | 진행중 | F04, F05, F15-F17 |
+| Phase 1.6 | 어드민 시스템 확장 | ⬜ | Sprint 8-9 | 5일 | 시스템 관리 |
+| Phase 9 | 결제 연동 | ⬜ | Sprint 9 | 2일 | - |
+| Phase 10 | 성장 기능 | ⬜ | Sprint 10+ | 진행중 | F04, F05, F15-F17 |
 
 상태: ⬜ 대기 | 🟡 진행중 | ✅ 완료
 
@@ -63,6 +64,10 @@ Phase 2.1 (무기 태깅) + Phase 3.3 (분석 UI)
                                       ├─→ Phase 6.2 (랜딩)
                                       ├─→ Phase 8.1 (버전 관리)
                                       └─→ Phase 9 (결제)
+
+Phase 1 (인증)
+  └─→ Phase 1.5 (어드민 기본)
+        └─→ Phase 1.6 (어드민 확장) ← Phase 6.1 (Fair Use Policy) 필요
 
 Phase 10 (성장) ← MVP 완료 후 독립 진행
 ```
