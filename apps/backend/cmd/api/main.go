@@ -271,6 +271,8 @@ func main() {
 		admin.DELETE("/users/:id/suspend", adminCtrl.UnsuspendUser)
 		admin.GET("/users/:id/detail", adminCtrl.GetUserDetail)
 		admin.GET("/audit-logs", adminCtrl.ListAuditLogs)
+		admin.GET("/health", adminCtrl.HealthCheck)
+		admin.GET("/feedbacks", adminCtrl.ListFeedbacks)
 	}
 
 	// Super-admin only routes

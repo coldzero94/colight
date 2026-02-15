@@ -10,6 +10,7 @@ import (
 
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/adminauditlog"
+	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/systemconfig"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
@@ -799,6 +800,76 @@ func (ctrl *AdminController) ListAuditLogs(c *gin.Context) {
 		}
 		if l.NewValue != nil {
 			item["new_value"] = *l.NewValue
+		}
+		items = append(items, item)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":  items,
+		"total": total,
+	})
+}
+
+// HealthCheck returns system health status including database connectivity.
+// GET /v1/admin/health
+func (ctrl *AdminController) HealthCheck(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	dbStatus := "healthy"
+	if _, err := ctrl.db.UserProfile.Query().Count(ctx); err != nil {
+		dbStatus = "unhealthy"
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"database": dbStatus,
+	})
+}
+
+// ListFeedbacks returns paginated feedback entries with optional category filter.
+// GET /v1/admin/feedbacks
+func (ctrl *AdminController) ListFeedbacks(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "50"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	categoryFilter := c.Query("category")
+
+	query := ctrl.db.Feedback.Query()
+	if categoryFilter != "" {
+		query = query.Where(feedback.CategoryEQ(feedback.Category(categoryFilter)))
+	}
+
+	total, err := query.Clone().Count(c.Request.Context())
+	if err != nil {
+		slog.Error("list feedbacks count failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "피드백 목록 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	feedbacks, err := query.
+		Limit(limit).
+		Offset(offset).
+		Order(ent.Desc(feedback.FieldCreatedAt)).
+		All(c.Request.Context())
+	if err != nil {
+		slog.Error("list feedbacks failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "피드백 목록 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	items := make([]map[string]any, 0, len(feedbacks))
+	for _, fb := range feedbacks {
+		item := map[string]any{
+			"id":         fb.ID.String(),
+			"user_id":    fb.UserID.String(),
+			"category":   string(fb.Category),
+			"content":    fb.Content,
+			"created_at": fb.CreatedAt,
+		}
+		if fb.PageURL != "" {
+			item["page_url"] = fb.PageURL
 		}
 		items = append(items, item)
 	}

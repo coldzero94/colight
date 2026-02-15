@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/coby/colight/apps/backend/ent"
+	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/coby/colight/apps/backend/testutil"
 	"github.com/gin-gonic/gin"
@@ -971,4 +972,58 @@ func TestAdminController_ListAuditLogs_FilterByAction(t *testing.T) {
 	resp := parseJSON(t, w)
 	data := resp["data"].([]any)
 	assert.Len(t, data, 1)
+}
+
+// --- Health Check ---
+
+func TestAdminController_HealthCheck(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db := testutil.NewTestClient(t)
+	ctrl := NewAdminController(db)
+
+	r := gin.New()
+	r.GET("/v1/admin/health", ctrl.HealthCheck)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/health", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	assert.Equal(t, "healthy", resp["database"])
+}
+
+// --- Feedback Management ---
+
+func TestAdminController_ListFeedbacks(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db := testutil.NewTestClient(t)
+	testutil.CleanAllTables(db)
+	ctrl := NewAdminController(db)
+
+	r := gin.New()
+	r.GET("/v1/admin/feedbacks", ctrl.ListFeedbacks)
+
+	ctx := t.Context()
+	user := db.UserProfile.Create().
+		SetEmail("fb-user@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleUser).
+		SaveX(ctx)
+	db.Feedback.Create().
+		SetUserID(user.ID).
+		SetCategory(feedback.CategoryBug).
+		SetContent("Something broke").
+		SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/feedbacks", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	data := resp["data"].([]any)
+	assert.Len(t, data, 1)
+	fb := data[0].(map[string]any)
+	assert.Equal(t, "bug", fb["category"])
 }
