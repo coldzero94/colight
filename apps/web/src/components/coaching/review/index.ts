@@ -4,3 +4,6 @@ export { DimensionCard } from "./dimension-card";
 export { SuggestionItem } from "./suggestion-item";
 export { SuggestionList } from "./suggestion-list";
 export { ReviewResult } from "./review-result";
+export { ScoreComparison } from "./score-comparison";
+export { ReviewTimeline } from "./review-timeline";
+export type { ReviewEntry } from "./review-timeline";

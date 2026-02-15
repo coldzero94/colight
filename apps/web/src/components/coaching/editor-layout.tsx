@@ -8,6 +8,8 @@ import { TiptapEditor } from "./tiptap-editor";
 import { SaveIndicator } from "./save-indicator";
 import { AnalysisSidebar } from "./analysis-sidebar";
 import { ReviewResult as ReviewResultPanel } from "./review/review-result";
+import { ReviewTimeline } from "./review/review-timeline";
+import type { ReviewEntry } from "./review/review-timeline";
 import { useAutoSave } from "@/hooks/use-auto-save";
 import type {
   ReviewResult,
@@ -57,6 +59,7 @@ interface EditorLayoutProps {
   onSave: (content: string) => void;
   reviewResult?: ReviewResult | null;
   previousScores?: ReviewScores;
+  reviewHistory?: ReviewEntry[];
   isReviewing?: boolean;
   onRequestReview?: () => void;
 }
@@ -68,6 +71,7 @@ export function EditorLayout({
   onSave,
   reviewResult,
   previousScores,
+  reviewHistory = [],
   isReviewing,
   onRequestReview,
 }: EditorLayoutProps) {
@@ -195,11 +199,16 @@ export function EditorLayout({
 
           <Tabs.Content value="review" className="flex-1 overflow-y-auto p-6">
             {reviewResult ? (
-              <ReviewResultPanel
-                review={reviewResult}
-                previousScores={previousScores}
-                onApplySuggestion={handleApplySuggestion}
-              />
+              <div className="space-y-6">
+                <ReviewResultPanel
+                  review={reviewResult}
+                  previousScores={previousScores}
+                  onApplySuggestion={handleApplySuggestion}
+                />
+                {reviewHistory.length > 1 && (
+                  <ReviewTimeline entries={reviewHistory} />
+                )}
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <MessageSquareText className="mb-3 h-8 w-8 text-gray-300" />

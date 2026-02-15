@@ -8,6 +8,7 @@ import { VersionHistory } from "./version-history";
 import { getCoverLetter, getVersions } from "@/lib/api/coaching";
 import { useReview } from "@/hooks/use-review";
 import type { ReviewResult, ReviewScores } from "@/lib/api/coaching";
+import type { ReviewEntry } from "./review/review-timeline";
 
 interface EditorPageClientProps {
   coverLetterId: string;
@@ -16,6 +17,7 @@ interface EditorPageClientProps {
 export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
   const [previousScores, setPreviousScores] = useState<ReviewScores | undefined>();
   const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
+  const [reviewHistory, setReviewHistory] = useState<ReviewEntry[]>([]);
 
   const {
     data: coverLetter,
@@ -49,6 +51,14 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
       {
         onSuccess: (data) => {
           setReviewResult(data);
+          setReviewHistory((prev) => [
+            ...prev,
+            {
+              reviewNumber: prev.length + 1,
+              overall: data.overall,
+              scores: data.scores,
+            },
+          ]);
         },
       },
     );
@@ -119,6 +129,7 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
         onSave={() => {}}
         reviewResult={reviewResult}
         previousScores={previousScores}
+        reviewHistory={reviewHistory}
         isReviewing={reviewMutation.isPending}
         onRequestReview={handleRequestReview}
       />

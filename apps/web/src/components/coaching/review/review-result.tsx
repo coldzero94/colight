@@ -2,6 +2,7 @@
 
 import { OverallScore } from "./overall-score";
 import { ScoreRadarChart } from "./score-radar-chart";
+import { ScoreComparison } from "./score-comparison";
 import { DimensionCard } from "./dimension-card";
 import { SuggestionList } from "./suggestion-list";
 import type {
@@ -32,6 +33,10 @@ export function ReviewResult({
         scores={review.scores}
         previousScores={previousScores}
       />
+
+      {previousScores && (
+        <ScoreComparison current={review.scores} previous={previousScores} />
+      )}
 
       <div className="space-y-2">
         <h3 className="text-sm font-medium text-gray-900">차원별 평가</h3>
