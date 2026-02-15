@@ -4,7 +4,11 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
+import { MatchingResults } from "@/components/analysis/matching-results";
 import { useAnalyzeCompany } from "@/hooks/use-company-analysis";
+import { useAutoMatching } from "@/hooks/use-auto-matching";
+import { crawlJobPosting } from "@/lib/api/crawl";
+import { fetchExperiences, type Experience } from "@/lib/api/experiences";
 import type { CompanyAnalysis } from "@/lib/api/analysis";
 
 export default function AnalysisResultPage() {
@@ -12,39 +16,88 @@ export default function AnalysisResultPage() {
   const url = searchParams.get("url");
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<CompanyAnalysis | null>(null);
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [crawlError, setCrawlError] = useState<string | null>(null);
 
   const analyzeMutation = useAnalyzeCompany();
 
+  const { isMatching, matchingResult, triggerMatching } = useAutoMatching({
+    companyName,
+    hasMatching: false,
+    experienceCount: experiences.length,
+    enabled: !!analysis,
+  });
+
+  // Step 1: Crawl job posting to extract company name
   useEffect(() => {
-    if (url && !companyName) {
-      // Extract company name from URL by crawling
-      // For MVP, use placeholder
-      const mockCompanyName = "삼성전자"; // TODO: Extract from crawled data
+    if (!url || companyName) return;
 
-      // Trigger analysis
-      analyzeMutation.mutate(mockCompanyName, {
-        onSuccess: (data) => {
-          setCompanyName(mockCompanyName);
-          setAnalysis(data);
+    (async () => {
+      try {
+        const jobPosting = await crawlJobPosting(url);
+        setCompanyName(jobPosting.company_name);
+      } catch {
+        setCrawlError("채용공고에서 회사명을 추출하지 못했습니다.");
+        toast.error("크롤링에 실패했습니다. URL을 확인해주세요.");
+      }
+    })();
+  }, [url, companyName]);
 
-          // Auto-trigger matching after analysis complete (Step 4.4)
-          // This will be implemented with matching API call
-          toast.info("경험 매칭을 준비하고 있습니다...");
-        },
-        onError: () => {
-          toast.error("분석에 실패했습니다.");
-        },
-      });
-    }
+  // Step 2: Analyze company once we have the name
+  useEffect(() => {
+    if (!companyName || analysis || analyzeMutation.isPending) return;
+
+    analyzeMutation.mutate(companyName, {
+      onSuccess: (data) => {
+        setAnalysis(data);
+      },
+      onError: () => {
+        toast.error("기업 분석에 실패했습니다.");
+      },
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url]);
+  }, [companyName]);
 
-  if (analyzeMutation.isPending || !analysis) {
+  // Step 3: Load experiences for matching
+  useEffect(() => {
+    if (!analysis) return;
+
+    (async () => {
+      try {
+        const data = await fetchExperiences();
+        setExperiences(data);
+      } catch {
+        // Non-critical: matching will show empty
+      }
+    })();
+  }, [analysis]);
+
+  if (crawlError) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="flex flex-col items-center justify-center py-20">
+          <p className="text-red-600">{crawlError}</p>
+          <button
+            onClick={() => window.history.back()}
+            className="mt-4 text-sm text-blue-600 hover:text-blue-800"
+          >
+            ← 돌아가기
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!analysis) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="flex flex-col items-center justify-center py-20">
           <LoadingSpinner />
-          <p className="mt-4 text-gray-600">AI가 기업을 분석하고 있습니다...</p>
+          <p className="mt-4 text-gray-600">
+            {!companyName
+              ? "채용공고를 분석하고 있습니다..."
+              : "AI가 기업을 분석하고 있습니다..."}
+          </p>
           <p className="mt-2 text-sm text-gray-400">약 10-15초 소요됩니다</p>
         </div>
       </div>
@@ -176,19 +229,33 @@ export default function AnalysisResultPage() {
           <h2 className="text-xl font-semibold text-gray-900">
             내 경험 적합도 매칭
           </h2>
-          <button
-            className="text-sm text-blue-600 hover:text-blue-800"
-            onClick={() => {
-              // TODO: Trigger matching
-            }}
-          >
-            매칭 시작 →
-          </button>
+          {!isMatching && matchingResult && (
+            <button
+              className="text-sm text-blue-600 hover:text-blue-800"
+              onClick={triggerMatching}
+            >
+              다시 매칭 →
+            </button>
+          )}
         </div>
-        <p className="text-sm text-gray-500 mb-4">
-          AI가 내 경험과 이 기업의 적합도를 분석합니다.
-        </p>
-        {/* MatchingResults component will be rendered here after matching */}
+
+        {isMatching ? (
+          <div className="flex flex-col items-center py-8">
+            <LoadingSpinner />
+            <p className="mt-4 text-sm text-gray-500">
+              경험 매칭 중입니다...
+            </p>
+          </div>
+        ) : matchingResult ? (
+          <MatchingResults
+            matches={matchingResult.matches}
+            experiences={experiences}
+          />
+        ) : experiences.length === 0 ? (
+          <p className="text-sm text-gray-500 py-4">
+            등록된 경험이 없습니다. 경험을 먼저 추가해주세요.
+          </p>
+        ) : null}
       </section>
     </div>
   );
