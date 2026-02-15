@@ -73,14 +73,6 @@ export interface CoverLetterVersion {
   created_at: string;
 }
 
-export interface ApplicationSummary {
-  id: string;
-  company_name: string;
-  position: string;
-  status: string;
-  created_at: string;
-}
-
 // === Review Types ===
 
 export interface ReviewScores {
@@ -116,15 +108,6 @@ export interface ReviewRequest {
 }
 
 // === API Functions ===
-
-export async function getApplications(): Promise<{
-  applications: ApplicationSummary[];
-}> {
-  const { data } = await apiClient.get<{
-    applications: ApplicationSummary[];
-  }>("/v1/applications");
-  return data;
-}
 
 export interface ExperienceRecommendation {
   id: string;

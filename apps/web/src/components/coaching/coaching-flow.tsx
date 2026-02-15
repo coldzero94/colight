@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,8 +11,8 @@ import { ExperienceSelector } from "./experience-selector";
 import { DraftStreaming } from "./draft-streaming";
 import { useQuestionAnalysis } from "@/hooks/use-question-analysis";
 import { useDraftStreaming } from "@/hooks/use-draft-streaming";
+import { useApplications } from "@/hooks/use-applications";
 import {
-  getApplications,
   recommendExperiences,
   type QuestionAnalysisResult,
   type QuestionAnalysisRequest,
@@ -33,11 +33,8 @@ export function CoachingFlow() {
     ExperienceRecommendation[]
   >([]);
 
-  // Fetch user's applications
-  const { data: appsData, isLoading: appsLoading } = useQuery({
-    queryKey: ["applications"],
-    queryFn: getApplications,
-  });
+  // Fetch user's applications (shared query key with dashboard)
+  const { data: applications, isLoading: appsLoading } = useApplications();
 
   const questionAnalysis = useQuestionAnalysis();
   const draftStreaming = useDraftStreaming();
@@ -106,10 +103,10 @@ export function CoachingFlow() {
     );
   }
 
-  const applications = appsData?.applications ?? [];
+  const appList = applications ?? [];
 
   // Empty state
-  if (applications.length === 0) {
+  if (appList.length === 0) {
     return (
       <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
         <p className="mb-4 text-gray-600">먼저 기업 분석을 진행해주세요</p>
@@ -124,7 +121,7 @@ export function CoachingFlow() {
   }
 
   // Map to QuestionInputForm's company format
-  const companies = applications.map((app) => ({
+  const companies = appList.map((app) => ({
     id: app.id,
     company_name: app.company_name,
     position: app.position,
