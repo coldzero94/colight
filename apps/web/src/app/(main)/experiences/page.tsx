@@ -8,6 +8,7 @@ import { ExperienceList } from "@/components/experiences/experience-list";
 import { ViewToggle } from "@/components/experiences/view-toggle";
 import { SortSelect } from "@/components/experiences/sort-select";
 import { WeaponFilterTabs } from "@/components/experiences/weapon-filter-tabs";
+import { WeaponRadarChart } from "@/components/experiences/weapon-radar-chart";
 import { useExperiences } from "@/hooks/use-experiences";
 import { computeWeaponCounts } from "@/lib/api/experiences";
 import {
@@ -110,6 +111,8 @@ export default function ExperiencesPage() {
           + 경험 추가
         </button>
       </div>
+
+      <WeaponRadarChart counts={weaponCounts} />
 
       <WeaponFilterTabs
         counts={weaponCounts}
