@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { SelectableExpCard } from "./selectable-exp-card";
 import { WeaponCoverage } from "./weapon-coverage";
 
@@ -16,6 +16,9 @@ interface Experience {
   star_result: string;
   weapons: Array<{ code: string; name: string }>;
   matchScore: number;
+  matchReasons?: string[];
+  isUsed?: boolean;
+  keywordMatches?: string[];
 }
 
 interface RequiredWeapons {
@@ -38,6 +41,16 @@ export function ExperienceSelector({
 }: ExperienceSelectorProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Sort: unused first (by score desc), then used (by score desc)
+  const sortedExperiences = useMemo(() => {
+    return [...experiences].sort((a, b) => {
+      const aUsed = a.isUsed ? 1 : 0;
+      const bUsed = b.isUsed ? 1 : 0;
+      if (aUsed !== bUsed) return aUsed - bUsed;
+      return b.matchScore - a.matchScore;
+    });
+  }, [experiences]);
 
   const handleToggle = (id: string) => {
     setSelectedIds((prev) => {
@@ -82,7 +95,7 @@ export function ExperienceSelector({
 
       {/* Experience cards */}
       <div className="space-y-4">
-        {experiences.map((exp) => {
+        {sortedExperiences.map((exp) => {
           const isSelected = selectedIds.includes(exp.id);
           const isDisabled = !isSelected && selectedIds.length >= maxSelect;
           const isExpanded = expandedId === exp.id;
@@ -107,7 +120,7 @@ export function ExperienceSelector({
         disabled={selectedIds.length === 0}
         className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
       >
-        🚀 선택한 경험으로 초안 작성 시작
+        선택한 경험으로 초안 작성 시작
       </button>
     </div>
   );

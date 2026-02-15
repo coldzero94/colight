@@ -135,16 +135,23 @@ export interface ExperienceRecommendation {
   star_situation: string;
   weapons: string[];
   match_score: number;
+  match_reasons: string[];
+  is_used: boolean;
+  keyword_matches: string[];
 }
 
 export async function recommendExperiences(
   requiredWeapons: QuestionAnalysisResult["required_weapons"],
-  limit = 10
+  keyKeywords: string[] = [],
+  applicationId = "",
+  limit = 10,
 ): Promise<{ recommendations: ExperienceRecommendation[] }> {
   const { data } = await apiClient.post<{
     recommendations: ExperienceRecommendation[];
   }>("/v1/coaching/recommend-experiences", {
     required_weapons: requiredWeapons,
+    key_keywords: keyKeywords,
+    application_id: applicationId,
     limit,
   });
   return data;

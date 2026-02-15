@@ -14,6 +14,9 @@ interface Experience {
   star_result: string;
   weapons: Array<{ code: string; name: string }>;
   matchScore: number;
+  matchReasons?: string[];
+  isUsed?: boolean;
+  keywordMatches?: string[];
 }
 
 interface SelectableExpCardProps {
@@ -23,6 +26,12 @@ interface SelectableExpCardProps {
   expanded: boolean;
   onToggle: () => void;
   onExpand: () => void;
+}
+
+function getScoreColor(score: number): string {
+  if (score >= 70) return "text-green-600";
+  if (score >= 40) return "text-blue-600";
+  return "text-gray-500";
 }
 
 export function SelectableExpCard({
@@ -38,6 +47,8 @@ export function SelectableExpCard({
     if (!experience.period_end) return experience.period_start;
     return `${experience.period_start} ~ ${experience.period_end}`;
   };
+
+  const scoreColor = getScoreColor(experience.matchScore);
 
   return (
     <div
@@ -59,15 +70,25 @@ export function SelectableExpCard({
         <div className="flex-1">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h3 className="text-base font-semibold text-gray-900">
-                {experience.title}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-semibold text-gray-900">
+                  {experience.title}
+                </h3>
+                {experience.isUsed && (
+                  <span
+                    data-testid="used-badge"
+                    className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
+                  >
+                    이미 사용됨
+                  </span>
+                )}
+              </div>
               {formatPeriod() && (
                 <p className="mt-1 text-xs text-gray-500">{formatPeriod()}</p>
               )}
             </div>
             <div className="ml-4 text-right">
-              <div className="text-lg font-bold text-blue-600">
+              <div data-testid="match-score" className={`text-lg font-bold ${scoreColor}`}>
                 {experience.matchScore}%
               </div>
               <button
@@ -102,6 +123,17 @@ export function SelectableExpCard({
               </span>
             ))}
           </div>
+
+          {/* Match reasons */}
+          {experience.matchReasons && experience.matchReasons.length > 0 && (
+            <div data-testid="match-reasons" className="mt-2 space-y-0.5">
+              {experience.matchReasons.map((reason, index) => (
+                <p key={index} className="text-xs text-gray-500">
+                  · {reason}
+                </p>
+              ))}
+            </div>
+          )}
 
           {/* Preview or Full STAR */}
           {!expanded ? (

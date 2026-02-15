@@ -176,4 +176,39 @@ describe("ExperienceSelector", () => {
     expect(coverage).toHaveTextContent("문제해결");
     expect(coverage).toHaveTextContent("협업");
   });
+
+  it("sorts used experiences to bottom", () => {
+    const onConfirm = vi.fn();
+
+    const experiencesWithUsage = [
+      {
+        ...mockExperiences[0],
+        id: "used-1",
+        title: "사용된 경험",
+        matchScore: 90,
+        isUsed: true,
+      },
+      {
+        ...mockExperiences[1],
+        id: "fresh-1",
+        title: "새로운 경험",
+        matchScore: 70,
+        isUsed: false,
+      },
+    ];
+
+    render(
+      <ExperienceSelector
+        experiences={experiencesWithUsage}
+        maxSelect={3}
+        requiredWeapons={mockRequiredWeapons}
+        onConfirm={onConfirm}
+      />
+    );
+
+    // Cards should render unused first, then used (regardless of score)
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    expect(headings[0]).toHaveTextContent("새로운 경험");
+    expect(headings[1]).toHaveTextContent("사용된 경험");
+  });
 });

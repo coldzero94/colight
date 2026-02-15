@@ -43,8 +43,15 @@ export function CoachingFlow() {
   const draftStreaming = useDraftStreaming();
 
   const experienceRecommend = useMutation({
-    mutationFn: (requiredWeapons: QuestionAnalysisResult["required_weapons"]) =>
-      recommendExperiences(requiredWeapons),
+    mutationFn: ({
+      requiredWeapons,
+      keyKeywords,
+      applicationId,
+    }: {
+      requiredWeapons: QuestionAnalysisResult["required_weapons"];
+      keyKeywords: string[];
+      applicationId: string;
+    }) => recommendExperiences(requiredWeapons, keyKeywords, applicationId),
   });
 
   // Handle question analysis submit
@@ -57,10 +64,12 @@ export function CoachingFlow() {
 
   // Handle move to experience selection - fetch recommendations
   const handleGoToSelect = async () => {
-    if (!analysisResult) return;
-    const result = await experienceRecommend.mutateAsync(
-      analysisResult.required_weapons
-    );
+    if (!analysisResult || !formData) return;
+    const result = await experienceRecommend.mutateAsync({
+      requiredWeapons: analysisResult.required_weapons,
+      keyKeywords: analysisResult.key_keywords,
+      applicationId: formData.application_id,
+    });
     setRecommendations(result.recommendations);
     setStep("select");
   };
@@ -135,6 +144,9 @@ export function CoachingFlow() {
     star_result: "",
     weapons: rec.weapons.map((w) => ({ code: w, name: w })),
     matchScore: rec.match_score,
+    matchReasons: rec.match_reasons,
+    isUsed: rec.is_used,
+    keywordMatches: rec.keyword_matches,
   }));
 
   return (
