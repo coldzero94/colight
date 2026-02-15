@@ -84,9 +84,350 @@ export type AuthUserInfo = {
     created_at: string;
 };
 
+export type CoachingApplicationSummary = {
+    id: string;
+    company_name: string;
+    position: string;
+    status: string;
+    created_at: string;
+};
+
+export type CoachingCoachingSession = {
+    id: string;
+    session_type: string;
+    input_tokens: number;
+    output_tokens: number;
+    created_at: string;
+};
+
+export type CoachingCoverLetter = {
+    id: string;
+    question_text: string;
+    char_limit: number;
+    current_content: string;
+    created_at: string;
+    updated_at: string;
+};
+
+export type CoachingCoverLetterVersion = {
+    id: string;
+    version_number: number;
+    content: string;
+    char_count: number;
+    created_at: string;
+};
+
+export type CoachingDimensionFeedback = {
+    dimension: string;
+    score: number;
+    good: Array<string>;
+    improve: Array<string>;
+};
+
+export type CoachingExperienceRecommendation = {
+    id: string;
+    title: string;
+    category: string;
+    period_start?: string;
+    period_end?: string;
+    star_situation: string;
+    weapons: Array<string>;
+    match_score: number;
+};
+
+export type CoachingGenerateDraftRequest = {
+    application_id: string;
+    experience_ids: Array<string>;
+    question_text: string;
+    char_limit: number;
+    analysis_result?: CoachingQuestionAnalysisResult;
+};
+
+export type CoachingQuestionAnalysisRequest = {
+    application_id: string;
+    question_text: string;
+    char_limit: number;
+};
+
+export type CoachingQuestionAnalysisResult = {
+    surface_question: string;
+    real_intents: Array<CoachingRealIntent>;
+    required_weapons: {
+        primary: CoachingWeaponRef;
+        secondary: Array<CoachingWeaponRef>;
+    };
+    writing_structure: {
+        total_chars: number;
+        sections: Array<CoachingWritingSection>;
+    };
+    key_keywords: Array<string>;
+    avoid_list: Array<string>;
+    good_structure_example: string;
+};
+
+export type CoachingRealIntent = {
+    intent: string;
+    why: string;
+};
+
+export type CoachingRecommendExperiencesRequest = {
+    required_weapons: {
+        primary: CoachingWeaponRef;
+        secondary: Array<CoachingWeaponRef>;
+    };
+    limit?: number;
+};
+
+export type CoachingReviewRequest = {
+    cover_letter_id: string;
+    content: string;
+};
+
+export type CoachingReviewResult = {
+    scores: CoachingReviewScores;
+    overall: number;
+    per_dimension_feedback: Array<CoachingDimensionFeedback>;
+    specific_suggestions: Array<CoachingSpecificSuggestion>;
+};
+
+export type CoachingReviewScores = {
+    specificity: number;
+    job_fit: number;
+    company_fit: number;
+    authenticity: number;
+};
+
+export type CoachingSpecificSuggestion = {
+    original: string;
+    suggested: string;
+    reason: string;
+};
+
+export type CoachingWeaponRef = {
+    weapon_id: string;
+    weapon_name: string;
+    reason: string;
+};
+
+export type CoachingWritingSection = {
+    name: string;
+    char_ratio: number;
+    char_count: number;
+    guide: string;
+};
+
 export type CommonErrorDetail = {
     message: string;
     code: string;
+};
+
+export type CompanyAnalyzeCompanyRequest = {
+    company_name: string;
+};
+
+export type CompanyBasicInfo = {
+    corp_name: string;
+    corp_code?: string;
+    stock_code?: string;
+    ceo?: string;
+    industry?: string;
+    address?: string;
+};
+
+export type CompanyCompanyAnalysis = {
+    company_name: string;
+    core_values: Array<CompanyCoreValue>;
+    talent_traits: Array<CompanyTalentTrait>;
+    recent_trends: Array<CompanyTrend>;
+    strategy_keywords: Array<string>;
+    avoid_expressions: Array<string>;
+    source: 'talent_profiles' | 'cache' | 'ai_generated';
+};
+
+export type CompanyCompanyData = {
+    basic_info: CompanyBasicInfo;
+    news: Array<CompanyNewsItem>;
+};
+
+export type CompanyCoreValue = {
+    keyword: string;
+    description: string;
+};
+
+export type CompanyMatchRequest = {
+    company_name: string;
+};
+
+export type CompanyMatchResponse = {
+    company_name: string;
+    matches: Array<CompanyMatchResult>;
+    total: number;
+};
+
+export type CompanyMatchResult = {
+    experience_id: string;
+    overall_fit: number;
+    job_relevance: number;
+    talent_fit: number;
+    uniqueness: number;
+    reasoning: string;
+    suggested_angle: string;
+};
+
+export type CompanyNewsItem = {
+    title: string;
+    link: string;
+    description?: string;
+    pub_date?: string;
+    source?: string;
+};
+
+export type CompanyTalentTrait = {
+    trait: string;
+    description: string;
+    evidence?: string;
+};
+
+export type CompanyTrend = {
+    title: string;
+    summary: string;
+    relevance?: string;
+};
+
+export type ExperienceCreateExperienceRequest = {
+    title: string;
+    category?: string;
+    period_start?: string;
+    period_end?: string;
+    role?: string;
+    content?: string;
+    result?: string;
+    star_situation?: string;
+    star_task?: string;
+    star_action?: string;
+    star_result?: string;
+    keywords?: Array<string>;
+};
+
+export type ExperienceExperience = {
+    id: string;
+    user_id: string;
+    title: string;
+    category: string;
+    period_start?: string;
+    period_end?: string;
+    role: string;
+    content: string;
+    result: string;
+    star_situation: string;
+    star_task: string;
+    star_action: string;
+    star_result: string;
+    keywords?: Array<string>;
+    source: string;
+    is_archived: boolean;
+    created_at: string;
+    updated_at: string;
+    weapons?: Array<ExperienceExperienceWeapon>;
+};
+
+export type ExperienceExperienceWeapon = {
+    id: string;
+    weapon_code: string;
+    confidence: number;
+    is_primary: boolean;
+    reasoning: string;
+    user_confirmed: boolean;
+    user_modified: boolean;
+};
+
+export type ExperienceUpdateExperienceRequest = {
+    title?: string;
+    category?: string;
+    period_start?: string;
+    period_end?: string;
+    role?: string;
+    content?: string;
+    result?: string;
+    star_situation?: string;
+    star_task?: string;
+    star_action?: string;
+    star_result?: string;
+    keywords?: Array<string>;
+};
+
+export type ExperienceWeaponTag = {
+    code: string;
+    confidence: number;
+    reasoning: string;
+};
+
+export type ExperienceWeaponTagResponse = {
+    primary_weapon: ExperienceWeaponTag;
+    secondary_weapons: Array<ExperienceWeaponTag>;
+};
+
+export type InterviewChatMessage = {
+    role: 'user' | 'assistant';
+    content: string;
+};
+
+export type InterviewExtractStarRequest = {
+    messages: Array<InterviewChatMessage>;
+};
+
+export type InterviewExtractStarResult = {
+    title: string;
+    category: string;
+    content: string;
+    result: string;
+    star_situation: string;
+    star_task: string;
+    star_action: string;
+    star_result: string;
+    keywords: Array<string>;
+};
+
+export type InterviewGenerateQuestionRequest = {
+    stage: 'warmup' | 'memory' | 'challenge' | 'solution' | 'outcome';
+    messages: Array<InterviewChatMessage>;
+};
+
+export type InterviewGenerateQuestionResponse = {
+    question: string;
+    stage: 'warmup' | 'memory' | 'challenge' | 'solution' | 'outcome';
+    next_stage: string;
+    is_complete: boolean;
+};
+
+export type InterviewSaveExperienceResponse = {
+    experience_id: string;
+    tagged: boolean;
+};
+
+export type SystemFeatureUsage = {
+    allowed: boolean;
+    used: number;
+    limit: number;
+    remaining: number;
+};
+
+export type SystemFeedbackInput = {
+    category: 'bug' | 'improvement' | 'other';
+    content: string;
+    page_url?: string;
+};
+
+export type SystemFeedbackResponse = {
+    id: string;
+    created_at: string;
+};
+
+export type SystemUsageResponse = {
+    plan: 'free' | 'starter' | 'pro' | 'season';
+    features: {
+        [key: string]: SystemFeatureUsage;
+    };
 };
 
 export type HealthCheckData = {
@@ -475,6 +816,122 @@ export type AdminApiUpdateUserRoleResponses = {
 
 export type AdminApiUpdateUserRoleResponse = AdminApiUpdateUserRoleResponses[keyof AdminApiUpdateUserRoleResponses];
 
+export type CompanyApiAnalyzeCompanyData = {
+    body: CompanyAnalyzeCompanyRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/analyze-company';
+};
+
+export type CompanyApiAnalyzeCompanyErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CompanyApiAnalyzeCompanyError = CompanyApiAnalyzeCompanyErrors[keyof CompanyApiAnalyzeCompanyErrors];
+
+export type CompanyApiAnalyzeCompanyResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: CompanyCompanyAnalysis;
+};
+
+export type CompanyApiAnalyzeCompanyResponse = CompanyApiAnalyzeCompanyResponses[keyof CompanyApiAnalyzeCompanyResponses];
+
+export type CoachingApiGetApplicationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/applications';
+};
+
+export type CoachingApiGetApplicationsErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiGetApplicationsError = CoachingApiGetApplicationsErrors[keyof CoachingApiGetApplicationsErrors];
+
+export type CoachingApiGetApplicationsResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        applications: Array<CoachingApplicationSummary>;
+    };
+};
+
+export type CoachingApiGetApplicationsResponse = CoachingApiGetApplicationsResponses[keyof CoachingApiGetApplicationsResponses];
+
 export type AuthApiLoginData = {
     body: AuthLoginRequest;
     path?: never;
@@ -765,3 +1222,1305 @@ export type AuthApiSignupResponses = {
 };
 
 export type AuthApiSignupResponse = AuthApiSignupResponses[keyof AuthApiSignupResponses];
+
+export type CoachingApiGetCoverLetterData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/coaching/cover-letters/{id}';
+};
+
+export type CoachingApiGetCoverLetterErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiGetCoverLetterError = CoachingApiGetCoverLetterErrors[keyof CoachingApiGetCoverLetterErrors];
+
+export type CoachingApiGetCoverLetterResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: CoachingCoverLetter;
+};
+
+export type CoachingApiGetCoverLetterResponse = CoachingApiGetCoverLetterResponses[keyof CoachingApiGetCoverLetterResponses];
+
+export type CoachingApiUpdateCoverLetterData = {
+    body: {
+        content?: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/coaching/cover-letters/{id}';
+};
+
+export type CoachingApiUpdateCoverLetterErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiUpdateCoverLetterError = CoachingApiUpdateCoverLetterErrors[keyof CoachingApiUpdateCoverLetterErrors];
+
+export type CoachingApiUpdateCoverLetterResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        updated_at: string;
+    };
+};
+
+export type CoachingApiUpdateCoverLetterResponse = CoachingApiUpdateCoverLetterResponses[keyof CoachingApiUpdateCoverLetterResponses];
+
+export type CoachingApiGetVersionsData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/coaching/cover-letters/{id}/versions';
+};
+
+export type CoachingApiGetVersionsErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiGetVersionsError = CoachingApiGetVersionsErrors[keyof CoachingApiGetVersionsErrors];
+
+export type CoachingApiGetVersionsResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        versions: Array<CoachingCoverLetterVersion>;
+    };
+};
+
+export type CoachingApiGetVersionsResponse = CoachingApiGetVersionsResponses[keyof CoachingApiGetVersionsResponses];
+
+export type CoachingApiCreateVersionData = {
+    body: {
+        content: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/coaching/cover-letters/{id}/versions';
+};
+
+export type CoachingApiCreateVersionErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiCreateVersionError = CoachingApiCreateVersionErrors[keyof CoachingApiCreateVersionErrors];
+
+export type CoachingApiCreateVersionResponses = {
+    /**
+     * The request has succeeded and a new resource has been created as a result.
+     */
+    201: {
+        version: CoachingCoverLetterVersion;
+    };
+};
+
+export type CoachingApiCreateVersionResponse = CoachingApiCreateVersionResponses[keyof CoachingApiCreateVersionResponses];
+
+export type CoachingApiGenerateDraftData = {
+    body: CoachingGenerateDraftRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/coaching/draft';
+};
+
+export type CoachingApiGenerateDraftErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiGenerateDraftError = CoachingApiGenerateDraftErrors[keyof CoachingApiGenerateDraftErrors];
+
+export type CoachingApiGenerateDraftResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        draft: string;
+    };
+};
+
+export type CoachingApiGenerateDraftResponse = CoachingApiGenerateDraftResponses[keyof CoachingApiGenerateDraftResponses];
+
+export type CoachingApiAnalyzeQuestionData = {
+    body: CoachingQuestionAnalysisRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/coaching/question-analysis';
+};
+
+export type CoachingApiAnalyzeQuestionErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiAnalyzeQuestionError = CoachingApiAnalyzeQuestionErrors[keyof CoachingApiAnalyzeQuestionErrors];
+
+export type CoachingApiAnalyzeQuestionResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: CoachingQuestionAnalysisResult;
+};
+
+export type CoachingApiAnalyzeQuestionResponse = CoachingApiAnalyzeQuestionResponses[keyof CoachingApiAnalyzeQuestionResponses];
+
+export type CoachingApiRecommendExperiencesData = {
+    body: CoachingRecommendExperiencesRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/coaching/recommend-experiences';
+};
+
+export type CoachingApiRecommendExperiencesErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiRecommendExperiencesError = CoachingApiRecommendExperiencesErrors[keyof CoachingApiRecommendExperiencesErrors];
+
+export type CoachingApiRecommendExperiencesResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        recommendations: Array<CoachingExperienceRecommendation>;
+    };
+};
+
+export type CoachingApiRecommendExperiencesResponse = CoachingApiRecommendExperiencesResponses[keyof CoachingApiRecommendExperiencesResponses];
+
+export type CoachingApiReviewData = {
+    body: CoachingReviewRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/coaching/review';
+};
+
+export type CoachingApiReviewErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiReviewError = CoachingApiReviewErrors[keyof CoachingApiReviewErrors];
+
+export type CoachingApiReviewResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: CoachingReviewResult;
+};
+
+export type CoachingApiReviewResponse = CoachingApiReviewResponses[keyof CoachingApiReviewResponses];
+
+export type CoachingApiGetSessionsData = {
+    body?: never;
+    path?: never;
+    query: {
+        coverLetterId: string;
+    };
+    url: '/v1/coaching/sessions';
+};
+
+export type CoachingApiGetSessionsErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiGetSessionsError = CoachingApiGetSessionsErrors[keyof CoachingApiGetSessionsErrors];
+
+export type CoachingApiGetSessionsResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        sessions: Array<CoachingCoachingSession>;
+    };
+};
+
+export type CoachingApiGetSessionsResponse = CoachingApiGetSessionsResponses[keyof CoachingApiGetSessionsResponses];
+
+export type CompanyApiGetCompanyDataData = {
+    body?: never;
+    path?: never;
+    query: {
+        name: string;
+    };
+    url: '/v1/company-data';
+};
+
+export type CompanyApiGetCompanyDataErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CompanyApiGetCompanyDataError = CompanyApiGetCompanyDataErrors[keyof CompanyApiGetCompanyDataErrors];
+
+export type CompanyApiGetCompanyDataResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: CompanyCompanyData;
+};
+
+export type CompanyApiGetCompanyDataResponse = CompanyApiGetCompanyDataResponses[keyof CompanyApiGetCompanyDataResponses];
+
+export type ExperienceApiListData = {
+    body?: never;
+    path?: never;
+    query?: {
+        sort?: 'latest' | 'oldest' | 'title';
+        category?: string;
+        weapon?: string;
+    };
+    url: '/v1/experiences';
+};
+
+export type ExperienceApiListErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type ExperienceApiListError = ExperienceApiListErrors[keyof ExperienceApiListErrors];
+
+export type ExperienceApiListResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        experiences: Array<ExperienceExperience>;
+    };
+};
+
+export type ExperienceApiListResponse = ExperienceApiListResponses[keyof ExperienceApiListResponses];
+
+export type ExperienceApiCreateData = {
+    body: ExperienceCreateExperienceRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/experiences';
+};
+
+export type ExperienceApiCreateErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type ExperienceApiCreateError = ExperienceApiCreateErrors[keyof ExperienceApiCreateErrors];
+
+export type ExperienceApiCreateResponses = {
+    /**
+     * The request has succeeded and a new resource has been created as a result.
+     */
+    201: {
+        id: string;
+    };
+};
+
+export type ExperienceApiCreateResponse = ExperienceApiCreateResponses[keyof ExperienceApiCreateResponses];
+
+export type ExperienceApiDeleteData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/experiences/{id}';
+};
+
+export type ExperienceApiDeleteErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type ExperienceApiDeleteError = ExperienceApiDeleteErrors[keyof ExperienceApiDeleteErrors];
+
+export type ExperienceApiDeleteResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        success: boolean;
+    };
+};
+
+export type ExperienceApiDeleteResponse = ExperienceApiDeleteResponses[keyof ExperienceApiDeleteResponses];
+
+export type ExperienceApiGetData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/experiences/{id}';
+};
+
+export type ExperienceApiGetErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type ExperienceApiGetError = ExperienceApiGetErrors[keyof ExperienceApiGetErrors];
+
+export type ExperienceApiGetResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: ExperienceExperience;
+};
+
+export type ExperienceApiGetResponse = ExperienceApiGetResponses[keyof ExperienceApiGetResponses];
+
+export type ExperienceApiUpdateData = {
+    body: ExperienceUpdateExperienceRequest;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/experiences/{id}';
+};
+
+export type ExperienceApiUpdateErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type ExperienceApiUpdateError = ExperienceApiUpdateErrors[keyof ExperienceApiUpdateErrors];
+
+export type ExperienceApiUpdateResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        id: string;
+    };
+};
+
+export type ExperienceApiUpdateResponse = ExperienceApiUpdateResponses[keyof ExperienceApiUpdateResponses];
+
+export type ExperienceApiTagData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/experiences/{id}/tag';
+};
+
+export type ExperienceApiTagErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type ExperienceApiTagError = ExperienceApiTagErrors[keyof ExperienceApiTagErrors];
+
+export type ExperienceApiTagResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: ExperienceWeaponTagResponse;
+};
+
+export type ExperienceApiTagResponse = ExperienceApiTagResponses[keyof ExperienceApiTagResponses];
+
+export type SystemApiSubmitFeedbackData = {
+    body: SystemFeedbackInput;
+    path?: never;
+    query?: never;
+    url: '/v1/feedback';
+};
+
+export type SystemApiSubmitFeedbackErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type SystemApiSubmitFeedbackError = SystemApiSubmitFeedbackErrors[keyof SystemApiSubmitFeedbackErrors];
+
+export type SystemApiSubmitFeedbackResponses = {
+    /**
+     * The request has succeeded and a new resource has been created as a result.
+     */
+    201: SystemFeedbackResponse;
+};
+
+export type SystemApiSubmitFeedbackResponse = SystemApiSubmitFeedbackResponses[keyof SystemApiSubmitFeedbackResponses];
+
+export type InterviewApiExtractStarData = {
+    body: InterviewExtractStarRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/interview/extract';
+};
+
+export type InterviewApiExtractStarErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type InterviewApiExtractStarError = InterviewApiExtractStarErrors[keyof InterviewApiExtractStarErrors];
+
+export type InterviewApiExtractStarResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: InterviewExtractStarResult;
+};
+
+export type InterviewApiExtractStarResponse = InterviewApiExtractStarResponses[keyof InterviewApiExtractStarResponses];
+
+export type InterviewApiGenerateQuestionData = {
+    body: InterviewGenerateQuestionRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/interview/question';
+};
+
+export type InterviewApiGenerateQuestionErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type InterviewApiGenerateQuestionError = InterviewApiGenerateQuestionErrors[keyof InterviewApiGenerateQuestionErrors];
+
+export type InterviewApiGenerateQuestionResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: InterviewGenerateQuestionResponse;
+};
+
+export type InterviewApiGenerateQuestionResponse = InterviewApiGenerateQuestionResponses[keyof InterviewApiGenerateQuestionResponses];
+
+export type InterviewApiSaveExperienceData = {
+    body: InterviewExtractStarResult;
+    path?: never;
+    query?: never;
+    url: '/v1/interview/save';
+};
+
+export type InterviewApiSaveExperienceErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type InterviewApiSaveExperienceError = InterviewApiSaveExperienceErrors[keyof InterviewApiSaveExperienceErrors];
+
+export type InterviewApiSaveExperienceResponses = {
+    /**
+     * The request has succeeded and a new resource has been created as a result.
+     */
+    201: InterviewSaveExperienceResponse;
+};
+
+export type InterviewApiSaveExperienceResponse = InterviewApiSaveExperienceResponses[keyof InterviewApiSaveExperienceResponses];
+
+export type CompanyApiMatchExperiencesData = {
+    body: CompanyMatchRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/match';
+};
+
+export type CompanyApiMatchExperiencesErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CompanyApiMatchExperiencesError = CompanyApiMatchExperiencesErrors[keyof CompanyApiMatchExperiencesErrors];
+
+export type CompanyApiMatchExperiencesResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: CompanyMatchResponse;
+};
+
+export type CompanyApiMatchExperiencesResponse = CompanyApiMatchExperiencesResponses[keyof CompanyApiMatchExperiencesResponses];
+
+export type SystemApiGetUsageData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/usage';
+};
+
+export type SystemApiGetUsageErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type SystemApiGetUsageError = SystemApiGetUsageErrors[keyof SystemApiGetUsageErrors];
+
+export type SystemApiGetUsageResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: SystemUsageResponse;
+};
+
+export type SystemApiGetUsageResponse = SystemApiGetUsageResponses[keyof SystemApiGetUsageResponses];

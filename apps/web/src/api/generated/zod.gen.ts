@@ -82,9 +82,373 @@ export const zAuthAuthResponse = z.object({
     tokens: zAuthAuthTokens
 });
 
+export const zCoachingApplicationSummary = z.object({
+    id: z.string(),
+    company_name: z.string(),
+    position: z.string(),
+    status: z.string(),
+    created_at: z.iso.datetime()
+});
+
+export const zCoachingCoachingSession = z.object({
+    id: z.string(),
+    session_type: z.string(),
+    input_tokens: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    output_tokens: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    created_at: z.iso.datetime()
+});
+
+export const zCoachingCoverLetter = z.object({
+    id: z.string(),
+    question_text: z.string(),
+    char_limit: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    current_content: z.string(),
+    created_at: z.iso.datetime(),
+    updated_at: z.iso.datetime()
+});
+
+export const zCoachingCoverLetterVersion = z.object({
+    id: z.string(),
+    version_number: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    content: z.string(),
+    char_count: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    created_at: z.iso.datetime()
+});
+
+export const zCoachingDimensionFeedback = z.object({
+    dimension: z.string(),
+    score: z.number(),
+    good: z.array(z.string()),
+    improve: z.array(z.string())
+});
+
+export const zCoachingExperienceRecommendation = z.object({
+    id: z.string(),
+    title: z.string(),
+    category: z.string(),
+    period_start: z.optional(z.string()),
+    period_end: z.optional(z.string()),
+    star_situation: z.string(),
+    weapons: z.array(z.string()),
+    match_score: z.number()
+});
+
+export const zCoachingQuestionAnalysisRequest = z.object({
+    application_id: z.string(),
+    question_text: z.string(),
+    char_limit: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
+export const zCoachingRealIntent = z.object({
+    intent: z.string(),
+    why: z.string()
+});
+
+export const zCoachingReviewRequest = z.object({
+    cover_letter_id: z.string(),
+    content: z.string()
+});
+
+export const zCoachingReviewScores = z.object({
+    specificity: z.number(),
+    job_fit: z.number(),
+    company_fit: z.number(),
+    authenticity: z.number()
+});
+
+export const zCoachingSpecificSuggestion = z.object({
+    original: z.string(),
+    suggested: z.string(),
+    reason: z.string()
+});
+
+export const zCoachingReviewResult = z.object({
+    scores: zCoachingReviewScores,
+    overall: z.number(),
+    per_dimension_feedback: z.array(zCoachingDimensionFeedback),
+    specific_suggestions: z.array(zCoachingSpecificSuggestion)
+});
+
+export const zCoachingWeaponRef = z.object({
+    weapon_id: z.string(),
+    weapon_name: z.string(),
+    reason: z.string()
+});
+
+export const zCoachingRecommendExperiencesRequest = z.object({
+    required_weapons: z.object({
+        primary: zCoachingWeaponRef,
+        secondary: z.array(zCoachingWeaponRef)
+    }),
+    limit: z.optional(z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }))
+});
+
+export const zCoachingWritingSection = z.object({
+    name: z.string(),
+    char_ratio: z.number(),
+    char_count: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    guide: z.string()
+});
+
+export const zCoachingQuestionAnalysisResult = z.object({
+    surface_question: z.string(),
+    real_intents: z.array(zCoachingRealIntent),
+    required_weapons: z.object({
+        primary: zCoachingWeaponRef,
+        secondary: z.array(zCoachingWeaponRef)
+    }),
+    writing_structure: z.object({
+        total_chars: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+        sections: z.array(zCoachingWritingSection)
+    }),
+    key_keywords: z.array(z.string()),
+    avoid_list: z.array(z.string()),
+    good_structure_example: z.string()
+});
+
+export const zCoachingGenerateDraftRequest = z.object({
+    application_id: z.string(),
+    experience_ids: z.array(z.string()),
+    question_text: z.string(),
+    char_limit: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    analysis_result: z.optional(zCoachingQuestionAnalysisResult)
+});
+
 export const zCommonErrorDetail = z.object({
     message: z.string(),
     code: z.string()
+});
+
+export const zCompanyAnalyzeCompanyRequest = z.object({
+    company_name: z.string()
+});
+
+export const zCompanyBasicInfo = z.object({
+    corp_name: z.string(),
+    corp_code: z.optional(z.string()),
+    stock_code: z.optional(z.string()),
+    ceo: z.optional(z.string()),
+    industry: z.optional(z.string()),
+    address: z.optional(z.string())
+});
+
+export const zCompanyCoreValue = z.object({
+    keyword: z.string(),
+    description: z.string()
+});
+
+export const zCompanyMatchRequest = z.object({
+    company_name: z.string()
+});
+
+export const zCompanyMatchResult = z.object({
+    experience_id: z.string(),
+    overall_fit: z.number(),
+    job_relevance: z.number(),
+    talent_fit: z.number(),
+    uniqueness: z.number(),
+    reasoning: z.string(),
+    suggested_angle: z.string()
+});
+
+export const zCompanyMatchResponse = z.object({
+    company_name: z.string(),
+    matches: z.array(zCompanyMatchResult),
+    total: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
+export const zCompanyNewsItem = z.object({
+    title: z.string(),
+    link: z.string(),
+    description: z.optional(z.string()),
+    pub_date: z.optional(z.string()),
+    source: z.optional(z.string())
+});
+
+export const zCompanyCompanyData = z.object({
+    basic_info: zCompanyBasicInfo,
+    news: z.array(zCompanyNewsItem)
+});
+
+export const zCompanyTalentTrait = z.object({
+    trait: z.string(),
+    description: z.string(),
+    evidence: z.optional(z.string())
+});
+
+export const zCompanyTrend = z.object({
+    title: z.string(),
+    summary: z.string(),
+    relevance: z.optional(z.string())
+});
+
+export const zCompanyCompanyAnalysis = z.object({
+    company_name: z.string(),
+    core_values: z.array(zCompanyCoreValue),
+    talent_traits: z.array(zCompanyTalentTrait),
+    recent_trends: z.array(zCompanyTrend),
+    strategy_keywords: z.array(z.string()),
+    avoid_expressions: z.array(z.string()),
+    source: z.enum([
+        'talent_profiles',
+        'cache',
+        'ai_generated'
+    ])
+});
+
+export const zExperienceCreateExperienceRequest = z.object({
+    title: z.string(),
+    category: z.optional(z.string()),
+    period_start: z.optional(z.string()),
+    period_end: z.optional(z.string()),
+    role: z.optional(z.string()),
+    content: z.optional(z.string()),
+    result: z.optional(z.string()),
+    star_situation: z.optional(z.string()),
+    star_task: z.optional(z.string()),
+    star_action: z.optional(z.string()),
+    star_result: z.optional(z.string()),
+    keywords: z.optional(z.array(z.string()))
+});
+
+export const zExperienceExperienceWeapon = z.object({
+    id: z.string(),
+    weapon_code: z.string(),
+    confidence: z.number(),
+    is_primary: z.boolean(),
+    reasoning: z.string(),
+    user_confirmed: z.boolean(),
+    user_modified: z.boolean()
+});
+
+export const zExperienceExperience = z.object({
+    id: z.string(),
+    user_id: z.string(),
+    title: z.string(),
+    category: z.string(),
+    period_start: z.optional(z.string()),
+    period_end: z.optional(z.string()),
+    role: z.string(),
+    content: z.string(),
+    result: z.string(),
+    star_situation: z.string(),
+    star_task: z.string(),
+    star_action: z.string(),
+    star_result: z.string(),
+    keywords: z.optional(z.array(z.string())),
+    source: z.string(),
+    is_archived: z.boolean(),
+    created_at: z.iso.datetime(),
+    updated_at: z.iso.datetime(),
+    weapons: z.optional(z.array(zExperienceExperienceWeapon))
+});
+
+export const zExperienceUpdateExperienceRequest = z.object({
+    title: z.optional(z.string()),
+    category: z.optional(z.string()),
+    period_start: z.optional(z.string()),
+    period_end: z.optional(z.string()),
+    role: z.optional(z.string()),
+    content: z.optional(z.string()),
+    result: z.optional(z.string()),
+    star_situation: z.optional(z.string()),
+    star_task: z.optional(z.string()),
+    star_action: z.optional(z.string()),
+    star_result: z.optional(z.string()),
+    keywords: z.optional(z.array(z.string()))
+});
+
+export const zExperienceWeaponTag = z.object({
+    code: z.string(),
+    confidence: z.number(),
+    reasoning: z.string()
+});
+
+export const zExperienceWeaponTagResponse = z.object({
+    primary_weapon: zExperienceWeaponTag,
+    secondary_weapons: z.array(zExperienceWeaponTag)
+});
+
+export const zInterviewChatMessage = z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string()
+});
+
+export const zInterviewExtractStarRequest = z.object({
+    messages: z.array(zInterviewChatMessage)
+});
+
+export const zInterviewExtractStarResult = z.object({
+    title: z.string(),
+    category: z.string(),
+    content: z.string(),
+    result: z.string(),
+    star_situation: z.string(),
+    star_task: z.string(),
+    star_action: z.string(),
+    star_result: z.string(),
+    keywords: z.array(z.string())
+});
+
+export const zInterviewGenerateQuestionRequest = z.object({
+    stage: z.enum([
+        'warmup',
+        'memory',
+        'challenge',
+        'solution',
+        'outcome'
+    ]),
+    messages: z.array(zInterviewChatMessage)
+});
+
+export const zInterviewGenerateQuestionResponse = z.object({
+    question: z.string(),
+    stage: z.enum([
+        'warmup',
+        'memory',
+        'challenge',
+        'solution',
+        'outcome'
+    ]),
+    next_stage: z.string(),
+    is_complete: z.boolean()
+});
+
+export const zInterviewSaveExperienceResponse = z.object({
+    experience_id: z.string(),
+    tagged: z.boolean()
+});
+
+export const zSystemFeatureUsage = z.object({
+    allowed: z.boolean(),
+    used: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    limit: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    remaining: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
+export const zSystemFeedbackInput = z.object({
+    category: z.enum([
+        'bug',
+        'improvement',
+        'other'
+    ]),
+    content: z.string(),
+    page_url: z.optional(z.string())
+});
+
+export const zSystemFeedbackResponse = z.object({
+    id: z.string(),
+    created_at: z.iso.datetime()
+});
+
+export const zSystemUsageResponse = z.object({
+    plan: z.enum([
+        'free',
+        'starter',
+        'pro',
+        'season'
+    ]),
+    features: z.record(z.string(), zSystemFeatureUsage)
 });
 
 export const zHealthCheckData = z.object({
@@ -192,6 +556,30 @@ export const zAdminApiUpdateUserRoleResponse = z.object({
     data: zAdminAdminUserListItem
 });
 
+export const zCompanyApiAnalyzeCompanyData = z.object({
+    body: zCompanyAnalyzeCompanyRequest,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCompanyApiAnalyzeCompanyResponse = zCompanyCompanyAnalysis;
+
+export const zCoachingApiGetApplicationsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiGetApplicationsResponse = z.object({
+    applications: z.array(zCoachingApplicationSummary)
+});
+
 export const zAuthApiLoginData = z.object({
     body: zAuthLoginRequest,
     path: z.optional(z.never()),
@@ -283,3 +671,297 @@ export const zAuthApiSignupData = z.object({
 export const zAuthApiSignupResponse = z.object({
     data: zAuthAuthResponse
 });
+
+export const zCoachingApiGetCoverLetterData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiGetCoverLetterResponse = zCoachingCoverLetter;
+
+export const zCoachingApiUpdateCoverLetterData = z.object({
+    body: z.object({
+        content: z.optional(z.string())
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiUpdateCoverLetterResponse = z.object({
+    updated_at: z.iso.datetime()
+});
+
+export const zCoachingApiGetVersionsData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiGetVersionsResponse = z.object({
+    versions: z.array(zCoachingCoverLetterVersion)
+});
+
+export const zCoachingApiCreateVersionData = z.object({
+    body: z.object({
+        content: z.string()
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded and a new resource has been created as a result.
+ */
+export const zCoachingApiCreateVersionResponse = z.object({
+    version: zCoachingCoverLetterVersion
+});
+
+export const zCoachingApiGenerateDraftData = z.object({
+    body: zCoachingGenerateDraftRequest,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiGenerateDraftResponse = z.object({
+    draft: z.string()
+});
+
+export const zCoachingApiAnalyzeQuestionData = z.object({
+    body: zCoachingQuestionAnalysisRequest,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiAnalyzeQuestionResponse = zCoachingQuestionAnalysisResult;
+
+export const zCoachingApiRecommendExperiencesData = z.object({
+    body: zCoachingRecommendExperiencesRequest,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiRecommendExperiencesResponse = z.object({
+    recommendations: z.array(zCoachingExperienceRecommendation)
+});
+
+export const zCoachingApiReviewData = z.object({
+    body: zCoachingReviewRequest,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiReviewResponse = zCoachingReviewResult;
+
+export const zCoachingApiGetSessionsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        coverLetterId: z.string()
+    })
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiGetSessionsResponse = z.object({
+    sessions: z.array(zCoachingCoachingSession)
+});
+
+export const zCompanyApiGetCompanyDataData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        name: z.string()
+    })
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCompanyApiGetCompanyDataResponse = zCompanyCompanyData;
+
+export const zExperienceApiListData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        sort: z.optional(z.enum([
+            'latest',
+            'oldest',
+            'title'
+        ])),
+        category: z.optional(z.string()),
+        weapon: z.optional(z.string())
+    }))
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zExperienceApiListResponse = z.object({
+    experiences: z.array(zExperienceExperience)
+});
+
+export const zExperienceApiCreateData = z.object({
+    body: zExperienceCreateExperienceRequest,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded and a new resource has been created as a result.
+ */
+export const zExperienceApiCreateResponse = z.object({
+    id: z.string()
+});
+
+export const zExperienceApiDeleteData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zExperienceApiDeleteResponse = z.object({
+    success: z.boolean()
+});
+
+export const zExperienceApiGetData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zExperienceApiGetResponse = zExperienceExperience;
+
+export const zExperienceApiUpdateData = z.object({
+    body: zExperienceUpdateExperienceRequest,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zExperienceApiUpdateResponse = z.object({
+    id: z.string()
+});
+
+export const zExperienceApiTagData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zExperienceApiTagResponse = zExperienceWeaponTagResponse;
+
+export const zSystemApiSubmitFeedbackData = z.object({
+    body: zSystemFeedbackInput,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded and a new resource has been created as a result.
+ */
+export const zSystemApiSubmitFeedbackResponse = zSystemFeedbackResponse;
+
+export const zInterviewApiExtractStarData = z.object({
+    body: zInterviewExtractStarRequest,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zInterviewApiExtractStarResponse = zInterviewExtractStarResult;
+
+export const zInterviewApiGenerateQuestionData = z.object({
+    body: zInterviewGenerateQuestionRequest,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zInterviewApiGenerateQuestionResponse = zInterviewGenerateQuestionResponse;
+
+export const zInterviewApiSaveExperienceData = z.object({
+    body: zInterviewExtractStarResult,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded and a new resource has been created as a result.
+ */
+export const zInterviewApiSaveExperienceResponse = zInterviewSaveExperienceResponse;
+
+export const zCompanyApiMatchExperiencesData = z.object({
+    body: zCompanyMatchRequest,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCompanyApiMatchExperiencesResponse = zCompanyMatchResponse;
+
+export const zSystemApiGetUsageData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zSystemApiGetUsageResponse = zSystemUsageResponse;

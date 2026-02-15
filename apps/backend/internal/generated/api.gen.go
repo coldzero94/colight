@@ -56,10 +56,63 @@ const (
 	AuthUserInfoRoleUser  AuthUserInfoRole = "user"
 )
 
+// Defines values for CompanyCompanyAnalysisSource.
+const (
+	AiGenerated    CompanyCompanyAnalysisSource = "ai_generated"
+	Cache          CompanyCompanyAnalysisSource = "cache"
+	TalentProfiles CompanyCompanyAnalysisSource = "talent_profiles"
+)
+
+// Defines values for InterviewChatMessageRole.
+const (
+	InterviewChatMessageRoleAssistant InterviewChatMessageRole = "assistant"
+	InterviewChatMessageRoleUser      InterviewChatMessageRole = "user"
+)
+
+// Defines values for InterviewGenerateQuestionRequestStage.
+const (
+	InterviewGenerateQuestionRequestStageChallenge InterviewGenerateQuestionRequestStage = "challenge"
+	InterviewGenerateQuestionRequestStageMemory    InterviewGenerateQuestionRequestStage = "memory"
+	InterviewGenerateQuestionRequestStageOutcome   InterviewGenerateQuestionRequestStage = "outcome"
+	InterviewGenerateQuestionRequestStageSolution  InterviewGenerateQuestionRequestStage = "solution"
+	InterviewGenerateQuestionRequestStageWarmup    InterviewGenerateQuestionRequestStage = "warmup"
+)
+
+// Defines values for InterviewGenerateQuestionResponseStage.
+const (
+	InterviewGenerateQuestionResponseStageChallenge InterviewGenerateQuestionResponseStage = "challenge"
+	InterviewGenerateQuestionResponseStageMemory    InterviewGenerateQuestionResponseStage = "memory"
+	InterviewGenerateQuestionResponseStageOutcome   InterviewGenerateQuestionResponseStage = "outcome"
+	InterviewGenerateQuestionResponseStageSolution  InterviewGenerateQuestionResponseStage = "solution"
+	InterviewGenerateQuestionResponseStageWarmup    InterviewGenerateQuestionResponseStage = "warmup"
+)
+
+// Defines values for SystemFeedbackInputCategory.
+const (
+	Bug         SystemFeedbackInputCategory = "bug"
+	Improvement SystemFeedbackInputCategory = "improvement"
+	Other       SystemFeedbackInputCategory = "other"
+)
+
+// Defines values for SystemUsageResponsePlan.
+const (
+	Free    SystemUsageResponsePlan = "free"
+	Pro     SystemUsageResponsePlan = "pro"
+	Season  SystemUsageResponsePlan = "season"
+	Starter SystemUsageResponsePlan = "starter"
+)
+
 // Defines values for AdminAPIListUsersParamsRole.
 const (
-	AdminAPIListUsersParamsRoleAdmin AdminAPIListUsersParamsRole = "admin"
-	AdminAPIListUsersParamsRoleUser  AdminAPIListUsersParamsRole = "user"
+	Admin AdminAPIListUsersParamsRole = "admin"
+	User  AdminAPIListUsersParamsRole = "user"
+)
+
+// Defines values for ExperienceAPIListParamsSort.
+const (
+	Latest ExperienceAPIListParamsSort = "latest"
+	Oldest ExperienceAPIListParamsSort = "oldest"
+	Title  ExperienceAPIListParamsSort = "title"
 )
 
 // AdminAdminUserListItem defines model for Admin.AdminUserListItem.
@@ -167,11 +220,412 @@ type AuthUserInfoAuthProvider string
 // AuthUserInfoRole defines model for AuthUserInfo.Role.
 type AuthUserInfoRole string
 
+// CoachingApplicationSummary defines model for Coaching.ApplicationSummary.
+type CoachingApplicationSummary struct {
+	CompanyName string    `json:"company_name"`
+	CreatedAt   time.Time `json:"created_at"`
+	Id          string    `json:"id"`
+	Position    string    `json:"position"`
+	Status      string    `json:"status"`
+}
+
+// CoachingCoachingSession defines model for Coaching.CoachingSession.
+type CoachingCoachingSession struct {
+	CreatedAt    time.Time `json:"created_at"`
+	Id           string    `json:"id"`
+	InputTokens  int32     `json:"input_tokens"`
+	OutputTokens int32     `json:"output_tokens"`
+	SessionType  string    `json:"session_type"`
+}
+
+// CoachingCoverLetter defines model for Coaching.CoverLetter.
+type CoachingCoverLetter struct {
+	CharLimit      int32     `json:"char_limit"`
+	CreatedAt      time.Time `json:"created_at"`
+	CurrentContent string    `json:"current_content"`
+	Id             string    `json:"id"`
+	QuestionText   string    `json:"question_text"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+// CoachingCoverLetterVersion defines model for Coaching.CoverLetterVersion.
+type CoachingCoverLetterVersion struct {
+	CharCount     int32     `json:"char_count"`
+	Content       string    `json:"content"`
+	CreatedAt     time.Time `json:"created_at"`
+	Id            string    `json:"id"`
+	VersionNumber int32     `json:"version_number"`
+}
+
+// CoachingDimensionFeedback defines model for Coaching.DimensionFeedback.
+type CoachingDimensionFeedback struct {
+	Dimension string   `json:"dimension"`
+	Good      []string `json:"good"`
+	Improve   []string `json:"improve"`
+	Score     float32  `json:"score"`
+}
+
+// CoachingExperienceRecommendation defines model for Coaching.ExperienceRecommendation.
+type CoachingExperienceRecommendation struct {
+	Category      string   `json:"category"`
+	Id            string   `json:"id"`
+	MatchScore    float32  `json:"match_score"`
+	PeriodEnd     *string  `json:"period_end,omitempty"`
+	PeriodStart   *string  `json:"period_start,omitempty"`
+	StarSituation string   `json:"star_situation"`
+	Title         string   `json:"title"`
+	Weapons       []string `json:"weapons"`
+}
+
+// CoachingGenerateDraftRequest defines model for Coaching.GenerateDraftRequest.
+type CoachingGenerateDraftRequest struct {
+	AnalysisResult *CoachingQuestionAnalysisResult `json:"analysis_result,omitempty"`
+	ApplicationId  string                          `json:"application_id"`
+	CharLimit      int32                           `json:"char_limit"`
+	ExperienceIds  []string                        `json:"experience_ids"`
+	QuestionText   string                          `json:"question_text"`
+}
+
+// CoachingQuestionAnalysisRequest defines model for Coaching.QuestionAnalysisRequest.
+type CoachingQuestionAnalysisRequest struct {
+	ApplicationId string `json:"application_id"`
+	CharLimit     int32  `json:"char_limit"`
+	QuestionText  string `json:"question_text"`
+}
+
+// CoachingQuestionAnalysisResult defines model for Coaching.QuestionAnalysisResult.
+type CoachingQuestionAnalysisResult struct {
+	AvoidList            []string             `json:"avoid_list"`
+	GoodStructureExample string               `json:"good_structure_example"`
+	KeyKeywords          []string             `json:"key_keywords"`
+	RealIntents          []CoachingRealIntent `json:"real_intents"`
+	RequiredWeapons      struct {
+		Primary   CoachingWeaponRef   `json:"primary"`
+		Secondary []CoachingWeaponRef `json:"secondary"`
+	} `json:"required_weapons"`
+	SurfaceQuestion  string `json:"surface_question"`
+	WritingStructure struct {
+		Sections   []CoachingWritingSection `json:"sections"`
+		TotalChars int32                    `json:"total_chars"`
+	} `json:"writing_structure"`
+}
+
+// CoachingRealIntent defines model for Coaching.RealIntent.
+type CoachingRealIntent struct {
+	Intent string `json:"intent"`
+	Why    string `json:"why"`
+}
+
+// CoachingRecommendExperiencesRequest defines model for Coaching.RecommendExperiencesRequest.
+type CoachingRecommendExperiencesRequest struct {
+	Limit           *int32 `json:"limit,omitempty"`
+	RequiredWeapons struct {
+		Primary   CoachingWeaponRef   `json:"primary"`
+		Secondary []CoachingWeaponRef `json:"secondary"`
+	} `json:"required_weapons"`
+}
+
+// CoachingReviewRequest defines model for Coaching.ReviewRequest.
+type CoachingReviewRequest struct {
+	Content       string `json:"content"`
+	CoverLetterId string `json:"cover_letter_id"`
+}
+
+// CoachingReviewResult defines model for Coaching.ReviewResult.
+type CoachingReviewResult struct {
+	Overall              float32                      `json:"overall"`
+	PerDimensionFeedback []CoachingDimensionFeedback  `json:"per_dimension_feedback"`
+	Scores               CoachingReviewScores         `json:"scores"`
+	SpecificSuggestions  []CoachingSpecificSuggestion `json:"specific_suggestions"`
+}
+
+// CoachingReviewScores defines model for Coaching.ReviewScores.
+type CoachingReviewScores struct {
+	Authenticity float32 `json:"authenticity"`
+	CompanyFit   float32 `json:"company_fit"`
+	JobFit       float32 `json:"job_fit"`
+	Specificity  float32 `json:"specificity"`
+}
+
+// CoachingSpecificSuggestion defines model for Coaching.SpecificSuggestion.
+type CoachingSpecificSuggestion struct {
+	Original  string `json:"original"`
+	Reason    string `json:"reason"`
+	Suggested string `json:"suggested"`
+}
+
+// CoachingWeaponRef defines model for Coaching.WeaponRef.
+type CoachingWeaponRef struct {
+	Reason     string `json:"reason"`
+	WeaponId   string `json:"weapon_id"`
+	WeaponName string `json:"weapon_name"`
+}
+
+// CoachingWritingSection defines model for Coaching.WritingSection.
+type CoachingWritingSection struct {
+	CharCount int32   `json:"char_count"`
+	CharRatio float32 `json:"char_ratio"`
+	Guide     string  `json:"guide"`
+	Name      string  `json:"name"`
+}
+
 // CommonErrorDetail defines model for Common.ErrorDetail.
 type CommonErrorDetail struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
+
+// CompanyAnalyzeCompanyRequest defines model for Company.AnalyzeCompanyRequest.
+type CompanyAnalyzeCompanyRequest struct {
+	CompanyName string `json:"company_name"`
+}
+
+// CompanyBasicInfo defines model for Company.BasicInfo.
+type CompanyBasicInfo struct {
+	Address   *string `json:"address,omitempty"`
+	Ceo       *string `json:"ceo,omitempty"`
+	CorpCode  *string `json:"corp_code,omitempty"`
+	CorpName  string  `json:"corp_name"`
+	Industry  *string `json:"industry,omitempty"`
+	StockCode *string `json:"stock_code,omitempty"`
+}
+
+// CompanyCompanyAnalysis defines model for Company.CompanyAnalysis.
+type CompanyCompanyAnalysis struct {
+	AvoidExpressions []string                     `json:"avoid_expressions"`
+	CompanyName      string                       `json:"company_name"`
+	CoreValues       []CompanyCoreValue           `json:"core_values"`
+	RecentTrends     []CompanyTrend               `json:"recent_trends"`
+	Source           CompanyCompanyAnalysisSource `json:"source"`
+	StrategyKeywords []string                     `json:"strategy_keywords"`
+	TalentTraits     []CompanyTalentTrait         `json:"talent_traits"`
+}
+
+// CompanyCompanyAnalysisSource defines model for CompanyCompanyAnalysis.Source.
+type CompanyCompanyAnalysisSource string
+
+// CompanyCompanyData defines model for Company.CompanyData.
+type CompanyCompanyData struct {
+	BasicInfo CompanyBasicInfo  `json:"basic_info"`
+	News      []CompanyNewsItem `json:"news"`
+}
+
+// CompanyCoreValue defines model for Company.CoreValue.
+type CompanyCoreValue struct {
+	Description string `json:"description"`
+	Keyword     string `json:"keyword"`
+}
+
+// CompanyMatchRequest defines model for Company.MatchRequest.
+type CompanyMatchRequest struct {
+	CompanyName string `json:"company_name"`
+}
+
+// CompanyMatchResponse defines model for Company.MatchResponse.
+type CompanyMatchResponse struct {
+	CompanyName string               `json:"company_name"`
+	Matches     []CompanyMatchResult `json:"matches"`
+	Total       int32                `json:"total"`
+}
+
+// CompanyMatchResult defines model for Company.MatchResult.
+type CompanyMatchResult struct {
+	ExperienceId   string  `json:"experience_id"`
+	JobRelevance   float32 `json:"job_relevance"`
+	OverallFit     float32 `json:"overall_fit"`
+	Reasoning      string  `json:"reasoning"`
+	SuggestedAngle string  `json:"suggested_angle"`
+	TalentFit      float32 `json:"talent_fit"`
+	Uniqueness     float32 `json:"uniqueness"`
+}
+
+// CompanyNewsItem defines model for Company.NewsItem.
+type CompanyNewsItem struct {
+	Description *string `json:"description,omitempty"`
+	Link        string  `json:"link"`
+	PubDate     *string `json:"pub_date,omitempty"`
+	Source      *string `json:"source,omitempty"`
+	Title       string  `json:"title"`
+}
+
+// CompanyTalentTrait defines model for Company.TalentTrait.
+type CompanyTalentTrait struct {
+	Description string  `json:"description"`
+	Evidence    *string `json:"evidence,omitempty"`
+	Trait       string  `json:"trait"`
+}
+
+// CompanyTrend defines model for Company.Trend.
+type CompanyTrend struct {
+	Relevance *string `json:"relevance,omitempty"`
+	Summary   string  `json:"summary"`
+	Title     string  `json:"title"`
+}
+
+// ExperienceCreateExperienceRequest defines model for Experience.CreateExperienceRequest.
+type ExperienceCreateExperienceRequest struct {
+	Category      *string   `json:"category,omitempty"`
+	Content       *string   `json:"content,omitempty"`
+	Keywords      *[]string `json:"keywords,omitempty"`
+	PeriodEnd     *string   `json:"period_end,omitempty"`
+	PeriodStart   *string   `json:"period_start,omitempty"`
+	Result        *string   `json:"result,omitempty"`
+	Role          *string   `json:"role,omitempty"`
+	StarAction    *string   `json:"star_action,omitempty"`
+	StarResult    *string   `json:"star_result,omitempty"`
+	StarSituation *string   `json:"star_situation,omitempty"`
+	StarTask      *string   `json:"star_task,omitempty"`
+	Title         string    `json:"title"`
+}
+
+// ExperienceExperience defines model for Experience.Experience.
+type ExperienceExperience struct {
+	Category      string                        `json:"category"`
+	Content       string                        `json:"content"`
+	CreatedAt     time.Time                     `json:"created_at"`
+	Id            string                        `json:"id"`
+	IsArchived    bool                          `json:"is_archived"`
+	Keywords      *[]string                     `json:"keywords,omitempty"`
+	PeriodEnd     *string                       `json:"period_end,omitempty"`
+	PeriodStart   *string                       `json:"period_start,omitempty"`
+	Result        string                        `json:"result"`
+	Role          string                        `json:"role"`
+	Source        string                        `json:"source"`
+	StarAction    string                        `json:"star_action"`
+	StarResult    string                        `json:"star_result"`
+	StarSituation string                        `json:"star_situation"`
+	StarTask      string                        `json:"star_task"`
+	Title         string                        `json:"title"`
+	UpdatedAt     time.Time                     `json:"updated_at"`
+	UserId        string                        `json:"user_id"`
+	Weapons       *[]ExperienceExperienceWeapon `json:"weapons,omitempty"`
+}
+
+// ExperienceExperienceWeapon defines model for Experience.ExperienceWeapon.
+type ExperienceExperienceWeapon struct {
+	Confidence    float32 `json:"confidence"`
+	Id            string  `json:"id"`
+	IsPrimary     bool    `json:"is_primary"`
+	Reasoning     string  `json:"reasoning"`
+	UserConfirmed bool    `json:"user_confirmed"`
+	UserModified  bool    `json:"user_modified"`
+	WeaponCode    string  `json:"weapon_code"`
+}
+
+// ExperienceUpdateExperienceRequest defines model for Experience.UpdateExperienceRequest.
+type ExperienceUpdateExperienceRequest struct {
+	Category      *string   `json:"category,omitempty"`
+	Content       *string   `json:"content,omitempty"`
+	Keywords      *[]string `json:"keywords,omitempty"`
+	PeriodEnd     *string   `json:"period_end,omitempty"`
+	PeriodStart   *string   `json:"period_start,omitempty"`
+	Result        *string   `json:"result,omitempty"`
+	Role          *string   `json:"role,omitempty"`
+	StarAction    *string   `json:"star_action,omitempty"`
+	StarResult    *string   `json:"star_result,omitempty"`
+	StarSituation *string   `json:"star_situation,omitempty"`
+	StarTask      *string   `json:"star_task,omitempty"`
+	Title         *string   `json:"title,omitempty"`
+}
+
+// ExperienceWeaponTag defines model for Experience.WeaponTag.
+type ExperienceWeaponTag struct {
+	Code       string  `json:"code"`
+	Confidence float32 `json:"confidence"`
+	Reasoning  string  `json:"reasoning"`
+}
+
+// ExperienceWeaponTagResponse defines model for Experience.WeaponTagResponse.
+type ExperienceWeaponTagResponse struct {
+	PrimaryWeapon    ExperienceWeaponTag   `json:"primary_weapon"`
+	SecondaryWeapons []ExperienceWeaponTag `json:"secondary_weapons"`
+}
+
+// InterviewChatMessage defines model for Interview.ChatMessage.
+type InterviewChatMessage struct {
+	Content string                   `json:"content"`
+	Role    InterviewChatMessageRole `json:"role"`
+}
+
+// InterviewChatMessageRole defines model for InterviewChatMessage.Role.
+type InterviewChatMessageRole string
+
+// InterviewExtractSTARRequest defines model for Interview.ExtractSTARRequest.
+type InterviewExtractSTARRequest struct {
+	Messages []InterviewChatMessage `json:"messages"`
+}
+
+// InterviewExtractSTARResult defines model for Interview.ExtractSTARResult.
+type InterviewExtractSTARResult struct {
+	Category      string   `json:"category"`
+	Content       string   `json:"content"`
+	Keywords      []string `json:"keywords"`
+	Result        string   `json:"result"`
+	StarAction    string   `json:"star_action"`
+	StarResult    string   `json:"star_result"`
+	StarSituation string   `json:"star_situation"`
+	StarTask      string   `json:"star_task"`
+	Title         string   `json:"title"`
+}
+
+// InterviewGenerateQuestionRequest defines model for Interview.GenerateQuestionRequest.
+type InterviewGenerateQuestionRequest struct {
+	Messages []InterviewChatMessage                `json:"messages"`
+	Stage    InterviewGenerateQuestionRequestStage `json:"stage"`
+}
+
+// InterviewGenerateQuestionRequestStage defines model for InterviewGenerateQuestionRequest.Stage.
+type InterviewGenerateQuestionRequestStage string
+
+// InterviewGenerateQuestionResponse defines model for Interview.GenerateQuestionResponse.
+type InterviewGenerateQuestionResponse struct {
+	IsComplete bool                                   `json:"is_complete"`
+	NextStage  string                                 `json:"next_stage"`
+	Question   string                                 `json:"question"`
+	Stage      InterviewGenerateQuestionResponseStage `json:"stage"`
+}
+
+// InterviewGenerateQuestionResponseStage defines model for InterviewGenerateQuestionResponse.Stage.
+type InterviewGenerateQuestionResponseStage string
+
+// InterviewSaveExperienceResponse defines model for Interview.SaveExperienceResponse.
+type InterviewSaveExperienceResponse struct {
+	ExperienceId string `json:"experience_id"`
+	Tagged       bool   `json:"tagged"`
+}
+
+// SystemFeatureUsage defines model for System.FeatureUsage.
+type SystemFeatureUsage struct {
+	Allowed   bool  `json:"allowed"`
+	Limit     int32 `json:"limit"`
+	Remaining int32 `json:"remaining"`
+	Used      int32 `json:"used"`
+}
+
+// SystemFeedbackInput defines model for System.FeedbackInput.
+type SystemFeedbackInput struct {
+	Category SystemFeedbackInputCategory `json:"category"`
+	Content  string                      `json:"content"`
+	PageUrl  *string                     `json:"page_url,omitempty"`
+}
+
+// SystemFeedbackInputCategory defines model for SystemFeedbackInput.Category.
+type SystemFeedbackInputCategory string
+
+// SystemFeedbackResponse defines model for System.FeedbackResponse.
+type SystemFeedbackResponse struct {
+	CreatedAt time.Time `json:"created_at"`
+	Id        string    `json:"id"`
+}
+
+// SystemUsageResponse defines model for System.UsageResponse.
+type SystemUsageResponse struct {
+	Features map[string]SystemFeatureUsage `json:"features"`
+	Plan     SystemUsageResponsePlan       `json:"plan"`
+}
+
+// SystemUsageResponsePlan defines model for SystemUsageResponse.Plan.
+type SystemUsageResponsePlan string
 
 // AdminAPIListPromptsParams defines parameters for AdminAPIListPrompts.
 type AdminAPIListPromptsParams struct {
@@ -200,11 +654,44 @@ type AuthAPIRefreshJSONBody struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+// CoachingAPIUpdateCoverLetterJSONBody defines parameters for CoachingAPIUpdateCoverLetter.
+type CoachingAPIUpdateCoverLetterJSONBody struct {
+	Content *string `json:"content,omitempty"`
+}
+
+// CoachingAPICreateVersionJSONBody defines parameters for CoachingAPICreateVersion.
+type CoachingAPICreateVersionJSONBody struct {
+	Content string `json:"content"`
+}
+
+// CoachingAPIGetSessionsParams defines parameters for CoachingAPIGetSessions.
+type CoachingAPIGetSessionsParams struct {
+	CoverLetterId string `form:"coverLetterId" json:"coverLetterId"`
+}
+
+// CompanyAPIGetCompanyDataParams defines parameters for CompanyAPIGetCompanyData.
+type CompanyAPIGetCompanyDataParams struct {
+	Name string `form:"name" json:"name"`
+}
+
+// ExperienceAPIListParams defines parameters for ExperienceAPIList.
+type ExperienceAPIListParams struct {
+	Sort     *ExperienceAPIListParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
+	Category *string                      `form:"category,omitempty" json:"category,omitempty"`
+	Weapon   *string                      `form:"weapon,omitempty" json:"weapon,omitempty"`
+}
+
+// ExperienceAPIListParamsSort defines parameters for ExperienceAPIList.
+type ExperienceAPIListParamsSort string
+
 // AdminAPIUpdatePromptJSONRequestBody defines body for AdminAPIUpdatePrompt for application/json ContentType.
 type AdminAPIUpdatePromptJSONRequestBody = AdminUpdatePromptRequest
 
 // AdminAPIUpdateUserRoleJSONRequestBody defines body for AdminAPIUpdateUserRole for application/json ContentType.
 type AdminAPIUpdateUserRoleJSONRequestBody = AdminUpdateRoleRequest
+
+// CompanyAPIAnalyzeCompanyJSONRequestBody defines body for CompanyAPIAnalyzeCompany for application/json ContentType.
+type CompanyAPIAnalyzeCompanyJSONRequestBody = CompanyAnalyzeCompanyRequest
 
 // AuthAPILoginJSONRequestBody defines body for AuthAPILogin for application/json ContentType.
 type AuthAPILoginJSONRequestBody = AuthLoginRequest
@@ -214,6 +701,45 @@ type AuthAPIRefreshJSONRequestBody AuthAPIRefreshJSONBody
 
 // AuthAPISignupJSONRequestBody defines body for AuthAPISignup for application/json ContentType.
 type AuthAPISignupJSONRequestBody = AuthSignupRequest
+
+// CoachingAPIUpdateCoverLetterJSONRequestBody defines body for CoachingAPIUpdateCoverLetter for application/json ContentType.
+type CoachingAPIUpdateCoverLetterJSONRequestBody CoachingAPIUpdateCoverLetterJSONBody
+
+// CoachingAPICreateVersionJSONRequestBody defines body for CoachingAPICreateVersion for application/json ContentType.
+type CoachingAPICreateVersionJSONRequestBody CoachingAPICreateVersionJSONBody
+
+// CoachingAPIGenerateDraftJSONRequestBody defines body for CoachingAPIGenerateDraft for application/json ContentType.
+type CoachingAPIGenerateDraftJSONRequestBody = CoachingGenerateDraftRequest
+
+// CoachingAPIAnalyzeQuestionJSONRequestBody defines body for CoachingAPIAnalyzeQuestion for application/json ContentType.
+type CoachingAPIAnalyzeQuestionJSONRequestBody = CoachingQuestionAnalysisRequest
+
+// CoachingAPIRecommendExperiencesJSONRequestBody defines body for CoachingAPIRecommendExperiences for application/json ContentType.
+type CoachingAPIRecommendExperiencesJSONRequestBody = CoachingRecommendExperiencesRequest
+
+// CoachingAPIReviewJSONRequestBody defines body for CoachingAPIReview for application/json ContentType.
+type CoachingAPIReviewJSONRequestBody = CoachingReviewRequest
+
+// ExperienceAPICreateJSONRequestBody defines body for ExperienceAPICreate for application/json ContentType.
+type ExperienceAPICreateJSONRequestBody = ExperienceCreateExperienceRequest
+
+// ExperienceAPIUpdateJSONRequestBody defines body for ExperienceAPIUpdate for application/json ContentType.
+type ExperienceAPIUpdateJSONRequestBody = ExperienceUpdateExperienceRequest
+
+// SystemAPISubmitFeedbackJSONRequestBody defines body for SystemAPISubmitFeedback for application/json ContentType.
+type SystemAPISubmitFeedbackJSONRequestBody = SystemFeedbackInput
+
+// InterviewAPIExtractSTARJSONRequestBody defines body for InterviewAPIExtractSTAR for application/json ContentType.
+type InterviewAPIExtractSTARJSONRequestBody = InterviewExtractSTARRequest
+
+// InterviewAPIGenerateQuestionJSONRequestBody defines body for InterviewAPIGenerateQuestion for application/json ContentType.
+type InterviewAPIGenerateQuestionJSONRequestBody = InterviewGenerateQuestionRequest
+
+// InterviewAPISaveExperienceJSONRequestBody defines body for InterviewAPISaveExperience for application/json ContentType.
+type InterviewAPISaveExperienceJSONRequestBody = InterviewExtractSTARResult
+
+// CompanyAPIMatchExperiencesJSONRequestBody defines body for CompanyAPIMatchExperiences for application/json ContentType.
+type CompanyAPIMatchExperiencesJSONRequestBody = CompanyMatchRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -239,6 +765,12 @@ type ServerInterface interface {
 	// (PUT /v1/admin/users/{id}/role)
 	AdminAPIUpdateUserRole(c *gin.Context, id string)
 
+	// (POST /v1/analyze-company)
+	CompanyAPIAnalyzeCompany(c *gin.Context)
+
+	// (GET /v1/applications)
+	CoachingAPIGetApplications(c *gin.Context)
+
 	// (POST /v1/auth/login)
 	AuthAPILogin(c *gin.Context)
 
@@ -259,6 +791,72 @@ type ServerInterface interface {
 
 	// (POST /v1/auth/signup)
 	AuthAPISignup(c *gin.Context)
+
+	// (GET /v1/coaching/cover-letters/{id})
+	CoachingAPIGetCoverLetter(c *gin.Context, id string)
+
+	// (PATCH /v1/coaching/cover-letters/{id})
+	CoachingAPIUpdateCoverLetter(c *gin.Context, id string)
+
+	// (GET /v1/coaching/cover-letters/{id}/versions)
+	CoachingAPIGetVersions(c *gin.Context, id string)
+
+	// (POST /v1/coaching/cover-letters/{id}/versions)
+	CoachingAPICreateVersion(c *gin.Context, id string)
+
+	// (POST /v1/coaching/draft)
+	CoachingAPIGenerateDraft(c *gin.Context)
+
+	// (POST /v1/coaching/question-analysis)
+	CoachingAPIAnalyzeQuestion(c *gin.Context)
+
+	// (POST /v1/coaching/recommend-experiences)
+	CoachingAPIRecommendExperiences(c *gin.Context)
+
+	// (POST /v1/coaching/review)
+	CoachingAPIReview(c *gin.Context)
+
+	// (GET /v1/coaching/sessions)
+	CoachingAPIGetSessions(c *gin.Context, params CoachingAPIGetSessionsParams)
+
+	// (GET /v1/company-data)
+	CompanyAPIGetCompanyData(c *gin.Context, params CompanyAPIGetCompanyDataParams)
+
+	// (GET /v1/experiences)
+	ExperienceAPIList(c *gin.Context, params ExperienceAPIListParams)
+
+	// (POST /v1/experiences)
+	ExperienceAPICreate(c *gin.Context)
+
+	// (DELETE /v1/experiences/{id})
+	ExperienceAPIDelete(c *gin.Context, id string)
+
+	// (GET /v1/experiences/{id})
+	ExperienceAPIGet(c *gin.Context, id string)
+
+	// (PATCH /v1/experiences/{id})
+	ExperienceAPIUpdate(c *gin.Context, id string)
+
+	// (POST /v1/experiences/{id}/tag)
+	ExperienceAPITag(c *gin.Context, id string)
+
+	// (POST /v1/feedback)
+	SystemAPISubmitFeedback(c *gin.Context)
+
+	// (POST /v1/interview/extract)
+	InterviewAPIExtractSTAR(c *gin.Context)
+
+	// (POST /v1/interview/question)
+	InterviewAPIGenerateQuestion(c *gin.Context)
+
+	// (POST /v1/interview/save)
+	InterviewAPISaveExperience(c *gin.Context)
+
+	// (POST /v1/match)
+	CompanyAPIMatchExperiences(c *gin.Context)
+
+	// (GET /v1/usage)
+	SystemAPIGetUsage(c *gin.Context)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -456,6 +1054,36 @@ func (siw *ServerInterfaceWrapper) AdminAPIUpdateUserRole(c *gin.Context) {
 	siw.Handler.AdminAPIUpdateUserRole(c, id)
 }
 
+// CompanyAPIAnalyzeCompany operation middleware
+func (siw *ServerInterfaceWrapper) CompanyAPIAnalyzeCompany(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CompanyAPIAnalyzeCompany(c)
+}
+
+// CoachingAPIGetApplications operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIGetApplications(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIGetApplications(c)
+}
+
 // AuthAPILogin operation middleware
 func (siw *ServerInterfaceWrapper) AuthAPILogin(c *gin.Context) {
 
@@ -586,6 +1214,493 @@ func (siw *ServerInterfaceWrapper) AuthAPISignup(c *gin.Context) {
 	siw.Handler.AuthAPISignup(c)
 }
 
+// CoachingAPIGetCoverLetter operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIGetCoverLetter(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIGetCoverLetter(c, id)
+}
+
+// CoachingAPIUpdateCoverLetter operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIUpdateCoverLetter(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIUpdateCoverLetter(c, id)
+}
+
+// CoachingAPIGetVersions operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIGetVersions(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIGetVersions(c, id)
+}
+
+// CoachingAPICreateVersion operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPICreateVersion(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPICreateVersion(c, id)
+}
+
+// CoachingAPIGenerateDraft operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIGenerateDraft(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIGenerateDraft(c)
+}
+
+// CoachingAPIAnalyzeQuestion operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIAnalyzeQuestion(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIAnalyzeQuestion(c)
+}
+
+// CoachingAPIRecommendExperiences operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIRecommendExperiences(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIRecommendExperiences(c)
+}
+
+// CoachingAPIReview operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIReview(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIReview(c)
+}
+
+// CoachingAPIGetSessions operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIGetSessions(c *gin.Context) {
+
+	var err error
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CoachingAPIGetSessionsParams
+
+	// ------------- Required query parameter "coverLetterId" -------------
+
+	if paramValue := c.Query("coverLetterId"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument coverLetterId is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "coverLetterId", c.Request.URL.Query(), &params.CoverLetterId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter coverLetterId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIGetSessions(c, params)
+}
+
+// CompanyAPIGetCompanyData operation middleware
+func (siw *ServerInterfaceWrapper) CompanyAPIGetCompanyData(c *gin.Context) {
+
+	var err error
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CompanyAPIGetCompanyDataParams
+
+	// ------------- Required query parameter "name" -------------
+
+	if paramValue := c.Query("name"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument name is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "name", c.Request.URL.Query(), &params.Name)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter name: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CompanyAPIGetCompanyData(c, params)
+}
+
+// ExperienceAPIList operation middleware
+func (siw *ServerInterfaceWrapper) ExperienceAPIList(c *gin.Context) {
+
+	var err error
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ExperienceAPIListParams
+
+	// ------------- Optional query parameter "sort" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "sort", c.Request.URL.Query(), &params.Sort)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter sort: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "category" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "category", c.Request.URL.Query(), &params.Category)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter category: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "weapon" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "weapon", c.Request.URL.Query(), &params.Weapon)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter weapon: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ExperienceAPIList(c, params)
+}
+
+// ExperienceAPICreate operation middleware
+func (siw *ServerInterfaceWrapper) ExperienceAPICreate(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ExperienceAPICreate(c)
+}
+
+// ExperienceAPIDelete operation middleware
+func (siw *ServerInterfaceWrapper) ExperienceAPIDelete(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ExperienceAPIDelete(c, id)
+}
+
+// ExperienceAPIGet operation middleware
+func (siw *ServerInterfaceWrapper) ExperienceAPIGet(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ExperienceAPIGet(c, id)
+}
+
+// ExperienceAPIUpdate operation middleware
+func (siw *ServerInterfaceWrapper) ExperienceAPIUpdate(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ExperienceAPIUpdate(c, id)
+}
+
+// ExperienceAPITag operation middleware
+func (siw *ServerInterfaceWrapper) ExperienceAPITag(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ExperienceAPITag(c, id)
+}
+
+// SystemAPISubmitFeedback operation middleware
+func (siw *ServerInterfaceWrapper) SystemAPISubmitFeedback(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.SystemAPISubmitFeedback(c)
+}
+
+// InterviewAPIExtractSTAR operation middleware
+func (siw *ServerInterfaceWrapper) InterviewAPIExtractSTAR(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.InterviewAPIExtractSTAR(c)
+}
+
+// InterviewAPIGenerateQuestion operation middleware
+func (siw *ServerInterfaceWrapper) InterviewAPIGenerateQuestion(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.InterviewAPIGenerateQuestion(c)
+}
+
+// InterviewAPISaveExperience operation middleware
+func (siw *ServerInterfaceWrapper) InterviewAPISaveExperience(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.InterviewAPISaveExperience(c)
+}
+
+// CompanyAPIMatchExperiences operation middleware
+func (siw *ServerInterfaceWrapper) CompanyAPIMatchExperiences(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CompanyAPIMatchExperiences(c)
+}
+
+// SystemAPIGetUsage operation middleware
+func (siw *ServerInterfaceWrapper) SystemAPIGetUsage(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.SystemAPIGetUsage(c)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -620,6 +1735,8 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v1/admin/users", wrapper.AdminAPIListUsers)
 	router.GET(options.BaseURL+"/v1/admin/users/:id", wrapper.AdminAPIGetUser)
 	router.PUT(options.BaseURL+"/v1/admin/users/:id/role", wrapper.AdminAPIUpdateUserRole)
+	router.POST(options.BaseURL+"/v1/analyze-company", wrapper.CompanyAPIAnalyzeCompany)
+	router.GET(options.BaseURL+"/v1/applications", wrapper.CoachingAPIGetApplications)
 	router.POST(options.BaseURL+"/v1/auth/login", wrapper.AuthAPILogin)
 	router.POST(options.BaseURL+"/v1/auth/logout", wrapper.AuthAPILogout)
 	router.GET(options.BaseURL+"/v1/auth/me", wrapper.AuthAPIMe)
@@ -627,6 +1744,28 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v1/auth/naver/login", wrapper.AuthAPINaverLogin)
 	router.POST(options.BaseURL+"/v1/auth/refresh", wrapper.AuthAPIRefresh)
 	router.POST(options.BaseURL+"/v1/auth/signup", wrapper.AuthAPISignup)
+	router.GET(options.BaseURL+"/v1/coaching/cover-letters/:id", wrapper.CoachingAPIGetCoverLetter)
+	router.PATCH(options.BaseURL+"/v1/coaching/cover-letters/:id", wrapper.CoachingAPIUpdateCoverLetter)
+	router.GET(options.BaseURL+"/v1/coaching/cover-letters/:id/versions", wrapper.CoachingAPIGetVersions)
+	router.POST(options.BaseURL+"/v1/coaching/cover-letters/:id/versions", wrapper.CoachingAPICreateVersion)
+	router.POST(options.BaseURL+"/v1/coaching/draft", wrapper.CoachingAPIGenerateDraft)
+	router.POST(options.BaseURL+"/v1/coaching/question-analysis", wrapper.CoachingAPIAnalyzeQuestion)
+	router.POST(options.BaseURL+"/v1/coaching/recommend-experiences", wrapper.CoachingAPIRecommendExperiences)
+	router.POST(options.BaseURL+"/v1/coaching/review", wrapper.CoachingAPIReview)
+	router.GET(options.BaseURL+"/v1/coaching/sessions", wrapper.CoachingAPIGetSessions)
+	router.GET(options.BaseURL+"/v1/company-data", wrapper.CompanyAPIGetCompanyData)
+	router.GET(options.BaseURL+"/v1/experiences", wrapper.ExperienceAPIList)
+	router.POST(options.BaseURL+"/v1/experiences", wrapper.ExperienceAPICreate)
+	router.DELETE(options.BaseURL+"/v1/experiences/:id", wrapper.ExperienceAPIDelete)
+	router.GET(options.BaseURL+"/v1/experiences/:id", wrapper.ExperienceAPIGet)
+	router.PATCH(options.BaseURL+"/v1/experiences/:id", wrapper.ExperienceAPIUpdate)
+	router.POST(options.BaseURL+"/v1/experiences/:id/tag", wrapper.ExperienceAPITag)
+	router.POST(options.BaseURL+"/v1/feedback", wrapper.SystemAPISubmitFeedback)
+	router.POST(options.BaseURL+"/v1/interview/extract", wrapper.InterviewAPIExtractSTAR)
+	router.POST(options.BaseURL+"/v1/interview/question", wrapper.InterviewAPIGenerateQuestion)
+	router.POST(options.BaseURL+"/v1/interview/save", wrapper.InterviewAPISaveExperience)
+	router.POST(options.BaseURL+"/v1/match", wrapper.CompanyAPIMatchExperiences)
+	router.GET(options.BaseURL+"/v1/usage", wrapper.SystemAPIGetUsage)
 }
 
 type HealthCheckRequestObject struct {
@@ -1159,6 +2298,173 @@ func (response AdminAPIUpdateUserRole500JSONResponse) VisitAdminAPIUpdateUserRol
 	return json.NewEncoder(w).Encode(response)
 }
 
+type CompanyAPIAnalyzeCompanyRequestObject struct {
+	Body *CompanyAPIAnalyzeCompanyJSONRequestBody
+}
+
+type CompanyAPIAnalyzeCompanyResponseObject interface {
+	VisitCompanyAPIAnalyzeCompanyResponse(w http.ResponseWriter) error
+}
+
+type CompanyAPIAnalyzeCompany200JSONResponse CompanyCompanyAnalysis
+
+func (response CompanyAPIAnalyzeCompany200JSONResponse) VisitCompanyAPIAnalyzeCompanyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIAnalyzeCompany400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIAnalyzeCompany400JSONResponse) VisitCompanyAPIAnalyzeCompanyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIAnalyzeCompany401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIAnalyzeCompany401JSONResponse) VisitCompanyAPIAnalyzeCompanyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIAnalyzeCompany403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIAnalyzeCompany403JSONResponse) VisitCompanyAPIAnalyzeCompanyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIAnalyzeCompany404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIAnalyzeCompany404JSONResponse) VisitCompanyAPIAnalyzeCompanyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIAnalyzeCompany409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIAnalyzeCompany409JSONResponse) VisitCompanyAPIAnalyzeCompanyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIAnalyzeCompany500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIAnalyzeCompany500JSONResponse) VisitCompanyAPIAnalyzeCompanyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplicationsRequestObject struct {
+}
+
+type CoachingAPIGetApplicationsResponseObject interface {
+	VisitCoachingAPIGetApplicationsResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIGetApplications200JSONResponse struct {
+	Applications []CoachingApplicationSummary `json:"applications"`
+}
+
+func (response CoachingAPIGetApplications200JSONResponse) VisitCoachingAPIGetApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplications400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetApplications400JSONResponse) VisitCoachingAPIGetApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplications401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetApplications401JSONResponse) VisitCoachingAPIGetApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplications403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetApplications403JSONResponse) VisitCoachingAPIGetApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplications404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetApplications404JSONResponse) VisitCoachingAPIGetApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplications409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetApplications409JSONResponse) VisitCoachingAPIGetApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplications500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetApplications500JSONResponse) VisitCoachingAPIGetApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type AuthAPILoginRequestObject struct {
 	Body *AuthAPILoginJSONRequestBody
 }
@@ -1547,6 +2853,1854 @@ func (response AuthAPISignup500JSONResponse) VisitAuthAPISignupResponse(w http.R
 	return json.NewEncoder(w).Encode(response)
 }
 
+type CoachingAPIGetCoverLetterRequestObject struct {
+	Id string `json:"id"`
+}
+
+type CoachingAPIGetCoverLetterResponseObject interface {
+	VisitCoachingAPIGetCoverLetterResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIGetCoverLetter200JSONResponse CoachingCoverLetter
+
+func (response CoachingAPIGetCoverLetter200JSONResponse) VisitCoachingAPIGetCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetCoverLetter400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetCoverLetter400JSONResponse) VisitCoachingAPIGetCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetCoverLetter401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetCoverLetter401JSONResponse) VisitCoachingAPIGetCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetCoverLetter403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetCoverLetter403JSONResponse) VisitCoachingAPIGetCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetCoverLetter404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetCoverLetter404JSONResponse) VisitCoachingAPIGetCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetCoverLetter409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetCoverLetter409JSONResponse) VisitCoachingAPIGetCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetCoverLetter500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetCoverLetter500JSONResponse) VisitCoachingAPIGetCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateCoverLetterRequestObject struct {
+	Id   string `json:"id"`
+	Body *CoachingAPIUpdateCoverLetterJSONRequestBody
+}
+
+type CoachingAPIUpdateCoverLetterResponseObject interface {
+	VisitCoachingAPIUpdateCoverLetterResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIUpdateCoverLetter200JSONResponse struct {
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (response CoachingAPIUpdateCoverLetter200JSONResponse) VisitCoachingAPIUpdateCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateCoverLetter400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateCoverLetter400JSONResponse) VisitCoachingAPIUpdateCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateCoverLetter401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateCoverLetter401JSONResponse) VisitCoachingAPIUpdateCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateCoverLetter403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateCoverLetter403JSONResponse) VisitCoachingAPIUpdateCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateCoverLetter404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateCoverLetter404JSONResponse) VisitCoachingAPIUpdateCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateCoverLetter409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateCoverLetter409JSONResponse) VisitCoachingAPIUpdateCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateCoverLetter500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateCoverLetter500JSONResponse) VisitCoachingAPIUpdateCoverLetterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetVersionsRequestObject struct {
+	Id string `json:"id"`
+}
+
+type CoachingAPIGetVersionsResponseObject interface {
+	VisitCoachingAPIGetVersionsResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIGetVersions200JSONResponse struct {
+	Versions []CoachingCoverLetterVersion `json:"versions"`
+}
+
+func (response CoachingAPIGetVersions200JSONResponse) VisitCoachingAPIGetVersionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetVersions400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetVersions400JSONResponse) VisitCoachingAPIGetVersionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetVersions401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetVersions401JSONResponse) VisitCoachingAPIGetVersionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetVersions403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetVersions403JSONResponse) VisitCoachingAPIGetVersionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetVersions404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetVersions404JSONResponse) VisitCoachingAPIGetVersionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetVersions409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetVersions409JSONResponse) VisitCoachingAPIGetVersionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetVersions500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetVersions500JSONResponse) VisitCoachingAPIGetVersionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateVersionRequestObject struct {
+	Id   string `json:"id"`
+	Body *CoachingAPICreateVersionJSONRequestBody
+}
+
+type CoachingAPICreateVersionResponseObject interface {
+	VisitCoachingAPICreateVersionResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPICreateVersion201JSONResponse struct {
+	Version CoachingCoverLetterVersion `json:"version"`
+}
+
+func (response CoachingAPICreateVersion201JSONResponse) VisitCoachingAPICreateVersionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateVersion400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPICreateVersion400JSONResponse) VisitCoachingAPICreateVersionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateVersion401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPICreateVersion401JSONResponse) VisitCoachingAPICreateVersionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateVersion403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPICreateVersion403JSONResponse) VisitCoachingAPICreateVersionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateVersion404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPICreateVersion404JSONResponse) VisitCoachingAPICreateVersionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateVersion409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPICreateVersion409JSONResponse) VisitCoachingAPICreateVersionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateVersion500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPICreateVersion500JSONResponse) VisitCoachingAPICreateVersionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGenerateDraftRequestObject struct {
+	Body *CoachingAPIGenerateDraftJSONRequestBody
+}
+
+type CoachingAPIGenerateDraftResponseObject interface {
+	VisitCoachingAPIGenerateDraftResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIGenerateDraft200JSONResponse struct {
+	Draft string `json:"draft"`
+}
+
+func (response CoachingAPIGenerateDraft200JSONResponse) VisitCoachingAPIGenerateDraftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGenerateDraft400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGenerateDraft400JSONResponse) VisitCoachingAPIGenerateDraftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGenerateDraft401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGenerateDraft401JSONResponse) VisitCoachingAPIGenerateDraftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGenerateDraft403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGenerateDraft403JSONResponse) VisitCoachingAPIGenerateDraftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGenerateDraft404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGenerateDraft404JSONResponse) VisitCoachingAPIGenerateDraftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGenerateDraft409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGenerateDraft409JSONResponse) VisitCoachingAPIGenerateDraftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGenerateDraft500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGenerateDraft500JSONResponse) VisitCoachingAPIGenerateDraftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIAnalyzeQuestionRequestObject struct {
+	Body *CoachingAPIAnalyzeQuestionJSONRequestBody
+}
+
+type CoachingAPIAnalyzeQuestionResponseObject interface {
+	VisitCoachingAPIAnalyzeQuestionResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIAnalyzeQuestion200JSONResponse CoachingQuestionAnalysisResult
+
+func (response CoachingAPIAnalyzeQuestion200JSONResponse) VisitCoachingAPIAnalyzeQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIAnalyzeQuestion400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIAnalyzeQuestion400JSONResponse) VisitCoachingAPIAnalyzeQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIAnalyzeQuestion401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIAnalyzeQuestion401JSONResponse) VisitCoachingAPIAnalyzeQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIAnalyzeQuestion403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIAnalyzeQuestion403JSONResponse) VisitCoachingAPIAnalyzeQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIAnalyzeQuestion404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIAnalyzeQuestion404JSONResponse) VisitCoachingAPIAnalyzeQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIAnalyzeQuestion409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIAnalyzeQuestion409JSONResponse) VisitCoachingAPIAnalyzeQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIAnalyzeQuestion500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIAnalyzeQuestion500JSONResponse) VisitCoachingAPIAnalyzeQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIRecommendExperiencesRequestObject struct {
+	Body *CoachingAPIRecommendExperiencesJSONRequestBody
+}
+
+type CoachingAPIRecommendExperiencesResponseObject interface {
+	VisitCoachingAPIRecommendExperiencesResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIRecommendExperiences200JSONResponse struct {
+	Recommendations []CoachingExperienceRecommendation `json:"recommendations"`
+}
+
+func (response CoachingAPIRecommendExperiences200JSONResponse) VisitCoachingAPIRecommendExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIRecommendExperiences400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIRecommendExperiences400JSONResponse) VisitCoachingAPIRecommendExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIRecommendExperiences401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIRecommendExperiences401JSONResponse) VisitCoachingAPIRecommendExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIRecommendExperiences403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIRecommendExperiences403JSONResponse) VisitCoachingAPIRecommendExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIRecommendExperiences404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIRecommendExperiences404JSONResponse) VisitCoachingAPIRecommendExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIRecommendExperiences409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIRecommendExperiences409JSONResponse) VisitCoachingAPIRecommendExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIRecommendExperiences500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIRecommendExperiences500JSONResponse) VisitCoachingAPIRecommendExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIReviewRequestObject struct {
+	Body *CoachingAPIReviewJSONRequestBody
+}
+
+type CoachingAPIReviewResponseObject interface {
+	VisitCoachingAPIReviewResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIReview200JSONResponse CoachingReviewResult
+
+func (response CoachingAPIReview200JSONResponse) VisitCoachingAPIReviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIReview400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIReview400JSONResponse) VisitCoachingAPIReviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIReview401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIReview401JSONResponse) VisitCoachingAPIReviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIReview403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIReview403JSONResponse) VisitCoachingAPIReviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIReview404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIReview404JSONResponse) VisitCoachingAPIReviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIReview409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIReview409JSONResponse) VisitCoachingAPIReviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIReview500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIReview500JSONResponse) VisitCoachingAPIReviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetSessionsRequestObject struct {
+	Params CoachingAPIGetSessionsParams
+}
+
+type CoachingAPIGetSessionsResponseObject interface {
+	VisitCoachingAPIGetSessionsResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIGetSessions200JSONResponse struct {
+	Sessions []CoachingCoachingSession `json:"sessions"`
+}
+
+func (response CoachingAPIGetSessions200JSONResponse) VisitCoachingAPIGetSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetSessions400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetSessions400JSONResponse) VisitCoachingAPIGetSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetSessions401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetSessions401JSONResponse) VisitCoachingAPIGetSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetSessions403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetSessions403JSONResponse) VisitCoachingAPIGetSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetSessions404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetSessions404JSONResponse) VisitCoachingAPIGetSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetSessions409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetSessions409JSONResponse) VisitCoachingAPIGetSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetSessions500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetSessions500JSONResponse) VisitCoachingAPIGetSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIGetCompanyDataRequestObject struct {
+	Params CompanyAPIGetCompanyDataParams
+}
+
+type CompanyAPIGetCompanyDataResponseObject interface {
+	VisitCompanyAPIGetCompanyDataResponse(w http.ResponseWriter) error
+}
+
+type CompanyAPIGetCompanyData200JSONResponse CompanyCompanyData
+
+func (response CompanyAPIGetCompanyData200JSONResponse) VisitCompanyAPIGetCompanyDataResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIGetCompanyData400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIGetCompanyData400JSONResponse) VisitCompanyAPIGetCompanyDataResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIGetCompanyData401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIGetCompanyData401JSONResponse) VisitCompanyAPIGetCompanyDataResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIGetCompanyData403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIGetCompanyData403JSONResponse) VisitCompanyAPIGetCompanyDataResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIGetCompanyData404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIGetCompanyData404JSONResponse) VisitCompanyAPIGetCompanyDataResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIGetCompanyData409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIGetCompanyData409JSONResponse) VisitCompanyAPIGetCompanyDataResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIGetCompanyData500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIGetCompanyData500JSONResponse) VisitCompanyAPIGetCompanyDataResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIListRequestObject struct {
+	Params ExperienceAPIListParams
+}
+
+type ExperienceAPIListResponseObject interface {
+	VisitExperienceAPIListResponse(w http.ResponseWriter) error
+}
+
+type ExperienceAPIList200JSONResponse struct {
+	Experiences []ExperienceExperience `json:"experiences"`
+}
+
+func (response ExperienceAPIList200JSONResponse) VisitExperienceAPIListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIList400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIList400JSONResponse) VisitExperienceAPIListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIList401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIList401JSONResponse) VisitExperienceAPIListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIList403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIList403JSONResponse) VisitExperienceAPIListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIList404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIList404JSONResponse) VisitExperienceAPIListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIList409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIList409JSONResponse) VisitExperienceAPIListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIList500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIList500JSONResponse) VisitExperienceAPIListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPICreateRequestObject struct {
+	Body *ExperienceAPICreateJSONRequestBody
+}
+
+type ExperienceAPICreateResponseObject interface {
+	VisitExperienceAPICreateResponse(w http.ResponseWriter) error
+}
+
+type ExperienceAPICreate201JSONResponse struct {
+	Id string `json:"id"`
+}
+
+func (response ExperienceAPICreate201JSONResponse) VisitExperienceAPICreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPICreate400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPICreate400JSONResponse) VisitExperienceAPICreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPICreate401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPICreate401JSONResponse) VisitExperienceAPICreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPICreate403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPICreate403JSONResponse) VisitExperienceAPICreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPICreate404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPICreate404JSONResponse) VisitExperienceAPICreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPICreate409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPICreate409JSONResponse) VisitExperienceAPICreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPICreate500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPICreate500JSONResponse) VisitExperienceAPICreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIDeleteRequestObject struct {
+	Id string `json:"id"`
+}
+
+type ExperienceAPIDeleteResponseObject interface {
+	VisitExperienceAPIDeleteResponse(w http.ResponseWriter) error
+}
+
+type ExperienceAPIDelete200JSONResponse struct {
+	Success bool `json:"success"`
+}
+
+func (response ExperienceAPIDelete200JSONResponse) VisitExperienceAPIDeleteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIDelete400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIDelete400JSONResponse) VisitExperienceAPIDeleteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIDelete401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIDelete401JSONResponse) VisitExperienceAPIDeleteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIDelete403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIDelete403JSONResponse) VisitExperienceAPIDeleteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIDelete404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIDelete404JSONResponse) VisitExperienceAPIDeleteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIDelete409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIDelete409JSONResponse) VisitExperienceAPIDeleteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIDelete500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIDelete500JSONResponse) VisitExperienceAPIDeleteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIGetRequestObject struct {
+	Id string `json:"id"`
+}
+
+type ExperienceAPIGetResponseObject interface {
+	VisitExperienceAPIGetResponse(w http.ResponseWriter) error
+}
+
+type ExperienceAPIGet200JSONResponse ExperienceExperience
+
+func (response ExperienceAPIGet200JSONResponse) VisitExperienceAPIGetResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIGet400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIGet400JSONResponse) VisitExperienceAPIGetResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIGet401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIGet401JSONResponse) VisitExperienceAPIGetResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIGet403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIGet403JSONResponse) VisitExperienceAPIGetResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIGet404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIGet404JSONResponse) VisitExperienceAPIGetResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIGet409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIGet409JSONResponse) VisitExperienceAPIGetResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIGet500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIGet500JSONResponse) VisitExperienceAPIGetResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIUpdateRequestObject struct {
+	Id   string `json:"id"`
+	Body *ExperienceAPIUpdateJSONRequestBody
+}
+
+type ExperienceAPIUpdateResponseObject interface {
+	VisitExperienceAPIUpdateResponse(w http.ResponseWriter) error
+}
+
+type ExperienceAPIUpdate200JSONResponse struct {
+	Id string `json:"id"`
+}
+
+func (response ExperienceAPIUpdate200JSONResponse) VisitExperienceAPIUpdateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIUpdate400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIUpdate400JSONResponse) VisitExperienceAPIUpdateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIUpdate401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIUpdate401JSONResponse) VisitExperienceAPIUpdateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIUpdate403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIUpdate403JSONResponse) VisitExperienceAPIUpdateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIUpdate404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIUpdate404JSONResponse) VisitExperienceAPIUpdateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIUpdate409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIUpdate409JSONResponse) VisitExperienceAPIUpdateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPIUpdate500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPIUpdate500JSONResponse) VisitExperienceAPIUpdateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPITagRequestObject struct {
+	Id string `json:"id"`
+}
+
+type ExperienceAPITagResponseObject interface {
+	VisitExperienceAPITagResponse(w http.ResponseWriter) error
+}
+
+type ExperienceAPITag200JSONResponse ExperienceWeaponTagResponse
+
+func (response ExperienceAPITag200JSONResponse) VisitExperienceAPITagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPITag400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPITag400JSONResponse) VisitExperienceAPITagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPITag401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPITag401JSONResponse) VisitExperienceAPITagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPITag403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPITag403JSONResponse) VisitExperienceAPITagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPITag404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPITag404JSONResponse) VisitExperienceAPITagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPITag409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPITag409JSONResponse) VisitExperienceAPITagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExperienceAPITag500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response ExperienceAPITag500JSONResponse) VisitExperienceAPITagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPISubmitFeedbackRequestObject struct {
+	Body *SystemAPISubmitFeedbackJSONRequestBody
+}
+
+type SystemAPISubmitFeedbackResponseObject interface {
+	VisitSystemAPISubmitFeedbackResponse(w http.ResponseWriter) error
+}
+
+type SystemAPISubmitFeedback201JSONResponse SystemFeedbackResponse
+
+func (response SystemAPISubmitFeedback201JSONResponse) VisitSystemAPISubmitFeedbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPISubmitFeedback400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response SystemAPISubmitFeedback400JSONResponse) VisitSystemAPISubmitFeedbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPISubmitFeedback401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response SystemAPISubmitFeedback401JSONResponse) VisitSystemAPISubmitFeedbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPISubmitFeedback403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response SystemAPISubmitFeedback403JSONResponse) VisitSystemAPISubmitFeedbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPISubmitFeedback404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response SystemAPISubmitFeedback404JSONResponse) VisitSystemAPISubmitFeedbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPISubmitFeedback409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response SystemAPISubmitFeedback409JSONResponse) VisitSystemAPISubmitFeedbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPISubmitFeedback500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response SystemAPISubmitFeedback500JSONResponse) VisitSystemAPISubmitFeedbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIExtractSTARRequestObject struct {
+	Body *InterviewAPIExtractSTARJSONRequestBody
+}
+
+type InterviewAPIExtractSTARResponseObject interface {
+	VisitInterviewAPIExtractSTARResponse(w http.ResponseWriter) error
+}
+
+type InterviewAPIExtractSTAR200JSONResponse InterviewExtractSTARResult
+
+func (response InterviewAPIExtractSTAR200JSONResponse) VisitInterviewAPIExtractSTARResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIExtractSTAR400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPIExtractSTAR400JSONResponse) VisitInterviewAPIExtractSTARResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIExtractSTAR401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPIExtractSTAR401JSONResponse) VisitInterviewAPIExtractSTARResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIExtractSTAR403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPIExtractSTAR403JSONResponse) VisitInterviewAPIExtractSTARResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIExtractSTAR404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPIExtractSTAR404JSONResponse) VisitInterviewAPIExtractSTARResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIExtractSTAR409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPIExtractSTAR409JSONResponse) VisitInterviewAPIExtractSTARResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIExtractSTAR500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPIExtractSTAR500JSONResponse) VisitInterviewAPIExtractSTARResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIGenerateQuestionRequestObject struct {
+	Body *InterviewAPIGenerateQuestionJSONRequestBody
+}
+
+type InterviewAPIGenerateQuestionResponseObject interface {
+	VisitInterviewAPIGenerateQuestionResponse(w http.ResponseWriter) error
+}
+
+type InterviewAPIGenerateQuestion200JSONResponse InterviewGenerateQuestionResponse
+
+func (response InterviewAPIGenerateQuestion200JSONResponse) VisitInterviewAPIGenerateQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIGenerateQuestion400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPIGenerateQuestion400JSONResponse) VisitInterviewAPIGenerateQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIGenerateQuestion401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPIGenerateQuestion401JSONResponse) VisitInterviewAPIGenerateQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIGenerateQuestion403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPIGenerateQuestion403JSONResponse) VisitInterviewAPIGenerateQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIGenerateQuestion404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPIGenerateQuestion404JSONResponse) VisitInterviewAPIGenerateQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIGenerateQuestion409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPIGenerateQuestion409JSONResponse) VisitInterviewAPIGenerateQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPIGenerateQuestion500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPIGenerateQuestion500JSONResponse) VisitInterviewAPIGenerateQuestionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPISaveExperienceRequestObject struct {
+	Body *InterviewAPISaveExperienceJSONRequestBody
+}
+
+type InterviewAPISaveExperienceResponseObject interface {
+	VisitInterviewAPISaveExperienceResponse(w http.ResponseWriter) error
+}
+
+type InterviewAPISaveExperience201JSONResponse InterviewSaveExperienceResponse
+
+func (response InterviewAPISaveExperience201JSONResponse) VisitInterviewAPISaveExperienceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPISaveExperience400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPISaveExperience400JSONResponse) VisitInterviewAPISaveExperienceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPISaveExperience401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPISaveExperience401JSONResponse) VisitInterviewAPISaveExperienceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPISaveExperience403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPISaveExperience403JSONResponse) VisitInterviewAPISaveExperienceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPISaveExperience404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPISaveExperience404JSONResponse) VisitInterviewAPISaveExperienceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPISaveExperience409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPISaveExperience409JSONResponse) VisitInterviewAPISaveExperienceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InterviewAPISaveExperience500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response InterviewAPISaveExperience500JSONResponse) VisitInterviewAPISaveExperienceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIMatchExperiencesRequestObject struct {
+	Body *CompanyAPIMatchExperiencesJSONRequestBody
+}
+
+type CompanyAPIMatchExperiencesResponseObject interface {
+	VisitCompanyAPIMatchExperiencesResponse(w http.ResponseWriter) error
+}
+
+type CompanyAPIMatchExperiences200JSONResponse CompanyMatchResponse
+
+func (response CompanyAPIMatchExperiences200JSONResponse) VisitCompanyAPIMatchExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIMatchExperiences400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIMatchExperiences400JSONResponse) VisitCompanyAPIMatchExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIMatchExperiences401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIMatchExperiences401JSONResponse) VisitCompanyAPIMatchExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIMatchExperiences403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIMatchExperiences403JSONResponse) VisitCompanyAPIMatchExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIMatchExperiences404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIMatchExperiences404JSONResponse) VisitCompanyAPIMatchExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIMatchExperiences409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIMatchExperiences409JSONResponse) VisitCompanyAPIMatchExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompanyAPIMatchExperiences500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CompanyAPIMatchExperiences500JSONResponse) VisitCompanyAPIMatchExperiencesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPIGetUsageRequestObject struct {
+}
+
+type SystemAPIGetUsageResponseObject interface {
+	VisitSystemAPIGetUsageResponse(w http.ResponseWriter) error
+}
+
+type SystemAPIGetUsage200JSONResponse SystemUsageResponse
+
+func (response SystemAPIGetUsage200JSONResponse) VisitSystemAPIGetUsageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPIGetUsage400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response SystemAPIGetUsage400JSONResponse) VisitSystemAPIGetUsageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPIGetUsage401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response SystemAPIGetUsage401JSONResponse) VisitSystemAPIGetUsageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPIGetUsage403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response SystemAPIGetUsage403JSONResponse) VisitSystemAPIGetUsageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPIGetUsage404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response SystemAPIGetUsage404JSONResponse) VisitSystemAPIGetUsageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPIGetUsage409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response SystemAPIGetUsage409JSONResponse) VisitSystemAPIGetUsageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SystemAPIGetUsage500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response SystemAPIGetUsage500JSONResponse) VisitSystemAPIGetUsageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
@@ -1571,6 +4725,12 @@ type StrictServerInterface interface {
 	// (PUT /v1/admin/users/{id}/role)
 	AdminAPIUpdateUserRole(ctx context.Context, request AdminAPIUpdateUserRoleRequestObject) (AdminAPIUpdateUserRoleResponseObject, error)
 
+	// (POST /v1/analyze-company)
+	CompanyAPIAnalyzeCompany(ctx context.Context, request CompanyAPIAnalyzeCompanyRequestObject) (CompanyAPIAnalyzeCompanyResponseObject, error)
+
+	// (GET /v1/applications)
+	CoachingAPIGetApplications(ctx context.Context, request CoachingAPIGetApplicationsRequestObject) (CoachingAPIGetApplicationsResponseObject, error)
+
 	// (POST /v1/auth/login)
 	AuthAPILogin(ctx context.Context, request AuthAPILoginRequestObject) (AuthAPILoginResponseObject, error)
 
@@ -1591,6 +4751,72 @@ type StrictServerInterface interface {
 
 	// (POST /v1/auth/signup)
 	AuthAPISignup(ctx context.Context, request AuthAPISignupRequestObject) (AuthAPISignupResponseObject, error)
+
+	// (GET /v1/coaching/cover-letters/{id})
+	CoachingAPIGetCoverLetter(ctx context.Context, request CoachingAPIGetCoverLetterRequestObject) (CoachingAPIGetCoverLetterResponseObject, error)
+
+	// (PATCH /v1/coaching/cover-letters/{id})
+	CoachingAPIUpdateCoverLetter(ctx context.Context, request CoachingAPIUpdateCoverLetterRequestObject) (CoachingAPIUpdateCoverLetterResponseObject, error)
+
+	// (GET /v1/coaching/cover-letters/{id}/versions)
+	CoachingAPIGetVersions(ctx context.Context, request CoachingAPIGetVersionsRequestObject) (CoachingAPIGetVersionsResponseObject, error)
+
+	// (POST /v1/coaching/cover-letters/{id}/versions)
+	CoachingAPICreateVersion(ctx context.Context, request CoachingAPICreateVersionRequestObject) (CoachingAPICreateVersionResponseObject, error)
+
+	// (POST /v1/coaching/draft)
+	CoachingAPIGenerateDraft(ctx context.Context, request CoachingAPIGenerateDraftRequestObject) (CoachingAPIGenerateDraftResponseObject, error)
+
+	// (POST /v1/coaching/question-analysis)
+	CoachingAPIAnalyzeQuestion(ctx context.Context, request CoachingAPIAnalyzeQuestionRequestObject) (CoachingAPIAnalyzeQuestionResponseObject, error)
+
+	// (POST /v1/coaching/recommend-experiences)
+	CoachingAPIRecommendExperiences(ctx context.Context, request CoachingAPIRecommendExperiencesRequestObject) (CoachingAPIRecommendExperiencesResponseObject, error)
+
+	// (POST /v1/coaching/review)
+	CoachingAPIReview(ctx context.Context, request CoachingAPIReviewRequestObject) (CoachingAPIReviewResponseObject, error)
+
+	// (GET /v1/coaching/sessions)
+	CoachingAPIGetSessions(ctx context.Context, request CoachingAPIGetSessionsRequestObject) (CoachingAPIGetSessionsResponseObject, error)
+
+	// (GET /v1/company-data)
+	CompanyAPIGetCompanyData(ctx context.Context, request CompanyAPIGetCompanyDataRequestObject) (CompanyAPIGetCompanyDataResponseObject, error)
+
+	// (GET /v1/experiences)
+	ExperienceAPIList(ctx context.Context, request ExperienceAPIListRequestObject) (ExperienceAPIListResponseObject, error)
+
+	// (POST /v1/experiences)
+	ExperienceAPICreate(ctx context.Context, request ExperienceAPICreateRequestObject) (ExperienceAPICreateResponseObject, error)
+
+	// (DELETE /v1/experiences/{id})
+	ExperienceAPIDelete(ctx context.Context, request ExperienceAPIDeleteRequestObject) (ExperienceAPIDeleteResponseObject, error)
+
+	// (GET /v1/experiences/{id})
+	ExperienceAPIGet(ctx context.Context, request ExperienceAPIGetRequestObject) (ExperienceAPIGetResponseObject, error)
+
+	// (PATCH /v1/experiences/{id})
+	ExperienceAPIUpdate(ctx context.Context, request ExperienceAPIUpdateRequestObject) (ExperienceAPIUpdateResponseObject, error)
+
+	// (POST /v1/experiences/{id}/tag)
+	ExperienceAPITag(ctx context.Context, request ExperienceAPITagRequestObject) (ExperienceAPITagResponseObject, error)
+
+	// (POST /v1/feedback)
+	SystemAPISubmitFeedback(ctx context.Context, request SystemAPISubmitFeedbackRequestObject) (SystemAPISubmitFeedbackResponseObject, error)
+
+	// (POST /v1/interview/extract)
+	InterviewAPIExtractSTAR(ctx context.Context, request InterviewAPIExtractSTARRequestObject) (InterviewAPIExtractSTARResponseObject, error)
+
+	// (POST /v1/interview/question)
+	InterviewAPIGenerateQuestion(ctx context.Context, request InterviewAPIGenerateQuestionRequestObject) (InterviewAPIGenerateQuestionResponseObject, error)
+
+	// (POST /v1/interview/save)
+	InterviewAPISaveExperience(ctx context.Context, request InterviewAPISaveExperienceRequestObject) (InterviewAPISaveExperienceResponseObject, error)
+
+	// (POST /v1/match)
+	CompanyAPIMatchExperiences(ctx context.Context, request CompanyAPIMatchExperiencesRequestObject) (CompanyAPIMatchExperiencesResponseObject, error)
+
+	// (GET /v1/usage)
+	SystemAPIGetUsage(ctx context.Context, request SystemAPIGetUsageRequestObject) (SystemAPIGetUsageResponseObject, error)
 }
 
 type StrictHandlerFunc = strictgin.StrictGinHandlerFunc
@@ -1806,6 +5032,64 @@ func (sh *strictHandler) AdminAPIUpdateUserRole(ctx *gin.Context, id string) {
 	}
 }
 
+// CompanyAPIAnalyzeCompany operation middleware
+func (sh *strictHandler) CompanyAPIAnalyzeCompany(ctx *gin.Context) {
+	var request CompanyAPIAnalyzeCompanyRequestObject
+
+	var body CompanyAPIAnalyzeCompanyJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CompanyAPIAnalyzeCompany(ctx, request.(CompanyAPIAnalyzeCompanyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CompanyAPIAnalyzeCompany")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CompanyAPIAnalyzeCompanyResponseObject); ok {
+		if err := validResponse.VisitCompanyAPIAnalyzeCompanyResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPIGetApplications operation middleware
+func (sh *strictHandler) CoachingAPIGetApplications(ctx *gin.Context) {
+	var request CoachingAPIGetApplicationsRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIGetApplications(ctx, request.(CoachingAPIGetApplicationsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIGetApplications")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIGetApplicationsResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIGetApplicationsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // AuthAPILogin operation middleware
 func (sh *strictHandler) AuthAPILogin(ctx *gin.Context) {
 	var request AuthAPILoginRequestObject
@@ -2007,43 +5291,774 @@ func (sh *strictHandler) AuthAPISignup(ctx *gin.Context) {
 	}
 }
 
+// CoachingAPIGetCoverLetter operation middleware
+func (sh *strictHandler) CoachingAPIGetCoverLetter(ctx *gin.Context, id string) {
+	var request CoachingAPIGetCoverLetterRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIGetCoverLetter(ctx, request.(CoachingAPIGetCoverLetterRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIGetCoverLetter")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIGetCoverLetterResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIGetCoverLetterResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPIUpdateCoverLetter operation middleware
+func (sh *strictHandler) CoachingAPIUpdateCoverLetter(ctx *gin.Context, id string) {
+	var request CoachingAPIUpdateCoverLetterRequestObject
+
+	request.Id = id
+
+	var body CoachingAPIUpdateCoverLetterJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIUpdateCoverLetter(ctx, request.(CoachingAPIUpdateCoverLetterRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIUpdateCoverLetter")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIUpdateCoverLetterResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIUpdateCoverLetterResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPIGetVersions operation middleware
+func (sh *strictHandler) CoachingAPIGetVersions(ctx *gin.Context, id string) {
+	var request CoachingAPIGetVersionsRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIGetVersions(ctx, request.(CoachingAPIGetVersionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIGetVersions")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIGetVersionsResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIGetVersionsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPICreateVersion operation middleware
+func (sh *strictHandler) CoachingAPICreateVersion(ctx *gin.Context, id string) {
+	var request CoachingAPICreateVersionRequestObject
+
+	request.Id = id
+
+	var body CoachingAPICreateVersionJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPICreateVersion(ctx, request.(CoachingAPICreateVersionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPICreateVersion")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPICreateVersionResponseObject); ok {
+		if err := validResponse.VisitCoachingAPICreateVersionResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPIGenerateDraft operation middleware
+func (sh *strictHandler) CoachingAPIGenerateDraft(ctx *gin.Context) {
+	var request CoachingAPIGenerateDraftRequestObject
+
+	var body CoachingAPIGenerateDraftJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIGenerateDraft(ctx, request.(CoachingAPIGenerateDraftRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIGenerateDraft")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIGenerateDraftResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIGenerateDraftResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPIAnalyzeQuestion operation middleware
+func (sh *strictHandler) CoachingAPIAnalyzeQuestion(ctx *gin.Context) {
+	var request CoachingAPIAnalyzeQuestionRequestObject
+
+	var body CoachingAPIAnalyzeQuestionJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIAnalyzeQuestion(ctx, request.(CoachingAPIAnalyzeQuestionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIAnalyzeQuestion")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIAnalyzeQuestionResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIAnalyzeQuestionResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPIRecommendExperiences operation middleware
+func (sh *strictHandler) CoachingAPIRecommendExperiences(ctx *gin.Context) {
+	var request CoachingAPIRecommendExperiencesRequestObject
+
+	var body CoachingAPIRecommendExperiencesJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIRecommendExperiences(ctx, request.(CoachingAPIRecommendExperiencesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIRecommendExperiences")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIRecommendExperiencesResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIRecommendExperiencesResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPIReview operation middleware
+func (sh *strictHandler) CoachingAPIReview(ctx *gin.Context) {
+	var request CoachingAPIReviewRequestObject
+
+	var body CoachingAPIReviewJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIReview(ctx, request.(CoachingAPIReviewRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIReview")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIReviewResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIReviewResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPIGetSessions operation middleware
+func (sh *strictHandler) CoachingAPIGetSessions(ctx *gin.Context, params CoachingAPIGetSessionsParams) {
+	var request CoachingAPIGetSessionsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIGetSessions(ctx, request.(CoachingAPIGetSessionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIGetSessions")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIGetSessionsResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIGetSessionsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CompanyAPIGetCompanyData operation middleware
+func (sh *strictHandler) CompanyAPIGetCompanyData(ctx *gin.Context, params CompanyAPIGetCompanyDataParams) {
+	var request CompanyAPIGetCompanyDataRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CompanyAPIGetCompanyData(ctx, request.(CompanyAPIGetCompanyDataRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CompanyAPIGetCompanyData")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CompanyAPIGetCompanyDataResponseObject); ok {
+		if err := validResponse.VisitCompanyAPIGetCompanyDataResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ExperienceAPIList operation middleware
+func (sh *strictHandler) ExperienceAPIList(ctx *gin.Context, params ExperienceAPIListParams) {
+	var request ExperienceAPIListRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ExperienceAPIList(ctx, request.(ExperienceAPIListRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ExperienceAPIList")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(ExperienceAPIListResponseObject); ok {
+		if err := validResponse.VisitExperienceAPIListResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ExperienceAPICreate operation middleware
+func (sh *strictHandler) ExperienceAPICreate(ctx *gin.Context) {
+	var request ExperienceAPICreateRequestObject
+
+	var body ExperienceAPICreateJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ExperienceAPICreate(ctx, request.(ExperienceAPICreateRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ExperienceAPICreate")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(ExperienceAPICreateResponseObject); ok {
+		if err := validResponse.VisitExperienceAPICreateResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ExperienceAPIDelete operation middleware
+func (sh *strictHandler) ExperienceAPIDelete(ctx *gin.Context, id string) {
+	var request ExperienceAPIDeleteRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ExperienceAPIDelete(ctx, request.(ExperienceAPIDeleteRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ExperienceAPIDelete")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(ExperienceAPIDeleteResponseObject); ok {
+		if err := validResponse.VisitExperienceAPIDeleteResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ExperienceAPIGet operation middleware
+func (sh *strictHandler) ExperienceAPIGet(ctx *gin.Context, id string) {
+	var request ExperienceAPIGetRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ExperienceAPIGet(ctx, request.(ExperienceAPIGetRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ExperienceAPIGet")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(ExperienceAPIGetResponseObject); ok {
+		if err := validResponse.VisitExperienceAPIGetResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ExperienceAPIUpdate operation middleware
+func (sh *strictHandler) ExperienceAPIUpdate(ctx *gin.Context, id string) {
+	var request ExperienceAPIUpdateRequestObject
+
+	request.Id = id
+
+	var body ExperienceAPIUpdateJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ExperienceAPIUpdate(ctx, request.(ExperienceAPIUpdateRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ExperienceAPIUpdate")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(ExperienceAPIUpdateResponseObject); ok {
+		if err := validResponse.VisitExperienceAPIUpdateResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ExperienceAPITag operation middleware
+func (sh *strictHandler) ExperienceAPITag(ctx *gin.Context, id string) {
+	var request ExperienceAPITagRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ExperienceAPITag(ctx, request.(ExperienceAPITagRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ExperienceAPITag")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(ExperienceAPITagResponseObject); ok {
+		if err := validResponse.VisitExperienceAPITagResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SystemAPISubmitFeedback operation middleware
+func (sh *strictHandler) SystemAPISubmitFeedback(ctx *gin.Context) {
+	var request SystemAPISubmitFeedbackRequestObject
+
+	var body SystemAPISubmitFeedbackJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.SystemAPISubmitFeedback(ctx, request.(SystemAPISubmitFeedbackRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SystemAPISubmitFeedback")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(SystemAPISubmitFeedbackResponseObject); ok {
+		if err := validResponse.VisitSystemAPISubmitFeedbackResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// InterviewAPIExtractSTAR operation middleware
+func (sh *strictHandler) InterviewAPIExtractSTAR(ctx *gin.Context) {
+	var request InterviewAPIExtractSTARRequestObject
+
+	var body InterviewAPIExtractSTARJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.InterviewAPIExtractSTAR(ctx, request.(InterviewAPIExtractSTARRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "InterviewAPIExtractSTAR")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(InterviewAPIExtractSTARResponseObject); ok {
+		if err := validResponse.VisitInterviewAPIExtractSTARResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// InterviewAPIGenerateQuestion operation middleware
+func (sh *strictHandler) InterviewAPIGenerateQuestion(ctx *gin.Context) {
+	var request InterviewAPIGenerateQuestionRequestObject
+
+	var body InterviewAPIGenerateQuestionJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.InterviewAPIGenerateQuestion(ctx, request.(InterviewAPIGenerateQuestionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "InterviewAPIGenerateQuestion")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(InterviewAPIGenerateQuestionResponseObject); ok {
+		if err := validResponse.VisitInterviewAPIGenerateQuestionResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// InterviewAPISaveExperience operation middleware
+func (sh *strictHandler) InterviewAPISaveExperience(ctx *gin.Context) {
+	var request InterviewAPISaveExperienceRequestObject
+
+	var body InterviewAPISaveExperienceJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.InterviewAPISaveExperience(ctx, request.(InterviewAPISaveExperienceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "InterviewAPISaveExperience")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(InterviewAPISaveExperienceResponseObject); ok {
+		if err := validResponse.VisitInterviewAPISaveExperienceResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CompanyAPIMatchExperiences operation middleware
+func (sh *strictHandler) CompanyAPIMatchExperiences(ctx *gin.Context) {
+	var request CompanyAPIMatchExperiencesRequestObject
+
+	var body CompanyAPIMatchExperiencesJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CompanyAPIMatchExperiences(ctx, request.(CompanyAPIMatchExperiencesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CompanyAPIMatchExperiences")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CompanyAPIMatchExperiencesResponseObject); ok {
+		if err := validResponse.VisitCompanyAPIMatchExperiencesResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SystemAPIGetUsage operation middleware
+func (sh *strictHandler) SystemAPIGetUsage(ctx *gin.Context) {
+	var request SystemAPIGetUsageRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.SystemAPIGetUsage(ctx, request.(SystemAPIGetUsageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SystemAPIGetUsage")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(SystemAPIGetUsageResponseObject); ok {
+		if err := validResponse.VisitSystemAPIGetUsageResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
