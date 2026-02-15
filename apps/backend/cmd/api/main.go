@@ -80,6 +80,11 @@ func main() {
 		reviewService = service.NewReviewService(db, aiProvider.Heavy())
 	}
 
+	var interviewService *service.InterviewService
+	if aiProvider != nil {
+		interviewService = service.NewInterviewService(aiProvider.Light())
+	}
+
 	editorService := service.NewEditorService(db)
 	usageService := service.NewUsageService(db)
 	feedbackService := service.NewFeedbackService(db)
@@ -125,6 +130,11 @@ func main() {
 	var reviewCtrl *controller.ReviewController
 	if reviewService != nil {
 		reviewCtrl = controller.NewReviewController(reviewService)
+	}
+
+	var interviewCtrl *controller.InterviewController
+	if interviewService != nil {
+		interviewCtrl = controller.NewInterviewController(interviewService)
 	}
 
 	editorCtrl := controller.NewEditorController(editorService)
@@ -208,6 +218,11 @@ func main() {
 		// Review coaching (AI-powered cover letter review)
 		if reviewCtrl != nil {
 			protected.POST("/coaching/review", controller.UsageLimitMiddleware(usageService, "review"), reviewCtrl.PostReview)
+		}
+
+		// AI Interview
+		if interviewCtrl != nil {
+			protected.POST("/interview/question", interviewCtrl.PostQuestion)
 		}
 
 		// Feedback

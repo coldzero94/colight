@@ -27,4 +27,8 @@ var (
 	// Usage errors
 	ErrUsageLimitExceeded = errors.New("usage limit exceeded")
 	ErrInvalidFeature     = errors.New("invalid feature name")
+
+	// Interview errors
+	ErrInvalidInterviewStage = errors.New("invalid interview stage")
+	ErrEmptySTARField        = errors.New("STAR extraction returned empty field")
 )
