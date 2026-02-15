@@ -15,9 +15,9 @@
 
 ## 진행 상태
 
-- [ ] 8.1 칸반 UI
-- [ ] 8.2 상태 업데이트 API
-- [ ] 8.3 통계 요약
+- [x] 8.1 칸반 UI
+- [x] 8.2 상태 업데이트 API
+- [x] 8.3 통계 요약
 
 ---
 
@@ -122,20 +122,20 @@
 ## Phase 완료 체크리스트
 
 **기능 검증**:
-- [ ] 드래그앤드롭으로 상태 변경 정상 동작
-- [ ] Optimistic UI 적용 (실패 시 롤백)
-- [ ] 6개 컬럼 칸반 렌더링
-- [ ] 통계 요약 표시
-- [ ] 모바일 레이아웃 대응
+- [x] 드래그앤드롭으로 상태 변경 정상 동작
+- [x] Optimistic UI 적용 (실패 시 롤백)
+- [x] 6개 컬럼 칸반 렌더링
+- [x] 통계 요약 표시
+- [x] 모바일 레이아웃 대응
 
 **테스트**:
-- [ ] `moon run backend:test` → 전체 통과
-- [ ] `moon run web:test` → 전체 통과
-- [ ] `moon run :lint` → 경고 0건
-- [ ] `moon run web:build` → 빌드 성공
+- [x] `moon run backend:test` → 전체 통과
+- [x] `moon run web:test` → 전체 통과
+- [x] `moon run :lint` → 경고 0건
+- [x] `moon run web:build` → 빌드 성공
 
 **완료 처리**:
-- [ ] phases/README.md 상태 업데이트
+- [x] phases/README.md 상태 업데이트
 
 ---
 
