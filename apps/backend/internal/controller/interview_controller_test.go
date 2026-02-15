@@ -23,7 +23,7 @@ func setupInterviewTestRouter(t *testing.T, mockResp string) *gin.Engine {
 		Response: ai.LLMResponse{Content: mockResp},
 	}
 
-	interviewSvc := service.NewInterviewService(mockAI)
+	interviewSvc := service.NewInterviewService(mockAI, nil, nil)
 	interviewCtrl := NewInterviewController(interviewSvc)
 
 	router := gin.New()
@@ -36,6 +36,8 @@ func setupInterviewTestRouter(t *testing.T, mockResp string) *gin.Engine {
 		c.Next()
 	})
 	v1.POST("/interview/question", interviewCtrl.PostQuestion)
+	v1.POST("/interview/extract", interviewCtrl.PostExtractSTAR)
+	v1.POST("/interview/save", interviewCtrl.PostSaveExperience)
 
 	return router
 }
@@ -102,4 +104,48 @@ func TestPostQuestion_OutcomeIsComplete(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, resp.IsComplete)
 	assert.Equal(t, service.InterviewStage(""), resp.NextStage)
+}
+
+func TestPostExtractSTAR_Success(t *testing.T) {
+	starJSON := `{"title":"팀 리더","category":"project","content":"설명","result":"결과","star_situation":"상황","star_task":"과제","star_action":"행동","star_result":"결과","keywords":["키워드"]}`
+	router := setupInterviewTestRouter(t, starJSON)
+
+	body := `{"messages":[{"role":"assistant","content":"질문"},{"role":"user","content":"답변"}]}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/interview/extract", bytes.NewBufferString(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Test-UserID", uuid.New().String())
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var resp service.ExtractSTARResult
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+	assert.Equal(t, "팀 리더", resp.Title)
+	assert.Equal(t, "상황", resp.StarSituation)
+}
+
+func TestPostExtractSTAR_Unauthorized(t *testing.T) {
+	router := setupInterviewTestRouter(t, `{}`)
+
+	body := `{"messages":[]}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/interview/extract", bytes.NewBufferString(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestPostSaveExperience_Unauthorized(t *testing.T) {
+	router := setupInterviewTestRouter(t, `{}`)
+
+	body := `{"title":"test","content":"test","star_situation":"s","star_task":"t","star_action":"a","star_result":"r"}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/interview/save", bytes.NewBufferString(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }

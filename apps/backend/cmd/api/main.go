@@ -82,7 +82,7 @@ func main() {
 
 	var interviewService *service.InterviewService
 	if aiProvider != nil {
-		interviewService = service.NewInterviewService(aiProvider.Light())
+		interviewService = service.NewInterviewService(aiProvider.Light(), db, weaponTaggingService)
 	}
 
 	editorService := service.NewEditorService(db)
@@ -223,6 +223,8 @@ func main() {
 		// AI Interview
 		if interviewCtrl != nil {
 			protected.POST("/interview/question", interviewCtrl.PostQuestion)
+			protected.POST("/interview/extract", interviewCtrl.PostExtractSTAR)
+			protected.POST("/interview/save", controller.UsageLimitMiddleware(usageService, "experience"), interviewCtrl.PostSaveExperience)
 		}
 
 		// Feedback

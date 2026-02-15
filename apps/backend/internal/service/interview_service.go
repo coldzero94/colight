@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 	"github.com/google/uuid"
 )
@@ -69,14 +70,48 @@ type GenerateQuestionResult struct {
 	IsComplete bool           `json:"is_complete"`
 }
 
+// ExtractSTARResult holds the STAR-structured extraction from an interview.
+type ExtractSTARResult struct {
+	Title         string   `json:"title"`
+	Category      string   `json:"category"`
+	Content       string   `json:"content"`
+	Result        string   `json:"result"`
+	StarSituation string   `json:"star_situation"`
+	StarTask      string   `json:"star_task"`
+	StarAction    string   `json:"star_action"`
+	StarResult    string   `json:"star_result"`
+	Keywords      []string `json:"keywords"`
+}
+
+// SaveExperienceInput is the request body for saving an interview experience.
+type SaveExperienceInput struct {
+	Title         string   `json:"title"`
+	Category      string   `json:"category"`
+	Content       string   `json:"content"`
+	Result        string   `json:"result"`
+	StarSituation string   `json:"star_situation"`
+	StarTask      string   `json:"star_task"`
+	StarAction    string   `json:"star_action"`
+	StarResult    string   `json:"star_result"`
+	Keywords      []string `json:"keywords"`
+}
+
+// SaveExperienceResult is the response for saving an interview experience.
+type SaveExperienceResult struct {
+	ExperienceID string `json:"experience_id"`
+	Tagged       bool   `json:"tagged"`
+}
+
 // InterviewService handles AI-powered experience interviews.
 type InterviewService struct {
-	aiClient ai.LLMProvider
+	aiClient            ai.LLMProvider
+	db                  *ent.Client
+	weaponTaggingService *WeaponTaggingService
 }
 
 // NewInterviewService creates a new interview service.
-func NewInterviewService(aiClient ai.LLMProvider) *InterviewService {
-	return &InterviewService{aiClient: aiClient}
+func NewInterviewService(aiClient ai.LLMProvider, db *ent.Client, weaponTaggingService *WeaponTaggingService) *InterviewService {
+	return &InterviewService{aiClient: aiClient, db: db, weaponTaggingService: weaponTaggingService}
 }
 
 const interviewSystemPrompt = `당신은 취업 준비생의 경험을 발굴하는 친절한 AI 인터뷰어입니다.
@@ -184,4 +219,111 @@ func stageIndex(s InterviewStage) int {
 		}
 	}
 	return 0
+}
+
+const extractSTARPrompt = `당신은 인터뷰 대화에서 경험을 STAR 구조로 추출하는 전문가입니다.
+아래 대화를 분석하여 핵심 경험을 STAR 구조로 정리하세요.
+
+규칙:
+- 모든 필드를 한국어로 작성
+- title: 경험을 한 줄로 요약 (20자 이내)
+- category: 다음 중 하나 — project, work, activity, competition, education, volunteer, other
+- content: 경험의 전체적인 설명 (2-3문장)
+- result: 최종 결과 요약 (1-2문장)
+- star_situation: 상황 설명
+- star_task: 해결해야 할 과제/목표
+- star_action: 실제 취한 행동
+- star_result: 행동의 결과와 배운 점
+- keywords: 핵심 키워드 3-5개 배열
+
+반드시 아래 JSON 형식으로만 응답하세요:
+{"title":"","category":"","content":"","result":"","star_situation":"","star_task":"","star_action":"","star_result":"","keywords":[]}`
+
+// ExtractSTAR extracts STAR-structured experience from interview messages.
+func (s *InterviewService) ExtractSTAR(ctx context.Context, messages []ChatMessage) (*ExtractSTARResult, error) {
+	var historyLines []string
+	for _, msg := range messages {
+		prefix := "사용자"
+		if msg.Role == "assistant" {
+			prefix = "AI"
+		}
+		historyLines = append(historyLines, fmt.Sprintf("%s: %s", prefix, msg.Content))
+	}
+	history := strings.Join(historyLines, "\n")
+
+	resp, err := s.aiClient.Call(ctx, ai.LLMRequest{
+		SystemPrompt: extractSTARPrompt,
+		UserPrompt:   fmt.Sprintf("인터뷰 대화:\n%s\n\n위 대화에서 STAR 구조를 추출하세요.", history),
+		Temperature:  0.3,
+		MaxTokens:    800,
+		JSONMode:     true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("AI call failed: %w", err)
+	}
+
+	var result ExtractSTARResult
+	if err := json.Unmarshal([]byte(resp.Content), &result); err != nil {
+		return nil, fmt.Errorf("failed to parse STAR response: %w", err)
+	}
+
+	// Validate non-empty STAR fields
+	if result.StarSituation == "" || result.StarTask == "" || result.StarAction == "" || result.StarResult == "" {
+		return nil, ErrEmptySTARField
+	}
+
+	return &result, nil
+}
+
+// SaveExperience persists the STAR-extracted experience to the database.
+func (s *InterviewService) SaveExperience(ctx context.Context, userID uuid.UUID, input SaveExperienceInput) (*SaveExperienceResult, error) {
+	if s.db == nil {
+		return nil, fmt.Errorf("database client not configured")
+	}
+
+	builder := s.db.Experience.Create().
+		SetUserID(userID).
+		SetTitle(input.Title).
+		SetContent(input.Content).
+		SetSource("interview")
+
+	if input.Category != "" {
+		builder = builder.SetCategory(input.Category)
+	}
+	if input.Result != "" {
+		builder = builder.SetResult(input.Result)
+	}
+	if input.StarSituation != "" {
+		builder = builder.SetStarSituation(input.StarSituation)
+	}
+	if input.StarTask != "" {
+		builder = builder.SetStarTask(input.StarTask)
+	}
+	if input.StarAction != "" {
+		builder = builder.SetStarAction(input.StarAction)
+	}
+	if input.StarResult != "" {
+		builder = builder.SetStarResult(input.StarResult)
+	}
+	if len(input.Keywords) > 0 {
+		builder = builder.SetKeywords(input.Keywords)
+	}
+
+	exp, err := builder.Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save experience: %w", err)
+	}
+
+	// Auto-tag with weapons if service is available
+	tagged := false
+	if s.weaponTaggingService != nil {
+		if _, tagErr := s.weaponTaggingService.TagExperience(ctx, exp.ID, userID); tagErr == nil {
+			tagged = true
+		}
+	}
+
+	return &SaveExperienceResult{
+		ExperienceID: exp.ID.String(),
+		Tagged:       tagged,
+	}, nil
 }

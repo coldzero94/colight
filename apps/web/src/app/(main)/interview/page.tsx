@@ -1,18 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { Mic, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Mic, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { InterviewChat } from "@/components/interview/interview-chat";
 import { InterviewProgress } from "@/components/interview/interview-progress";
 import { InterviewTimer } from "@/components/interview/interview-timer";
+import { STARPreview } from "@/components/interview/star-preview";
 import { useInterviewChat } from "@/hooks/use-interview-chat";
+import {
+  extractSTAR,
+  saveInterviewExperience,
+  type ExtractSTARResult,
+} from "@/lib/api/interview";
 
-type PageStep = "welcome" | "interviewing" | "complete";
+type PageStep =
+  | "welcome"
+  | "interviewing"
+  | "complete"
+  | "extracting"
+  | "preview"
+  | "saved";
 
 export default function InterviewPage() {
   const [step, setStep] = useState<PageStep>("welcome");
   const chat = useInterviewChat();
+  const [starData, setStarData] = useState<ExtractSTARResult | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleStart = async () => {
     setStep("interviewing");
@@ -23,6 +40,37 @@ export default function InterviewPage() {
     const completed = await chat.sendMessage(content);
     if (completed) {
       setStep("complete");
+    }
+  };
+
+  const handleExtract = async () => {
+    setStep("extracting");
+    setError(null);
+    try {
+      const result = await extractSTAR(chat.messages);
+      setStarData(result);
+      setStep("preview");
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "경험 추출에 실패했습니다"
+      );
+      setStep("complete");
+    }
+  };
+
+  const handleSave = async (data: ExtractSTARResult) => {
+    setIsSaving(true);
+    setError(null);
+    try {
+      const result = await saveInterviewExperience(data);
+      setSavedId(result.experience_id);
+      setStep("saved");
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "경험 저장에 실패했습니다"
+      );
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -109,6 +157,11 @@ export default function InterviewPage() {
               답변을 바탕으로 STAR 구조의 경험 카드를 생성할 수 있습니다.
             </p>
           </div>
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
           <div className="flex justify-center gap-3">
             <Button
               variant="outline"
@@ -119,10 +172,66 @@ export default function InterviewPage() {
             >
               다시 시작하기
             </Button>
-            <Button className="gap-2">
+            <Button onClick={handleExtract} className="gap-2">
               경험 카드 생성
               <ArrowRight className="h-4 w-4" />
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Extracting */}
+      {step === "extracting" && (
+        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center space-y-4">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-gray-400" />
+          <p className="text-sm text-gray-500">
+            STAR 구조로 경험을 추출하고 있습니다...
+          </p>
+        </div>
+      )}
+
+      {/* Preview */}
+      {step === "preview" && starData && (
+        <STARPreview
+          data={starData}
+          isSaving={isSaving}
+          onSave={handleSave}
+          onReExtract={handleExtract}
+        />
+      )}
+
+      {/* Saved */}
+      {step === "saved" && (
+        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center space-y-6">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
+            <CheckCircle2 className="h-8 w-8 text-green-600" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-gray-900">
+              경험 카드가 저장되었습니다!
+            </h2>
+            <p className="text-sm text-gray-500">
+              경험 관리 페이지에서 확인할 수 있습니다.
+            </p>
+          </div>
+          <div className="flex justify-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                chat.reset();
+                setStarData(null);
+                setSavedId(null);
+                setStep("welcome");
+              }}
+            >
+              새 인터뷰 시작
+            </Button>
+            <Link href={savedId ? `/experiences/${savedId}` : "/experiences"}>
+              <Button className="gap-2">
+                경험 카드 보기
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       )}

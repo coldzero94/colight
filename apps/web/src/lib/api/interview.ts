@@ -40,12 +40,49 @@ export const STAGES: InterviewStage[] = [
   "outcome",
 ];
 
+export interface ExtractSTARResult {
+  title: string;
+  category: string;
+  content: string;
+  result: string;
+  star_situation: string;
+  star_task: string;
+  star_action: string;
+  star_result: string;
+  keywords: string[];
+}
+
+export interface SaveExperienceResponse {
+  experience_id: string;
+  tagged: boolean;
+}
+
 export async function generateQuestion(
   req: GenerateQuestionRequest,
 ): Promise<GenerateQuestionResponse> {
   const { data } = await apiClient.post<GenerateQuestionResponse>(
     "/v1/interview/question",
     req,
+  );
+  return data;
+}
+
+export async function extractSTAR(
+  messages: ChatMessage[],
+): Promise<ExtractSTARResult> {
+  const { data } = await apiClient.post<ExtractSTARResult>(
+    "/v1/interview/extract",
+    { messages },
+  );
+  return data;
+}
+
+export async function saveInterviewExperience(
+  input: ExtractSTARResult,
+): Promise<SaveExperienceResponse> {
+  const { data } = await apiClient.post<SaveExperienceResponse>(
+    "/v1/interview/save",
+    input,
   );
   return data;
 }
