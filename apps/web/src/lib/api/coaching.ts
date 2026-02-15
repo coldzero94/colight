@@ -70,6 +70,7 @@ export interface CoverLetterVersion {
   version_number: number;
   content: string;
   char_count: number;
+  change_summary?: string;
   created_at: string;
 }
 
@@ -190,11 +191,16 @@ export async function updateCoverLetter(
 
 export async function createVersion(
   id: string,
-  content: string
+  content: string,
+  changeSummary?: string
 ): Promise<{ version: CoverLetterVersion }> {
+  const body: Record<string, string> = { content };
+  if (changeSummary) {
+    body.change_summary = changeSummary;
+  }
   const { data } = await apiClient.post<{ version: CoverLetterVersion }>(
     `/v1/coaching/cover-letters/${id}/versions`,
-    { content }
+    body
   );
   return data;
 }
