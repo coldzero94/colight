@@ -130,11 +130,7 @@ func (c *QuestionController) PostRecommendExperiences(ctx *gin.Context) {
 		return
 	}
 
-	var req struct {
-		RequiredWeapons service.RequiredWeapons `json:"required_weapons" binding:"required"`
-		Limit           int                     `json:"limit"`
-	}
-
+	var req service.RecommendInput
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "입력 값이 올바르지 않습니다: " + err.Error()})
 		return
@@ -147,8 +143,7 @@ func (c *QuestionController) PostRecommendExperiences(ctx *gin.Context) {
 	recommendations, err := c.questionService.RecommendExperiences(
 		ctx.Request.Context(),
 		userID.(uuid.UUID),
-		req.RequiredWeapons,
-		req.Limit,
+		req,
 	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "경험 추천 실패"})

@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/application"
 	"github.com/coby/colight/apps/backend/ent/experience"
+	"github.com/coby/colight/apps/backend/ent/experienceusage"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 	"github.com/google/uuid"
@@ -208,20 +210,41 @@ func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID,
 	return &result, nil
 }
 
-// ExperienceRecommendation represents a recommended experience with match score
-type ExperienceRecommendation struct {
-	ID            uuid.UUID `json:"id"`
-	Title         string    `json:"title"`
-	Category      string    `json:"category"`
-	PeriodStart   string    `json:"period_start,omitempty"`
-	PeriodEnd     string    `json:"period_end,omitempty"`
-	StarSituation string    `json:"star_situation"`
-	Weapons       []string  `json:"weapons"`
-	MatchScore    int       `json:"match_score"` // 0~100
+// RecommendInput holds the input parameters for experience recommendation
+type RecommendInput struct {
+	RequiredWeapons RequiredWeapons `json:"required_weapons"`
+	KeyKeywords     []string        `json:"key_keywords"`
+	ApplicationID   uuid.UUID       `json:"application_id"`
+	Limit           int             `json:"limit"`
 }
 
-// RecommendExperiences recommends top N experiences based on required weapons
-func (s *QuestionService) RecommendExperiences(ctx context.Context, userID uuid.UUID, requiredWeapons RequiredWeapons, limit int) ([]ExperienceRecommendation, error) {
+// ExperienceRecommendation represents a recommended experience with match score
+type ExperienceRecommendation struct {
+	ID             uuid.UUID `json:"id"`
+	Title          string    `json:"title"`
+	Category       string    `json:"category"`
+	PeriodStart    string    `json:"period_start,omitempty"`
+	PeriodEnd      string    `json:"period_end,omitempty"`
+	StarSituation  string    `json:"star_situation"`
+	Weapons        []string  `json:"weapons"`
+	MatchScore     int       `json:"match_score"` // 0~100
+	MatchReasons   []string  `json:"match_reasons"`
+	IsUsed         bool      `json:"is_used"`
+	KeywordMatches []string  `json:"keyword_matches"`
+}
+
+// recommendationScore holds intermediate scoring details for a single experience
+type recommendationScore struct {
+	exp            *ent.Experience
+	score          int
+	reasons        []string
+	keywordMatches []string
+	isUsed         bool
+}
+
+// RecommendExperiences recommends top N experiences using multi-factor scoring:
+// weapon match (50pts), keyword overlap (30pts), usage penalty (-15pts), freshness bonus (+5pts)
+func (s *QuestionService) RecommendExperiences(ctx context.Context, userID uuid.UUID, input RecommendInput) ([]ExperienceRecommendation, error) {
 	// 1. Get all user experiences with weapons
 	experiences, err := s.entClient.Experience.Query().
 		Where(experience.UserIDEQ(userID)).
@@ -235,21 +258,48 @@ func (s *QuestionService) RecommendExperiences(ctx context.Context, userID uuid.
 		return []ExperienceRecommendation{}, nil
 	}
 
-	// 2. Calculate match score for each experience
-	type scoredExperience struct {
-		exp   *ent.Experience
-		score int
-	}
-
-	var scored []scoredExperience
-	for _, exp := range experiences {
-		score := s.calculateMatchScore(exp, requiredWeapons)
-		if score > 0 {
-			scored = append(scored, scoredExperience{exp: exp, score: score})
+	// 2. Query usage data: which experience IDs are already used in this application
+	usedInAppSet := make(map[uuid.UUID]bool)
+	if input.ApplicationID != uuid.Nil {
+		usedIDs, err := s.entClient.ExperienceUsage.Query().
+			Where(experienceusage.HasApplicationWith(application.IDEQ(input.ApplicationID))).
+			QueryExperience().
+			IDs(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query experience usage: %w", err)
+		}
+		for _, id := range usedIDs {
+			usedInAppSet[id] = true
 		}
 	}
 
-	// 3. Sort by score (descending)
+	// 3. Query global usage counts for freshness bonus
+	globalUsedSet := make(map[uuid.UUID]bool)
+	globalUsedIDs, err := s.entClient.ExperienceUsage.Query().
+		Where(experienceusage.UserIDEQ(userID)).
+		QueryExperience().
+		IDs(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query global usage: %w", err)
+	}
+	for _, id := range globalUsedIDs {
+		globalUsedSet[id] = true
+	}
+
+	// 4. Build lowercase keyword set from question analysis
+	keywordSet := make(map[string]bool, len(input.KeyKeywords))
+	for _, kw := range input.KeyKeywords {
+		keywordSet[strings.ToLower(kw)] = true
+	}
+
+	// 5. Score each experience
+	var scored []recommendationScore
+	for _, exp := range experiences {
+		rs := s.calculateRecommendationScore(exp, input.RequiredWeapons, keywordSet, len(input.KeyKeywords), usedInAppSet[exp.ID], globalUsedSet[exp.ID])
+		scored = append(scored, rs)
+	}
+
+	// 6. Sort by score (descending)
 	for i := 0; i < len(scored); i++ {
 		for j := i + 1; j < len(scored); j++ {
 			if scored[j].score > scored[i].score {
@@ -258,29 +308,35 @@ func (s *QuestionService) RecommendExperiences(ctx context.Context, userID uuid.
 		}
 	}
 
-	// 4. Take top N
-	resultLimit := limit
-	if len(scored) < resultLimit {
-		resultLimit = len(scored)
+	// 7. Take top N (include zero-score items so frontend can show all)
+	limit := input.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+	if len(scored) < limit {
+		limit = len(scored)
 	}
 
-	// 5. Build recommendations
-	recommendations := make([]ExperienceRecommendation, resultLimit)
-	for i := 0; i < resultLimit; i++ {
-		exp := scored[i].exp
+	// 8. Build recommendations
+	recommendations := make([]ExperienceRecommendation, 0, limit)
+	for i := 0; i < limit; i++ {
+		rs := scored[i]
+		exp := rs.exp
 		weaponNames := make([]string, len(exp.Edges.Weapons))
 		for j, w := range exp.Edges.Weapons {
-			// Look up weapon name from weapon_code
 			weaponNames[j] = w.WeaponCode
 		}
 
 		rec := ExperienceRecommendation{
-			ID:            exp.ID,
-			Title:         exp.Title,
-			Category:      exp.Category,
-			StarSituation: exp.StarSituation,
-			Weapons:       weaponNames,
-			MatchScore:    scored[i].score,
+			ID:             exp.ID,
+			Title:          exp.Title,
+			Category:       exp.Category,
+			StarSituation:  exp.StarSituation,
+			Weapons:        weaponNames,
+			MatchScore:     rs.score,
+			MatchReasons:   rs.reasons,
+			IsUsed:         rs.isUsed,
+			KeywordMatches: rs.keywordMatches,
 		}
 
 		if exp.PeriodStart != nil {
@@ -290,39 +346,87 @@ func (s *QuestionService) RecommendExperiences(ctx context.Context, userID uuid.
 			rec.PeriodEnd = exp.PeriodEnd.Format("2006-01")
 		}
 
-		recommendations[i] = rec
+		recommendations = append(recommendations, rec)
 	}
 
 	return recommendations, nil
 }
 
-// calculateMatchScore calculates match score for an experience
-// Primary weapon: 50 points, Secondary weapons: 25 points each
-func (s *QuestionService) calculateMatchScore(exp *ent.Experience, requiredWeapons RequiredWeapons) int {
-	score := 0
-	maxScore := 100
+// calculateRecommendationScore computes multi-factor score for an experience.
+// Weapon match: 50pts max, Keyword overlap: 30pts max, Usage penalty: -15pts, Freshness bonus: +5pts.
+// Raw score is normalized to 0–100.
+func (s *QuestionService) calculateRecommendationScore(
+	exp *ent.Experience,
+	requiredWeapons RequiredWeapons,
+	keywordSet map[string]bool,
+	totalKeywords int,
+	isUsedInApp bool,
+	isUsedGlobally bool,
+) recommendationScore {
+	rs := recommendationScore{exp: exp, isUsed: isUsedInApp}
+	rawScore := 0.0
 
-	// Find primary weapon match (50 points)
+	// --- Weapon match (max 50 points) ---
+	// Primary weapon: 35 points × confidence
 	for _, w := range exp.Edges.Weapons {
 		if w.WeaponCode == requiredWeapons.Primary.WeaponID {
-			score += int(50 * w.Confidence)
+			pts := 35.0 * w.Confidence
+			rawScore += pts
+			rs.reasons = append(rs.reasons, fmt.Sprintf("주 무기 '%s' 일치 (신뢰도 %d%%)", requiredWeapons.Primary.WeaponName, int(w.Confidence*100)))
 			break
 		}
 	}
 
-	// Find secondary weapon matches (25 points each)
-	for _, secondary := range requiredWeapons.Secondary {
-		for _, w := range exp.Edges.Weapons {
-			if w.WeaponCode == secondary.WeaponID {
-				score += int(25 * w.Confidence)
-				break
+	// Secondary weapons: share 15 points equally
+	numSecondary := len(requiredWeapons.Secondary)
+	if numSecondary > 0 {
+		ptsPerSecondary := 15.0 / float64(numSecondary)
+		for _, secondary := range requiredWeapons.Secondary {
+			for _, w := range exp.Edges.Weapons {
+				if w.WeaponCode == secondary.WeaponID {
+					pts := ptsPerSecondary * w.Confidence
+					rawScore += pts
+					rs.reasons = append(rs.reasons, fmt.Sprintf("부 무기 '%s' 일치", secondary.WeaponName))
+					break
+				}
 			}
 		}
 	}
 
-	if score > maxScore {
-		score = maxScore
+	// --- Keyword overlap (max 30 points) ---
+	if totalKeywords > 0 && len(exp.Keywords) > 0 {
+		var matched []string
+		for _, kw := range exp.Keywords {
+			if keywordSet[strings.ToLower(kw)] {
+				matched = append(matched, kw)
+			}
+		}
+		if len(matched) > 0 {
+			overlapRatio := float64(len(matched)) / float64(totalKeywords)
+			if overlapRatio > 1.0 {
+				overlapRatio = 1.0
+			}
+			pts := overlapRatio * 30.0
+			rawScore += pts
+			rs.keywordMatches = matched
+			rs.reasons = append(rs.reasons, fmt.Sprintf("키워드 %d개 매칭: %s", len(matched), strings.Join(matched, ", ")))
+		}
 	}
 
-	return score
+	// --- Usage penalty / freshness bonus ---
+	if isUsedInApp {
+		rawScore -= 15.0
+		rs.reasons = append(rs.reasons, "이 지원서에서 이미 사용됨")
+	} else if !isUsedGlobally {
+		rawScore += 5.0
+		rs.reasons = append(rs.reasons, "아직 사용되지 않은 경험")
+	}
+
+	// Normalize: max possible raw = 50 (weapon) + 30 (keyword) + 5 (freshness) = 85
+	// Map to 0–100 scale
+	normalized := (rawScore / 85.0) * 100.0
+	normalized = math.Max(0, math.Min(100, normalized))
+	rs.score = int(math.Round(normalized))
+
+	return rs
 }

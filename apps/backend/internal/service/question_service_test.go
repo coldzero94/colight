@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/coby/colight/apps/backend/ent"
@@ -372,12 +373,15 @@ func TestRecommendExperiences_Top3Sorted(t *testing.T) {
 		SaveX(ctx)
 	client.ExperienceWeapon.Create().SetExperience(exp3).SetWeaponCode(w02.Code).SetConfidence(0.5).SetIsPrimary(false).SaveX(ctx)
 
-	requiredWeapons := RequiredWeapons{
-		Primary:   WeaponInfo{WeaponID: w01.Code},
-		Secondary: []WeaponInfo{{WeaponID: w02.Code}},
+	input := RecommendInput{
+		RequiredWeapons: RequiredWeapons{
+			Primary:   WeaponInfo{WeaponID: w01.Code, WeaponName: "문제해결"},
+			Secondary: []WeaponInfo{{WeaponID: w02.Code, WeaponName: "협업"}},
+		},
+		Limit: 3,
 	}
 
-	recommendations, err := svc.RecommendExperiences(ctx, userID, requiredWeapons, 3)
+	recommendations, err := svc.RecommendExperiences(ctx, userID, input)
 	require.NoError(t, err)
 	assert.Len(t, recommendations, 3)
 
@@ -387,7 +391,7 @@ func TestRecommendExperiences_Top3Sorted(t *testing.T) {
 	}
 }
 
-func TestRecommendExperiences_PrimaryWeaponDoubleWeight(t *testing.T) {
+func TestRecommendExperiences_PrimaryWeaponHigherWeight(t *testing.T) {
 	client := testutil.NewTestClient(t)
 	svc := NewQuestionService(client, nil)
 	ctx := context.Background()
@@ -398,29 +402,32 @@ func TestRecommendExperiences_PrimaryWeaponDoubleWeight(t *testing.T) {
 	w01, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W01")).Only(ctx)
 	w02, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W02")).Only(ctx)
 
-	// Experience with primary weapon (0.9 relevance) -> 50 * 0.9 = 45
+	// Experience with primary weapon (0.9 confidence) -> 35 * 0.9 = 31.5 weapon pts
 	expPrimary := client.Experience.Create().
 		SetUserID(userID).SetTitle("주 무기 경험").SetContent("내용").SetCategory("프로젝트").
 		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
 		SaveX(ctx)
 	client.ExperienceWeapon.Create().SetExperience(expPrimary).SetWeaponCode(w01.Code).SetConfidence(0.9).SetIsPrimary(true).SaveX(ctx)
 
-	// Experience with secondary weapon (1.0 relevance) -> 25 * 1.0 = 25
+	// Experience with secondary weapon (1.0 confidence) -> 15 * 1.0 = 15 weapon pts
 	expSecondary := client.Experience.Create().
 		SetUserID(userID).SetTitle("부 무기 경험").SetContent("내용").SetCategory("인턴").
 		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
 		SaveX(ctx)
 	client.ExperienceWeapon.Create().SetExperience(expSecondary).SetWeaponCode(w02.Code).SetConfidence(1.0).SetIsPrimary(false).SaveX(ctx)
 
-	requiredWeapons := RequiredWeapons{
-		Primary:   WeaponInfo{WeaponID: w01.Code},
-		Secondary: []WeaponInfo{{WeaponID: w02.Code}},
+	input := RecommendInput{
+		RequiredWeapons: RequiredWeapons{
+			Primary:   WeaponInfo{WeaponID: w01.Code, WeaponName: "문제해결"},
+			Secondary: []WeaponInfo{{WeaponID: w02.Code, WeaponName: "협업"}},
+		},
+		Limit: 3,
 	}
 
-	recommendations, err := svc.RecommendExperiences(ctx, userID, requiredWeapons, 3)
+	recommendations, err := svc.RecommendExperiences(ctx, userID, input)
 	require.NoError(t, err)
 
-	// Primary should rank higher (45 > 25)
+	// Primary should rank higher
 	assert.Equal(t, "주 무기 경험", recommendations[0].Title)
 	assert.Greater(t, recommendations[0].MatchScore, recommendations[1].MatchScore)
 }
@@ -435,12 +442,234 @@ func TestRecommendExperiences_NoExperiences(t *testing.T) {
 
 	w01, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W01")).Only(ctx)
 
-	requiredWeapons := RequiredWeapons{
-		Primary:   WeaponInfo{WeaponID: w01.Code},
-		Secondary: []WeaponInfo{},
+	input := RecommendInput{
+		RequiredWeapons: RequiredWeapons{
+			Primary:   WeaponInfo{WeaponID: w01.Code, WeaponName: "문제해결"},
+			Secondary: []WeaponInfo{},
+		},
+		Limit: 3,
 	}
 
-	recommendations, err := svc.RecommendExperiences(ctx, userID, requiredWeapons, 3)
+	recommendations, err := svc.RecommendExperiences(ctx, userID, input)
 	require.NoError(t, err)
 	assert.Empty(t, recommendations)
+}
+
+func TestRecommendExperiences_KeywordOverlap(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewQuestionService(client, nil)
+	ctx := context.Background()
+
+	userID, _ := createTestUserAndApplication(t, client)
+	ensureWeaponCategoriesForQuestion(t, client)
+
+	w01, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W01")).Only(ctx)
+
+	// Experience with matching keywords
+	expWithKW := client.Experience.Create().
+		SetUserID(userID).SetTitle("키워드 매칭 경험").SetContent("내용").SetCategory("프로젝트").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SetKeywords([]string{"데이터", "분석", "성과"}).
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(expWithKW).SetWeaponCode(w01.Code).SetConfidence(0.8).SetIsPrimary(true).SaveX(ctx)
+
+	// Experience without matching keywords
+	expNoKW := client.Experience.Create().
+		SetUserID(userID).SetTitle("키워드 없는 경험").SetContent("내용").SetCategory("인턴").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SetKeywords([]string{"봉사", "헌신"}).
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(expNoKW).SetWeaponCode(w01.Code).SetConfidence(0.8).SetIsPrimary(true).SaveX(ctx)
+
+	input := RecommendInput{
+		RequiredWeapons: RequiredWeapons{
+			Primary:   WeaponInfo{WeaponID: w01.Code, WeaponName: "문제해결"},
+			Secondary: []WeaponInfo{},
+		},
+		KeyKeywords: []string{"데이터", "분석", "성과", "리더십"},
+		Limit:       5,
+	}
+
+	recommendations, err := svc.RecommendExperiences(ctx, userID, input)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(recommendations), 2)
+
+	// Experience with keyword matches should score higher
+	assert.Equal(t, "키워드 매칭 경험", recommendations[0].Title)
+	assert.Greater(t, recommendations[0].MatchScore, recommendations[1].MatchScore)
+	assert.Equal(t, []string{"데이터", "분석", "성과"}, recommendations[0].KeywordMatches)
+}
+
+func TestRecommendExperiences_UsageDedup(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewQuestionService(client, nil)
+	ctx := context.Background()
+
+	userID, appID := createTestUserAndApplication(t, client)
+	ensureWeaponCategoriesForQuestion(t, client)
+
+	w01, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W01")).Only(ctx)
+
+	// Two experiences with identical weapon scores
+	expUsed := client.Experience.Create().
+		SetUserID(userID).SetTitle("이미 사용된 경험").SetContent("내용").SetCategory("프로젝트").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(expUsed).SetWeaponCode(w01.Code).SetConfidence(0.9).SetIsPrimary(true).SaveX(ctx)
+
+	expFresh := client.Experience.Create().
+		SetUserID(userID).SetTitle("새로운 경험").SetContent("내용").SetCategory("프로젝트").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(expFresh).SetWeaponCode(w01.Code).SetConfidence(0.9).SetIsPrimary(true).SaveX(ctx)
+
+	// Mark expUsed as already used for this application
+	app, _ := client.Application.Get(ctx, appID)
+	client.ExperienceUsage.Create().
+		SetExperience(expUsed).
+		SetUserID(userID).
+		SetApplication(app).
+		SetQuestionText("이전 문항").
+		SaveX(ctx)
+
+	input := RecommendInput{
+		RequiredWeapons: RequiredWeapons{
+			Primary:   WeaponInfo{WeaponID: w01.Code, WeaponName: "문제해결"},
+			Secondary: []WeaponInfo{},
+		},
+		ApplicationID: appID,
+		Limit:         5,
+	}
+
+	recommendations, err := svc.RecommendExperiences(ctx, userID, input)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(recommendations), 2)
+
+	// Fresh experience should rank higher (no penalty + freshness bonus)
+	assert.Equal(t, "새로운 경험", recommendations[0].Title)
+	assert.Greater(t, recommendations[0].MatchScore, recommendations[1].MatchScore)
+
+	// Used experience should have is_used flag
+	var usedRec *ExperienceRecommendation
+	for i := range recommendations {
+		if recommendations[i].Title == "이미 사용된 경험" {
+			usedRec = &recommendations[i]
+			break
+		}
+	}
+	require.NotNil(t, usedRec)
+	assert.True(t, usedRec.IsUsed)
+}
+
+func TestRecommendExperiences_FreshnessBonus(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewQuestionService(client, nil)
+	ctx := context.Background()
+
+	userID, _ := createTestUserAndApplication(t, client)
+	ensureWeaponCategoriesForQuestion(t, client)
+
+	w01, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W01")).Only(ctx)
+
+	// Two experiences with identical weapon scores
+	expNeverUsed := client.Experience.Create().
+		SetUserID(userID).SetTitle("처음 사용 경험").SetContent("내용").SetCategory("프로젝트").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(expNeverUsed).SetWeaponCode(w01.Code).SetConfidence(0.9).SetIsPrimary(true).SaveX(ctx)
+
+	expUsedElsewhere := client.Experience.Create().
+		SetUserID(userID).SetTitle("다른곳 사용 경험").SetContent("내용").SetCategory("프로젝트").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(expUsedElsewhere).SetWeaponCode(w01.Code).SetConfidence(0.9).SetIsPrimary(true).SaveX(ctx)
+
+	// Mark expUsedElsewhere as used globally (different application)
+	otherApp := client.Application.Create().
+		SetUserID(userID).
+		SetCompanyName("다른회사").
+		SetPosition("개발자").
+		SetJobURL("https://example.com/other").
+		SaveX(ctx)
+	client.ExperienceUsage.Create().
+		SetExperience(expUsedElsewhere).
+		SetUserID(userID).
+		SetApplication(otherApp).
+		SetQuestionText("다른 문항").
+		SaveX(ctx)
+
+	input := RecommendInput{
+		RequiredWeapons: RequiredWeapons{
+			Primary:   WeaponInfo{WeaponID: w01.Code, WeaponName: "문제해결"},
+			Secondary: []WeaponInfo{},
+		},
+		Limit: 5,
+	}
+
+	recommendations, err := svc.RecommendExperiences(ctx, userID, input)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(recommendations), 2)
+
+	// Never-used experience should rank higher (freshness bonus)
+	assert.Equal(t, "처음 사용 경험", recommendations[0].Title)
+	assert.Greater(t, recommendations[0].MatchScore, recommendations[1].MatchScore)
+}
+
+func TestRecommendExperiences_MatchReasons(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewQuestionService(client, nil)
+	ctx := context.Background()
+
+	userID, _ := createTestUserAndApplication(t, client)
+	ensureWeaponCategoriesForQuestion(t, client)
+
+	w01, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W01")).Only(ctx)
+	w02, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W02")).Only(ctx)
+
+	exp := client.Experience.Create().
+		SetUserID(userID).SetTitle("종합 경험").SetContent("내용").SetCategory("프로젝트").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SetKeywords([]string{"데이터", "분석"}).
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(exp).SetWeaponCode(w01.Code).SetConfidence(0.9).SetIsPrimary(true).SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(exp).SetWeaponCode(w02.Code).SetConfidence(0.7).SetIsPrimary(false).SaveX(ctx)
+
+	input := RecommendInput{
+		RequiredWeapons: RequiredWeapons{
+			Primary:   WeaponInfo{WeaponID: w01.Code, WeaponName: "문제해결"},
+			Secondary: []WeaponInfo{{WeaponID: w02.Code, WeaponName: "협업"}},
+		},
+		KeyKeywords: []string{"데이터", "분석", "성과"},
+		Limit:       5,
+	}
+
+	recommendations, err := svc.RecommendExperiences(ctx, userID, input)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(recommendations), 1)
+
+	rec := recommendations[0]
+	assert.Equal(t, "종합 경험", rec.Title)
+	assert.NotEmpty(t, rec.MatchReasons)
+
+	// Should have weapon match reasons
+	hasWeaponReason := false
+	hasKeywordReason := false
+	hasFreshnessReason := false
+	for _, reason := range rec.MatchReasons {
+		if strings.Contains(reason, "주 무기") {
+			hasWeaponReason = true
+		}
+		if strings.Contains(reason, "키워드") {
+			hasKeywordReason = true
+		}
+		if strings.Contains(reason, "사용되지 않은") {
+			hasFreshnessReason = true
+		}
+	}
+	assert.True(t, hasWeaponReason, "should have weapon match reason")
+	assert.True(t, hasKeywordReason, "should have keyword match reason")
+	assert.True(t, hasFreshnessReason, "should have freshness reason")
+
+	// Should have keyword matches
+	assert.Equal(t, []string{"데이터", "분석"}, rec.KeywordMatches)
 }
