@@ -37,11 +37,14 @@ moon run :build  # All builds
 ## TDD & Phase Workflow
 
 1. Read phase doc (`docs/develop/phases/phase-X.md`)
-2. **Red**: Write failing test → `moon run :test`
-3. **Green**: Implement minimal code → `moon run :test`
-4. **Gate**: `moon run backend:lint && moon run backend:test && moon run web:lint && moon run web:typecheck && moon run web:test && moon run web:build`
-5. **Commit**: `git add <files> && git commit -m "Phase X.Y: description"`
-6. Repeat steps 2-5 per step. Update Phase Progress table when phase completes
+2. **Red**: Write test ONLY → run test → **confirm FAIL** (must see failure output)
+3. **Green**: Write minimal implementation ONLY → run test → **confirm PASS**
+4. **Never write test and implementation in the same step** — always verify failure first
+5. **Gate**: `moon run backend:lint && moon run backend:test && moon run web:lint && moon run web:typecheck && moon run web:test && moon run web:build`
+6. **Commit**: `git add <files> && git commit -m "Phase X.Y: description"`
+7. Repeat steps 2-6 per step. Update Phase Progress table when phase completes
+
+> TDD patterns per stack: see `apps/backend/CLAUDE.md` and `apps/web/CLAUDE.md`
 
 ## Phase Progress
 

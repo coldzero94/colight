@@ -36,9 +36,55 @@ moon run backend:migrate-apply
 moon run backend:seed             # Seed data
 ```
 
-## Testing
+## TDD Rules
 
-Go `testing` + testify. Tests co-located: `foo.go` → `foo_test.go`. Helpers in `testutil/`.
+### Workflow
+
+1. **Red**: Write `_test.go` ONLY → `moon run backend:test` → confirm FAIL
+2. **Green**: Write minimal `.go` → `moon run backend:test` → confirm PASS
+3. Never write test + implementation together
+
+### Test Structure
+
+```
+service/foo.go         → service/foo_test.go        (unit, mock dependencies)
+controller/foo.go      → controller/foo_test.go     (integration, httptest + gin)
+```
+
+### Patterns
+
+**Service test** (unit — mock AI, mock DB via interface):
+```go
+func TestFoo_Success(t *testing.T) {
+    mockAI := new(ai.MockAIClient)
+    svc := NewFooService(mockAI)
+    mockAI.On("ChatCompletion", mock.Anything, mock.Anything).
+        Return(&ai.ChatResponse{Content: `{"result":"ok"}`}, nil)
+
+    result, err := svc.DoSomething(context.Background(), input)
+    require.NoError(t, err)       // prerequisite — fail fast
+    assert.Equal(t, expected, result) // assertion — continue on fail
+}
+```
+
+**Controller test** (integration — httptest + real gin router):
+```go
+func TestFoo_Unauthorized(t *testing.T) {
+    router := setupTestRouter(t) // no auth token
+    req := httptest.NewRequest(http.MethodPost, "/v1/foo", body)
+    w := httptest.NewRecorder()
+    router.ServeHTTP(w, req)
+    assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+```
+
+### Conventions
+
+- `require` for preconditions (fail immediately), `assert` for checks (continue)
+- DB tests: `enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")` per test
+- AI fixtures in `testdata/` — don't hardcode JSON in tests
+- Helpers in `testutil/` (NewTestClient, SeedTestUser, SeedWeapons)
+- Don't test: `internal/generated/`, `cmd/`, `scripts/`
 
 ## Migration
 
