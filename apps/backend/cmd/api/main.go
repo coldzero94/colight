@@ -254,10 +254,10 @@ func main() {
 		protected.GET("/coaching/cover-letters/:id/versions", editorCtrl.GetVersions)
 	}
 
-	// Admin routes (require authentication + admin role)
+	// Admin routes (require authentication + role-based access)
 	admin := r.Group("/v1/admin")
 	admin.Use(middleware.AuthMiddleware(tokenService))
-	admin.Use(middleware.AdminMiddleware())
+	admin.Use(middleware.RequireRole("admin"))
 	{
 		admin.GET("/users", adminCtrl.ListUsers)
 		admin.GET("/users/:id", adminCtrl.GetUser)

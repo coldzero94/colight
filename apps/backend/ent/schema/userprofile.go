@@ -41,7 +41,7 @@ func (UserProfile) Fields() []ent.Field {
 			Default("email").
 			Comment("Authentication provider"),
 		field.Enum("role").
-			Values("user", "admin").
+			Values("user", "manager", "admin", "super_admin").
 			Default("user").
 			Comment("User role"),
 		field.Bool("email_verified").

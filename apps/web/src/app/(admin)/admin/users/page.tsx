@@ -3,20 +3,40 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
+import { useAuthStore } from "@/stores/auth-store";
+import type { UserRole } from "@/lib/auth-utils";
+import { hasRole } from "@/lib/auth-utils";
 
 interface AdminUser {
   id: string;
   email?: string;
   nickname?: string;
   auth_provider: "email" | "naver";
-  role: "user" | "admin";
+  role: UserRole;
   last_login_at?: string;
   created_at: string;
 }
 
+const ROLE_BADGE_STYLES: Record<UserRole, string> = {
+  user: "bg-gray-100 text-gray-700",
+  manager: "bg-blue-100 text-blue-700",
+  admin: "bg-purple-100 text-purple-700",
+  super_admin: "bg-red-100 text-red-700",
+};
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  user: "User",
+  manager: "Manager",
+  admin: "Admin",
+  super_admin: "Super Admin",
+};
+
+const ALL_ROLES: UserRole[] = ["user", "manager", "admin", "super_admin"];
+
 const PAGE_SIZE = 20;
 
 export default function AdminUsersPage() {
+  const { user: currentUser } = useAuthStore();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -48,8 +68,9 @@ export default function AdminUsersPage() {
     fetchUsers();
   }, [fetchUsers]);
 
-  const handleRoleChange = async (userId: string, newRole: string) => {
-    if (!confirm(`역할을 '${newRole}'로 변경하시겠습니까?`)) return;
+  const handleRoleChange = async (userId: string, newRole: UserRole) => {
+    if (!confirm(`역할을 '${ROLE_LABELS[newRole]}'로 변경하시겠습니까?`))
+      return;
 
     try {
       await apiClient.put(`/v1/admin/users/${userId}/role`, { role: newRole });
@@ -59,6 +80,14 @@ export default function AdminUsersPage() {
       toast.error("역할 변경에 실패했습니다.");
     }
   };
+
+  // Roles the current user can assign (strictly below their own level)
+  const assignableRoles = currentUser
+    ? ALL_ROLES.filter(
+        (r) =>
+          r !== currentUser.role && !hasRole(r as UserRole, currentUser.role)
+      )
+    : [];
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -89,8 +118,11 @@ export default function AdminUsersPage() {
           className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">전체 역할</option>
-          <option value="user">User</option>
-          <option value="admin">Admin</option>
+          {ALL_ROLES.map((role) => (
+            <option key={role} value={role}>
+              {ROLE_LABELS[role]}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -133,58 +165,79 @@ export default function AdminUsersPage() {
                 </td>
               </tr>
             ) : (
-              users.map((user) => (
-                <tr
-                  key={user.id}
-                  className="border-b border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="px-4 py-3">{user.email ?? "-"}</td>
-                  <td className="px-4 py-3">{user.nickname ?? "-"}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                        user.auth_provider === "naver"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
-                    >
-                      {user.auth_provider === "naver" ? "Naver" : "Email"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                        user.role === "admin"
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {user.last_login_at
-                      ? new Date(user.last_login_at).toLocaleDateString("ko-KR")
-                      : "-"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {new Date(user.created_at).toLocaleDateString("ko-KR")}
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() =>
-                        handleRoleChange(
-                          user.id,
-                          user.role === "admin" ? "user" : "admin"
-                        )
-                      }
-                      className="text-xs text-blue-600 hover:underline"
-                    >
-                      {user.role === "admin" ? "User로 변경" : "Admin으로 변경"}
-                    </button>
-                  </td>
-                </tr>
-              ))
+              users.map((user) => {
+                const isSelf = user.id === currentUser?.id;
+                const canChange =
+                  !isSelf &&
+                  currentUser &&
+                  hasRole(currentUser.role, user.role) &&
+                  currentUser.role !== user.role;
+
+                return (
+                  <tr
+                    key={user.id}
+                    className="border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <td className="px-4 py-3">{user.email ?? "-"}</td>
+                    <td className="px-4 py-3">{user.nickname ?? "-"}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                          user.auth_provider === "naver"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-blue-100 text-blue-700"
+                        }`}
+                      >
+                        {user.auth_provider === "naver" ? "Naver" : "Email"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${ROLE_BADGE_STYLES[user.role]}`}
+                      >
+                        {ROLE_LABELS[user.role]}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {user.last_login_at
+                        ? new Date(user.last_login_at).toLocaleDateString(
+                            "ko-KR"
+                          )
+                        : "-"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {new Date(user.created_at).toLocaleDateString("ko-KR")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {canChange ? (
+                        <select
+                          value={user.role}
+                          onChange={(e) =>
+                            handleRoleChange(
+                              user.id,
+                              e.target.value as UserRole
+                            )
+                          }
+                          className="text-xs border border-gray-300 rounded px-2 py-1 bg-white"
+                        >
+                          <option value={user.role}>
+                            {ROLE_LABELS[user.role]}
+                          </option>
+                          {assignableRoles
+                            .filter((r) => r !== user.role)
+                            .map((role) => (
+                              <option key={role} value={role}>
+                                {ROLE_LABELS[role]}
+                              </option>
+                            ))}
+                        </select>
+                      ) : isSelf ? (
+                        <span className="text-xs text-gray-400">본인</span>
+                      ) : null}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

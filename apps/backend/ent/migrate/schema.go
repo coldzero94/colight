@@ -633,7 +633,7 @@ var (
 		{Name: "password_hash", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "naver_id", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "auth_provider", Type: field.TypeEnum, Enums: []string{"email", "naver"}, Default: "email"},
-		{Name: "role", Type: field.TypeEnum, Enums: []string{"user", "admin"}, Default: "user"},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"user", "manager", "admin", "super_admin"}, Default: "user"},
 		{Name: "email_verified", Type: field.TypeBool, Default: false},
 		{Name: "last_login_at", Type: field.TypeTime, Nullable: true},
 		{Name: "nickname", Type: field.TypeString, Nullable: true, Size: 50},

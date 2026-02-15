@@ -1,3 +1,4 @@
-h1:G3T1FSEQn2xAbmL+SdLd/dU+7axtgFkP3uqh51QxZKE=
+h1:vSWsG9coZIeJ08xqc640i2oB+8LdqFlGiAe+7OmSqEk=
 20260212082137_initial_schema.sql h1:5ARVGDV4eBzd+gepm7cIN06YAojHnjHL6M9sLV8FRm8=
 20260213012819_add_auth_fields.sql h1:G5vDhD62ZXX/6KVUbGR3KAMJFePF8tNzR25qJXeaCwM=
+20260215145153_add_role_hierarchy.sql h1:w1WGiZ9WQZUcHWldXi1ELCez09WggqL7kn3awEBvpJY=

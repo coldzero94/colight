@@ -60,6 +60,18 @@ func sendJSON(router *gin.Engine, method, path string, body any) *httptest.Respo
 	return w
 }
 
+func sendJSONWithHeaders(router *gin.Engine, method, path string, body any, headers map[string]string) *httptest.ResponseRecorder {
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(method, path, bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	return w
+}
+
 func parseJSON(t *testing.T, w *httptest.ResponseRecorder) map[string]any {
 	t.Helper()
 	var resp map[string]any

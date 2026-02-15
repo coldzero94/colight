@@ -1,12 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { apiClient } from "@/lib/api-client";
+import type { UserRole } from "@/lib/auth-utils";
 
-interface UserInfo {
+export interface UserInfo {
   id: string;
   email?: string;
   nickname?: string;
-  role: "user" | "admin";
+  role: UserRole;
   auth_provider: "email" | "naver";
   onboarding_completed: boolean;
 }

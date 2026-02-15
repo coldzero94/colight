@@ -6,9 +6,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/coby/colight/apps/backend/testutil"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -175,22 +177,24 @@ func TestAdminController_GetUser_InvalidID(t *testing.T) {
 // --- UpdateUserRole ---
 
 func TestAdminController_UpdateUserRole_Success(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	db := testutil.NewTestClient(t)
-	ctrl := NewAdminController(db)
+	r, db := setupRoleValidationRouter(t)
+	ctx := t.Context()
 
-	r := gin.New()
-	r.PUT("/v1/admin/users/:id/role", ctrl.UpdateUserRole)
-
-	user := db.UserProfile.Create().
+	caller := db.UserProfile.Create().
+		SetEmail("role-caller@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleSuperAdmin).
+		SaveX(ctx)
+	target := db.UserProfile.Create().
 		SetEmail("role-ctrl@test.com").
 		SetAuthProvider(userprofile.AuthProviderEmail).
 		SetRole(userprofile.RoleUser).
-		SaveX(t.Context())
+		SaveX(ctx)
 
-	w := putJSON(r, "/v1/admin/users/"+user.ID.String()+"/role", map[string]string{
-		"role": "admin",
-	})
+	w := sendJSONWithHeaders(r, http.MethodPut, "/v1/admin/users/"+target.ID.String()+"/role",
+		map[string]string{"role": "admin"},
+		map[string]string{"X-Test-UserID": caller.ID.String(), "X-Test-Role": "super_admin"},
+	)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	resp := parseJSON(t, w)
@@ -198,24 +202,175 @@ func TestAdminController_UpdateUserRole_Success(t *testing.T) {
 }
 
 func TestAdminController_UpdateUserRole_InvalidRole(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	db := testutil.NewTestClient(t)
-	ctrl := NewAdminController(db)
+	r, db := setupRoleValidationRouter(t)
+	ctx := t.Context()
 
-	r := gin.New()
-	r.PUT("/v1/admin/users/:id/role", ctrl.UpdateUserRole)
-
-	user := db.UserProfile.Create().
+	caller := db.UserProfile.Create().
+		SetEmail("badrole-caller@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleSuperAdmin).
+		SaveX(ctx)
+	target := db.UserProfile.Create().
 		SetEmail("badrole-ctrl@test.com").
 		SetAuthProvider(userprofile.AuthProviderEmail).
 		SetRole(userprofile.RoleUser).
-		SaveX(t.Context())
+		SaveX(ctx)
 
-	w := putJSON(r, "/v1/admin/users/"+user.ID.String()+"/role", map[string]string{
-		"role": "superuser",
-	})
+	w := sendJSONWithHeaders(r, http.MethodPut, "/v1/admin/users/"+target.ID.String()+"/role",
+		map[string]string{"role": "superuser"},
+		map[string]string{"X-Test-UserID": caller.ID.String(), "X-Test-Role": "super_admin"},
+	)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+// --- UpdateUserRole (role hierarchy validation) ---
+
+func setupRoleValidationRouter(t *testing.T) (*gin.Engine, *ent.Client) {
+	t.Helper()
+	gin.SetMode(gin.TestMode)
+	db := testutil.NewTestClient(t)
+	testutil.CleanAllTables(db)
+	ctrl := NewAdminController(db)
+
+	r := gin.New()
+	// Simulate auth middleware: set user_id + role from headers
+	r.Use(func(c *gin.Context) {
+		if id := c.GetHeader("X-Test-UserID"); id != "" {
+			uid, _ := uuid.Parse(id)
+			c.Set("user_id", uid)
+		}
+		if role := c.GetHeader("X-Test-Role"); role != "" {
+			c.Set("role", role)
+		}
+		c.Next()
+	})
+	r.PUT("/v1/admin/users/:id/role", ctrl.UpdateUserRole)
+
+	return r, db
+}
+
+func TestUpdateUserRole_AdminCanPromoteToManager(t *testing.T) {
+	r, db := setupRoleValidationRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("admin@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleAdmin).
+		SaveX(ctx)
+	target := db.UserProfile.Create().
+		SetEmail("target@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleUser).
+		SaveX(ctx)
+
+	w := sendJSONWithHeaders(r, http.MethodPut, "/v1/admin/users/"+target.ID.String()+"/role",
+		map[string]string{"role": "manager"},
+		map[string]string{"X-Test-UserID": admin.ID.String(), "X-Test-Role": "admin"},
+	)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	assert.Equal(t, "manager", resp["role"])
+}
+
+func TestUpdateUserRole_AdminCannotPromoteToAdmin(t *testing.T) {
+	r, db := setupRoleValidationRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("admin2@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleAdmin).
+		SaveX(ctx)
+	target := db.UserProfile.Create().
+		SetEmail("target2@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleUser).
+		SaveX(ctx)
+
+	w := sendJSONWithHeaders(r, http.MethodPut, "/v1/admin/users/"+target.ID.String()+"/role",
+		map[string]string{"role": "admin"},
+		map[string]string{"X-Test-UserID": admin.ID.String(), "X-Test-Role": "admin"},
+	)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
+}
+
+func TestUpdateUserRole_SuperAdminCanPromoteToAdmin(t *testing.T) {
+	r, db := setupRoleValidationRouter(t)
+	ctx := t.Context()
+
+	superAdmin := db.UserProfile.Create().
+		SetEmail("super@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleSuperAdmin).
+		SaveX(ctx)
+	target := db.UserProfile.Create().
+		SetEmail("target3@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleUser).
+		SaveX(ctx)
+
+	w := sendJSONWithHeaders(r, http.MethodPut, "/v1/admin/users/"+target.ID.String()+"/role",
+		map[string]string{"role": "admin"},
+		map[string]string{"X-Test-UserID": superAdmin.ID.String(), "X-Test-Role": "super_admin"},
+	)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	assert.Equal(t, "admin", resp["role"])
+}
+
+func TestUpdateUserRole_CannotChangeSelf(t *testing.T) {
+	r, db := setupRoleValidationRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("self@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleAdmin).
+		SaveX(ctx)
+
+	w := sendJSONWithHeaders(r, http.MethodPut, "/v1/admin/users/"+admin.ID.String()+"/role",
+		map[string]string{"role": "user"},
+		map[string]string{"X-Test-UserID": admin.ID.String(), "X-Test-Role": "admin"},
+	)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Contains(t, w.Body.String(), "자기 자신")
+}
+
+func TestUpdateUserRole_LastSuperAdminProtected(t *testing.T) {
+	r, db := setupRoleValidationRouter(t)
+	ctx := t.Context()
+
+	// Create exactly 1 super_admin (the target) — they are the last one
+	target := db.UserProfile.Create().
+		SetEmail("lastsuperadmin@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleSuperAdmin).
+		SaveX(ctx)
+	// Caller is a different super_admin — create and then we'll have 2, but demote caller via DB
+	// so target is truly the last. But caller's header says super_admin for permission.
+	// Actually: to properly test, we need 2 super_admins. Caller (super_admin) tries to demote target,
+	// but target would be the last super_admin after demotion. The check counts current super_admins.
+	// If target is the only one, count=1 → deny.
+	// So: don't create another super_admin. Use a fake caller with super_admin header.
+	caller := db.UserProfile.Create().
+		SetEmail("caller-admin@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleAdmin).
+		SaveX(ctx)
+
+	w := sendJSONWithHeaders(r, http.MethodPut, "/v1/admin/users/"+target.ID.String()+"/role",
+		map[string]string{"role": "admin"},
+		map[string]string{"X-Test-UserID": caller.ID.String(), "X-Test-Role": "super_admin"},
+	)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Contains(t, w.Body.String(), "마지막")
 }
 
 // --- GetStats ---
