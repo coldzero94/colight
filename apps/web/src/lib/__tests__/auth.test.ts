@@ -33,6 +33,7 @@ describe("signupSchema", () => {
       email: "test@example.com",
       password: "password1",
       passwordConfirm: "password1",
+      agreeToTerms: true,
     });
     expect(result.success).toBe(true);
   });
@@ -43,6 +44,7 @@ describe("signupSchema", () => {
       password: "password1",
       passwordConfirm: "password1",
       nickname: "tester",
+      agreeToTerms: true,
     });
     expect(result.success).toBe(true);
   });

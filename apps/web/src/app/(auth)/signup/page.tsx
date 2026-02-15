@@ -136,6 +136,38 @@ export default function SignupPage() {
           )}
         </div>
 
+        <div className="flex items-start gap-2">
+          <input
+            id="agreeToTerms"
+            type="checkbox"
+            {...register("agreeToTerms")}
+            className="mt-1 h-4 w-4 rounded border-gray-300"
+          />
+          <label htmlFor="agreeToTerms" className="text-sm text-gray-600">
+            <Link
+              href="/terms"
+              target="_blank"
+              className="text-blue-600 hover:underline"
+            >
+              이용약관
+            </Link>
+            {" 및 "}
+            <Link
+              href="/privacy"
+              target="_blank"
+              className="text-blue-600 hover:underline"
+            >
+              개인정보처리방침
+            </Link>
+            에 동의합니다.
+          </label>
+        </div>
+        {errors.agreeToTerms && (
+          <p className="text-sm text-red-600">
+            {errors.agreeToTerms.message}
+          </p>
+        )}
+
         <button
           type="submit"
           disabled={isSubmitting}
