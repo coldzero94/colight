@@ -22,7 +22,7 @@
 | Phase 5.1 | 초안 코칭 | ✅ | Sprint 5 | 2일 | F12, F13 |
 | Phase 5.2 | 코칭 에디터 | ✅ | Sprint 5 | 1일 | F13 |
 | Phase 6 | 첨삭 코칭 | ✅ | Sprint 6 | 2일 | F14 |
-| Phase 6.1 | 프리미엄 & 마무리 | ⬜ | Sprint 6 | 2일 | - |
+| Phase 6.1 | 프리미엄 & 마무리 | ✅ | Sprint 6 | 2일 | - |
 | Phase 6.2 | 랜딩 & 베타 | ⬜ | Sprint 6 | 1일 | - |
 | Phase 7 | AI 인터뷰 | ⬜ | Sprint 7 | 2일 | F02 |
 | Phase 7.1 | 경험 추천 강화 | ⬜ | Sprint 7 | 1일 | F12 |
