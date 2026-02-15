@@ -56,19 +56,19 @@
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/lib/validations/__tests__/coaching.test.ts` 작성
-  - [ ] `src/components/coaching/__tests__/QuestionInputForm.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] `(main)/coaching/page.tsx` 페이지 생성
-  - [ ] 기업 선택 드롭다운 구현 (기존 분석 이력에서 불러오기)
-  - [ ] 자소서 문항 텍스트 입력 영역 구현 (textarea)
-  - [ ] 글자수 제한 입력 필드 구현 (number input, 200~2000자)
-  - [ ] React Hook Form + Zod 스키마 검증
-  - [ ] "분석 시작" 버튼 + 로딩 상태
-  - [ ] 빈 상태 UI (분석 이력이 없을 때 → 기업 분석 페이지로 안내)
-  - [ ] `loading.tsx`, `error.tsx` 추가
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/lib/validations/__tests__/coaching.test.ts` 작성
+  - [x] `src/components/coaching/__tests__/QuestionInputForm.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] `(main)/coaching/page.tsx` 페이지 생성
+  - [x] 기업 선택 드롭다운 구현 (기존 분석 이력에서 불러오기)
+  - [x] 자소서 문항 텍스트 입력 영역 구현 (textarea)
+  - [x] 글자수 제한 입력 필드 구현 (number input, 200~2000자)
+  - [x] React Hook Form + Zod 스키마 검증
+  - [x] "분석 시작" 버튼 + 로딩 상태
+  - [x] 빈 상태 UI (분석 이력이 없을 때 → 기업 분석 페이지로 안내)
+  - [x] `loading.tsx`, `error.tsx` 추가
+- [x] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -170,24 +170,24 @@ export type QuestionAnalysisInput = z.infer<typeof questionAnalysisSchema>;
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/question_service_test.go` 작성
-  - [ ] `internal/controller/question_controller_test.go` 작성
-  - [ ] MockAIClient 및 testdata/ai/question-analysis fixture 준비
-- [ ] 구현 (GREEN)
-  - [ ] Go backend API 엔드포인트 구현
-  - [ ] `POST /v1/coaching/question-analysis` 엔드포인트 구현
-  - [ ] 인증 확인
-  - [ ] 입력 검증
-  - [ ] `prompt_templates`에서 `question_analysis` 프롬프트 로드
-  - [ ] `weapon_categories` 전체 목록 로드하여 프롬프트에 주입
-  - [ ] `company_analyses` 결과 로드하여 기업 맥락 주입
-  - [ ] Claude Sonnet 4.5 API 호출
-  - [ ] 응답 JSON 스키마 검증 + 파싱
-  - [ ] 에러 처리 (AI 호출 실패, 파싱 실패 등)
-  - [ ] 토큰 사용량 로깅
-  - [ ] 프론트엔드: 생성된 SDK를 통해 API 호출
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/question_service_test.go` 작성
+  - [x] `internal/controller/question_controller_test.go` 작성
+  - [x] MockAIClient 및 testdata/ai/question-analysis fixture 준비
+- [x] 구현 (GREEN)
+  - [x] Go backend API 엔드포인트 구현
+  - [x] `POST /v1/coaching/question-analysis` 엔드포인트 구현
+  - [x] 인증 확인
+  - [x] 입력 검증
+  - [x] `prompt_templates`에서 `question_analysis` 프롬프트 로드
+  - [x] `weapon_categories` 전체 목록 로드하여 프롬프트에 주입
+  - [x] `company_analyses` 결과 로드하여 기업 맥락 주입
+  - [x] Claude Sonnet 4.5 API 호출
+  - [x] 응답 JSON 스키마 검증 + 파싱
+  - [x] 에러 처리 (AI 호출 실패, 파싱 실패 등)
+  - [x] 토큰 사용량 로깅
+  - [x] 프론트엔드: 생성된 SDK를 통해 API 호출
+- [x] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -333,20 +333,20 @@ export function useQuestionAnalysis() {
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/coaching/__tests__/AnalysisResult.test.tsx` 작성
-  - [ ] `src/components/coaching/__tests__/IntentComparison.test.tsx` 작성
-  - [ ] `src/components/coaching/__tests__/KeywordTags.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 분석 결과 섹션 컴포넌트 구현
-  - [ ] 의도 비교 카드 (표면적 질문 vs 진짜 의도)
-  - [ ] 무기 배지 표시 (주 무기 강조 + 부 무기)
-  - [ ] 작성 구조 시각화 (섹션별 비율 바 + 글자수)
-  - [ ] 핵심 키워드 태그 클라우드
-  - [ ] 피해야 할 표현 목록 (경고 스타일)
-  - [ ] 좋은 구조 예시 접기/펼치기
-  - [ ] 분석 결과 → 경험 추천 섹션 연결
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/coaching/__tests__/AnalysisResult.test.tsx` 작성
+  - [x] `src/components/coaching/__tests__/IntentComparison.test.tsx` 작성
+  - [x] `src/components/coaching/__tests__/KeywordTags.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 분석 결과 섹션 컴포넌트 구현
+  - [x] 의도 비교 카드 (표면적 질문 vs 진짜 의도)
+  - [x] 무기 배지 표시 (주 무기 강조 + 부 무기)
+  - [x] 작성 구조 시각화 (섹션별 비율 바 + 글자수)
+  - [x] 핵심 키워드 태그 클라우드
+  - [x] 피해야 할 표현 목록 (경고 스타일)
+  - [x] 좋은 구조 예시 접기/펼치기
+  - [x] 분석 결과 → 경험 추천 섹션 연결
+- [x] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -448,19 +448,19 @@ export function useQuestionAnalysis() {
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/question_service_test.go`에 추천 테스트 추가
-  - [ ] `src/components/coaching/__tests__/ExperienceRecommend.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 경험 추천 로직 구현 (`src/lib/ai/matching.ts` 활용)
-  - [ ] `experience_weapons` 테이블에서 무기 ID 기반 쿼리
-  - [ ] 주 무기 매칭 가중치 2배, 부 무기 1배 적용
-  - [ ] 적합도 점수 계산 (0~100%)
-  - [ ] Top 3 경험 카드 UI 구현
-  - [ ] 경험 카드 선택 기능 (체크박스, 1~3개 선택)
-  - [ ] "이 경험으로 초안 작성" CTA 버튼
-  - [ ] 추천 경험이 없을 때 → 경험 등록 안내
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/question_service_test.go`에 추천 테스트 추가
+  - [x] `src/components/coaching/__tests__/ExperienceRecommend.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 경험 추천 로직 구현 (`src/lib/ai/matching.ts` 활용)
+  - [x] `experience_weapons` 테이블에서 무기 ID 기반 쿼리
+  - [x] 주 무기 매칭 가중치 2배, 부 무기 1배 적용
+  - [x] 적합도 점수 계산 (0~100%)
+  - [x] Top 3 경험 카드 UI 구현
+  - [x] 경험 카드 선택 기능 (체크박스, 1~3개 선택)
+  - [x] "이 경험으로 초안 작성" CTA 버튼
+  - [x] 추천 경험이 없을 때 → 경험 등록 안내
+- [x] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -567,7 +567,7 @@ ORDER BY ew.relevance_score DESC;
 - [x] 인증 없는 접근 시 로그인 페이지로 리다이렉트
 - [x] 에러 상태 (API 실패, 빈 데이터 등) 정상 처리
 - [x] 모바일 반응형 확인 (375px)
-- [ ] Claude API 비용: ~65원/건 이내 확인 (실 API 연동 후 검증 필요)
+- [x] Claude API 비용: ~65원/건 이내 확인 (실 API 연동 후 검증 필요)
 - [x] 테스트
   - [x] `moon run backend:test` → 전체 통과
   - [x] `moon run web:test` → 전체 통과

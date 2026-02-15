@@ -52,17 +52,17 @@ DART 전자공시 시스템의 OpenAPI를 활용하여 기업 개황(기본정�
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/infrastructure/external/dart_client_test.go`
-- [ ] 구현 (GREEN)
-  - [ ] DART OpenAPI 키 발급 (https://opendart.fss.or.kr)
-  - [ ] `dart_client.go` 클라이언트 모듈 생성
-  - [ ] corp_code 조회 기능 구현 (회사명 → 고유번호 매핑)
-  - [ ] 기업 개황 API (`/api/company.json`) 연동
-  - [ ] 재무제표 API (`/api/fnlttSinglAcnt.json`) 연동
-  - [ ] API 응답 타입 정의
-  - [ ] 에러 처리 (API 키 만료, 일일 한도 초과, 비상장 기업 등)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/infrastructure/external/dart_client_test.go`
+- [x] 구현 (GREEN)
+  - [x] DART OpenAPI 키 발급 (https://opendart.fss.or.kr)
+  - [x] `dart_client.go` 클라이언트 모듈 생성
+  - [x] corp_code 조회 기능 구현 (회사명 → 고유번호 매핑)
+  - [x] 기업 개황 API (`/api/company.json`) 연동
+  - [x] 재무제표 API (`/api/fnlttSinglAcnt.json`) 연동
+  - [x] API 응답 타입 정의
+  - [x] 에러 처리 (API 키 만료, 일일 한도 초과, 비상장 기업 등)
+- [x] 테스트 통과 확인
 
 ### DART API 상세
 
@@ -221,18 +221,18 @@ const DART_ERROR_CODES: Record<string, string> = {
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/infrastructure/external/naver_news_client_test.go`
-- [ ] 구현 (GREEN)
-  - [ ] 네이버 개발자 API 키 발급 (https://developers.naver.com)
-  - [ ] `naver_news_client.go` 클라이언트 모듈 생성
-  - [ ] 뉴스 검색 API 연동 (`/v1/search/news.json`)
-  - [ ] 검색 쿼리 최적화 (기업명 + 채용/경영/실적 키워드)
-  - [ ] 검색 결과 정리 (HTML 태그 제거, 날짜 정규화)
-  - [ ] 최근 3개월 필터링
-  - [ ] 상위 5~10건 반환
-  - [ ] 에러 처리 (API 한도 초과, 네트워크 오류)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/infrastructure/external/naver_news_client_test.go`
+- [x] 구현 (GREEN)
+  - [x] 네이버 개발자 API 키 발급 (https://developers.naver.com)
+  - [x] `naver_news_client.go` 클라이언트 모듈 생성
+  - [x] 뉴스 검색 API 연동 (`/v1/search/news.json`)
+  - [x] 검색 쿼리 최적화 (기업명 + 채용/경영/실적 키워드)
+  - [x] 검색 결과 정리 (HTML 태그 제거, 날짜 정규화)
+  - [x] 최근 3개월 필터링
+  - [x] 상위 5~10건 반환
+  - [x] 에러 처리 (API 한도 초과, 네트워크 오류)
+- [x] 테스트 통과 확인
 
 ### API 상세
 
@@ -344,18 +344,18 @@ DART 기업정보와 네이버 뉴스를 `Promise.all`로 병렬 호출하여 �
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/controller/company_data_controller_test.go`
-  - [ ] `src/components/analysis/__tests__/company-info-display.test.tsx`
-- [ ] 구현 (GREEN)
-  - [ ] `/api/analyze/company-data` POST 라우트 생성
-  - [ ] DART + 네이버 뉴스 병렬 호출 (`errgroup`)
-  - [ ] Partial failure 처리 (일부 소스 실패해도 결과 반환)
-  - [ ] 통합 응답 스키마 정의
-  - [ ] 각 소스별 상태 표시 (성공/실패/건너뜀)
-  - [ ] 인증 미들웨어 적용
-  - [ ] 에러 핸들링 (전체 실패 시 에러 응답)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/controller/company_data_controller_test.go`
+  - [x] `src/components/analysis/__tests__/company-info-display.test.tsx`
+- [x] 구현 (GREEN)
+  - [x] `/api/analyze/company-data` POST 라우트 생성
+  - [x] DART + 네이버 뉴스 병렬 호출 (`errgroup`)
+  - [x] Partial failure 처리 (일부 소스 실패해도 결과 반환)
+  - [x] 통합 응답 스키마 정의
+  - [x] 각 소스별 상태 표시 (성공/실패/건너뜀)
+  - [x] 인증 미들웨어 적용
+  - [x] 에러 핸들링 (전체 실패 시 에러 응답)
+- [x] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -471,17 +471,17 @@ export async function POST(request: Request) {
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/cache_test.go`
-- [ ] 구현 (GREEN)
-  - [ ] `company_analysis_cache` 테이블 생성 마이그레이션
-  - [ ] 캐시 조회 함수 구현 (TTL 확인 포함)
-  - [ ] 캐시 저장 함수 구현
-  - [ ] 캐시 무효화 함수 구현 (수동 새로고침용)
-  - [ ] 만료 캐시 자동 정리 (Supabase cron 또는 조회 시 lazy deletion)
-  - [ ] `/api/analyze/company-data`에 캐시 로직 통합
-  - [ ] 캐시 히트/미스 로깅
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/cache_test.go`
+- [x] 구현 (GREEN)
+  - [x] `company_analysis_cache` 테이블 생성 마이그레이션
+  - [x] 캐시 조회 함수 구현 (TTL 확인 포함)
+  - [x] 캐시 저장 함수 구현
+  - [x] 캐시 무효화 함수 구현 (수동 새로고침용)
+  - [x] 만료 캐시 자동 정리 (Supabase cron 또는 조회 시 lazy deletion)
+  - [x] `/api/analyze/company-data`에 캐시 로직 통합
+  - [x] 캐시 히트/미스 로깅
+- [x] 테스트 통과 확인
 
 ### DB 마이그레이션
 
@@ -596,19 +596,19 @@ async function invalidateCache(companyName: string): Promise<void>;
 
 ## Phase 완료 체크리스트
 
-- [ ] DART OpenAPI로 상장 기업 개황 조회 성공
-- [ ] DART OpenAPI로 재무제표 (매출, 영업이익, 순이익) 조회 성공
-- [ ] 네이버 뉴스 API로 기업 관련 최근 뉴스 검색 성공
-- [ ] 비상장/미등록 기업에 대한 partial failure 정상 처리
-- [ ] 병렬 호출 (`errgroup`) 정상 동작
-- [ ] `/api/analyze/company-data` API 응답 정상
-- [ ] 캐시 저장/조회/만료/무효화 정상 동작
-- [ ] 캐시 히트 시 API 미호출 확인
-- [ ] 환경변수 설정 문서 업데이트 (DART_API_KEY, NAVER_CLIENT_ID, NAVER_CLIENT_SECRET)
-- [ ] `moon run backend:test` → 전체 통과
-- [ ] `moon run web:test` → 전체 통과
-- [ ] `moon run :lint` → 경고 0건
-- [ ] `moon run web:build` → 빌드 성공
+- [x] DART OpenAPI로 상장 기업 개황 조회 성공
+- [x] DART OpenAPI로 재무제표 (매출, 영업이익, 순이익) 조회 성공
+- [x] 네이버 뉴스 API로 기업 관련 최근 뉴스 검색 성공
+- [x] 비상장/미등록 기업에 대한 partial failure 정상 처리
+- [x] 병렬 호출 (`errgroup`) 정상 동작
+- [x] `/api/analyze/company-data` API 응답 정상
+- [x] 캐시 저장/조회/만료/무효화 정상 동작
+- [x] 캐시 히트 시 API 미호출 확인
+- [x] 환경변수 설정 문서 업데이트 (DART_API_KEY, NAVER_CLIENT_ID, NAVER_CLIENT_SECRET)
+- [x] `moon run backend:test` → 전체 통과
+- [x] `moon run web:test` → 전체 통과
+- [x] `moon run :lint` → 경고 0건
+- [x] `moon run web:build` → 빌드 성공
 
 ---
 

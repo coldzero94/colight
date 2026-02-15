@@ -357,31 +357,31 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
 
 ### 페이지
 
-- [ ] `(auth)/layout.tsx` — 센터 카드 레이아웃, 로고
-- [ ] `(auth)/login/page.tsx` — Naver 로그인 + Email/PW 로그인
-- [ ] `(auth)/signup/page.tsx` — Email/PW 회원가입
-- [ ] `auth/callback/page.tsx` — OAuth 콜백 처리
+- [x] `(auth)/layout.tsx` — 센터 카드 레이아웃, 로고
+- [x] `(auth)/login/page.tsx` — Naver 로그인 + Email/PW 로그인
+- [x] `(auth)/signup/page.tsx` — Email/PW 회원가입
+- [x] `auth/callback/page.tsx` — OAuth 콜백 처리
 
 ### 상태 관리
 
-- [ ] `stores/auth-store.ts` — Zustand + persist
-  - [ ] `setTokens`, `fetchUser`, `logout`, `refreshAccessToken`
-- [ ] `lib/api-client.ts` — Axios + 토큰 자동 첨부 + 401 refresh
+- [x] `stores/auth-store.ts` — Zustand + persist
+  - [x] `setTokens`, `fetchUser`, `logout`, `refreshAccessToken`
+- [x] `lib/api-client.ts` — Axios + 토큰 자동 첨부 + 401 refresh
 
 ### 보호 라우트
 
-- [ ] `components/auth/auth-guard.tsx` — 인증 필요 라우트 보호
-- [ ] `components/auth/admin-guard.tsx` — 어드민 라우트 보호
-- [ ] `(main)/layout.tsx`에 `<AuthGuard>` 적용
-- [ ] `admin/layout.tsx`에 `<AdminGuard>` 적용 (Phase 1.5)
+- [x] `components/auth/auth-guard.tsx` — 인증 필요 라우트 보호
+- [x] `components/auth/admin-guard.tsx` — 어드민 라우트 보호
+- [x] `(main)/layout.tsx`에 `<AuthGuard>` 적용
+- [x] `admin/layout.tsx`에 `<AdminGuard>` 적용 (Phase 1.5)
 
 ### UI 컴포넌트
 
-- [ ] Naver 로그인 버튼 (초록색, Naver 로고)
-- [ ] 이메일/비밀번호 폼 (shadcn Input + Label)
-- [ ] Zod 유효성 검증 스키마
-- [ ] 에러 메시지 표시 (sonner toast)
-- [ ] 로딩 상태 (버튼 Spinner)
+- [x] Naver 로그인 버튼 (초록색, Naver 로고)
+- [x] 이메일/비밀번호 폼 (shadcn Input + Label)
+- [x] Zod 유효성 검증 스키마
+- [x] 에러 메시지 표시 (sonner toast)
+- [x] 로딩 상태 (버튼 Spinner)
 
 ---
 

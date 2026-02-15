@@ -43,21 +43,21 @@
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/landing/__tests__/hero-section.test.tsx` 작성
-  - [ ] `src/components/landing/__tests__/feature-section.test.tsx` 작성
-  - [ ] `src/app/__tests__/landing-page.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] `src/app/page.tsx` 랜딩 페이지 구현 (기존 리다이렉트 대체)
-  - [ ] Hero 섹션: 메인 카피 + 서브 카피 + CTA 버튼
-  - [ ] 핵심 기능 소개 섹션 (3개 기능 카드)
-  - [ ] 데모/스크린샷 섹션 (서비스 미리보기)
-  - [ ] CTA 섹션: "지금 시작하기" → 회원가입
-  - [ ] 푸터: 서비스명, 법적 링크, 저작권
-  - [ ] 로그인 사용자 → `/dashboard`로 리다이렉트
-  - [ ] SEO 메타태그 (title, description, og:image)
-  - [ ] 반응형 (모바일 우선)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/landing/__tests__/hero-section.test.tsx` 작성
+  - [x] `src/components/landing/__tests__/feature-section.test.tsx` 작성
+  - [x] `src/app/__tests__/landing-page.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] `src/app/page.tsx` 랜딩 페이지 구현 (기존 리다이렉트 대체)
+  - [x] Hero 섹션: 메인 카피 + 서브 카피 + CTA 버튼
+  - [x] 핵심 기능 소개 섹션 (3개 기능 카드)
+  - [x] 데모/스크린샷 섹션 (서비스 미리보기)
+  - [x] CTA 섹션: "지금 시작하기" → 회원가입
+  - [x] 푸터: 서비스명, 법적 링크, 저작권
+  - [x] 로그인 사용자 → `/dashboard`로 리다이렉트
+  - [x] SEO 메타태그 (title, description, og:image)
+  - [x] 반응형 (모바일 우선)
+- [x] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -207,16 +207,16 @@ export default async function LandingPage() {
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/app/(legal)/__tests__/privacy.test.tsx` 작성
-  - [ ] `src/app/(legal)/__tests__/terms.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] `/privacy` 개인정보처리방침 페이지 구현
-  - [ ] `/terms` 이용약관 페이지 구현
-  - [ ] 랜딩 페이지 푸터에 링크 추가
-  - [ ] 회원가입 페이지에 "이용약관 동의" 체크박스 추가
-  - [ ] 마크다운 기반 콘텐츠 (추후 수정 용이하도록)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/app/(legal)/__tests__/privacy.test.tsx` 작성
+  - [x] `src/app/(legal)/__tests__/terms.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] `/privacy` 개인정보처리방침 페이지 구현
+  - [x] `/terms` 이용약관 페이지 구현
+  - [x] 랜딩 페이지 푸터에 링크 추가
+  - [x] 회원가입 페이지에 "이용약관 동의" 체크박스 추가
+  - [x] 마크다운 기반 콘텐츠 (추후 수정 용이하도록)
+- [x] 테스트 통과 확인
 
 ### 개인정보처리방침 필수 항목
 
@@ -287,19 +287,19 @@ Vercel에 프로덕션 배포를 수행하고, 환경 변수를 설정하고, Su
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/controller/health_controller_test.go` 작성
-- [ ] 구현 (GREEN)
-  - [ ] Vercel 프로젝트 프로덕션 환경 변수 설정
-  - [ ] Supabase 프로덕션 프로젝트 생성 + DB 마이그레이션 적용
-  - [ ] Supabase 프로덕션 Auth 설정 (이메일/소셜 로그인)
-  - [ ] 커스텀 도메인 연결 (선택: colight.app 또는 colight.vercel.app)
-  - [ ] SSL 인증서 확인 (Vercel 자동)
-  - [ ] 프로덕션 빌드 테스트 (`npm run build && npm run start`)
-  - [ ] 시드 데이터 프로덕션 적용 (weapon_categories, question_patterns, prompt_templates)
-  - [ ] 환경별 API 키 분리 확인 (dev/prod)
-  - [ ] 5~10명 베타 테스터 초대 (이메일)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/controller/health_controller_test.go` 작성
+- [x] 구현 (GREEN)
+  - [x] Vercel 프로젝트 프로덕션 환경 변수 설정
+  - [x] Supabase 프로덕션 프로젝트 생성 + DB 마이그레이션 적용
+  - [x] Supabase 프로덕션 Auth 설정 (이메일/소셜 로그인)
+  - [x] 커스텀 도메인 연결 (선택: colight.app 또는 colight.vercel.app)
+  - [x] SSL 인증서 확인 (Vercel 자동)
+  - [x] 프로덕션 빌드 테스트 (`npm run build && npm run start`)
+  - [x] 시드 데이터 프로덕션 적용 (weapon_categories, question_patterns, prompt_templates)
+  - [x] 환경별 API 키 분리 확인 (dev/prod)
+  - [x] 5~10명 베타 테스터 초대 (이메일)
+- [x] 테스트 통과 확인
 
 ### 환경 변수 체크리스트
 
@@ -389,17 +389,17 @@ AI 취업 코칭 서비스 Colight의 베타 테스트에 초대합니다.
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/controller/feedback_controller_test.go` 작성
-  - [ ] `src/components/feedback/__tests__/feedback-modal.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 플로팅 피드백 버튼 구현 (우측 하단 고정)
-  - [ ] 피드백 모달: 카테고리(버그/개선/기타) + 텍스트 입력
-  - [ ] 현재 페이지 URL 자동 첨부
-  - [ ] 사용자 ID 자동 첨부 (로그인 시)
-  - [ ] 피드백 저장 (Supabase `feedback` 테이블 또는 외부 서비스)
-  - [ ] 제출 후 감사 토스트 메시지
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/controller/feedback_controller_test.go` 작성
+  - [x] `src/components/feedback/__tests__/feedback-modal.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 플로팅 피드백 버튼 구현 (우측 하단 고정)
+  - [x] 피드백 모달: 카테고리(버그/개선/기타) + 텍스트 입력
+  - [x] 현재 페이지 URL 자동 첨부
+  - [x] 사용자 ID 자동 첨부 (로그인 시)
+  - [x] 피드백 저장 (Supabase `feedback` 테이블 또는 외부 서비스)
+  - [x] 제출 후 감사 토스트 메시지
+- [x] 테스트 통과 확인
 
 ### DB 스키마
 
@@ -478,16 +478,16 @@ CREATE POLICY "Authenticated users can submit feedback"
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/monitoring_service_test.go` 작성
-- [ ] 구현 (GREEN)
-  - [ ] Vercel Analytics 활성화 (Web Vitals 자동 수집)
-  - [ ] Vercel Speed Insights 활성화 (성능 모니터링)
-  - [ ] Supabase Dashboard 확인 (DB 사용량, Auth 사용자 수)
-  - [ ] AI 비용 추적 대시보드 (coaching_sessions의 토큰/비용 집계)
-  - [ ] 에러 모니터링 기본 설정 (console.error → Vercel Logs)
-  - [ ] 주요 지표 수동 확인 루틴 문서화
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/monitoring_service_test.go` 작성
+- [x] 구현 (GREEN)
+  - [x] Vercel Analytics 활성화 (Web Vitals 자동 수집)
+  - [x] Vercel Speed Insights 활성화 (성능 모니터링)
+  - [x] Supabase Dashboard 확인 (DB 사용량, Auth 사용자 수)
+  - [x] AI 비용 추적 대시보드 (coaching_sessions의 토큰/비용 집계)
+  - [x] 에러 모니터링 기본 설정 (console.error → Vercel Logs)
+  - [x] 주요 지표 수동 확인 루틴 문서화
+- [x] 테스트 통과 확인
 
 ### Vercel Analytics 설정
 
@@ -582,23 +582,23 @@ export async function checkDailyCost() {
 
 ## Phase 완료 체크리스트
 
-- [ ] 랜딩 페이지 완성 (Hero + 기능 3개 + 데모 + CTA)
-- [ ] 비로그인 → 랜딩, 로그인 → 대시보드 리다이렉트
-- [ ] SEO 메타태그 설정 완료
-- [ ] 개인정보처리방침 + 이용약관 페이지 게시
-- [ ] Vercel 프로덕션 배포 완료
-- [ ] Supabase 프로덕션 DB 설정 + 마이그레이션 + 시드 완료
-- [ ] SSL 인증서 유효
-- [ ] 환경 변수 프로덕션 설정 완료
-- [ ] 플로팅 피드백 버튼 동작
-- [ ] Vercel Analytics + Speed Insights 활성화
-- [ ] AI 비용 추적 가능
-- [ ] 베타 테스터 5~10명 초대 완료
-- [ ] 전체 플로우 프로덕션 동작 확인
-- [ ] `moon run backend:test` → 전체 통과
-- [ ] `moon run web:test` → 전체 통과
-- [ ] `moon run :lint` → 경고 0건
-- [ ] `moon run web:build` → 빌드 성공
+- [x] 랜딩 페이지 완성 (Hero + 기능 3개 + 데모 + CTA)
+- [x] 비로그인 → 랜딩, 로그인 → 대시보드 리다이렉트
+- [x] SEO 메타태그 설정 완료
+- [x] 개인정보처리방침 + 이용약관 페이지 게시
+- [x] Vercel 프로덕션 배포 완료
+- [x] Supabase 프로덕션 DB 설정 + 마이그레이션 + 시드 완료
+- [x] SSL 인증서 유효
+- [x] 환경 변수 프로덕션 설정 완료
+- [x] 플로팅 피드백 버튼 동작
+- [x] Vercel Analytics + Speed Insights 활성화
+- [x] AI 비용 추적 가능
+- [x] 베타 테스터 5~10명 초대 완료
+- [x] 전체 플로우 프로덕션 동작 확인
+- [x] `moon run backend:test` → 전체 통과
+- [x] `moon run web:test` → 전체 통과
+- [x] `moon run :lint` → 경고 0건
+- [x] `moon run web:build` → 빌드 성공
 
 ---
 

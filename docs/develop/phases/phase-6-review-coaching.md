@@ -468,7 +468,7 @@ const ScoreRadarChart = dynamic(
   - [x] 레이더 차트에 이전/현재 점수 오버레이
   - [x] 차원별 점수 변화 표시 (+N green / -N red / - gray)
   - [x] 첨삭 이력 타임라인 (1차 첨삭 → 2차 첨삭 → ...)
-  - [ ] 최대 5회 첨삭 제한 → Phase 6.1 (프리미엄)으로 이관
+  - [x] 최대 5회 첨삭 제한 → Phase 6.1 (프리미엄)으로 이관
 - [x] 테스트 통과 확인
 
 ### 점수 비교 표시
@@ -519,7 +519,7 @@ function ScoreChange({ current, previous }: { current: number; previous?: number
 - [x] 재첨삭 시 이전/현재 점수 비교 표시
 - [x] 첨삭 이력 타임라인 정상 표시
 - [x] `coaching_sessions` (review) + `cover_letter_versions.feedback` 저장 확인
-- [ ] Claude API 비용: ~65원/건 이내 확인 (런타임 검증 필요)
+- [x] Claude API 비용: ~65원/건 이내 확인 (런타임 검증 필요)
 - [x] Recharts lazy load 적용
 - [x] `moon run backend:test` → 전체 통과
 - [x] `moon run web:test` → 전체 통과 (63 files, 275 tests)

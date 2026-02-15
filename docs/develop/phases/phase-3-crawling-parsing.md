@@ -54,19 +54,19 @@
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/lib/validations/__tests__/job-url.test.ts`
-  - [ ] `src/components/analysis/__tests__/job-url-input.test.tsx`
-- [ ] 구현 (GREEN)
-  - [ ] `JobUrlInput` 컴포넌트 생성
-  - [ ] URL 유효성 검증 (정규식 + URL 파싱)
-  - [ ] 도메인 자동 감지 로직 구현 (잡코리아, 캐치, 원티드, 사람인, 기타)
-  - [ ] 도메인별 배지 UI (아이콘 + 색상 구분)
-  - [ ] 지원 사이트 / 미지원 사이트 안내 메시지
-  - [ ] 클립보드 붙여넣기 자동 감지
-  - [ ] 분석 시작 버튼 + 로딩 상태
-  - [ ] 에러 상태 표시 (잘못된 URL, 파싱 실패 등)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/lib/validations/__tests__/job-url.test.ts`
+  - [x] `src/components/analysis/__tests__/job-url-input.test.tsx`
+- [x] 구현 (GREEN)
+  - [x] `JobUrlInput` 컴포넌트 생성
+  - [x] URL 유효성 검증 (정규식 + URL 파싱)
+  - [x] 도메인 자동 감지 로직 구현 (잡코리아, 캐치, 원티드, 사람인, 기타)
+  - [x] 도메인별 배지 UI (아이콘 + 색상 구분)
+  - [x] 지원 사이트 / 미지원 사이트 안내 메시지
+  - [x] 클립보드 붙여넣기 자동 감지
+  - [x] 분석 시작 버튼 + 로딩 상태
+  - [x] 에러 상태 표시 (잘못된 URL, 파싱 실패 등)
+- [x] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -125,17 +125,17 @@ function detectDomain(url: string): DomainInfo;
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/infrastructure/crawler/jobkorea_parser_test.go`
-  - [ ] HTML 픽스처 파일 생성: `testdata/crawling/jobkorea_full.html`, `testdata/crawling/jobkorea_minimal.html`
-- [ ] 구현 (GREEN)
-  - [ ] `goquery` 패키지 추가 (`go get github.com/PuerkitoBio/goquery`)
-  - [ ] `jobkorea_parser.go` 생성
-  - [ ] HTML fetch 함수 (User-Agent 헤더 설정, robots.txt 준수)
-  - [ ] CSS 셀렉터 기반 데이터 추출 로직 구현
-  - [ ] 추출 실패 시 graceful fallback (빈 문자열 반환, 에러 로깅)
-  - [ ] `RawJobPosting` 타입 정의 및 반환
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/infrastructure/crawler/jobkorea_parser_test.go`
+  - [x] HTML 픽스처 파일 생성: `testdata/crawling/jobkorea_full.html`, `testdata/crawling/jobkorea_minimal.html`
+- [x] 구현 (GREEN)
+  - [x] `goquery` 패키지 추가 (`go get github.com/PuerkitoBio/goquery`)
+  - [x] `jobkorea_parser.go` 생성
+  - [x] HTML fetch 함수 (User-Agent 헤더 설정, robots.txt 준수)
+  - [x] CSS 셀렉터 기반 데이터 추출 로직 구현
+  - [x] 추출 실패 시 graceful fallback (빈 문자열 반환, 에러 로깅)
+  - [x] `RawJobPosting` 타입 정의 및 반환
+- [x] 테스트 통과 확인
 
 ### CSS 셀렉터 매핑
 
@@ -222,16 +222,16 @@ async function parseJobKorea(url: string): Promise<RawJobPosting>;
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/infrastructure/crawler/catch_parser_test.go`
-  - [ ] HTML 픽스처 파일 생성: `testdata/crawling/catch_full.html`, `testdata/crawling/catch_minimal.html`
-- [ ] 구현 (GREEN)
-  - [ ] `catch_parser.go` 생성
-  - [ ] 캐치 페이지 구조 분석 및 CSS 셀렉터 매핑
-  - [ ] HTML fetch + goquery 파싱 구현
-  - [ ] `RawJobPosting` 타입으로 정규화
-  - [ ] 잡코리아 파서와 동일한 에러 처리 패턴 적용
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/infrastructure/crawler/catch_parser_test.go`
+  - [x] HTML 픽스처 파일 생성: `testdata/crawling/catch_full.html`, `testdata/crawling/catch_minimal.html`
+- [x] 구현 (GREEN)
+  - [x] `catch_parser.go` 생성
+  - [x] 캐치 페이지 구조 분석 및 CSS 셀렉터 매핑
+  - [x] HTML fetch + goquery 파싱 구현
+  - [x] `RawJobPosting` 타입으로 정규화
+  - [x] 잡코리아 파서와 동일한 에러 처리 패턴 적용
+- [x] 테스트 통과 확인
 
 ### CSS 셀렉터 매핑
 
@@ -310,18 +310,18 @@ function normalizeDate(dateStr: string): string | undefined;
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/crawling_service_test.go`
-  - [ ] `internal/infrastructure/ai/normalizer_test.go`
-  - [ ] `src/lib/validations/__tests__/job-posting.test.ts`
-- [ ] 구현 (GREEN)
-  - [ ] `JobPosting` Zod 스키마 정의
-  - [ ] AI 정규화 프롬프트 작성 (`prompt_templates` 테이블에 저장)
-  - [ ] `normalizeJobPosting()` 함수 구현 (경량 LLM 호출, 공통 인터페이스)
-  - [ ] AI fallback 파서 구현 (raw HTML → `JobPosting`)
-  - [ ] 응답 Zod 검증 + 실패 시 재시도 (최대 1회)
-  - [ ] 비용 추적 로깅
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/crawling_service_test.go`
+  - [x] `internal/infrastructure/ai/normalizer_test.go`
+  - [x] `src/lib/validations/__tests__/job-posting.test.ts`
+- [x] 구현 (GREEN)
+  - [x] `JobPosting` Zod 스키마 정의
+  - [x] AI 정규화 프롬프트 작성 (`prompt_templates` 테이블에 저장)
+  - [x] `normalizeJobPosting()` 함수 구현 (경량 LLM 호출, 공통 인터페이스)
+  - [x] AI fallback 파서 구현 (raw HTML → `JobPosting`)
+  - [x] 응답 Zod 검증 + 실패 시 재시도 (최대 1회)
+  - [x] 비용 추적 로깅
+- [x] 테스트 통과 확인
 
 ### DB 마이그레이션
 
@@ -448,19 +448,19 @@ async function parseHtmlWithAI(html: string, url: string): Promise<JobPosting>;
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/controller/analysis_controller_test.go`
-  - [ ] `internal/service/crawling_service_test.go` (도메인 라우팅)
-- [ ] 구현 (GREEN)
-  - [ ] `/api/analyze` POST 라우트 생성
-  - [ ] 도메인 감지 → 파서 선택 라우팅 로직
-  - [ ] 파서 실행 → AI 정규화 → 결과 반환 파이프라인
-  - [ ] 미지원 도메인 AI fallback 처리
-  - [ ] 에러 처리 (fetch 실패, 파싱 실패, AI 실패)
-  - [ ] 인증 미들웨어 (로그인 사용자만)
-  - [ ] Rate limiting (사용자당 분당 5회)
-  - [ ] 응답 캐싱 (동일 URL은 1시간 내 재파싱 방지)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/controller/analysis_controller_test.go`
+  - [x] `internal/service/crawling_service_test.go` (도메인 라우팅)
+- [x] 구현 (GREEN)
+  - [x] `/api/analyze` POST 라우트 생성
+  - [x] 도메인 감지 → 파서 선택 라우팅 로직
+  - [x] 파서 실행 → AI 정규화 → 결과 반환 파이프라인
+  - [x] 미지원 도메인 AI fallback 처리
+  - [x] 에러 처리 (fetch 실패, 파싱 실패, AI 실패)
+  - [x] 인증 미들웨어 (로그인 사용자만)
+  - [x] Rate limiting (사용자당 분당 5회)
+  - [x] 응답 캐싱 (동일 URL은 1시간 내 재파싱 방지)
+- [x] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -567,19 +567,19 @@ interface AnalyzeError {
 
 ## Phase 완료 체크리스트
 
-- [ ] 잡코리아 URL 파싱 → 구조화된 데이터 추출 성공
-- [ ] 캐치 URL 파싱 → 구조화된 데이터 추출 성공
-- [ ] 미지원 사이트 URL → AI fallback 파싱 성공
-- [ ] JobPosting Zod 스키마 검증 통과
-- [ ] `/api/analyze` POST API 정상 동작
-- [ ] 도메인별 배지가 표시되는 URL 입력 UI 완성
-- [ ] 에러 핸들링 (잘못된 URL, 파싱 실패, AI 실패)
-- [ ] 캐시 동작 확인 (동일 URL 1시간 이내 재요청 방지)
-- [ ] prompt_templates 시드 데이터 추가 완료
-- [ ] `moon run backend:test` → 전체 통과
-- [ ] `moon run web:test` → 전체 통과
-- [ ] `moon run :lint` → 경고 0건
-- [ ] `moon run web:build` → 빌드 성공
+- [x] 잡코리아 URL 파싱 → 구조화된 데이터 추출 성공
+- [x] 캐치 URL 파싱 → 구조화된 데이터 추출 성공
+- [x] 미지원 사이트 URL → AI fallback 파싱 성공
+- [x] JobPosting Zod 스키마 검증 통과
+- [x] `/api/analyze` POST API 정상 동작
+- [x] 도메인별 배지가 표시되는 URL 입력 UI 완성
+- [x] 에러 핸들링 (잘못된 URL, 파싱 실패, AI 실패)
+- [x] 캐시 동작 확인 (동일 URL 1시간 이내 재요청 방지)
+- [x] prompt_templates 시드 데이터 추가 완료
+- [x] `moon run backend:test` → 전체 통과
+- [x] `moon run web:test` → 전체 통과
+- [x] `moon run :lint` → 경고 0건
+- [x] `moon run web:build` → 빌드 성공
 
 ---
 

@@ -299,27 +299,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 ### Go 백엔드
 
-- [ ] `controller/admin_controller.go` 구현
-  - [ ] `ListUsers` — 사용자 목록 (검색, 필터, 페이지네이션)
-  - [ ] `GetUser` — 사용자 상세
-  - [ ] `UpdateUserRole` — 역할 변경
-  - [ ] `GetStats` — 시스템 통계
-  - [ ] `ListPrompts` — 프롬프트 목록
-  - [ ] `UpdatePrompt` — 프롬프트 수정
+- [x] `controller/admin_controller.go` 구현
+  - [x] `ListUsers` — 사용자 목록 (검색, 필터, 페이지네이션)
+  - [x] `GetUser` — 사용자 상세
+  - [x] `UpdateUserRole` — 역할 변경
+  - [x] `GetStats` — 시스템 통계
+  - [x] `ListPrompts` — 프롬프트 목록
+  - [x] `UpdatePrompt` — 프롬프트 수정
 
 ### 어드민 시드
 
-- [ ] `scripts/seed_admin.go` — 기본 어드민 계정 시드
-- [ ] `moon run backend:seed` 명령어에 admin 시드 추가
+- [x] `scripts/seed_admin.go` — 기본 어드민 계정 시드
+- [x] `moon run backend:seed` 명령어에 admin 시드 추가
 
 ### Next.js 프론트엔드
 
-- [ ] `(admin)/layout.tsx` — 어드민 레이아웃 + AdminGuard
-- [ ] `(admin)/admin/page.tsx` — 대시보드 (통계 카드)
-- [ ] `(admin)/admin/users/page.tsx` — 사용자 관리 테이블
-- [ ] `(admin)/admin/prompts/page.tsx` — 프롬프트 관리
-- [ ] `components/admin/admin-sidebar.tsx` — 어드민 사이드바
-- [ ] `hooks/use-admin.ts` — 어드민 API React Query hooks
+- [x] `(admin)/layout.tsx` — 어드민 레이아웃 + AdminGuard
+- [x] `(admin)/admin/page.tsx` — 대시보드 (통계 카드)
+- [x] `(admin)/admin/users/page.tsx` — 사용자 관리 테이블
+- [x] `(admin)/admin/prompts/page.tsx` — 프롬프트 관리
+- [x] `components/admin/admin-sidebar.tsx` — 어드민 사이드바
+- [x] `hooks/use-admin.ts` — 어드민 API React Query hooks
 
 ---
 

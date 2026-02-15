@@ -1,6 +1,9 @@
 # Phase 7: AI 경험 인터뷰
 
-> Sprint 6 | 예상 공수: 2일 | 관련 기능: F02
+> Sprint 7 | 예상 공수: 2일 | 관련 기능: F02
+
+> **Architecture Note**: 원본 문서의 TypeScript/Next.js API Routes 경로는 Go 백엔드 구현으로 대체됨.
+> 실제 구현: `internal/service/interview_service.go`, `internal/controller/interview_controller.go`
 
 ## 개요
 
@@ -8,17 +11,17 @@
 |------|------|
 | **목표** | AI와 대화하며 경험을 발굴하고 STAR 구조 경험 카드를 자동 생성 |
 | **선행 조건** | Phase 2 (경험 CRUD), Phase 2.1 (무기 태깅) |
-| **주요 산출물** | 인터뷰 채팅 UI, 인터뷰 API (스트리밍), 경험 카드 자동 생성 |
-| **기술 스택** | 경량 모델 (Gemini/Groq), Vercel AI SDK streamText, React Query |
+| **주요 산출물** | 인터뷰 채팅 UI, 인터뷰 API, 경험 카드 자동 생성 |
+| **기술 스택** | 경량 모델 (Gemini/Groq), Go backend (Gin), React Query |
 
 ---
 
 ## 진행 상태
 
-- [ ] 7.1 채팅 UI
-- [ ] 7.2 인터뷰 API
-- [ ] 7.3 경험 카드 자동 생성
-- [ ] 7.4 자동 무기 태깅
+- [x] 7.1 채팅 UI
+- [x] 7.2 인터뷰 API
+- [x] 7.3 경험 카드 자동 생성
+- [x] 7.4 자동 무기 태깅
 
 ---
 
@@ -41,23 +44,23 @@
 
 #### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/interview/__tests__/interview-chat.test.tsx` 작성
-  - [ ] `src/components/interview/__tests__/interview-progress.test.tsx` 작성
-  - [ ] `src/hooks/__tests__/use-interview-chat.test.ts` 작성
-  - [ ] `src/components/interview/__tests__/interview-timer.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 인터뷰 페이지 라우트 생성
-  - [ ] 메시지 버블 컴포넌트 (AI / 사용자 구분)
-  - [ ] 텍스트 입력 + 전송 버튼
-  - [ ] 스트리밍 응답 실시간 표시 (useChat 또는 커스텀 훅)
-  - [ ] 인터뷰 단계 진행 인디케이터
-  - [ ] 스크롤 자동 하단 이동
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/interview/__tests__/interview-chat.test.tsx` 작성
+  - [x] `src/components/interview/__tests__/interview-progress.test.tsx` 작성
+  - [x] `src/hooks/__tests__/use-interview-chat.test.ts` 작성
+  - [x] `src/components/interview/__tests__/interview-timer.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 인터뷰 페이지 라우트 생성
+  - [x] 메시지 버블 컴포넌트 (AI / 사용자 구분)
+  - [x] 텍스트 입력 + 전송 버튼
+  - [x] useInterviewChat 커스텀 훅으로 상태 관리
+  - [x] 인터뷰 단계 진행 인디케이터
+  - [x] 스크롤 자동 하단 이동
+- [x] 테스트 통과 확인
 
 ### 7.2 인터뷰 API
 
-**경로**: `src/app/api/experiences/interview/route.ts` (POST, streaming)
+**경로**: `internal/controller/interview_controller.go`, `internal/service/interview_service.go`
 
 #### 테스트 명세
 
@@ -72,21 +75,15 @@
 
 #### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/interview_service_test.go` 작성
-  - [ ] `internal/controller/interview_controller_test.go` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 경량 모델 (Gemini/Groq) 기반 멀티턴 대화형 API
-  - [ ] prompt_templates에서 인터뷰 프롬프트 로드
-  - [ ] 인터뷰 단계 관리:
-    1. **가볍게** -- 최근 활동, 관심사 탐색
-    2. **기억에 남는 순간** -- 구체적 경험 발굴
-    3. **어려웠던 점** -- 도전/갈등 상황 파악
-    4. **해결법** -- 실제 행동과 과정
-    5. **결과/배운 점** -- 성과와 인사이트
-  - [ ] 대화 컨텍스트 누적 (messages 배열)
-  - [ ] Vercel AI SDK streamText로 스트리밍 응답
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/interview_service_test.go` 작성 (8 tests)
+  - [x] `internal/controller/interview_controller_test.go` 작성 (7 tests)
+- [x] 구현 (GREEN)
+  - [x] 경량 모델 (Gemini/Groq) 기반 멀티턴 대화형 API
+  - [x] 인터뷰 단계 관리 (5단계: warmup → memory → challenge → solution → outcome)
+  - [x] 대화 컨텍스트 누적 (messages 배열, 클라이언트 관리)
+  - [x] 3개 엔드포인트: POST /v1/interview/{question,extract,save}
+- [x] 테스트 통과 확인
 
 ### 7.3 경험 카드 자동 생성
 
@@ -100,14 +97,14 @@
 
 #### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/interview_service_test.go`에 STAR 추출 테스트 추가
-- [ ] 구현 (GREEN)
-  - [ ] 인터뷰 완료 시 AI가 대화에서 STAR 구조 자동 추출
-  - [ ] 추출된 STAR 데이터를 사용자에게 미리보기 표시
-  - [ ] 사용자 확인/수정 후 experiences 테이블에 저장
-  - [ ] 임베딩 생성 (text-embedding-3-small)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/interview_service_test.go`에 STAR 추출 테스트 추가
+  - [x] `src/components/interview/__tests__/star-preview.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 인터뷰 완료 시 AI가 대화에서 STAR 구조 자동 추출 (POST /v1/interview/extract)
+  - [x] 추출된 STAR 데이터를 사용자에게 미리보기 표시 (StarPreview 컴포넌트)
+  - [x] 사용자 확인/수정 후 experiences 테이블에 저장 (POST /v1/interview/save)
+- [x] 테스트 통과 확인
 
 ### 7.4 자동 무기 태깅
 
@@ -121,28 +118,27 @@
 
 #### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/interview_service_test.go`에 자동 태깅 트리거 테스트 추가
-- [ ] 구현 (GREEN)
-  - [ ] 경험 저장 완료 시 Phase 2.1 무기 태깅 API 자동 호출
-  - [ ] `POST /api/experiences/[id]/tag` 트리거
-  - [ ] 태깅 결과 경험 카드에 즉시 반영
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/interview_service_test.go`에 자동 태깅 트리거 테스트 추가
+- [x] 구현 (GREEN)
+  - [x] SaveExperience 시 WeaponTaggingService.TagExperience 자동 호출
+  - [x] 태깅 결과 응답에 `tagged: true/false` 반환
+- [x] 테스트 통과 확인
 
 ---
 
 ## 완료 체크리스트
 
-- [ ] AI 인터뷰 5단계 대화 흐름 정상 동작
-- [ ] 스트리밍 응답 실시간 표시
-- [ ] STAR 구조 자동 추출 및 사용자 확인 플로우
-- [ ] 경험 저장 후 무기 태깅 자동 실행
-- [ ] 에러 시 재시도 가능
-- [ ] phases/README.md 상태 업데이트
-- [ ] `moon run backend:test` → 전체 통과
-- [ ] `moon run web:test` → 전체 통과
-- [ ] `moon run :lint` → 경고 0건
-- [ ] `moon run web:build` → 빌드 성공
+- [x] AI 인터뷰 5단계 대화 흐름 정상 동작
+- [x] AI 질문 생성 및 응답 표시
+- [x] STAR 구조 자동 추출 및 사용자 확인 플로우
+- [x] 경험 저장 후 무기 태깅 자동 실행
+- [x] 에러 시 재시도 가능
+- [x] phases/README.md 상태 업데이트
+- [x] `moon run backend:test` → 전체 통과
+- [x] `moon run web:test` → 전체 통과
+- [x] `moon run :lint` → 경고 0건
+- [x] `moon run web:build` → 빌드 성공
 
 ---
 

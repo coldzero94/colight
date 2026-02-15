@@ -57,18 +57,18 @@
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/matching_service_test.go` 작성
-  - [ ] MockAIClient 및 testdata/ai/matching fixture 준비
-- [ ] 구현 (GREEN)
-  - [ ] `matching.ts` 모듈 생성
-  - [ ] 매칭 프롬프트 설계 및 `prompt_templates` 등록
-  - [ ] 경험별 개별 매칭 함수 구현
-  - [ ] 가중 평균 종합 적합도 계산
-  - [ ] 매칭 근거(reasoning) 생성
-  - [ ] 배치 매칭 (여러 경험 동시 평가) 최적화
-  - [ ] 매칭 결과 타입 정의 (Zod 스키마)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/matching_service_test.go` 작성
+  - [x] MockAIClient 및 testdata/ai/matching fixture 준비
+- [x] 구현 (GREEN)
+  - [x] `matching.ts` 모듈 생성
+  - [x] 매칭 프롬프트 설계 및 `prompt_templates` 등록
+  - [x] 경험별 개별 매칭 함수 구현
+  - [x] 가중 평균 종합 적합도 계산
+  - [x] 매칭 근거(reasoning) 생성
+  - [x] 배치 매칭 (여러 경험 동시 평가) 최적화
+  - [x] 매칭 결과 타입 정의 (Zod 스키마)
+- [x] 테스트 통과 확인
 
 ### 매칭 알고리즘 상세
 
@@ -258,17 +258,17 @@ JSON 형식으로 응답해주세요.',
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/controller/matching_controller_test.go` 작성
-- [ ] 구현 (GREEN)
-  - [ ] `/api/matching` POST 라우트 생성
-  - [ ] 분석 데이터 + 사용자 경험 조회
-  - [ ] 매칭 알고리즘 실행
-  - [ ] 결과 저장 (`company_analyses.analysis_data`에 매칭 결과 병합)
-  - [ ] 인증 및 권한 확인
-  - [ ] 에러 처리 (분석 없음, 경험 없음)
-  - [ ] Rate limiting
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/controller/matching_controller_test.go` 작성
+- [x] 구현 (GREEN)
+  - [x] `/api/matching` POST 라우트 생성
+  - [x] 분석 데이터 + 사용자 경험 조회
+  - [x] 매칭 알고리즘 실행
+  - [x] 결과 저장 (`company_analyses.analysis_data`에 매칭 결과 병합)
+  - [x] 인증 및 권한 확인
+  - [x] 에러 처리 (분석 없음, 경험 없음)
+  - [x] Rate limiting
+- [x] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -384,21 +384,21 @@ export async function POST(request: Request) {
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/matching/__tests__/ExperienceMatchCard.test.tsx` 작성
-  - [ ] `src/components/matching/__tests__/MatchingSection.test.tsx` 작성
-  - [ ] `src/components/matching/__tests__/FitScoreBar.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 매칭 결과 섹션 (분석 결과 페이지 하단에 추가)
-  - [ ] 경험별 매칭 카드 컴포넌트
-  - [ ] 적합도 % 바 (프로그레스 바)
-  - [ ] 색상 코딩 (green: 70+, yellow: 40~69, red: 0~39)
-  - [ ] 카테고리별 점수 세부 표시 (확장/접기)
-  - [ ] 매칭 근거 표시
-  - [ ] 종합 추천 & 갭 분석 표시
-  - [ ] 매칭 실행 버튼 (매칭 결과 없을 때)
-  - [ ] 경험 없음 안내 + 경험 등록 CTA
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/matching/__tests__/ExperienceMatchCard.test.tsx` 작성
+  - [x] `src/components/matching/__tests__/MatchingSection.test.tsx` 작성
+  - [x] `src/components/matching/__tests__/FitScoreBar.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 매칭 결과 섹션 (분석 결과 페이지 하단에 추가)
+  - [x] 경험별 매칭 카드 컴포넌트
+  - [x] 적합도 % 바 (프로그레스 바)
+  - [x] 색상 코딩 (green: 70+, yellow: 40~69, red: 0~39)
+  - [x] 카테고리별 점수 세부 표시 (확장/접기)
+  - [x] 매칭 근거 표시
+  - [x] 종합 추천 & 갭 분석 표시
+  - [x] 매칭 실행 버튼 (매칭 결과 없을 때)
+  - [x] 경험 없음 안내 + 경험 등록 CTA
+- [x] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -515,15 +515,15 @@ const colorClasses: Record<ScoreColor, string> = {
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/hooks/__tests__/useAutoMatching.test.ts` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 분석 완료 후 경험 존재 여부 확인 로직
-  - [ ] 자동 매칭 트리거 (경험 있으면 매칭 자동 실행)
-  - [ ] 매칭 진행 중 로딩 표시
-  - [ ] 자동 매칭 비활성화 옵션 (사용자 설정)
-  - [ ] 분석 결과 페이지 진입 시 매칭 결과 없으면 자동 트리거
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/hooks/__tests__/useAutoMatching.test.ts` 작성
+- [x] 구현 (GREEN)
+  - [x] 분석 완료 후 경험 존재 여부 확인 로직
+  - [x] 자동 매칭 트리거 (경험 있으면 매칭 자동 실행)
+  - [x] 매칭 진행 중 로딩 표시
+  - [x] 자동 매칭 비활성화 옵션 (사용자 설정)
+  - [x] 분석 결과 페이지 진입 시 매칭 결과 없으면 자동 트리거
+- [x] 테스트 통과 확인
 
 ### 자동 트리거 구현
 
@@ -627,17 +627,17 @@ async function runAnalysisPipeline(options: PipelineOptions): Promise<void> {
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/matching_service_test.go`에 outdated 테스트 추가
-  - [ ] `src/components/matching/__tests__/OutdatedMatchingBanner.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 매칭 결과 저장 구조 정의 (`analysis_data.matching`)
-  - [ ] 매칭 결과에 `matchedAt` 타임스탬프 저장
-  - [ ] 경험 변경 감지 로직 (최종 경험 수정일 vs 매칭일 비교)
-  - [ ] "outdated" 배지 표시 조건 정의
-  - [ ] 재매칭 버튼 + 확인 다이얼로그
-  - [ ] 매칭 결과 갱신 시 기존 결과 대체
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/matching_service_test.go`에 outdated 테스트 추가
+  - [x] `src/components/matching/__tests__/OutdatedMatchingBanner.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 매칭 결과 저장 구조 정의 (`analysis_data.matching`)
+  - [x] 매칭 결과에 `matchedAt` 타임스탬프 저장
+  - [x] 경험 변경 감지 로직 (최종 경험 수정일 vs 매칭일 비교)
+  - [x] "outdated" 배지 표시 조건 정의
+  - [x] 재매칭 버튼 + 확인 다이얼로그
+  - [x] 매칭 결과 갱신 시 기존 결과 대체
+- [x] 테스트 통과 확인
 
 ### Outdated 감지 로직
 
@@ -740,24 +740,24 @@ async function checkMatchingOutdated(
 
 ## Phase 완료 체크리스트
 
-- [ ] 경량 모델 (Gemini/Groq) 기반 경험-기업 매칭 알고리즘 동작
-- [ ] 경험별 3개 카테고리 점수 (직무 40%, 인재상 35%, 차별화 25%) 산출
-- [ ] 종합 적합도 (가중 평균) 계산 정확
-- [ ] 매칭 근거(reasoning) 구체적으로 생성
-- [ ] `/api/matching` POST API 정상 동작
-- [ ] 매칭 UI: 경험별 카드 + 적합도 바 + 색상 코딩 표시
-- [ ] 분석 완료 후 자동 매칭 트리거 동작
-- [ ] 경험 변경 시 outdated 배지 표시
-- [ ] 재매칭 기능 동작
-- [ ] 경험 없는 사용자에 대한 적절한 안내
-- [ ] 종합 추천 + 갭 분석 표시
-- [ ] Zod 스키마 검증 통과
-- [ ] 테스트
-  - [ ] `moon run backend:test` → 전체 통과
-  - [ ] `moon run web:test` → 전체 통과
-  - [ ] `moon run :lint` → 경고 0건
-  - [ ] `moon run web:build` → 빌드 성공
-- [ ] E2E: URL 입력 → 분석 → 매칭 → 결과 표시 전체 플로우
+- [x] 경량 모델 (Gemini/Groq) 기반 경험-기업 매칭 알고리즘 동작
+- [x] 경험별 3개 카테고리 점수 (직무 40%, 인재상 35%, 차별화 25%) 산출
+- [x] 종합 적합도 (가중 평균) 계산 정확
+- [x] 매칭 근거(reasoning) 구체적으로 생성
+- [x] `/api/matching` POST API 정상 동작
+- [x] 매칭 UI: 경험별 카드 + 적합도 바 + 색상 코딩 표시
+- [x] 분석 완료 후 자동 매칭 트리거 동작
+- [x] 경험 변경 시 outdated 배지 표시
+- [x] 재매칭 기능 동작
+- [x] 경험 없는 사용자에 대한 적절한 안내
+- [x] 종합 추천 + 갭 분석 표시
+- [x] Zod 스키마 검증 통과
+- [x] 테스트
+  - [x] `moon run backend:test` → 전체 통과
+  - [x] `moon run web:test` → 전체 통과
+  - [x] `moon run :lint` → 경고 0건
+  - [x] `moon run web:build` → 빌드 성공
+- [x] E2E: URL 입력 → 분석 → 매칭 → 결과 표시 전체 플로우
 
 ---
 

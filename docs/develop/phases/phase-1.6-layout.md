@@ -247,26 +247,26 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
 
 ### 레이아웃
 
-- [ ] `(main)/layout.tsx` — AuthGuard + Sidebar + Header 조합
-- [ ] `components/layout/sidebar.tsx` — 로고, 4개 메뉴, 활성 상태, 어드민 링크
-- [ ] `components/layout/header.tsx` — 모바일 햄버거 + 페이지 제목 + 유저 드롭다운
-- [ ] `components/layout/mobile-nav.tsx` — Sheet 모바일 메뉴
-- [ ] `components/layout/user-dropdown.tsx` — 프로필/로그아웃/어드민 메뉴
+- [x] `(main)/layout.tsx` — AuthGuard + Sidebar + Header 조합
+- [x] `components/layout/sidebar.tsx` — 로고, 4개 메뉴, 활성 상태, 어드민 링크
+- [x] `components/layout/header.tsx` — 모바일 햄버거 + 페이지 제목 + 유저 드롭다운
+- [x] `components/layout/mobile-nav.tsx` — Sheet 모바일 메뉴
+- [x] `components/layout/user-dropdown.tsx` — 프로필/로그아웃/어드민 메뉴
 
 ### 공통 컴포넌트
 
-- [ ] `components/common/loading-spinner.tsx`
-- [ ] `components/common/empty-state.tsx`
+- [x] `components/common/loading-spinner.tsx`
+- [x] `components/common/empty-state.tsx`
 
 ### 페이지 UI
 
-- [ ] `(main)/experiences/page.tsx` — 빈 상태 UI
-- [ ] `(main)/analysis/page.tsx` — 빈 상태 UI
-- [ ] `(main)/coaching/page.tsx` — 빈 상태 UI
-- [ ] `(main)/dashboard/page.tsx` — 빈 상태 UI
-- [ ] 각 라우트 `loading.tsx` — LoadingSpinner
-- [ ] 각 라우트 `error.tsx` — 에러 + 재시도
-- [ ] `not-found.tsx` — 404 페이지
+- [x] `(main)/experiences/page.tsx` — 빈 상태 UI
+- [x] `(main)/analysis/page.tsx` — 빈 상태 UI
+- [x] `(main)/coaching/page.tsx` — 빈 상태 UI
+- [x] `(main)/dashboard/page.tsx` — 빈 상태 UI
+- [x] 각 라우트 `loading.tsx` — LoadingSpinner
+- [x] 각 라우트 `error.tsx` — 에러 + 재시도
+- [x] `not-found.tsx` — 404 페이지
 
 ---
 

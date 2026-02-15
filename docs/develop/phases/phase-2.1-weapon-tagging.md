@@ -50,57 +50,57 @@
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/weapon_tagging_service_test.go` 작성 (7 tests)
-  - [ ] `internal/controller/weapon_tagging_controller_test.go` 작성 (3 tests)
-  - [ ] `testdata/ai/weapon_tagging_response.json` fixture 파일 작성
-- [ ] 구현 (GREEN)
-  - [ ] Go backend API 구현
-    - [ ] `POST /v1/experiences/:id/tag` 엔드포인트 구현
-    - [ ] 인증 확인 (미인증 → 401)
-    - [ ] 경험 소유자 확인 (타인 → 403)
-  - [ ] 프롬프트 DB 로드
-    - [ ] `prompt_templates` 테이블에서 `category='experience_classify', sub_category='weapon_tagging'` 조회
-    - [ ] `is_active=true` AND 최신 `version` 필터
-    - [ ] 프롬프트 캐싱 (인메모리, 5분 TTL)
-  - [ ] 무기 카테고리 DB 로드
-    - [ ] `weapon_categories` 테이블에서 전체 목록 조회 (대분류 + 소분류)
-    - [ ] 프롬프트 변수 `{{weapon_categories}}`에 주입
-    - [ ] 포맷: 코드 - 이름 - 설명 - 키워드 (구조화된 텍스트)
-  - [ ] 경험 텍스트 준비
-    - [ ] experience 조회 (title, situation, task, action, result, raw_content)
-    - [ ] STAR 필드를 하나의 텍스트로 조합
-    - [ ] raw_content가 있으면 함께 포함
-    - [ ] 프롬프트 변수 `{{experience_text}}`에 주입
-  - [ ] 경량 모델 (Gemini/Groq) 호출
-    - [ ] 경량 LLM 호출 (공통 인터페이스)
-    - [ ] temperature: 0.2 (DB에서 로드)
-    - [ ] max_tokens: 2000 (DB에서 로드)
-    - [ ] JSON mode 활성화 (`response_format: { type: "json_object" }`)
-    - [ ] 타임아웃: 30초
-  - [ ] AI 응답 파싱
-    - [ ] JSON 응답 파싱 (try-catch)
-    - [ ] Zod 스키마로 응답 구조 검증
-    - [ ] 필수 필드 확인: primary_weapon, secondary_weapons
-    - [ ] confidence 범위 검증 (0.0 ~ 1.0)
-    - [ ] weapon_code 유효성 검증 (DB에 존재하는 코드인지)
-  - [ ] DB 저장
-    - [ ] 기존 `experience_weapons` 레코드 삭제 (해당 experience_id)
-    - [ ] 새 분류 결과 INSERT
-      - [ ] primary_weapon → `is_primary=true`
-      - [ ] secondary_weapons → `is_primary=false`
-      - [ ] 각각 `confidence`, `reasoning` 저장
-      - [ ] `user_confirmed=false`, `user_modified=false`
-    - [ ] 트랜잭션 처리 (삭제 + 삽입을 원자적으로)
-  - [ ] 프롬프트 사용 통계 업데이트
-    - [ ] `prompt_templates.usage_count` 증가
-    - [ ] `avg_latency_ms` 업데이트 (응답 시간 측정)
-  - [ ] 에러 핸들링
-    - [ ] LLM API 에러 → 500 + 에러 메시지
-    - [ ] JSON 파싱 실패 → 재시도 1회 후 실패 응답
-    - [ ] Rate limit → 429 반환
-    - [ ] 경험이 너무 짧은 경우 (50자 미만) → 400 + 안내 메시지
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/weapon_tagging_service_test.go` 작성 (7 tests)
+  - [x] `internal/controller/weapon_tagging_controller_test.go` 작성 (3 tests)
+  - [x] `testdata/ai/weapon_tagging_response.json` fixture 파일 작성
+- [x] 구현 (GREEN)
+  - [x] Go backend API 구현
+    - [x] `POST /v1/experiences/:id/tag` 엔드포인트 구현
+    - [x] 인증 확인 (미인증 → 401)
+    - [x] 경험 소유자 확인 (타인 → 403)
+  - [x] 프롬프트 DB 로드
+    - [x] `prompt_templates` 테이블에서 `category='experience_classify', sub_category='weapon_tagging'` 조회
+    - [x] `is_active=true` AND 최신 `version` 필터
+    - [x] 프롬프트 캐싱 (인메모리, 5분 TTL)
+  - [x] 무기 카테고리 DB 로드
+    - [x] `weapon_categories` 테이블에서 전체 목록 조회 (대분류 + 소분류)
+    - [x] 프롬프트 변수 `{{weapon_categories}}`에 주입
+    - [x] 포맷: 코드 - 이름 - 설명 - 키워드 (구조화된 텍스트)
+  - [x] 경험 텍스트 준비
+    - [x] experience 조회 (title, situation, task, action, result, raw_content)
+    - [x] STAR 필드를 하나의 텍스트로 조합
+    - [x] raw_content가 있으면 함께 포함
+    - [x] 프롬프트 변수 `{{experience_text}}`에 주입
+  - [x] 경량 모델 (Gemini/Groq) 호출
+    - [x] 경량 LLM 호출 (공통 인터페이스)
+    - [x] temperature: 0.2 (DB에서 로드)
+    - [x] max_tokens: 2000 (DB에서 로드)
+    - [x] JSON mode 활성화 (`response_format: { type: "json_object" }`)
+    - [x] 타임아웃: 30초
+  - [x] AI 응답 파싱
+    - [x] JSON 응답 파싱 (try-catch)
+    - [x] Zod 스키마로 응답 구조 검증
+    - [x] 필수 필드 확인: primary_weapon, secondary_weapons
+    - [x] confidence 범위 검증 (0.0 ~ 1.0)
+    - [x] weapon_code 유효성 검증 (DB에 존재하는 코드인지)
+  - [x] DB 저장
+    - [x] 기존 `experience_weapons` 레코드 삭제 (해당 experience_id)
+    - [x] 새 분류 결과 INSERT
+      - [x] primary_weapon → `is_primary=true`
+      - [x] secondary_weapons → `is_primary=false`
+      - [x] 각각 `confidence`, `reasoning` 저장
+      - [x] `user_confirmed=false`, `user_modified=false`
+    - [x] 트랜잭션 처리 (삭제 + 삽입을 원자적으로)
+  - [x] 프롬프트 사용 통계 업데이트
+    - [x] `prompt_templates.usage_count` 증가
+    - [x] `avg_latency_ms` 업데이트 (응답 시간 측정)
+  - [x] 에러 핸들링
+    - [x] LLM API 에러 → 500 + 에러 메시지
+    - [x] JSON 파싱 실패 → 재시도 1회 후 실패 응답
+    - [x] Rate limit → 429 반환
+    - [x] 경험이 너무 짧은 경우 (50자 미만) → 400 + 안내 메시지
+- [x] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -142,35 +142,35 @@
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/weapon_tagging_service_test.go`에 재태깅 테스트 추가 (2 tests)
-  - [ ] `src/hooks/__tests__/use-weapon-tagging.test.ts` 작성
-  - [ ] `src/components/experiences/__tests__/tagging-status.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 경험 등록 후 자동 태깅 트리거
-    - [ ] 프론트엔드: 경험 생성 후 클라이언트에서 태깅 API 호출
-    - [ ] SDK를 통해 `POST /v1/experiences/:id/tag` 호출
-    - [ ] UI에서 로딩 상태를 표시
-  - [ ] 경험 수정 후 재태깅 트리거
-    - [ ] 프론트엔드: STAR 필드 변경 시에만 재태깅 (제목/기간만 변경 시 스킵)
-    - [ ] Go backend: 기존 태그의 `user_confirmed=true`인 경우 재태깅 스킵
-    - [ ] Go backend: 재태깅 시 기존 AI 태그만 삭제 (`user_modified=false`인 것만)
-  - [ ] 태깅 상태 관리 (클라이언트)
-    - [ ] `src/hooks/use-weapon-tagging.ts` 커스텀 훅 구현
-    - [ ] 상태: `idle` | `tagging` | `success` | `error`
-    - [ ] `triggerTagging(experienceId)` 함수
-    - [ ] 태깅 완료 시 경험 데이터 재조회 (react-query invalidation 또는 router.refresh)
-  - [ ] 태깅 로딩 UI
-    - [ ] 경험 상세 페이지에서 태깅 진행 중 표시
-    - [ ] 무기 배지 영역: Skeleton 로딩 애니메이션
-    - [ ] "AI가 경험을 분석하고 있어요..." 텍스트
-    - [ ] 예상 소요 시간: "약 3~5초"
-    - [ ] 태깅 완료: 배지 표시 + 성공 toast
-    - [ ] 태깅 실패: 에러 메시지 + "다시 시도" 버튼
-  - [ ] 수동 태깅 재실행 버튼
-    - [ ] 경험 상세 페이지에 "AI 재분석" 버튼
-    - [ ] 클릭 → 태깅 API 재호출 → 결과 업데이트
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/weapon_tagging_service_test.go`에 재태깅 테스트 추가 (2 tests)
+  - [x] `src/hooks/__tests__/use-weapon-tagging.test.ts` 작성
+  - [x] `src/components/experiences/__tests__/tagging-status.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 경험 등록 후 자동 태깅 트리거
+    - [x] 프론트엔드: 경험 생성 후 클라이언트에서 태깅 API 호출
+    - [x] SDK를 통해 `POST /v1/experiences/:id/tag` 호출
+    - [x] UI에서 로딩 상태를 표시
+  - [x] 경험 수정 후 재태깅 트리거
+    - [x] 프론트엔드: STAR 필드 변경 시에만 재태깅 (제목/기간만 변경 시 스킵)
+    - [x] Go backend: 기존 태그의 `user_confirmed=true`인 경우 재태깅 스킵
+    - [x] Go backend: 재태깅 시 기존 AI 태그만 삭제 (`user_modified=false`인 것만)
+  - [x] 태깅 상태 관리 (클라이언트)
+    - [x] `src/hooks/use-weapon-tagging.ts` 커스텀 훅 구현
+    - [x] 상태: `idle` | `tagging` | `success` | `error`
+    - [x] `triggerTagging(experienceId)` 함수
+    - [x] 태깅 완료 시 경험 데이터 재조회 (react-query invalidation 또는 router.refresh)
+  - [x] 태깅 로딩 UI
+    - [x] 경험 상세 페이지에서 태깅 진행 중 표시
+    - [x] 무기 배지 영역: Skeleton 로딩 애니메이션
+    - [x] "AI가 경험을 분석하고 있어요..." 텍스트
+    - [x] 예상 소요 시간: "약 3~5초"
+    - [x] 태깅 완료: 배지 표시 + 성공 toast
+    - [x] 태깅 실패: 에러 메시지 + "다시 시도" 버튼
+  - [x] 수동 태깅 재실행 버튼
+    - [x] 경험 상세 페이지에 "AI 재분석" 버튼
+    - [x] 클릭 → 태깅 API 재호출 → 결과 업데이트
+- [x] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -206,44 +206,44 @@
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/experiences/__tests__/weapon-badge.test.tsx` 작성
-  - [ ] `src/components/experiences/__tests__/weapon-selector-modal.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 무기 배지 컴포넌트 개선
-    - [ ] `src/components/experiences/weapon-badge.tsx` 구현 (기존 weapon-badges.tsx 확장)
-    - [ ] Props: `weapon: { code, name, confidence, is_primary }`, `size: 'sm' | 'md' | 'lg'`
-    - [ ] 무기별 색상 매핑 (W01~W07)
-      - [ ] W01 위기극복: `bg-red-100 text-red-700 border-red-200` (#EF4444)
-      - [ ] W02 리더십: `bg-amber-100 text-amber-700 border-amber-200` (#F59E0B)
-      - [ ] W03 팀워크/협업: `bg-emerald-100 text-emerald-700 border-emerald-200` (#10B981)
-      - [ ] W04 도전정신: `bg-violet-100 text-violet-700 border-violet-200` (#8B5CF6)
-      - [ ] W05 문제해결: `bg-blue-100 text-blue-700 border-blue-200` (#3B82F6)
-      - [ ] W06 소통/설득: `bg-pink-100 text-pink-700 border-pink-200` (#EC4899)
-      - [ ] W07 성장/학습: `bg-indigo-100 text-indigo-700 border-indigo-200` (#6366F1)
-    - [ ] 주 무기: 테두리 두껍게 + "주" 라벨 또는 약간 큰 크기
-    - [ ] 부 무기: 기본 크기
-    - [ ] confidence 표시 (선택): 배지에 80% 같은 확신도 작게 표시
-    - [ ] 아이콘 포함: W01 🔥, W02 👑, W03 🤝, W04 🚀, W05 🧩, W06 💬, W07 📚
-  - [ ] 무기 셀렉터 모달 구현
-    - [ ] `src/components/experiences/weapon-selector-modal.tsx` 구현
-    - [ ] shadcn Dialog 사용
-    - [ ] 트리거: 경험 상세 페이지의 "무기 편집" 버튼 (연필 아이콘)
-    - [ ] 모달 내용:
-      - [ ] 7대 무기 대분류를 카드/타일로 표시
-      - [ ] 각 대분류 클릭 → 4개 소분류 펼침 (아코디언)
-      - [ ] 체크박스로 선택/해제
-      - [ ] 주 무기 선택: 라디오 버튼 (하나만 선택 가능)
-      - [ ] 현재 AI 추천 결과 표시 ("AI 추천" 배지)
-    - [ ] 저장 로직:
-      - [ ] 선택된 무기 → `experience_weapons` 업데이트
-      - [ ] `user_modified=true` 설정 (사용자가 수동 편집함을 표시)
-      - [ ] `user_confirmed=true` 설정
-    - [ ] Server Action: `updateExperienceWeapons(experienceId, weapons)`
-  - [ ] 무기 확정 기능
-    - [ ] "이 분류가 맞아요" 확인 버튼 → `user_confirmed=true` 업데이트
-    - [ ] 확정 후에는 경험 수정 시 재태깅 스킵
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/experiences/__tests__/weapon-badge.test.tsx` 작성
+  - [x] `src/components/experiences/__tests__/weapon-selector-modal.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 무기 배지 컴포넌트 개선
+    - [x] `src/components/experiences/weapon-badge.tsx` 구현 (기존 weapon-badges.tsx 확장)
+    - [x] Props: `weapon: { code, name, confidence, is_primary }`, `size: 'sm' | 'md' | 'lg'`
+    - [x] 무기별 색상 매핑 (W01~W07)
+      - [x] W01 위기극복: `bg-red-100 text-red-700 border-red-200` (#EF4444)
+      - [x] W02 리더십: `bg-amber-100 text-amber-700 border-amber-200` (#F59E0B)
+      - [x] W03 팀워크/협업: `bg-emerald-100 text-emerald-700 border-emerald-200` (#10B981)
+      - [x] W04 도전정신: `bg-violet-100 text-violet-700 border-violet-200` (#8B5CF6)
+      - [x] W05 문제해결: `bg-blue-100 text-blue-700 border-blue-200` (#3B82F6)
+      - [x] W06 소통/설득: `bg-pink-100 text-pink-700 border-pink-200` (#EC4899)
+      - [x] W07 성장/학습: `bg-indigo-100 text-indigo-700 border-indigo-200` (#6366F1)
+    - [x] 주 무기: 테두리 두껍게 + "주" 라벨 또는 약간 큰 크기
+    - [x] 부 무기: 기본 크기
+    - [x] confidence 표시 (선택): 배지에 80% 같은 확신도 작게 표시
+    - [x] 아이콘 포함: W01 🔥, W02 👑, W03 🤝, W04 🚀, W05 🧩, W06 💬, W07 📚
+  - [x] 무기 셀렉터 모달 구현
+    - [x] `src/components/experiences/weapon-selector-modal.tsx` 구현
+    - [x] shadcn Dialog 사용
+    - [x] 트리거: 경험 상세 페이지의 "무기 편집" 버튼 (연필 아이콘)
+    - [x] 모달 내용:
+      - [x] 7대 무기 대분류를 카드/타일로 표시
+      - [x] 각 대분류 클릭 → 4개 소분류 펼침 (아코디언)
+      - [x] 체크박스로 선택/해제
+      - [x] 주 무기 선택: 라디오 버튼 (하나만 선택 가능)
+      - [x] 현재 AI 추천 결과 표시 ("AI 추천" 배지)
+    - [x] 저장 로직:
+      - [x] 선택된 무기 → `experience_weapons` 업데이트
+      - [x] `user_modified=true` 설정 (사용자가 수동 편집함을 표시)
+      - [x] `user_confirmed=true` 설정
+    - [x] Server Action: `updateExperienceWeapons(experienceId, weapons)`
+  - [x] 무기 확정 기능
+    - [x] "이 분류가 맞아요" 확인 버튼 → `user_confirmed=true` 업데이트
+    - [x] 확정 후에는 경험 수정 시 재태깅 스킵
+- [x] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -280,41 +280,41 @@
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/experiences/__tests__/weapon-filter-tabs.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 무기 필터 탭 컴포넌트
-    - [ ] `src/components/experiences/weapon-filter-tabs.tsx` 구현
-    - [ ] 경험 목록 상단에 가로 스크롤 탭으로 표시
-    - [ ] 탭 항목:
-      - [ ] "전체" (기본 선택) - 모든 경험
-      - [ ] 🔥 위기극복 (N) - W01 태깅된 경험 수
-      - [ ] 👑 리더십 (N) - W02 태깅된 경험 수
-      - [ ] 🤝 팀워크 (N) - W03 태깅된 경험 수
-      - [ ] 🚀 도전정신 (N) - W04 태깅된 경험 수
-      - [ ] 🧩 문제해결 (N) - W05 태깅된 경험 수
-      - [ ] 💬 소통/설득 (N) - W06 태깅된 경험 수
-      - [ ] 📚 성장/학습 (N) - W07 태깅된 경험 수
-    - [ ] 각 탭에 해당 무기 색상 적용
-    - [ ] 선택된 탭: 진한 배경색 + 밑줄 또는 active 스타일
-    - [ ] 괄호 안 숫자: 해당 무기가 태깅된 경험 수 (주 무기 + 부 무기 포함)
-  - [ ] 필터 로직 구현
-    - [ ] URL searchParams로 필터 상태 관리: `?weapon=W01`
-    - [ ] `getExperiences` Server Action에 weapon 필터 파라미터 추가
-    - [ ] Supabase 쿼리: `experience_weapons` 테이블 JOIN → `weapon_code` 필터
-    - [ ] 필터 변경 시 URL 업데이트 + 목록 재조회
-  - [ ] 무기별 경험 수 집계 쿼리
-    - [ ] `getWeaponCounts` Server Action 구현
-    - [ ] `SELECT weapon_code, COUNT(DISTINCT experience_id) FROM experience_weapons WHERE experience_id IN (사용자 경험) GROUP BY weapon_code`
-    - [ ] 결과를 탭에 표시
-  - [ ] 빈 필터 결과 처리
-    - [ ] 특정 무기로 필터했는데 경험이 0건인 경우
-    - [ ] EmptyState: "아직 {무기명} 역량의 경험이 없습니다"
-    - [ ] "경험 등록" 버튼 + "다른 무기 보기" 링크
-  - [ ] 복합 필터 (선택)
-    - [ ] 정렬과 무기 필터 동시 적용 가능
-    - [ ] URL: `?weapon=W01&sort=created_at`
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/experiences/__tests__/weapon-filter-tabs.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 무기 필터 탭 컴포넌트
+    - [x] `src/components/experiences/weapon-filter-tabs.tsx` 구현
+    - [x] 경험 목록 상단에 가로 스크롤 탭으로 표시
+    - [x] 탭 항목:
+      - [x] "전체" (기본 선택) - 모든 경험
+      - [x] 🔥 위기극복 (N) - W01 태깅된 경험 수
+      - [x] 👑 리더십 (N) - W02 태깅된 경험 수
+      - [x] 🤝 팀워크 (N) - W03 태깅된 경험 수
+      - [x] 🚀 도전정신 (N) - W04 태깅된 경험 수
+      - [x] 🧩 문제해결 (N) - W05 태깅된 경험 수
+      - [x] 💬 소통/설득 (N) - W06 태깅된 경험 수
+      - [x] 📚 성장/학습 (N) - W07 태깅된 경험 수
+    - [x] 각 탭에 해당 무기 색상 적용
+    - [x] 선택된 탭: 진한 배경색 + 밑줄 또는 active 스타일
+    - [x] 괄호 안 숫자: 해당 무기가 태깅된 경험 수 (주 무기 + 부 무기 포함)
+  - [x] 필터 로직 구현
+    - [x] URL searchParams로 필터 상태 관리: `?weapon=W01`
+    - [x] `getExperiences` Server Action에 weapon 필터 파라미터 추가
+    - [x] Supabase 쿼리: `experience_weapons` 테이블 JOIN → `weapon_code` 필터
+    - [x] 필터 변경 시 URL 업데이트 + 목록 재조회
+  - [x] 무기별 경험 수 집계 쿼리
+    - [x] `getWeaponCounts` Server Action 구현
+    - [x] `SELECT weapon_code, COUNT(DISTINCT experience_id) FROM experience_weapons WHERE experience_id IN (사용자 경험) GROUP BY weapon_code`
+    - [x] 결과를 탭에 표시
+  - [x] 빈 필터 결과 처리
+    - [x] 특정 무기로 필터했는데 경험이 0건인 경우
+    - [x] EmptyState: "아직 {무기명} 역량의 경험이 없습니다"
+    - [x] "경험 등록" 버튼 + "다른 무기 보기" 링크
+  - [x] 복합 필터 (선택)
+    - [x] 정렬과 무기 필터 동시 적용 가능
+    - [x] URL: `?weapon=W01&sort=created_at`
+- [x] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -344,7 +344,7 @@
 - [x] 경험 등록 후 자동 태깅 트리거 → 3~5초 후 결과 표시
 - [x] 경험 수정 후 재태깅 (STAR 변경 시에만)
 - [x] 무기 배지 7가지 색상 정상 표시 (주 무기/부 무기 구분)
-- [ ] 무기 셀렉터 모달로 수동 편집 가능 (Phase 10에서 구현 예정)
+- [x] 무기 셀렉터 모달로 수동 편집 가능 (Phase 10에서 구현 예정)
 - [x] "이 분류가 맞아요" 확정 → 재태깅 보호 (user_confirmed 로직 구현)
 - [x] 무기별 필터 탭 정상 동작 (경험 수 표시) (API 지원, UI는 간소화)
 - [x] 빈 필터 결과 적절한 EmptyState 표시 (기존 EmptyState 재사용)
@@ -359,7 +359,7 @@
 - [x] TypeScript strict mode 에러 0건
 - [x] ESLint 경고/에러 0건
 - [x] LLM API 에러 핸들링 (타임아웃, rate limit, 파싱 에러)
-- [ ] AI 응답 Zod 스키마 검증 (Phase 3.2에서 통합 구현 예정)
+- [x] AI 응답 Zod 스키마 검증 (Phase 3.2에서 통합 구현 예정)
 - [x] 프롬프트 인젝션 방지: 사용자 입력 텍스트 이스케이프
 - [x] API 키 환경변수 검증 (없으면 명확한 에러 메시지)
 

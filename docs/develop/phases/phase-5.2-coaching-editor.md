@@ -51,17 +51,17 @@ Tiptap 에디터를 프로젝트에 설치하고, 자소서 편집에 필요한 
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/coaching/__tests__/TiptapEditor.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] Tiptap 패키지 설치 (`@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-character-count`)
-  - [ ] 기본 에디터 컴포넌트 구현
-  - [ ] 툴바 구현 (Bold, Italic, Bullet List, Heading 2/3)
-  - [ ] Character Count 확장 설정 (한국어 글자수 기준)
-  - [ ] STAR 태그 하이라이트 커스텀 확장 (또는 CSS 기반)
-  - [ ] 에디터 스타일링 (Tailwind CSS, prose 클래스)
-  - [ ] 에디터 콘텐츠 초기화 (초안 데이터 로드)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/coaching/__tests__/TiptapEditor.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] Tiptap 패키지 설치 (`@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-character-count`)
+  - [x] 기본 에디터 컴포넌트 구현
+  - [x] 툴바 구현 (Bold, Italic, Bullet List, Heading 2/3)
+  - [x] Character Count 확장 설정 (한국어 글자수 기준)
+  - [x] STAR 태그 하이라이트 커스텀 확장 (또는 CSS 기반)
+  - [x] 에디터 스타일링 (Tailwind CSS, prose 클래스)
+  - [x] 에디터 콘텐츠 초기화 (초안 데이터 로드)
+- [x] 테스트 통과 확인
 
 ### 패키지 설치
 
@@ -174,18 +174,18 @@ export function TiptapEditor({
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/coaching/__tests__/EditorLayout.test.tsx` 작성
-  - [ ] `internal/controller/editor_controller_test.go` 작성
-- [ ] 구현 (GREEN)
-  - [ ] `(main)/coaching/[id]/edit/page.tsx` 페이지 생성
-  - [ ] 서버 컴포넌트에서 `cover_letters` + 최신 `cover_letter_versions` 로드
-  - [ ] 에디터 영역 (좌측, 메인): Tiptap 에디터 + 글자수 카운터
-  - [ ] 사이드 패널 (우측): 분석 요약 + 경험 카드
-  - [ ] 헤더: 기업명 + 문항 + 저장 상태 표시
-  - [ ] `loading.tsx`, `error.tsx` 추가
-  - [ ] URL 파라미터로 cover_letter_id 식별
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/coaching/__tests__/EditorLayout.test.tsx` 작성
+  - [x] `internal/controller/editor_controller_test.go` 작성
+- [x] 구현 (GREEN)
+  - [x] `(main)/coaching/[id]/edit/page.tsx` 페이지 생성
+  - [x] 서버 컴포넌트에서 `cover_letters` + 최신 `cover_letter_versions` 로드
+  - [x] 에디터 영역 (좌측, 메인): Tiptap 에디터 + 글자수 카운터
+  - [x] 사이드 패널 (우측): 분석 요약 + 경험 카드
+  - [x] 헤더: 기업명 + 문항 + 저장 상태 표시
+  - [x] `loading.tsx`, `error.tsx` 추가
+  - [x] URL 파라미터로 cover_letter_id 식별
+- [x] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -325,18 +325,18 @@ export default async function CoachingEditPage({
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/hooks/__tests__/useAutoSave.test.ts` 작성
-  - [ ] `internal/controller/editor_controller_test.go`에 저장/버전 테스트 추가
-- [ ] 구현 (GREEN)
-  - [ ] Debounce 2초 자동 저장 로직 구현
-  - [ ] `cover_letters.updated_at` + 최신 버전의 `content` 업데이트
-  - [ ] "버전 저장" 버튼: `cover_letter_versions`에 새 레코드 생성 (version_number 자동 증가)
-  - [ ] 저장 상태 인디케이터 (`saved` / `saving` / `unsaved`)
-  - [ ] 버전 이력 목록 표시 (하단 또는 사이드 패널)
-  - [ ] 이전 버전으로 되돌리기 (해당 버전 content를 에디터에 로드)
-  - [ ] 페이지 이탈 시 미저장 경고 (beforeunload)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/hooks/__tests__/useAutoSave.test.ts` 작성
+  - [x] `internal/controller/editor_controller_test.go`에 저장/버전 테스트 추가
+- [x] 구현 (GREEN)
+  - [x] Debounce 2초 자동 저장 로직 구현
+  - [x] `cover_letters.updated_at` + 최신 버전의 `content` 업데이트
+  - [x] "버전 저장" 버튼: `cover_letter_versions`에 새 레코드 생성 (version_number 자동 증가)
+  - [x] 저장 상태 인디케이터 (`saved` / `saving` / `unsaved`)
+  - [x] 버전 이력 목록 표시 (하단 또는 사이드 패널)
+  - [x] 이전 버전으로 되돌리기 (해당 버전 content를 에디터에 로드)
+  - [x] 페이지 이탈 시 미저장 경고 (beforeunload)
+- [x] 테스트 통과 확인
 
 ### 구현 코드
 
@@ -439,15 +439,15 @@ export function useAutoSave(coverLetterId: string) {
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/coaching/__tests__/CopyButton.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] "클립보드에 복사" 버튼 구현
-  - [ ] 에디터 HTML → plain text 변환 (서식 제거)
-  - [ ] STAR 태그 (`[상황]`, `[과제]`, `[행동]`, `[결과]`) 제거 옵션 (토글)
-  - [ ] 복사 성공 시 토스트 메시지 ("클립보드에 복사되었습니다")
-  - [ ] 글자수 함께 표시 ("542자 복사됨")
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/coaching/__tests__/CopyButton.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] "클립보드에 복사" 버튼 구현
+  - [x] 에디터 HTML → plain text 변환 (서식 제거)
+  - [x] STAR 태그 (`[상황]`, `[과제]`, `[행동]`, `[결과]`) 제거 옵션 (토글)
+  - [x] 복사 성공 시 토스트 메시지 ("클립보드에 복사되었습니다")
+  - [x] 글자수 함께 표시 ("542자 복사됨")
+- [x] 테스트 통과 확인
 
 ### 구현 코드
 

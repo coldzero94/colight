@@ -923,7 +923,44 @@ Base URL: `/v1`
 | **설명** | 하이브리드 매칭: 임베딩 유사도(1차 필터) → LLM 정밀 분석(2차) |
 | **모델** | text-embedding-3-small (~0.5원) + 경량 모델 (Gemini/Groq) (~3~5원) |
 
-### 9.6 지원 관리 (Applications)
+### 9.6 AI 인터뷰 (Interview)
+
+> Phase 7에서 추가. 인증 필수. 경량 모델 (Gemini/Groq) 사용.
+
+| 메서드 | 엔드포인트 | 설명 | 인증 |
+|--------|-----------|------|------|
+| `POST` | `/v1/interview/question` | 인터뷰 질문 생성 | 필요 |
+| `POST` | `/v1/interview/extract` | STAR 구조 추출 | 필요 |
+| `POST` | `/v1/interview/save` | 경험 카드 저장 + 자동 태깅 | 필요 |
+
+#### `POST /v1/interview/question` - 인터뷰 질문 생성
+
+| 항목 | 내용 |
+|------|------|
+| **요청** | `{ stage: string, messages: [{role, content}] }` |
+| **응답** | `{ question: string, stage: string, next_stage: string, is_complete: boolean }` |
+| **설명** | 5단계(warmup→memory→challenge→solution→outcome) 인터뷰 질문 생성 |
+| **모델** | 경량 모델 (Gemini/Groq) (~3~5원) |
+
+#### `POST /v1/interview/extract` - STAR 구조 추출
+
+| 항목 | 내용 |
+|------|------|
+| **요청** | `{ messages: [{role, content}] }` |
+| **응답** | `{ title, category, content, result, star_situation, star_task, star_action, star_result, keywords }` |
+| **설명** | 인터뷰 대화에서 STAR 구조화된 경험 자동 추출 |
+| **모델** | 경량 모델 (Gemini/Groq), temperature 0.3 |
+
+#### `POST /v1/interview/save` - 경험 카드 저장
+
+| 항목 | 내용 |
+|------|------|
+| **요청** | `{ title, category, content, result, star_situation, star_task, star_action, star_result, keywords }` |
+| **응답** | `{ experience_id: string, tagged: boolean }` |
+| **설명** | 추출된 STAR 데이터를 experiences 테이블에 저장 (source="interview") + 무기 태깅 자동 실행 |
+| **사용량** | UsageLimitMiddleware ("experience" 리소스) |
+
+### 9.7 지원 관리 (Applications)
 
 | 메서드 | 엔드포인트 | 설명 | 인증 |
 |--------|-----------|------|------|

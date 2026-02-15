@@ -327,19 +327,19 @@ import "./admin/admin.tsp";
 
 ## 체크리스트
 
-- [ ] TypeSpec 모델 정의
-  - [ ] `packages/protocol/src/auth/auth.tsp` 생성
-  - [ ] `packages/protocol/src/admin/admin.tsp` 생성
-- [ ] `main.tsp`에 import 추가
-- [ ] OpenAPI 생성
-  - [ ] `moon run protocol:generate`
-  - [ ] OpenAPI 스펙에 `/v1/auth/*` + `/v1/admin/*` 엔드포인트 포함 확인
-- [ ] Go 서버 코드 생성
-  - [ ] `moon run backend:generate-api`
-  - [ ] `StrictServerInterface`에 Auth + Admin 메서드 추가 확인
-- [ ] TS 클라이언트 생성
-  - [ ] `moon run web:generate-client`
-  - [ ] `src/api/generated/` 에 Auth + Admin 타입/SDK 생성 확인
+- [x] TypeSpec 모델 정의
+  - [x] `packages/protocol/src/auth/auth.tsp` 생성
+  - [x] `packages/protocol/src/admin/admin.tsp` 생성
+- [x] `main.tsp`에 import 추가
+- [x] OpenAPI 생성
+  - [x] `moon run protocol:generate`
+  - [x] OpenAPI 스펙에 `/v1/auth/*` + `/v1/admin/*` 엔드포인트 포함 확인
+- [x] Go 서버 코드 생성
+  - [x] `moon run backend:generate-api`
+  - [x] `StrictServerInterface`에 Auth + Admin 메서드 추가 확인
+- [x] TS 클라이언트 생성
+  - [x] `moon run web:generate-client`
+  - [x] `src/api/generated/` 에 Auth + Admin 타입/SDK 생성 확인
 
 ---
 

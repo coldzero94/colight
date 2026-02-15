@@ -477,80 +477,80 @@ func SetupRouter(cfg *config.Config, db *ent.Client) *gin.Engine {
 
 ### 환경변수 & 설정
 
-- [ ] `config.go` 수정 — Naver OAuth, JWT, Frontend URL 환경변수 추가
-- [ ] `.env` 업데이트 — JWT_SECRET, NAVER_CALLBACK_URL, FRONTEND_URL 추가
-- [ ] `.env.example` 업데이트
+- [x] `config.go` 수정 — Naver OAuth, JWT, Frontend URL 환경변수 추가
+- [x] `.env` 업데이트 — JWT_SECRET, NAVER_CALLBACK_URL, FRONTEND_URL 추가
+- [x] `.env.example` 업데이트
 
 ### Naver OAuth
 
-- [ ] Naver Developers 앱 등록 (수동 — [developers.naver.com](https://developers.naver.com))
-  - [ ] 앱 이름: Colight
-  - [ ] 사용 API: 네이버 아이디로 로그인
-  - [ ] Callback URL: `http://localhost:9000/v1/auth/naver/callback`
-- [ ] `service/auth_service.go` 구현
-  - [ ] `GetNaverAuthURL()` — Naver OAuth URL 생성 + state 토큰
-  - [ ] `HandleNaverCallback()` — code → token → userinfo → user upsert
-  - [ ] `exchangeNaverCode()` — POST nid.naver.com/oauth2.0/token
-  - [ ] `fetchNaverUserInfo()` — GET openapi.naver.com/v1/nid/me
-  - [ ] `findOrCreateNaverUser()` — DB upsert
-- [ ] `controller/auth_controller.go` 구현
-  - [ ] `NaverLogin` — GET /v1/auth/naver/login → 302 redirect
-  - [ ] `NaverCallback` — GET /v1/auth/naver/callback → JWT 발급 → 302 redirect to frontend
+- [x] Naver Developers 앱 등록 (수동 — [developers.naver.com](https://developers.naver.com))
+  - [x] 앱 이름: Colight
+  - [x] 사용 API: 네이버 아이디로 로그인
+  - [x] Callback URL: `http://localhost:9000/v1/auth/naver/callback`
+- [x] `service/auth_service.go` 구현
+  - [x] `GetNaverAuthURL()` — Naver OAuth URL 생성 + state 토큰
+  - [x] `HandleNaverCallback()` — code → token → userinfo → user upsert
+  - [x] `exchangeNaverCode()` — POST nid.naver.com/oauth2.0/token
+  - [x] `fetchNaverUserInfo()` — GET openapi.naver.com/v1/nid/me
+  - [x] `findOrCreateNaverUser()` — DB upsert
+- [x] `controller/auth_controller.go` 구현
+  - [x] `NaverLogin` — GET /v1/auth/naver/login → 302 redirect
+  - [x] `NaverCallback` — GET /v1/auth/naver/callback → JWT 발급 → 302 redirect to frontend
 
 ### Email/Password 인증
 
-- [ ] `auth_service.go`에 추가
-  - [ ] `Signup()` — 이메일 중복 체크 → bcrypt 해싱 → user 생성 → JWT
-  - [ ] `Login()` — 이메일 조회 → bcrypt 검증 → JWT
-- [ ] `auth_controller.go`에 추가
-  - [ ] `Signup` — POST /v1/auth/signup
-  - [ ] `Login` — POST /v1/auth/login
+- [x] `auth_service.go`에 추가
+  - [x] `Signup()` — 이메일 중복 체크 → bcrypt 해싱 → user 생성 → JWT
+  - [x] `Login()` — 이메일 조회 → bcrypt 검증 → JWT
+- [x] `auth_controller.go`에 추가
+  - [x] `Signup` — POST /v1/auth/signup
+  - [x] `Login` — POST /v1/auth/login
 
 ### JWT 토큰
 
-- [ ] `service/token_service.go` 구현
-  - [ ] `IssueTokenPair()` — access (1h) + refresh (7d) 토큰 생성
-  - [ ] `ValidateAccessToken()` — 토큰 검증 + claims 추출
-  - [ ] `RefreshAccessToken()` — refresh token으로 새 access token 발급
-- [ ] `controller/auth_controller.go`에 추가
-  - [ ] `Refresh` — POST /v1/auth/refresh
-  - [ ] `Me` — GET /v1/auth/me
-  - [ ] `Logout` — POST /v1/auth/logout
+- [x] `service/token_service.go` 구현
+  - [x] `IssueTokenPair()` — access (1h) + refresh (7d) 토큰 생성
+  - [x] `ValidateAccessToken()` — 토큰 검증 + claims 추출
+  - [x] `RefreshAccessToken()` — refresh token으로 새 access token 발급
+- [x] `controller/auth_controller.go`에 추가
+  - [x] `Refresh` — POST /v1/auth/refresh
+  - [x] `Me` — GET /v1/auth/me
+  - [x] `Logout` — POST /v1/auth/logout
 
 ### 미들웨어
 
-- [ ] `middleware/auth.go` — JWT 검증, user_id + role context 저장
-- [ ] `middleware/admin.go` — role == "admin" 검증
+- [x] `middleware/auth.go` — JWT 검증, user_id + role context 저장
+- [x] `middleware/admin.go` — role == "admin" 검증
 
 ### 라우터
 
-- [ ] `cmd/api/main.go` 수정 — 라우터 설정, 미들웨어 체인
+- [x] `cmd/api/main.go` 수정 — 라우터 설정, 미들웨어 체인
 
 ### 테스트
 
-- [ ] Auth service unit tests
-  - [ ] Naver OAuth 흐름 (mock HTTP client)
-  - [ ] Email signup / login
-  - [ ] Password hash verification
-- [ ] Token service unit tests
-  - [ ] Token generation
-  - [ ] Token validation
-  - [ ] Expired token rejection
-- [ ] Middleware tests
-  - [ ] Valid token → 통과
-  - [ ] Invalid token → 401
-  - [ ] Admin middleware → 403
+- [x] Auth service unit tests
+  - [x] Naver OAuth 흐름 (mock HTTP client)
+  - [x] Email signup / login
+  - [x] Password hash verification
+- [x] Token service unit tests
+  - [x] Token generation
+  - [x] Token validation
+  - [x] Expired token rejection
+- [x] Middleware tests
+  - [x] Valid token → 통과
+  - [x] Invalid token → 401
+  - [x] Admin middleware → 403
 
 ---
 
 ## 보안 체크리스트
 
-- [ ] JWT secret 최소 32자 (환경변수)
-- [ ] bcrypt cost 12 이상
-- [ ] CSRF state 토큰 검증 (Naver OAuth)
-- [ ] Naver callback URL 환경변수로 관리 (하드코딩 금지)
-- [ ] password_hash는 API 응답에 절대 노출하지 않음 (Ent `.Sensitive()`)
-- [ ] Rate limiting: 로그인 시도 제한 (IP당 분당 10회)
+- [x] JWT secret 최소 32자 (환경변수)
+- [x] bcrypt cost 12 이상
+- [x] CSRF state 토큰 검증 (Naver OAuth)
+- [x] Naver callback URL 환경변수로 관리 (하드코딩 금지)
+- [x] password_hash는 API 응답에 절대 노출하지 않음 (Ent `.Sensitive()`)
+- [x] Rate limiting: 로그인 시도 제한 (IP당 분당 10회)
 
 ---
 

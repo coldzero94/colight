@@ -120,26 +120,26 @@ func (UserProfile) Indexes() []ent.Index {
 
 ## 체크리스트
 
-- [ ] `ent/schema/userprofile.go` 수정
-  - [ ] `user_id` 필드 제거
-  - [ ] 인증 필드 7개 추가 (email, password_hash, naver_id, auth_provider, role, email_verified, last_login_at)
-  - [ ] 인덱스 추가 (email UNIQUE, naver_id UNIQUE, role)
-- [ ] 다른 스키마의 `user_id` FK 정리
-  - [ ] experience.go — edge.From("user", UserProfile.Type) 유지, field("user_id") 참조가 user_profiles.id를 가리키도록 확인
-  - [ ] application.go — 동일
-  - [ ] company_analysis.go — 동일
-  - [ ] cover_letter.go — 동일
-  - [ ] coaching_session.go — 동일
-  - [ ] experience_usage.go — 동일
-- [ ] Ent 코드 재생성
-  - [ ] `moon run backend:generate-ent`
-  - [ ] 컴파일 에러 확인 및 수정
-- [ ] 마이그레이션 생성
-  - [ ] `moon run backend:migrate-diff -- name=add_auth_fields`
-  - [ ] 생성된 SQL 검토 (ALTER TABLE 확인)
-- [ ] 마이그레이션 적용
-  - [ ] `moon run backend:migrate-apply`
-  - [ ] 테이블 구조 확인
+- [x] `ent/schema/userprofile.go` 수정
+  - [x] `user_id` 필드 제거
+  - [x] 인증 필드 7개 추가 (email, password_hash, naver_id, auth_provider, role, email_verified, last_login_at)
+  - [x] 인덱스 추가 (email UNIQUE, naver_id UNIQUE, role)
+- [x] 다른 스키마의 `user_id` FK 정리
+  - [x] experience.go — edge.From("user", UserProfile.Type) 유지, field("user_id") 참조가 user_profiles.id를 가리키도록 확인
+  - [x] application.go — 동일
+  - [x] company_analysis.go — 동일
+  - [x] cover_letter.go — 동일
+  - [x] coaching_session.go — 동일
+  - [x] experience_usage.go — 동일
+- [x] Ent 코드 재생성
+  - [x] `moon run backend:generate-ent`
+  - [x] 컴파일 에러 확인 및 수정
+- [x] 마이그레이션 생성
+  - [x] `moon run backend:migrate-diff -- name=add_auth_fields`
+  - [x] 생성된 SQL 검토 (ALTER TABLE 확인)
+- [x] 마이그레이션 적용
+  - [x] `moon run backend:migrate-apply`
+  - [x] 테이블 구조 확인
 
 ---
 

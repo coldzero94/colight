@@ -8,16 +8,13 @@
 
 ```bash
 # 1. 프로젝트 클론 + 의존성 설치
-git clone <repo> && cd colight && pnpm install
+git clone <repo> && cd colight
 
-# 2. Supabase 로컬 시작
-npx supabase start
-
-# 3. 환경변수 설정
+# 2. 환경변수 설정
 cp .env.example .env.local  # 값 채우기
 
-# 4. 개발 서버
-pnpm run dev
+# 3. 개발 서버 (moon 사용 — 프로젝트 루트에서 실행)
+moon run :dev
 ```
 
 ---
@@ -46,36 +43,36 @@ pnpm run dev
 
 > [Phase 상태 테이블 & 의존관계](./phases/README.md)
 
-### MVP (Sprint 0-5, ~6주)
+### MVP (Sprint 0-6, ~6주)
 
-| Phase | 이름 | 스프린트 | 공수 |
-|-------|------|----------|------|
-| [Phase 0](./phases/phase-0-project-setup.md) | 프로젝트 셋업 & 인프라 | Sprint 0 | 3일 |
-| [Phase 1](./phases/phase-1-auth-layout.md) | 인증 & 레이아웃 | Sprint 0 | 2일 |
-| [Phase 2](./phases/phase-2-experience-crud.md) | 경험 CRUD | Sprint 1 | 3일 |
-| [Phase 2.1](./phases/phase-2.1-weapon-tagging.md) | 무기 자동 태깅 | Sprint 1 | 2일 |
-| [Phase 3](./phases/phase-3-crawling-parsing.md) | 크롤링 & 파싱 | Sprint 2 | 2일 |
-| [Phase 3.1](./phases/phase-3.1-company-data.md) | 기업 데이터 API | Sprint 2 | 2일 |
-| [Phase 3.2](./phases/phase-3.2-ai-analysis.md) | AI 기업 분석 | Sprint 2 | 2일 |
-| [Phase 3.3](./phases/phase-3.3-analysis-ui.md) | 분석 리포트 UI | Sprint 2 | 2일 |
-| [Phase 4](./phases/phase-4-matching.md) | 경험 매칭 | Sprint 3 | 5일 |
-| [Phase 5](./phases/phase-5-question-analysis.md) | 문항 분석 | Sprint 4 | 2일 |
-| [Phase 5.1](./phases/phase-5.1-draft-coaching.md) | 초안 코칭 | Sprint 4 | 2일 |
-| [Phase 5.2](./phases/phase-5.2-coaching-editor.md) | 코칭 에디터 | Sprint 4 | 1일 |
-| [Phase 6](./phases/phase-6-review-coaching.md) | 첨삭 코칭 | Sprint 5 | 2일 |
-| [Phase 6.1](./phases/phase-6.1-freemium-polish.md) | 프리미엄 & 마무리 | Sprint 5 | 2일 |
-| [Phase 6.2](./phases/phase-6.2-landing-beta.md) | 랜딩 & 베타 | Sprint 5 | 1일 |
+| Phase | 이름 | 스프린트 | 공수 | 상태 |
+|-------|------|----------|------|------|
+| [Phase 0](./phases/phase-0-project-setup.md) | 프로젝트 셋업 & 인프라 | Sprint 0 | 4일 | ✅ |
+| [Phase 1](./phases/phase-1-auth-layout.md) | 인증 & 레이아웃 | Sprint 0 | 4일 | ✅ |
+| [Phase 2](./phases/phase-2-experience-crud.md) | 경험 CRUD | Sprint 1 | 3일 | ✅ |
+| [Phase 2.1](./phases/phase-2.1-weapon-tagging.md) | 무기 자동 태깅 | Sprint 1 | 2일 | ✅ |
+| [Phase 3](./phases/phase-3-crawling-parsing.md) | 크롤링 & 파싱 | Sprint 2 | 2일 | ✅ |
+| [Phase 3.1](./phases/phase-3.1-company-data.md) | 기업 데이터 API | Sprint 2 | 2일 | ✅ |
+| [Phase 3.2](./phases/phase-3.2-ai-analysis.md) | AI 기업 분석 | Sprint 3 | 2일 | ✅ |
+| [Phase 3.3](./phases/phase-3.3-analysis-ui.md) | 분석 리포트 UI | Sprint 3 | 2일 | ✅ |
+| [Phase 4](./phases/phase-4-matching.md) | 경험 매칭 | Sprint 4 | 5일 | ✅ |
+| [Phase 5](./phases/phase-5-question-analysis.md) | 문항 분석 | Sprint 5 | 2일 | ✅ |
+| [Phase 5.1](./phases/phase-5.1-draft-coaching.md) | 초안 코칭 | Sprint 5 | 2일 | ✅ |
+| [Phase 5.2](./phases/phase-5.2-coaching-editor.md) | 코칭 에디터 | Sprint 5 | 1일 | ✅ |
+| [Phase 6](./phases/phase-6-review-coaching.md) | 첨삭 코칭 | Sprint 6 | 2일 | ✅ |
+| [Phase 6.1](./phases/phase-6.1-freemium-polish.md) | 프리미엄 & 마무리 | Sprint 6 | 2일 | ✅ |
+| [Phase 6.2](./phases/phase-6.2-landing-beta.md) | 랜딩 & 베타 | Sprint 6 | 1일 | ✅ |
 
-### Post-MVP (Sprint 6+)
+### Post-MVP (Sprint 7+)
 
-| Phase | 이름 | 스프린트 | 공수 |
-|-------|------|----------|------|
-| [Phase 7](./phases/phase-7-ai-interview.md) | AI 인터뷰 | Sprint 6 | 2일 |
-| [Phase 7.1](./phases/phase-7.1-experience-recommend.md) | 경험 추천 | Sprint 6 | 1일 |
-| [Phase 8](./phases/phase-8-dashboard-kanban.md) | 대시보드 칸반 | Sprint 6-7 | 1.5일 |
-| [Phase 8.1](./phases/phase-8.1-version-management.md) | 버전 관리 | Sprint 7 | 1일 |
-| [Phase 9](./phases/phase-9-payment.md) | 결제 연동 | Sprint 7 | 2일 |
-| [Phase 10](./phases/phase-10-growth.md) | 성장 기능 | Sprint 8+ | 진행중 |
+| Phase | 이름 | 스프린트 | 공수 | 상태 |
+|-------|------|----------|------|------|
+| [Phase 7](./phases/phase-7-ai-interview.md) | AI 인터뷰 | Sprint 7 | 2일 | ✅ |
+| [Phase 7.1](./phases/phase-7.1-experience-recommend.md) | 경험 추천 | Sprint 7 | 1일 | ⬜ |
+| [Phase 8](./phases/phase-8-dashboard-kanban.md) | 대시보드 칸반 | Sprint 7-8 | 1.5일 | ⬜ |
+| [Phase 8.1](./phases/phase-8.1-version-management.md) | 버전 관리 | Sprint 8 | 1일 | ⬜ |
+| [Phase 9](./phases/phase-9-payment.md) | 결제 연동 | Sprint 8 | 2일 | ⬜ |
+| [Phase 10](./phases/phase-10-growth.md) | 성장 기능 | Sprint 9+ | 진행중 | ⬜ |
 
 ---
 

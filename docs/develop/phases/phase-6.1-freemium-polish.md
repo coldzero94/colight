@@ -64,18 +64,18 @@
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/usage_service_test.go` 작성
-  - [ ] `internal/controller/usage_controller_test.go` 작성
-- [ ] 구현 (GREEN)
-  - [ ] `user_profiles` 테이블에 `plan` 컬럼 추가 (`free` / `starter` / `pro` / `season`)
-  - [ ] `usage_tracking` 테이블 생성 (또는 `user_profiles`에 JSONB 컬럼)
-  - [ ] 사용량 추적 미들웨어 구현 (`src/lib/usage/tracker.ts`)
-  - [ ] 각 API 엔드포인트에 사용량 체크 로직 추가
-  - [ ] 사용량 초과 시 403 + 업그레이드 유도 메시지 반환
-  - [ ] 일별 사용량 자정 리셋 로직 (Supabase Edge Function 또는 앱 내 체크)
-  - [ ] 사용량 현황 조회 API
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/usage_service_test.go` 작성
+  - [x] `internal/controller/usage_controller_test.go` 작성
+- [x] 구현 (GREEN)
+  - [x] `user_profiles` 테이블에 `plan` 컬럼 추가 (`free` / `starter` / `pro` / `season`)
+  - [x] `usage_tracking` 테이블 생성 (또는 `user_profiles`에 JSONB 컬럼)
+  - [x] 사용량 추적 미들웨어 구현 (`src/lib/usage/tracker.ts`)
+  - [x] 각 API 엔드포인트에 사용량 체크 로직 추가
+  - [x] 사용량 초과 시 403 + 업그레이드 유도 메시지 반환
+  - [x] 일별 사용량 자정 리셋 로직 (Supabase Edge Function 또는 앱 내 체크)
+  - [x] 사용량 현황 조회 API
+- [x] 테스트 통과 확인
 
 ### DB 스키마 변경
 
@@ -228,20 +228,20 @@ await trackUsage(user.id, 'draft', { cover_letter_id: '...' });
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/paywall/__tests__/paywall-modal.test.tsx` 작성
-  - [ ] `src/components/paywall/__tests__/usage-badge.test.tsx` 작성
-  - [ ] `src/components/paywall/__tests__/pricing-card.test.tsx` 작성
-  - [ ] `src/components/paywall/__tests__/blurred-preview.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 페이월 모달 컴포넌트 구현 (`PaywallModal`)
-  - [ ] 블러 처리된 프리미엄 미리보기 (분석 결과 일부 흐릿하게)
-  - [ ] 업그레이드 CTA 버튼 (가격표 페이지 또는 결제 모달로 이동)
-  - [ ] 사용량 현황 표시 ("오늘 1/1 사용 완료")
-  - [ ] 토스트 기반 알림 (사용량 80% 도달 시 경고)
-  - [ ] 가격표 페이지 구현 (`/pricing`)
-  - [ ] 결제 기능은 Phase 9에서 구현, 현재는 CTA만
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/paywall/__tests__/paywall-modal.test.tsx` 작성
+  - [x] `src/components/paywall/__tests__/usage-badge.test.tsx` 작성
+  - [x] `src/components/paywall/__tests__/pricing-card.test.tsx` 작성
+  - [x] `src/components/paywall/__tests__/blurred-preview.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 페이월 모달 컴포넌트 구현 (`PaywallModal`)
+  - [x] 블러 처리된 프리미엄 미리보기 (분석 결과 일부 흐릿하게)
+  - [x] 업그레이드 CTA 버튼 (가격표 페이지 또는 결제 모달로 이동)
+  - [x] 사용량 현황 표시 ("오늘 1/1 사용 완료")
+  - [x] 토스트 기반 알림 (사용량 80% 도달 시 경고)
+  - [x] 가격표 페이지 구현 (`/pricing`)
+  - [x] 결제 기능은 Phase 9에서 구현, 현재는 CTA만
+- [x] 테스트 통과 확인
 
 ### 프론트엔드 컴포넌트
 
@@ -335,19 +335,19 @@ export function BlurredPreview({ children }: { children: React.ReactNode }) {
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/app/__tests__/error-pages.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 모든 API 라우트에 try-catch + 일관된 에러 응답 형식 적용
-  - [ ] 모든 `(main)/*/` 라우트에 `error.tsx` 존재 확인
-  - [ ] 모든 `(main)/*/` 라우트에 `loading.tsx` 존재 확인
-  - [ ] 토스트 기반 에러 알림 (sonner)
-  - [ ] AI API 실패 시 재시도 안내 (retry 버튼)
-  - [ ] 네트워크 에러 감지 + 오프라인 배너
-  - [ ] Supabase 연결 실패 시 메시지
-  - [ ] 404 페이지 커스터마이징 (`src/app/not-found.tsx`)
-  - [ ] 500 에러 페이지 커스터마이징 (`src/app/global-error.tsx`)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/app/__tests__/error-pages.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 모든 API 라우트에 try-catch + 일관된 에러 응답 형식 적용
+  - [x] 모든 `(main)/*/` 라우트에 `error.tsx` 존재 확인
+  - [x] 모든 `(main)/*/` 라우트에 `loading.tsx` 존재 확인
+  - [x] 토스트 기반 에러 알림 (sonner)
+  - [x] AI API 실패 시 재시도 안내 (retry 버튼)
+  - [x] 네트워크 에러 감지 + 오프라인 배너
+  - [x] Supabase 연결 실패 시 메시지
+  - [x] 404 페이지 커스터마이징 (`src/app/not-found.tsx`)
+  - [x] 500 에러 페이지 커스터마이징 (`src/app/global-error.tsx`)
+- [x] 테스트 통과 확인
 
 ### 에러 응답 형식 (API)
 
@@ -418,16 +418,16 @@ export function errorResponse(error: unknown) {
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/ui/__tests__/empty-state.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 경험 목록 (`/experiences`): "아직 등록한 경험이 없어요" + 경험 등록 CTA
-  - [ ] 기업 분석 목록 (`/analysis`): "아직 분석한 기업이 없어요" + URL 입력 CTA
-  - [ ] 코칭 메인 (`/coaching`): "아직 코칭 이력이 없어요" + 코칭 시작 CTA
-  - [ ] 대시보드 (`/dashboard`): 첫 사용자 온보딩 가이드
-  - [ ] 경험 추천 (코칭 내): "매칭되는 경험이 없습니다" + 경험 등록 유도
-  - [ ] 첨삭 이력: "아직 첨삭 이력이 없어요"
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/ui/__tests__/empty-state.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 경험 목록 (`/experiences`): "아직 등록한 경험이 없어요" + 경험 등록 CTA
+  - [x] 기업 분석 목록 (`/analysis`): "아직 분석한 기업이 없어요" + URL 입력 CTA
+  - [x] 코칭 메인 (`/coaching`): "아직 코칭 이력이 없어요" + 코칭 시작 CTA
+  - [x] 대시보드 (`/dashboard`): 첫 사용자 온보딩 가이드
+  - [x] 경험 추천 (코칭 내): "매칭되는 경험이 없습니다" + 경험 등록 유도
+  - [x] 첨삭 이력: "아직 첨삭 이력이 없어요"
+- [x] 테스트 통과 확인
 
 ### 빈 상태 UI 패턴
 
@@ -482,18 +482,18 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/layout/__tests__/sidebar.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] 사이드바 → 햄버거 메뉴 (768px 이하)
-  - [ ] 테이블 → 카드 레이아웃 (768px 이하)
-  - [ ] 에디터 + 사이드 패널 → 단일 컬럼 + 토글/바텀시트 (768px 이하)
-  - [ ] 레이더 차트 크기 조정 (모바일에서 가독성)
-  - [ ] 폼 입력 영역 모바일 최적화 (터치 타겟 48px)
-  - [ ] 모달 크기 모바일 대응 (전체 화면 또는 바텀시트)
-  - [ ] 글자 크기 가독성 확인 (최소 14px)
-  - [ ] 가로 스크롤 발생하지 않도록 확인
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/layout/__tests__/sidebar.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] 사이드바 → 햄버거 메뉴 (768px 이하)
+  - [x] 테이블 → 카드 레이아웃 (768px 이하)
+  - [x] 에디터 + 사이드 패널 → 단일 컬럼 + 토글/바텀시트 (768px 이하)
+  - [x] 레이더 차트 크기 조정 (모바일에서 가독성)
+  - [x] 폼 입력 영역 모바일 최적화 (터치 타겟 48px)
+  - [x] 모달 크기 모바일 대응 (전체 화면 또는 바텀시트)
+  - [x] 글자 크기 가독성 확인 (최소 14px)
+  - [x] 가로 스크롤 발생하지 않도록 확인
+- [x] 테스트 통과 확인
 
 ### 반응형 브레이크포인트
 
@@ -588,19 +588,19 @@ Lighthouse Performance 점수 70점 이상을 달성하고, 주요 번들 크기
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/components/__tests__/lazy-load.test.tsx` 작성
-- [ ] 구현 (GREEN)
-  - [ ] Lighthouse 측정 (현재 점수 기록)
-  - [ ] Tiptap 에디터 lazy load (`next/dynamic`, ssr: false)
-  - [ ] Recharts 레이더 차트 lazy load (`next/dynamic`, ssr: false)
-  - [ ] 이미지 최적화 (`next/image` 사용, WebP 포맷)
-  - [ ] 번들 분석 (`@next/bundle-analyzer`)
-  - [ ] 불필요한 클라이언트 컴포넌트 서버 컴포넌트로 전환
-  - [ ] React Query 캐싱 설정 최적화 (staleTime, gcTime)
-  - [ ] Suspense 경계 적용 (병렬 데이터 로딩)
-  - [ ] 폰트 최적화 (`next/font`)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/components/__tests__/lazy-load.test.tsx` 작성
+- [x] 구현 (GREEN)
+  - [x] Lighthouse 측정 (현재 점수 기록)
+  - [x] Tiptap 에디터 lazy load (`next/dynamic`, ssr: false)
+  - [x] Recharts 레이더 차트 lazy load (`next/dynamic`, ssr: false)
+  - [x] 이미지 최적화 (`next/image` 사용, WebP 포맷)
+  - [x] 번들 분석 (`@next/bundle-analyzer`)
+  - [x] 불필요한 클라이언트 컴포넌트 서버 컴포넌트로 전환
+  - [x] React Query 캐싱 설정 최적화 (staleTime, gcTime)
+  - [x] Suspense 경계 적용 (병렬 데이터 로딩)
+  - [x] 폰트 최적화 (`next/font`)
+- [x] 테스트 통과 확인
 
 ### Lazy Load 대상
 
@@ -673,22 +673,22 @@ export const queryClient = new QueryClient({
 
 ## Phase 완료 체크리스트
 
-- [ ] 무료 사용자: 경험 3개 / 분석 1회/일 / 코칭 1회/일 제한 동작
-- [ ] 사용량 초과 시 페이월 모달 표시 + 업그레이드 CTA
-- [ ] 블러 처리된 프리미엄 미리보기 동작
-- [ ] 모든 API 라우트에 일관된 에러 처리 적용
-- [ ] 모든 페이지에 `loading.tsx` + `error.tsx` 존재
-- [ ] 모든 목록 페이지에 빈 상태 UI 적용
-- [ ] 404/500 커스텀 에러 페이지 동작
-- [ ] 모바일 375px: 사이드바→햄버거, 테이블→카드, 레이아웃 정상
-- [ ] 태블릿 768px: 레이아웃 정상
-- [ ] Lighthouse Performance ≥ 70
-- [ ] Tiptap/Recharts lazy load 적용
-- [ ] 토스트 에러 알림 동작
-- [ ] `moon run backend:test` → 전체 통과
-- [ ] `moon run web:test` → 전체 통과
-- [ ] `moon run :lint` → 경고 0건
-- [ ] `moon run web:build` → 빌드 성공
+- [x] 무료 사용자: 경험 3개 / 분석 1회/일 / 코칭 1회/일 제한 동작
+- [x] 사용량 초과 시 페이월 모달 표시 + 업그레이드 CTA
+- [x] 블러 처리된 프리미엄 미리보기 동작
+- [x] 모든 API 라우트에 일관된 에러 처리 적용
+- [x] 모든 페이지에 `loading.tsx` + `error.tsx` 존재
+- [x] 모든 목록 페이지에 빈 상태 UI 적용
+- [x] 404/500 커스텀 에러 페이지 동작
+- [x] 모바일 375px: 사이드바→햄버거, 테이블→카드, 레이아웃 정상
+- [x] 태블릿 768px: 레이아웃 정상
+- [x] Lighthouse Performance ≥ 70
+- [x] Tiptap/Recharts lazy load 적용
+- [x] 토스트 에러 알림 동작
+- [x] `moon run backend:test` → 전체 통과
+- [x] `moon run web:test` → 전체 통과
+- [x] `moon run :lint` → 경고 0건
+- [x] `moon run web:build` → 빌드 성공
 
 ---
 

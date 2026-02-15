@@ -39,34 +39,34 @@ pnpm 워크스페이스 기반 모노레포를 생성하고, 전체 디렉토리
 
 ### 체크리스트
 
-- [ ] 프로젝트 루트 초기화
-  - [ ] `pnpm init` 실행
-  - [ ] `pnpm-workspace.yaml` 생성
-  - [ ] Node.js 20+ / pnpm 9+ 버전 확인
-- [ ] `pnpm-workspace.yaml` 작성
+- [x] 프로젝트 루트 초기화
+  - [x] `pnpm init` 실행
+  - [x] `pnpm-workspace.yaml` 생성
+  - [x] Node.js 20+ / pnpm 9+ 버전 확인
+- [x] `pnpm-workspace.yaml` 작성
   ```yaml
   packages:
     - "apps/*"
     - "packages/*"
   ```
-- [ ] 전체 디렉토리 구조 생성
-  - [ ] `apps/backend/` (Go API 서버)
-  - [ ] `apps/web/` (Next.js 프론트엔드)
-  - [ ] `packages/protocol/` (TypeSpec API 정의)
-  - [ ] `docs/develop/phases/` (Phase 가이드)
-  - [ ] `supabase/` (참고용 마이그레이션)
-- [ ] moon (moonrepo) 설치 및 설정
+- [x] 전체 디렉토리 구조 생성
+  - [x] `apps/backend/` (Go API 서버)
+  - [x] `apps/web/` (Next.js 프론트엔드)
+  - [x] `packages/protocol/` (TypeSpec API 정의)
+  - [x] `docs/develop/phases/` (Phase 가이드)
+  - [x] `supabase/` (참고용 마이그레이션)
+- [x] moon (moonrepo) 설치 및 설정
   > moon은 Go + Node.js 폴리글랏 모노레포 태스크 러너. 루트에서 `moon run :lint` 등으로 전체 프로젝트 태스크를 통합 실행 가능.
-  - [ ] proto (moon 툴체인 매니저) 설치: `curl -fsSL https://moonrepo.dev/install/proto.sh | bash`
-  - [ ] moon 설치: `proto install moon`
-  - [ ] `.prototools` 생성 (프로젝트 루트)
+  - [x] proto (moon 툴체인 매니저) 설치: `curl -fsSL https://moonrepo.dev/install/proto.sh | bash`
+  - [x] moon 설치: `proto install moon`
+  - [x] `.prototools` 생성 (프로젝트 루트)
     ```toml
     node = "20.11.0"
     pnpm = "9.15.0"
     go = "1.24.0"
     moon = "latest"
     ```
-  - [ ] `.moon/workspace.yml` 생성
+  - [x] `.moon/workspace.yml` 생성
     ```yaml
     projects:
       - "apps/*"
@@ -79,7 +79,7 @@ pnpm 워크스페이스 기반 모노레포를 생성하고, 전체 디렉토리
     hasher:
       walkStrategy: glob
     ```
-  - [ ] `.moon/toolchain.yml` 생성
+  - [x] `.moon/toolchain.yml` 생성
     ```yaml
     node:
       version: "20.11.0"
@@ -88,7 +88,7 @@ pnpm 워크스페이스 기반 모노레포를 생성하고, 전체 디렉토리
     unstable_go:
       version: "1.24.0"
     ```
-  - [ ] `apps/backend/moon.yml` 생성
+  - [x] `apps/backend/moon.yml` 생성
     ```yaml
     language: go
     type: application
@@ -116,7 +116,7 @@ pnpm 워크스페이스 기반 모노레포를 생성하고, 전체 디렉토리
       seed:
         command: go run ./scripts/seed.go all
     ```
-  - [ ] `apps/web/moon.yml` 생성
+  - [x] `apps/web/moon.yml` 생성
     ```yaml
     language: node
     type: application
@@ -141,7 +141,7 @@ pnpm 워크스페이스 기반 모노레포를 생성하고, 전체 디렉토리
         deps:
           - "protocol:generate"
     ```
-  - [ ] `packages/protocol/moon.yml` 생성
+  - [x] `packages/protocol/moon.yml` 생성
     ```yaml
     language: node
     type: library
@@ -152,15 +152,15 @@ pnpm 워크스페이스 기반 모노레포를 생성하고, 전체 디렉토리
       validate:
         command: pnpm run validate
     ```
-  - [ ] `moon run :lint` → 전체 프로젝트 lint 실행 확인
-  - [ ] `moon run :test` → 전체 테스트 실행 확인
-- [ ] `.gitignore` 설정
-  - [ ] `node_modules/`
-  - [ ] `.env`, `.env.local`, `.env*.local`
-  - [ ] `.next/`
-  - [ ] `.vercel/`
-  - [ ] `supabase/.temp/`
-  - [ ] `apps/backend/tmp/` (air 핫 리로드)
+  - [x] `moon run :lint` → 전체 프로젝트 lint 실행 확인
+  - [x] `moon run :test` → 전체 테스트 실행 확인
+- [x] `.gitignore` 설정
+  - [x] `node_modules/`
+  - [x] `.env`, `.env.local`, `.env*.local`
+  - [x] `.next/`
+  - [x] `.vercel/`
+  - [x] `supabase/.temp/`
+  - [x] `apps/backend/tmp/` (air 핫 리로드)
 
 ### 검증 방법
 - `pnpm install` → 정상 실행
@@ -181,22 +181,22 @@ Go 모듈을 초기화하고, Gin + Ent + oapi-codegen 등 핵심 패키지를 �
 
 ### 체크리스트
 
-- [ ] Go 모듈 초기화
-  - [ ] `cd apps/backend`
-  - [ ] `go mod init github.com/<username>/colight/apps/backend`
-  - [ ] Go 1.24+ 버전 확인
-- [ ] 핵심 패키지 설치
-  - [ ] HTTP 프레임워크: `go get github.com/gin-gonic/gin`
-  - [ ] ORM: `go get entgo.io/ent`
-  - [ ] 코드 생성: `go get github.com/oapi-codegen/oapi-codegen/v2`
-  - [ ] 환경 변수: `go get github.com/joho/godotenv`
-  - [ ] JWT: `go get github.com/golang-jwt/jwt/v5`
-  - [ ] UUID: `go get github.com/google/uuid`
-  - [ ] AI (Anthropic): `go get github.com/anthropics/anthropic-sdk-go`
-  - [ ] AI (경량 LLM 공통 인터페이스): Gemini SDK / Groq SDK (`LLM_LIGHT_PROVIDER` 환경변수로 선택)
-  - [ ] pgvector: `go get github.com/pgvector/pgvector-go`
-  - [ ] 로깅: `log/slog` (표준 라이브러리)
-- [ ] 디렉토리 구조 생성
+- [x] Go 모듈 초기화
+  - [x] `cd apps/backend`
+  - [x] `go mod init github.com/<username>/colight/apps/backend`
+  - [x] Go 1.24+ 버전 확인
+- [x] 핵심 패키지 설치
+  - [x] HTTP 프레임워크: `go get github.com/gin-gonic/gin`
+  - [x] ORM: `go get entgo.io/ent`
+  - [x] 코드 생성: `go get github.com/oapi-codegen/oapi-codegen/v2`
+  - [x] 환경 변수: `go get github.com/joho/godotenv`
+  - [x] JWT: `go get github.com/golang-jwt/jwt/v5`
+  - [x] UUID: `go get github.com/google/uuid`
+  - [x] AI (Anthropic): `go get github.com/anthropics/anthropic-sdk-go`
+  - [x] AI (경량 LLM 공통 인터페이스): Gemini SDK / Groq SDK (`LLM_LIGHT_PROVIDER` 환경변수로 선택)
+  - [x] pgvector: `go get github.com/pgvector/pgvector-go`
+  - [x] 로깅: `log/slog` (표준 라이브러리)
+- [x] 디렉토리 구조 생성
   ```text
   apps/backend/
   ├── cmd/
@@ -220,7 +220,7 @@ Go 모듈을 초기화하고, Gin + Ent + oapi-codegen 등 핵심 패키지를 �
   ├── go.mod
   └── go.sum
   ```
-- [ ] `cmd/api/main.go` 기본 엔트리포인트 작성
+- [x] `cmd/api/main.go` 기본 엔트리포인트 작성
   ```go
   package main
 
@@ -251,7 +251,7 @@ Go 모듈을 초기화하고, Gin + Ent + oapi-codegen 등 핵심 패키지를 �
       }
   }
   ```
-- [ ] `Dockerfile` 작성
+- [x] `Dockerfile` 작성
   ```dockerfile
   FROM golang:1.24-alpine AS builder
   WORKDIR /app
@@ -290,16 +290,16 @@ Ent ORM을 초기화하고, 15개 DB 스키마를 정의한다.
 
 ### 체크리스트
 
-- [ ] Ent 초기화
-  - [ ] `cd apps/backend`
-  - [ ] `go run -mod=mod entgo.io/ent/cmd/ent init --target ent/schema UserProfile Experience ExperienceTag ExperienceWeapon ExperienceUsage WeaponCategory PromptTemplate QuestionPattern Application CompanyAnalysis CompanyAnalysisCache TalentProfile CoverLetter CoverLetterVersion CoachingSession`
-- [ ] `ent/generate.go` 작성
+- [x] Ent 초기화
+  - [x] `cd apps/backend`
+  - [x] `go run -mod=mod entgo.io/ent/cmd/ent init --target ent/schema UserProfile Experience ExperienceTag ExperienceWeapon ExperienceUsage WeaponCategory PromptTemplate QuestionPattern Application CompanyAnalysis CompanyAnalysisCache TalentProfile CoverLetter CoverLetterVersion CoachingSession`
+- [x] `ent/generate.go` 작성
   ```go
   package ent
 
   //go:generate go run -mod=mod entgo.io/ent/cmd/ent generate ./schema
   ```
-- [ ] UUID Mixin 작성
+- [x] UUID Mixin 작성
   ```go
   // ent/schema/mixin.go
   package schema
@@ -321,7 +321,7 @@ Ent ORM을 초기화하고, 15개 DB 스키마를 정의한다.
       }
   }
   ```
-- [ ] 각 스키마 정의 (15개)
+- [x] 각 스키마 정의 (15개)
 
 #### UserProfile 스키마
 
@@ -480,21 +480,21 @@ func (WeaponCategory) Edges() []ent.Edge {
 }
 ```
 
-- [ ] 나머지 12개 스키마 작성
-  - [ ] `ExperienceTag` — experience_id FK, tag_name, tag_category, confidence
-  - [ ] `ExperienceWeapon` — experience_id FK, weapon_code FK, confidence, is_primary, reasoning, user_confirmed, user_modified
-  - [ ] `ExperienceUsage` — experience_id FK, cover_letter_id FK, application_id FK, used_at
-  - [ ] `PromptTemplate` — category, sub_category, name, description, system_prompt, user_prompt_template, output_schema JSONB, model, temperature, max_tokens, version, is_active, usage_count, avg_latency_ms, avg_quality_score
-  - [ ] `QuestionPattern` — pattern_type, pattern_name, detection_keywords JSON, detection_regex, primary_weapons JSON, secondary_weapons JSON, writing_guide JSONB, coaching_prompt_id FK
-  - [ ] `Application` — user_id, company_name, job_title, job_url, status enum(preparing/writing/submitted/interview/accepted/rejected), deadline, notes
-  - [ ] `CompanyAnalysis` — user_id, application_id FK, company_name, job_url, job_posting_parsed JSONB, company_profile JSONB, talent_analysis JSONB, news_summary JSONB, strategy_keywords JSON, matching_score
-  - [ ] `CompanyAnalysisCache` — company_name, analysis_type, data JSONB, source, expires_at (unique: company_name + analysis_type)
-  - [ ] `TalentProfile` — company_name, industry, core_values JSON, talent_keywords JSON, culture_keywords JSON, interview_topics JSON, source_urls JSON, last_updated
-  - [ ] `CoverLetter` — user_id, application_id FK, company_name, question_text, question_type, char_limit, current_content, status enum(draft/coaching/reviewing/final), ai_detection_score
-  - [ ] `CoverLetterVersion` — cover_letter_id FK, version_number, content, change_summary, coaching_feedback JSONB, scores JSONB
-  - [ ] `CoachingSession` — user_id, cover_letter_id FK, session_type enum(question_analysis/draft_coaching/review_coaching/weapon_enhance), messages JSONB, prompt_template_id FK, model_used, total_tokens
-- [ ] `go generate ./ent` 실행 → 생성 코드 확인
-- [ ] `go build ./...` → 빌드 성공
+- [x] 나머지 12개 스키마 작성
+  - [x] `ExperienceTag` — experience_id FK, tag_name, tag_category, confidence
+  - [x] `ExperienceWeapon` — experience_id FK, weapon_code FK, confidence, is_primary, reasoning, user_confirmed, user_modified
+  - [x] `ExperienceUsage` — experience_id FK, cover_letter_id FK, application_id FK, used_at
+  - [x] `PromptTemplate` — category, sub_category, name, description, system_prompt, user_prompt_template, output_schema JSONB, model, temperature, max_tokens, version, is_active, usage_count, avg_latency_ms, avg_quality_score
+  - [x] `QuestionPattern` — pattern_type, pattern_name, detection_keywords JSON, detection_regex, primary_weapons JSON, secondary_weapons JSON, writing_guide JSONB, coaching_prompt_id FK
+  - [x] `Application` — user_id, company_name, job_title, job_url, status enum(preparing/writing/submitted/interview/accepted/rejected), deadline, notes
+  - [x] `CompanyAnalysis` — user_id, application_id FK, company_name, job_url, job_posting_parsed JSONB, company_profile JSONB, talent_analysis JSONB, news_summary JSONB, strategy_keywords JSON, matching_score
+  - [x] `CompanyAnalysisCache` — company_name, analysis_type, data JSONB, source, expires_at (unique: company_name + analysis_type)
+  - [x] `TalentProfile` — company_name, industry, core_values JSON, talent_keywords JSON, culture_keywords JSON, interview_topics JSON, source_urls JSON, last_updated
+  - [x] `CoverLetter` — user_id, application_id FK, company_name, question_text, question_type, char_limit, current_content, status enum(draft/coaching/reviewing/final), ai_detection_score
+  - [x] `CoverLetterVersion` — cover_letter_id FK, version_number, content, change_summary, coaching_feedback JSONB, scores JSONB
+  - [x] `CoachingSession` — user_id, cover_letter_id FK, session_type enum(question_analysis/draft_coaching/review_coaching/weapon_enhance), messages JSONB, prompt_template_id FK, model_used, total_tokens
+- [x] `go generate ./ent` 실행 → 생성 코드 확인
+- [x] `go build ./...` → 빌드 성공
 
 ### 검증 방법
 - `go generate ./ent` → 에러 없음
@@ -516,10 +516,10 @@ Atlas CLI로 Ent 스키마에서 SQL 마이그레이션을 자동 생성하고, 
 
 ### 체크리스트
 
-- [ ] Atlas CLI 설치
-  - [ ] `curl -sSf https://atlasgo.sh | sh` 또는 `brew install ariga/tap/atlas`
-  - [ ] `atlas version` 확인
-- [ ] `atlas.hcl` 설정 파일 생성
+- [x] Atlas CLI 설치
+  - [x] `curl -sSf https://atlasgo.sh | sh` 또는 `brew install ariga/tap/atlas`
+  - [x] `atlas version` 확인
+- [x] `atlas.hcl` 설정 파일 생성
   ```hcl
   // apps/backend/atlas.hcl
 
@@ -553,20 +553,20 @@ Atlas CLI로 Ent 스키마에서 SQL 마이그레이션을 자동 생성하고, 
     }
   }
   ```
-- [ ] 첫 마이그레이션 생성
-  - [ ] `cd apps/backend`
-  - [ ] `moon run backend:migrate-diff -- name=initial_schema` (or direct: `atlas migrate diff initial_schema --dir file://migrations --to ent://ent/schema --dev-url "docker://postgres/16/dev?search_path=public"`)
-  - [ ] `migrations/` 디렉토리에 SQL 파일 생성 확인
-- [ ] pgvector 확장 활성화 SQL 추가
-  - [ ] 마이그레이션 파일 상단에 `CREATE EXTENSION IF NOT EXISTS vector;` 추가
-  - [ ] `CREATE EXTENSION IF NOT EXISTS pg_trgm;` 추가
-- [ ] experiences 테이블에 벡터 컬럼 수동 추가 (Ent에서 직접 지원하지 않는 경우)
-  - [ ] `ALTER TABLE experiences ADD COLUMN embedding vector(1536);`
-  - [ ] `CREATE INDEX idx_experiences_embedding ON experiences USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);`
-- [ ] 생성된 SQL 파일 검토
-  - [ ] 15개 테이블 CREATE TABLE 확인
-  - [ ] FK 관계 확인
-  - [ ] 인덱스 확인
+- [x] 첫 마이그레이션 생성
+  - [x] `cd apps/backend`
+  - [x] `moon run backend:migrate-diff -- name=initial_schema` (or direct: `atlas migrate diff initial_schema --dir file://migrations --to ent://ent/schema --dev-url "docker://postgres/16/dev?search_path=public"`)
+  - [x] `migrations/` 디렉토리에 SQL 파일 생성 확인
+- [x] pgvector 확장 활성화 SQL 추가
+  - [x] 마이그레이션 파일 상단에 `CREATE EXTENSION IF NOT EXISTS vector;` 추가
+  - [x] `CREATE EXTENSION IF NOT EXISTS pg_trgm;` 추가
+- [x] experiences 테이블에 벡터 컬럼 수동 추가 (Ent에서 직접 지원하지 않는 경우)
+  - [x] `ALTER TABLE experiences ADD COLUMN embedding vector(1536);`
+  - [x] `CREATE INDEX idx_experiences_embedding ON experiences USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);`
+- [x] 생성된 SQL 파일 검토
+  - [x] 15개 테이블 CREATE TABLE 확인
+  - [x] FK 관계 확인
+  - [x] 인덱스 확인
 
 ### 검증 방법
 - `ls migrations/` → SQL 파일 존재
@@ -587,7 +587,7 @@ Docker Compose로 로컬 PostgreSQL 16을 실행하고, Atlas 마이그레이션
 
 ### 체크리스트
 
-- [ ] `docker-compose.yml` 생성 (프로젝트 루트)
+- [x] `docker-compose.yml` 생성 (프로젝트 루트)
   ```yaml
   services:
     postgres:
@@ -604,16 +604,16 @@ Docker Compose로 로컬 PostgreSQL 16을 실행하고, Atlas 마이그레이션
   volumes:
     pgdata:
   ```
-- [ ] Docker Compose 실행
-  - [ ] `docker compose up -d`
-  - [ ] `docker compose ps` → postgres 실행 확인
-- [ ] 마이그레이션 적용
-  - [ ] `cd apps/backend`
-  - [ ] `DATABASE_URL="postgres://postgres:password@localhost:5532/colight?sslmode=disable" moon run backend:migrate-apply`
-  - [ ] 15개 테이블 생성 확인
-- [ ] DB 연결 테스트
-  - [ ] `psql -h localhost -U postgres -d colight -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"`
-  - [ ] 결과: 15개 이상
+- [x] Docker Compose 실행
+  - [x] `docker compose up -d`
+  - [x] `docker compose ps` → postgres 실행 확인
+- [x] 마이그레이션 적용
+  - [x] `cd apps/backend`
+  - [x] `DATABASE_URL="postgres://postgres:password@localhost:5532/colight?sslmode=disable" moon run backend:migrate-apply`
+  - [x] 15개 테이블 생성 확인
+- [x] DB 연결 테스트
+  - [x] `psql -h localhost -U postgres -d colight -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"`
+  - [x] 결과: 15개 이상
 
 ### 검증 방법
 - `docker compose ps` → postgres 실행 중
@@ -634,11 +634,11 @@ TypeSpec으로 API 정의를 작성하고, OpenAPI 스펙을 생성한다.
 
 ### 체크리스트
 
-- [ ] TypeSpec 초기화
-  - [ ] `cd packages/protocol`
-  - [ ] `pnpm init`
-  - [ ] `pnpm add -D @typespec/compiler @typespec/http @typespec/rest @typespec/openapi3`
-  - [ ] `tspconfig.yaml` 작성
+- [x] TypeSpec 초기화
+  - [x] `cd packages/protocol`
+  - [x] `pnpm init`
+  - [x] `pnpm add -D @typespec/compiler @typespec/http @typespec/rest @typespec/openapi3`
+  - [x] `tspconfig.yaml` 작성
   ```yaml
   emit:
     - "@typespec/openapi3"
@@ -647,11 +647,11 @@ TypeSpec으로 API 정의를 작성하고, OpenAPI 스펙을 생성한다.
       output-dir: "{project-root}/tsp-output/openapi"
       emitter-output-dir: "{output-dir}"
   ```
-- [ ] API 정의 작성
-  - [ ] `src/main.tsp` (엔트리포인트, 서버 URL, 공통 모델)
-  - [ ] `src/models/` (공통 타입: ErrorResponse, PaginatedResponse 등)
-  - [ ] `src/experiences.tsp` (경험 CRUD API — Phase 2에서 상세화, 지금은 기본 구조만)
-- [ ] `src/main.tsp` 기본 구조
+- [x] API 정의 작성
+  - [x] `src/main.tsp` (엔트리포인트, 서버 URL, 공통 모델)
+  - [x] `src/models/` (공통 타입: ErrorResponse, PaginatedResponse 등)
+  - [x] `src/experiences.tsp` (경험 CRUD API — Phase 2에서 상세화, 지금은 기본 구조만)
+- [x] `src/main.tsp` 기본 구조
   ```typespec
   import "@typespec/http";
   import "@typespec/rest";
@@ -675,9 +675,9 @@ TypeSpec으로 API 정의를 작성하고, OpenAPI 스펙을 생성한다.
     @get op check(): { status: string };
   }
   ```
-- [ ] OpenAPI 생성
-  - [ ] `pnpm run generate:protocol` (tsp compile)
-  - [ ] `tsp-output/openapi/openapi.yaml` 파일 생성 확인
+- [x] OpenAPI 생성
+  - [x] `pnpm run generate:protocol` (tsp compile)
+  - [x] `tsp-output/openapi/openapi.yaml` 파일 생성 확인
 
 ### 검증 방법
 - `tsp compile .` → 에러 없음
@@ -698,10 +698,10 @@ OpenAPI 스펙에서 Go 서버 코드와 TypeScript 클라이언트 코드를 �
 
 ### 체크리스트
 
-- [ ] oapi-codegen 설정 (Go)
-  - [ ] `cd apps/backend`
-  - [ ] `go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest`
-  - [ ] `oapi-codegen.yaml` 작성
+- [x] oapi-codegen 설정 (Go)
+  - [x] `cd apps/backend`
+  - [x] `go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest`
+  - [x] `oapi-codegen.yaml` 작성
   ```yaml
   package: generated
   output: internal/generated/api.gen.go
@@ -711,13 +711,13 @@ OpenAPI 스펙에서 Go 서버 코드와 TypeScript 클라이언트 코드를 �
     models: true
     embedded-spec: true
   ```
-  - [ ] `moon run backend:generate-api` 실행
-  - [ ] `internal/generated/api.gen.go` 파일 생성 확인
-  - [ ] `StrictServerInterface` 인터페이스 확인
-- [ ] @hey-api/openapi-ts 설정 (TS)
-  - [ ] `cd apps/web`
-  - [ ] `pnpm add -D @hey-api/openapi-ts`
-  - [ ] `openapi-ts.config.ts` 작성
+  - [x] `moon run backend:generate-api` 실행
+  - [x] `internal/generated/api.gen.go` 파일 생성 확인
+  - [x] `StrictServerInterface` 인터페이스 확인
+- [x] @hey-api/openapi-ts 설정 (TS)
+  - [x] `cd apps/web`
+  - [x] `pnpm add -D @hey-api/openapi-ts`
+  - [x] `openapi-ts.config.ts` 작성
   ```typescript
   import { defineConfig } from "@hey-api/openapi-ts";
 
@@ -738,13 +738,13 @@ OpenAPI 스펙에서 Go 서버 코드와 TypeScript 클라이언트 코드를 �
     ],
   });
   ```
-  - [ ] `package.json`에 생성 스크립트 추가: `"generate": "openapi-ts"`
-  - [ ] `pnpm run generate` 실행
-  - [ ] `src/api/generated/` 디렉토리에 파일 생성 확인
-    - [ ] `types.gen.ts`
-    - [ ] `sdk.gen.ts`
-    - [ ] `zod.gen.ts`
-- [ ] 생성된 코드 Git 커밋 (코드 리뷰를 위해 커밋)
+  - [x] `package.json`에 생성 스크립트 추가: `"generate": "openapi-ts"`
+  - [x] `pnpm run generate` 실행
+  - [x] `src/api/generated/` 디렉토리에 파일 생성 확인
+    - [x] `types.gen.ts`
+    - [x] `sdk.gen.ts`
+    - [x] `zod.gen.ts`
+- [x] 생성된 코드 Git 커밋 (코드 리뷰를 위해 커밋)
 
 ### 검증 방법
 - Go: `go build ./...` → 빌드 성공
@@ -767,22 +767,22 @@ Next.js 15 프론트엔드 프로젝트를 생성하고, Go 백엔드 API를 호
 
 ### 체크리스트
 
-- [ ] Next.js 프로젝트 생성
-  - [ ] `cd apps`
-  - [ ] `npx create-next-app@latest web --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"`
-  - [ ] `cd web && pnpm install`
-  - [ ] `pnpm run dev` 정상 동작 확인
-- [ ] 핵심 의존성 설치
-  - [ ] Supabase: `pnpm add @supabase/supabase-js @supabase/ssr`
-  - [ ] HTTP: `pnpm add axios`
-  - [ ] 상태 관리: `pnpm add zustand @tanstack/react-query`
-  - [ ] 유효성 검증: `pnpm add zod`
-  - [ ] 폼: `pnpm add react-hook-form @hookform/resolvers`
-- [ ] shadcn/ui 초기화
-  - [ ] `npx shadcn@latest init`
-  - [ ] 기본 컴포넌트 설치: `npx shadcn@latest add button card input label textarea select dialog sheet dropdown-menu tabs badge separator avatar skeleton toast sonner`
-- [ ] API 클라이언트 설정
-  - [ ] `src/lib/api/client.ts` 작성 (Axios 인스턴스)
+- [x] Next.js 프로젝트 생성
+  - [x] `cd apps`
+  - [x] `npx create-next-app@latest web --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"`
+  - [x] `cd web && pnpm install`
+  - [x] `pnpm run dev` 정상 동작 확인
+- [x] 핵심 의존성 설치
+  - [x] Supabase: `pnpm add @supabase/supabase-js @supabase/ssr`
+  - [x] HTTP: `pnpm add axios`
+  - [x] 상태 관리: `pnpm add zustand @tanstack/react-query`
+  - [x] 유효성 검증: `pnpm add zod`
+  - [x] 폼: `pnpm add react-hook-form @hookform/resolvers`
+- [x] shadcn/ui 초기화
+  - [x] `npx shadcn@latest init`
+  - [x] 기본 컴포넌트 설치: `npx shadcn@latest add button card input label textarea select dialog sheet dropdown-menu tabs badge separator avatar skeleton toast sonner`
+- [x] API 클라이언트 설정
+  - [x] `src/lib/api/client.ts` 작성 (Axios 인스턴스)
   ```typescript
   import axios from "axios";
 
@@ -799,21 +799,21 @@ Next.js 15 프론트엔드 프로젝트를 생성하고, Go 백엔드 API를 호
     return config;
   });
   ```
-- [ ] App Router 페이지 구조 생성 (빈 페이지)
-  - [ ] `src/app/(auth)/login/page.tsx`
-  - [ ] `src/app/(auth)/signup/page.tsx`
-  - [ ] `src/app/(auth)/layout.tsx`
-  - [ ] `src/app/(main)/dashboard/page.tsx`
-  - [ ] `src/app/(main)/experiences/page.tsx`
-  - [ ] `src/app/(main)/analysis/page.tsx`
-  - [ ] `src/app/(main)/coaching/page.tsx`
-  - [ ] `src/app/(main)/layout.tsx`
-  - [ ] `src/app/(main)/settings/page.tsx`
-- [ ] **API Routes 없음** — `src/app/api/` 디렉토리 생성하지 않음 (Go 백엔드로 이관)
-- [ ] 환경변수 설정
-  - [ ] `NEXT_PUBLIC_API_URL` — Go API 서버 URL
-  - [ ] `NEXT_PUBLIC_SUPABASE_URL` — Supabase 프로젝트 URL
-  - [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase Anon Key
+- [x] App Router 페이지 구조 생성 (빈 페이지)
+  - [x] `src/app/(auth)/login/page.tsx`
+  - [x] `src/app/(auth)/signup/page.tsx`
+  - [x] `src/app/(auth)/layout.tsx`
+  - [x] `src/app/(main)/dashboard/page.tsx`
+  - [x] `src/app/(main)/experiences/page.tsx`
+  - [x] `src/app/(main)/analysis/page.tsx`
+  - [x] `src/app/(main)/coaching/page.tsx`
+  - [x] `src/app/(main)/layout.tsx`
+  - [x] `src/app/(main)/settings/page.tsx`
+- [x] **API Routes 없음** — `src/app/api/` 디렉토리 생성하지 않음 (Go 백엔드로 이관)
+- [x] 환경변수 설정
+  - [x] `NEXT_PUBLIC_API_URL` — Go API 서버 URL
+  - [x] `NEXT_PUBLIC_SUPABASE_URL` — Supabase 프로젝트 URL
+  - [x] `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase Anon Key
 
 ### 검증 방법
 - `pnpm run dev` → `http://localhost:4000` 정상 접속
@@ -835,24 +835,24 @@ Next.js 15 프론트엔드 프로젝트를 생성하고, Go 백엔드 API를 호
 
 ### 체크리스트
 
-- [ ] `scripts/seed.go` 작성
-  - [ ] `all` 명령어: 전체 시드 실행
-  - [ ] `weapons` 명령어: weapon_categories 시드
-  - [ ] `prompts` 명령어: prompt_templates 시드
-  - [ ] `patterns` 명령어: question_patterns 시드
-- [ ] weapon_categories 삽입 (35건: 대분류 7 + 소분류 28)
-  - [ ] W01~W07 대분류 7건 (code, name, description, keywords, question_patterns, display_order, icon, color)
-  - [ ] W01-A~W01-D, W02-A~W02-D, ..., W07-A~W07-D 소분류 28건 (parent_code 연결)
-- [ ] prompt_templates 삽입 (4건)
-  - [ ] 경험 무기 자동 분류 (`experience_classify` / `weapon_tagging`, model: `gemini-2.0-flash`)
-  - [ ] 경험 인터뷰 (`experience_classify` / `interview`, model: `gemini-2.0-flash`)
-  - [ ] 자소서 문항 분석 (`coaching_draft` / `question_analysis`, model: `claude-sonnet-4-5`)
-  - [ ] 무기별 경험 강화 코칭 (`coaching_draft` / `weapon_enhance`, model: `claude-sonnet-4-5`)
-- [ ] question_patterns 삽입 (7건)
-  - [ ] 지원동기, 장단점, 위기극복, 리더십, 팀워크, 목표달성, 성장과정
-- [ ] 시드 실행
-  - [ ] `moon run backend:seed` (or direct: `cd apps/backend && go run ./scripts/seed.go all`)
-  - [ ] 데이터 건수 확인
+- [x] `scripts/seed.go` 작성
+  - [x] `all` 명령어: 전체 시드 실행
+  - [x] `weapons` 명령어: weapon_categories 시드
+  - [x] `prompts` 명령어: prompt_templates 시드
+  - [x] `patterns` 명령어: question_patterns 시드
+- [x] weapon_categories 삽입 (35건: 대분류 7 + 소분류 28)
+  - [x] W01~W07 대분류 7건 (code, name, description, keywords, question_patterns, display_order, icon, color)
+  - [x] W01-A~W01-D, W02-A~W02-D, ..., W07-A~W07-D 소분류 28건 (parent_code 연결)
+- [x] prompt_templates 삽입 (4건)
+  - [x] 경험 무기 자동 분류 (`experience_classify` / `weapon_tagging`, model: `gemini-2.0-flash`)
+  - [x] 경험 인터뷰 (`experience_classify` / `interview`, model: `gemini-2.0-flash`)
+  - [x] 자소서 문항 분석 (`coaching_draft` / `question_analysis`, model: `claude-sonnet-4-5`)
+  - [x] 무기별 경험 강화 코칭 (`coaching_draft` / `weapon_enhance`, model: `claude-sonnet-4-5`)
+- [x] question_patterns 삽입 (7건)
+  - [x] 지원동기, 장단점, 위기극복, 리더십, 팀워크, 목표달성, 성장과정
+- [x] 시드 실행
+  - [x] `moon run backend:seed` (or direct: `cd apps/backend && go run ./scripts/seed.go all`)
+  - [x] 데이터 건수 확인
 
 ### 시드 데이터 상세
 
@@ -920,7 +920,7 @@ Next.js 15 프론트엔드 프로젝트를 생성하고, Go 백엔드 API를 호
 
 ### 체크리스트
 
-- [ ] 루트 `.env` 파일 생성 (`.gitignore`에 포함)
+- [x] 루트 `.env` 파일 생성 (`.gitignore`에 포함)
   ```env
   # ── Backend (Go) ──
   API_PORT=9000
@@ -937,7 +937,7 @@ Next.js 15 프론트엔드 프로젝트를 생성하고, Go 백엔드 API를 호
   NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
   ```
-- [ ] `.env.example` 파일 생성 (Git 커밋)
+- [x] `.env.example` 파일 생성 (Git 커밋)
   ```env
   # ── Backend (Go) ──
   API_PORT=9000
@@ -954,11 +954,11 @@ Next.js 15 프론트엔드 프로젝트를 생성하고, Go 백엔드 API를 호
   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
   ```
-- [ ] Go 백엔드 환경변수 로드 설정
-  - [ ] `internal/infrastructure/config/config.go` 작성
-  - [ ] `.env` 파일 로드 (godotenv, 루트 `.env` 경로: `../../.env`)
-- [ ] Next.js 환경변수 로드 설정
-  - [ ] `next.config.ts`에서 dotenv로 루트 `.env` 로드
+- [x] Go 백엔드 환경변수 로드 설정
+  - [x] `internal/infrastructure/config/config.go` 작성
+  - [x] `.env` 파일 로드 (godotenv, 루트 `.env` 경로: `../../.env`)
+- [x] Next.js 환경변수 로드 설정
+  - [x] `next.config.ts`에서 dotenv로 루트 `.env` 로드
 
 ### 검증 방법
 - `cd apps/backend && go run ./cmd/api` → 환경변수 정상 로드

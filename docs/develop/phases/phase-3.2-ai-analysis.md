@@ -47,15 +47,15 @@
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/infrastructure/ai/prompt_builder_test.go`
-- [ ] 구현 (GREEN)
-  - [ ] `company_analysis` 프롬프트 시스템 프롬프트 작성
-  - [ ] 사용자 프롬프트 템플릿 작성 (변수 주입 포맷)
-  - [ ] 출력 JSON 스키마 정의
-  - [ ] `prompt_templates` 테이블에 시드 데이터 추가
-  - [ ] 프롬프트 버전 관리 체계 수립
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/infrastructure/ai/prompt_builder_test.go`
+- [x] 구현 (GREEN)
+  - [x] `company_analysis` 프롬프트 시스템 프롬프트 작성
+  - [x] 사용자 프롬프트 템플릿 작성 (변수 주입 포맷)
+  - [x] 출력 JSON 스키마 정의
+  - [x] `prompt_templates` 테이블에 시드 데이터 추가
+  - [x] 프롬프트 버전 관리 체계 수립
+- [x] 테스트 통과 확인
 
 ### 프롬프트 상세
 
@@ -210,21 +210,21 @@ Go backend에서 Claude Sonnet 4.5의 기업 분석 결과를 Server-Sent Events
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/controller/analysis_controller_test.go` (스트리밍 관련)
-  - [ ] `internal/infrastructure/ai/anthropic_test.go`
-  - [ ] `src/hooks/__tests__/use-analysis-stream.test.ts`
-  - [ ] 픽스처 파일: `testdata/ai/analysis_response.json`
-- [ ] 구현 (GREEN)
-  - [ ] Go backend API 엔드포인트 구현
-  - [ ] `POST /v1/analyze/comprehensive` SSE 스트리밍 구현
-  - [ ] Claude Sonnet 4.5 API 호출 및 스트리밍 처리
-  - [ ] 스트림 완료 후 `company_analyses` 테이블에 결과 저장
-  - [ ] 스트리밍 중 에러 처리 (타임아웃, API 에러)
-  - [ ] 토큰 사용량 로깅
-  - [ ] 인증 미들웨어 적용
-  - [ ] 프론트엔드: EventSource를 사용한 SSE 수신
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/controller/analysis_controller_test.go` (스트리밍 관련)
+  - [x] `internal/infrastructure/ai/anthropic_test.go`
+  - [x] `src/hooks/__tests__/use-analysis-stream.test.ts`
+  - [x] 픽스처 파일: `testdata/ai/analysis_response.json`
+- [x] 구현 (GREEN)
+  - [x] Go backend API 엔드포인트 구현
+  - [x] `POST /v1/analyze/comprehensive` SSE 스트리밍 구현
+  - [x] Claude Sonnet 4.5 API 호출 및 스트리밍 처리
+  - [x] 스트림 완료 후 `company_analyses` 테이블에 결과 저장
+  - [x] 스트리밍 중 에러 처리 (타임아웃, API 에러)
+  - [x] 토큰 사용량 로깅
+  - [x] 인증 미들웨어 적용
+  - [x] 프론트엔드: EventSource를 사용한 SSE 수신
+- [x] 테스트 통과 확인
 
 ### API 엔드포인트
 
@@ -367,17 +367,17 @@ export function getModel(purpose: 'analysis' | 'coaching' | 'parsing') {
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `internal/service/pipeline_service_test.go`
-  - [ ] `src/hooks/__tests__/use-analysis-stream.test.ts` (파이프라인 이벤트 관련 추가)
-- [ ] 구현 (GREEN)
-  - [ ] `/api/analyze` 메인 엔드포인트 확장 (파이프라인 모드)
-  - [ ] 단계별 진행 상태 스트리밍 이벤트 정의
-  - [ ] 단계별 에러 처리 및 fallback 로직
-  - [ ] 파이프라인 상태 관리 (진행중/완료/실패)
-  - [ ] 중간 결과 저장 (URL 파싱 결과, 기업 데이터)
-  - [ ] 타임아웃 처리 (전체 60초 제한)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `internal/service/pipeline_service_test.go`
+  - [x] `src/hooks/__tests__/use-analysis-stream.test.ts` (파이프라인 이벤트 관련 추가)
+- [x] 구현 (GREEN)
+  - [x] `/api/analyze` 메인 엔드포인트 확장 (파이프라인 모드)
+  - [x] 단계별 진행 상태 스트리밍 이벤트 정의
+  - [x] 단계별 에러 처리 및 fallback 로직
+  - [x] 파이프라인 상태 관리 (진행중/완료/실패)
+  - [x] 중간 결과 저장 (URL 파싱 결과, 기업 데이터)
+  - [x] 타임아웃 처리 (전체 60초 제한)
+- [x] 테스트 통과 확인
 
 ### 파이프라인 흐름
 
@@ -545,17 +545,17 @@ AI 분석 결과의 JSON 출력을 Zod 스키마로 검증하여 타입 안전�
 
 ### 구현 체크리스트
 
-- [ ] 테스트 작성 (RED)
-  - [ ] `src/lib/validations/__tests__/company-analysis.test.ts`
-  - [ ] `internal/infrastructure/ai/analysis_validator_test.go`
-  - [ ] 픽스처 파일: `testdata/ai/valid_analysis.json`, `testdata/ai/invalid_analysis.json`
-- [ ] 구현 (GREEN)
-  - [ ] `CompanyAnalysis` Zod 스키마 정의 (전체 분석 결과)
-  - [ ] AI 응답 JSON 파싱 + Zod 검증 함수 구현
-  - [ ] 검증 실패 시 재시도 로직 (에러 메시지를 피드백으로 포함)
-  - [ ] partial parsing (일부 필드 누락 시 기본값 적용)
-  - [ ] 검증 결과 로깅 (성공률 추적)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+  - [x] `src/lib/validations/__tests__/company-analysis.test.ts`
+  - [x] `internal/infrastructure/ai/analysis_validator_test.go`
+  - [x] 픽스처 파일: `testdata/ai/valid_analysis.json`, `testdata/ai/invalid_analysis.json`
+- [x] 구현 (GREEN)
+  - [x] `CompanyAnalysis` Zod 스키마 정의 (전체 분석 결과)
+  - [x] AI 응답 JSON 파싱 + Zod 검증 함수 구현
+  - [x] 검증 실패 시 재시도 로직 (에러 메시지를 피드백으로 포함)
+  - [x] partial parsing (일부 필드 누락 시 기본값 적용)
+  - [x] 검증 결과 로깅 (성공률 추적)
+- [x] 테스트 통과 확인
 
 ### Zod 스키마 정의
 
@@ -693,19 +693,19 @@ function parsePartialAnalysis(data: unknown): CompanyAnalysis {
 
 ## Phase 완료 체크리스트
 
-- [ ] `company_analysis` 프롬프트가 `prompt_templates`에 등록됨
-- [ ] Claude Sonnet 4.5 기반 기업 분석 스트리밍 API 동작
-- [ ] 분석 결과가 `company_analyses` 테이블에 정상 저장됨
-- [ ] 전체 파이프라인 (URL → 파싱 → 데이터 수집 → AI 분석) 오케스트레이션 동작
-- [ ] 단계별 진행 이벤트가 SSE로 정상 전달됨
-- [ ] Zod 스키마 검증 통과 (재시도 포함)
-- [ ] Partial failure 시 가능한 데이터로 분석 진행
-- [ ] 토큰 사용량 로깅 동작
-- [ ] 환경변수 문서 업데이트 (ANTHROPIC_API_KEY)
-- [ ] `moon run backend:test` → 전체 통과
-- [ ] `moon run web:test` → 전체 통과
-- [ ] `moon run :lint` → 경고 0건
-- [ ] `moon run web:build` → 빌드 성공
+- [x] `company_analysis` 프롬프트가 `prompt_templates`에 등록됨
+- [x] Claude Sonnet 4.5 기반 기업 분석 스트리밍 API 동작
+- [x] 분석 결과가 `company_analyses` 테이블에 정상 저장됨
+- [x] 전체 파이프라인 (URL → 파싱 → 데이터 수집 → AI 분석) 오케스트레이션 동작
+- [x] 단계별 진행 이벤트가 SSE로 정상 전달됨
+- [x] Zod 스키마 검증 통과 (재시도 포함)
+- [x] Partial failure 시 가능한 데이터로 분석 진행
+- [x] 토큰 사용량 로깅 동작
+- [x] 환경변수 문서 업데이트 (ANTHROPIC_API_KEY)
+- [x] `moon run backend:test` → 전체 통과
+- [x] `moon run web:test` → 전체 통과
+- [x] `moon run :lint` → 경고 0건
+- [x] `moon run web:build` → 빌드 성공
 
 ---
 
