@@ -68,7 +68,7 @@ moon run :build  # All builds
 | 7 | AI interview | Complete |
 | 7.1 | Experience recommendation | Complete |
 | 8 | Dashboard kanban | Complete |
-| 8.1 | Version management | Pending |
+| 8.1 | Version management | Complete |
 | 9 | Payment integration | Pending |
 | 10 | Growth features | Pending |
 

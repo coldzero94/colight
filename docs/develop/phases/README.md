@@ -27,7 +27,7 @@
 | Phase 7 | AI 인터뷰 | ✅ | Sprint 7 | 2일 | F02 |
 | Phase 7.1 | 경험 추천 강화 | ✅ | Sprint 7 | 1일 | F12 |
 | Phase 8 | 대시보드 칸반 | ✅ | Sprint 7-8 | 1.5일 | F18 |
-| Phase 8.1 | 버전 관리 | ⬜ | Sprint 8 | 1일 | F20 |
+| Phase 8.1 | 버전 관리 | ✅ | Sprint 8 | 1일 | F20 |
 | Phase 9 | 결제 연동 | ⬜ | Sprint 8 | 2일 | - |
 | Phase 10 | 성장 기능 | ⬜ | Sprint 9+ | 진행중 | F04, F05, F15-F17 |
 
