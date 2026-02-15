@@ -6,6 +6,7 @@ import { UserDropdown } from "./user-dropdown";
 
 const pageTitles: Record<string, string> = {
   "/experiences": "경험 관리",
+  "/interview": "경험 인터뷰",
   "/analysis": "기업 분석",
   "/coaching": "자소서 코칭",
   "/dashboard": "대시보드",

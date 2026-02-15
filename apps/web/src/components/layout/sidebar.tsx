@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/auth-store";
 
 const menuItems = [
   { label: "경험 관리", href: "/experiences", icon: "📋" },
+  { label: "경험 인터뷰", href: "/interview", icon: "🎤" },
   { label: "기업 분석", href: "/analysis", icon: "🏢" },
   { label: "자소서 코칭", href: "/coaching", icon: "✍️" },
   { label: "대시보드", href: "/dashboard", icon: "📊" },
