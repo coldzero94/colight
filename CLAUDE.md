@@ -61,7 +61,7 @@ moon run :build  # All builds
 | 5.2 | Coaching editor | Complete |
 | 6 | Revision coaching | Complete |
 | 6.1 | Premium & polish | Complete |
-| 6.2 | Landing & beta | Pending |
+| 6.2 | Landing & beta | Complete |
 | 7 | AI interview | Pending |
 | 7.1 | Experience recommendation | Pending |
 | 8 | Dashboard kanban | Pending |
