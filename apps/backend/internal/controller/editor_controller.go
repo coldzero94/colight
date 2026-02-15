@@ -108,7 +108,8 @@ func (c *EditorController) PostVersion(ctx *gin.Context) {
 	}
 
 	var req struct {
-		Content string `json:"content" binding:"required"`
+		Content       string `json:"content" binding:"required"`
+		ChangeSummary string `json:"change_summary"`
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -116,7 +117,7 @@ func (c *EditorController) PostVersion(ctx *gin.Context) {
 		return
 	}
 
-	version, err := c.editorService.CreateVersion(ctx.Request.Context(), userID.(uuid.UUID), coverLetterID, req.Content)
+	version, err := c.editorService.CreateVersion(ctx.Request.Context(), userID.(uuid.UUID), coverLetterID, req.Content, req.ChangeSummary)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "버전 생성 실패"})
 		return

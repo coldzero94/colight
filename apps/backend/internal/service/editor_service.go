@@ -58,8 +58,8 @@ func (s *EditorService) UpdateContent(ctx context.Context, userID uuid.UUID, cov
 	return err
 }
 
-// CreateVersion creates a new version
-func (s *EditorService) CreateVersion(ctx context.Context, userID uuid.UUID, coverLetterID uuid.UUID, content string) (*ent.CoverLetterVersion, error) {
+// CreateVersion creates a new version with optional change summary
+func (s *EditorService) CreateVersion(ctx context.Context, userID uuid.UUID, coverLetterID uuid.UUID, content string, changeSummary string) (*ent.CoverLetterVersion, error) {
 	cl, err := s.GetCoverLetter(ctx, userID, coverLetterID)
 	if err != nil {
 		return nil, err
@@ -73,13 +73,17 @@ func (s *EditorService) CreateVersion(ctx context.Context, userID uuid.UUID, cov
 	nextVersion := len(versions) + 1
 	charCount := len([]rune(content))
 
-	version, err := s.entClient.CoverLetterVersion.Create().
+	builder := s.entClient.CoverLetterVersion.Create().
 		SetCoverLetter(cl).
 		SetVersionNumber(nextVersion).
 		SetContent(content).
-		SetCharCount(charCount).
-		Save(ctx)
+		SetCharCount(charCount)
 
+	if changeSummary != "" {
+		builder.SetChangeSummary(changeSummary)
+	}
+
+	version, err := builder.Save(ctx)
 	return version, err
 }
 

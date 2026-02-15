@@ -86,7 +86,7 @@ func TestCreateVersion_Success(t *testing.T) {
 	ctx := context.Background()
 	svc, userID, clID := createCoverLetterForTest(t, ctx)
 
-	v, err := svc.CreateVersion(ctx, userID, clID, "버전 1 내용")
+	v, err := svc.CreateVersion(ctx, userID, clID, "버전 1 내용", "")
 	require.NoError(t, err)
 	assert.Equal(t, 1, v.VersionNumber)
 	assert.Equal(t, "버전 1 내용", v.Content)
@@ -97,11 +97,11 @@ func TestCreateVersion_IncrementsVersionNumber(t *testing.T) {
 	ctx := context.Background()
 	svc, userID, clID := createCoverLetterForTest(t, ctx)
 
-	v1, err := svc.CreateVersion(ctx, userID, clID, "v1")
+	v1, err := svc.CreateVersion(ctx, userID, clID, "v1", "")
 	require.NoError(t, err)
 	assert.Equal(t, 1, v1.VersionNumber)
 
-	v2, err := svc.CreateVersion(ctx, userID, clID, "v2")
+	v2, err := svc.CreateVersion(ctx, userID, clID, "v2", "")
 	require.NoError(t, err)
 	assert.Equal(t, 2, v2.VersionNumber)
 }
@@ -110,19 +110,30 @@ func TestCreateVersion_KoreanCharCount(t *testing.T) {
 	ctx := context.Background()
 	svc, userID, clID := createCoverLetterForTest(t, ctx)
 
-	v, err := svc.CreateVersion(ctx, userID, clID, "한글 테스트입니다")
+	v, err := svc.CreateVersion(ctx, userID, clID, "한글 테스트입니다", "")
 	require.NoError(t, err)
 	expected := len([]rune("한글 테스트입니다"))
 	assert.Equal(t, expected, *v.CharCount)
+}
+
+func TestCreateVersion_WithChangeSummary(t *testing.T) {
+	ctx := context.Background()
+	svc, userID, clID := createCoverLetterForTest(t, ctx)
+
+	v, err := svc.CreateVersion(ctx, userID, clID, "복원된 내용", "v1에서 복원")
+	require.NoError(t, err)
+	assert.Equal(t, 1, v.VersionNumber)
+	assert.Equal(t, "복원된 내용", v.Content)
+	assert.Equal(t, "v1에서 복원", v.ChangeSummary)
 }
 
 func TestGetVersions_Ordered(t *testing.T) {
 	ctx := context.Background()
 	svc, userID, clID := createCoverLetterForTest(t, ctx)
 
-	_, _ = svc.CreateVersion(ctx, userID, clID, "v1")
-	_, _ = svc.CreateVersion(ctx, userID, clID, "v2")
-	_, _ = svc.CreateVersion(ctx, userID, clID, "v3")
+	_, _ = svc.CreateVersion(ctx, userID, clID, "v1", "")
+	_, _ = svc.CreateVersion(ctx, userID, clID, "v2", "")
+	_, _ = svc.CreateVersion(ctx, userID, clID, "v3", "")
 
 	versions, err := svc.GetVersions(ctx, userID, clID)
 	require.NoError(t, err)
