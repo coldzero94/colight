@@ -1,6 +1,6 @@
 import { AxiosError } from "axios";
 
-interface ApiErrorPayload {
+export interface ApiErrorPayload {
   error: {
     message: string;
     code: string;
