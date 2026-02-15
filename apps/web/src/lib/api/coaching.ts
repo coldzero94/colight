@@ -108,6 +108,31 @@ export interface ReviewRequest {
   content: string;
 }
 
+// === Char Coaching Types ===
+
+export interface CharCoachingSuggestion {
+  type: "trim" | "expand";
+  section: string;
+  original: string;
+  suggested: string;
+  reason: string;
+  char_diff: number;
+}
+
+export interface CharCoachingResult {
+  status: "over" | "under" | "good";
+  current_count: number;
+  char_limit: number;
+  diff: number;
+  suggestions: CharCoachingSuggestion[];
+  summary: string;
+}
+
+export interface CharCoachingRequest {
+  cover_letter_id: string;
+  content: string;
+}
+
 // === API Functions ===
 
 export interface ExperienceRecommendation {
@@ -219,6 +244,16 @@ export async function requestReview(
 ): Promise<ReviewResult> {
   const { data } = await apiClient.post<ReviewResult>(
     "/v1/coaching/review",
+    req
+  );
+  return data;
+}
+
+export async function requestCharCoaching(
+  req: CharCoachingRequest
+): Promise<CharCoachingResult> {
+  const { data } = await apiClient.post<CharCoachingResult>(
+    "/v1/coaching/char-count",
     req
   );
   return data;

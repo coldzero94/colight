@@ -175,7 +175,7 @@ func TestUsageService_GetAllUsage(t *testing.T) {
 	features, plan, err := svc.GetAllUsage(ctx, user.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "free", plan)
-	assert.Len(t, features, 5) // all 5 features
+	assert.Len(t, features, 6) // all 6 features
 
 	assert.Equal(t, 1, features["experience"].Used)
 	assert.Equal(t, 3, features["experience"].Limit)

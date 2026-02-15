@@ -80,7 +80,7 @@ func TestGetUsage_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "free", resp.Plan)
-	assert.Len(t, resp.Features, 5)
+	assert.Len(t, resp.Features, 6)
 	assert.Equal(t, 2, resp.Features["experience"].Used)
 	assert.Equal(t, 3, resp.Features["experience"].Limit)
 	assert.Equal(t, 1, resp.Features["experience"].Remaining)

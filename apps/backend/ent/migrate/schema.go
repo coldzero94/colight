@@ -64,7 +64,7 @@ var (
 	CoachingSessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "session_type", Type: field.TypeEnum, Enums: []string{"question_analysis", "draft", "review", "enhance"}},
+		{Name: "session_type", Type: field.TypeEnum, Enums: []string{"question_analysis", "draft", "review", "enhance", "char_coaching"}},
 		{Name: "input_data", Type: field.TypeJSON, Nullable: true},
 		{Name: "output_data", Type: field.TypeJSON, Nullable: true},
 		{Name: "model_used", Type: field.TypeString, Nullable: true, Size: 50},

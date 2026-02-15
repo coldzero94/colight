@@ -32,6 +32,7 @@ var FreeLimits = map[string]featureLimit{
 	"question_analysis": {LimitType: "daily", Limit: 1},
 	"draft":             {LimitType: "daily", Limit: 1},
 	"review":            {LimitType: "daily", Limit: 1},
+	"char_coaching":     {LimitType: "daily", Limit: 2},
 }
 
 // KST is the Korea Standard Time timezone.

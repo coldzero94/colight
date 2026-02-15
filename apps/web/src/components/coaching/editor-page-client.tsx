@@ -13,7 +13,9 @@ import {
   updateCoverLetter,
 } from "@/lib/api/coaching";
 import { useReview } from "@/hooks/use-review";
+import { useCharCoaching } from "@/hooks/use-char-coaching";
 import type {
+  CharCoachingResult,
   CoverLetterVersion,
   ReviewResult,
   ReviewScores,
@@ -34,6 +36,8 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
   const [selectedVersion, setSelectedVersion] =
     useState<CoverLetterVersion | null>(null);
   const [rollbackDialogOpen, setRollbackDialogOpen] = useState(false);
+  const [charCoachingResult, setCharCoachingResult] =
+    useState<CharCoachingResult | null>(null);
 
   const {
     data: coverLetter,
@@ -50,6 +54,7 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
   });
 
   const reviewMutation = useReview();
+  const charCoachingMutation = useCharCoaching();
 
   const rollbackMutation = useMutation({
     mutationFn: async (version: CoverLetterVersion) => {
@@ -100,6 +105,22 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
       }
     );
   }, [coverLetter, coverLetterId, reviewMutation, reviewResult]);
+
+  const handleRequestCharCoaching = useCallback(() => {
+    if (!coverLetter) return;
+
+    charCoachingMutation.mutate(
+      {
+        cover_letter_id: coverLetterId,
+        content: coverLetter.current_content ?? "",
+      },
+      {
+        onSuccess: (data) => {
+          setCharCoachingResult(data);
+        },
+      }
+    );
+  }, [coverLetter, coverLetterId, charCoachingMutation]);
 
   const handleSelectVersion = useCallback(
     (version: CoverLetterVersion) => {
@@ -187,6 +208,9 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
         reviewHistory={reviewHistory}
         isReviewing={reviewMutation.isPending}
         onRequestReview={handleRequestReview}
+        charCoachingResult={charCoachingResult}
+        isCharCoaching={charCoachingMutation.isPending}
+        onRequestCharCoaching={handleRequestCharCoaching}
         selectedVersion={selectedVersion}
         onClosePreview={handleClosePreview}
         onRestore={handleRestore}

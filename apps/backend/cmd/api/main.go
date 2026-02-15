@@ -80,6 +80,11 @@ func main() {
 		reviewService = service.NewReviewService(db, aiProvider.Heavy())
 	}
 
+	var charCoachingService *service.CharCoachingService
+	if aiProvider != nil {
+		charCoachingService = service.NewCharCoachingService(db, aiProvider.Heavy())
+	}
+
 	var interviewService *service.InterviewService
 	if aiProvider != nil {
 		interviewService = service.NewInterviewService(aiProvider.Light(), db, weaponTaggingService)
@@ -131,6 +136,11 @@ func main() {
 	var reviewCtrl *controller.ReviewController
 	if reviewService != nil {
 		reviewCtrl = controller.NewReviewController(reviewService)
+	}
+
+	var charCoachingCtrl *controller.CharCoachingController
+	if charCoachingService != nil {
+		charCoachingCtrl = controller.NewCharCoachingController(charCoachingService)
 	}
 
 	var interviewCtrl *controller.InterviewController
@@ -220,6 +230,11 @@ func main() {
 		// Review coaching (AI-powered cover letter review)
 		if reviewCtrl != nil {
 			protected.POST("/coaching/review", controller.UsageLimitMiddleware(usageService, "review"), reviewCtrl.PostReview)
+		}
+
+		// Character count coaching (AI-powered trim/expand suggestions)
+		if charCoachingCtrl != nil {
+			protected.POST("/coaching/char-count", controller.UsageLimitMiddleware(usageService, "char_coaching"), charCoachingCtrl.PostCharCoaching)
 		}
 
 		// AI Interview

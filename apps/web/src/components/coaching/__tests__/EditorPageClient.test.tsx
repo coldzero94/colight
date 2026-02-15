@@ -10,6 +10,7 @@ vi.mock("@/lib/api/coaching", () => ({
   updateCoverLetter: vi.fn(),
   createVersion: vi.fn(),
   requestReview: vi.fn(),
+  requestCharCoaching: vi.fn(),
 }));
 
 vi.mock("next/link", () => ({

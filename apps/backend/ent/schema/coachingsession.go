@@ -24,7 +24,7 @@ func (CoachingSession) Fields() []ent.Field {
 		field.UUID("user_id", uuid.UUID{}).
 			Comment("References user_profiles(id)"),
 		field.Enum("session_type").
-			Values("question_analysis", "draft", "review", "enhance").
+			Values("question_analysis", "draft", "review", "enhance", "char_coaching").
 			Comment("Session type"),
 		field.JSON("input_data", map[string]interface{}{}).
 			Optional().

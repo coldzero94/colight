@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ArrowLeft, Loader2, MessageSquareText, PanelRight } from "lucide-react";
+import { ArrowLeft, Loader2, MessageSquareText, Ruler, PanelRight } from "lucide-react";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { SaveIndicator } from "./save-indicator";
@@ -11,9 +11,12 @@ import { AnalysisSidebar } from "./analysis-sidebar";
 import { VersionPreview } from "./version-preview";
 import { ReviewResult as ReviewResultPanel } from "./review/review-result";
 import { ReviewTimeline } from "./review/review-timeline";
+import { CharCoachingResult as CharCoachingResultPanel } from "./char-coaching-result";
 import type { ReviewEntry } from "./review/review-timeline";
 import { useAutoSave } from "@/hooks/use-auto-save";
 import type {
+  CharCoachingResult,
+  CharCoachingSuggestion,
   CoverLetterVersion,
   ReviewResult,
   ReviewScores,
@@ -81,6 +84,9 @@ interface EditorLayoutProps {
   reviewHistory?: ReviewEntry[];
   isReviewing?: boolean;
   onRequestReview?: () => void;
+  charCoachingResult?: CharCoachingResult | null;
+  isCharCoaching?: boolean;
+  onRequestCharCoaching?: () => void;
   selectedVersion?: CoverLetterVersion | null;
   onClosePreview?: () => void;
   onRestore?: () => void;
@@ -96,6 +102,9 @@ export function EditorLayout({
   reviewHistory = [],
   isReviewing,
   onRequestReview,
+  charCoachingResult,
+  isCharCoaching,
+  onRequestCharCoaching,
   selectedVersion,
   onClosePreview,
   onRestore,
@@ -130,6 +139,22 @@ export function EditorLayout({
     [content, debouncedSave],
   );
 
+  const handleApplyCharSuggestion = useCallback(
+    (suggestion: CharCoachingSuggestion) => {
+      const idx = content.indexOf(suggestion.original);
+      if (idx === -1) return;
+
+      const newContent =
+        content.slice(0, idx) +
+        suggestion.suggested +
+        content.slice(idx + suggestion.original.length);
+      setContent(newContent);
+      setEditorKey((k) => k + 1);
+      debouncedSave(newContent);
+    },
+    [content, debouncedSave],
+  );
+
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const sidebarContent = (
@@ -146,6 +171,12 @@ export function EditorLayout({
           className="flex-1 px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:border-b-2 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900"
         >
           첨삭 결과
+        </Tabs.Trigger>
+        <Tabs.Trigger
+          value="char-coaching"
+          className="flex-1 px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:border-b-2 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900"
+        >
+          글자수
         </Tabs.Trigger>
       </Tabs.List>
 
@@ -173,6 +204,25 @@ export function EditorLayout({
             </p>
             <p className="mt-1 text-xs text-gray-400">
               &quot;첨삭 요청&quot; 버튼을 눌러 AI 첨삭을 받아보세요
+            </p>
+          </div>
+        )}
+      </Tabs.Content>
+
+      <Tabs.Content value="char-coaching" className="flex-1 overflow-y-auto p-6">
+        {charCoachingResult ? (
+          <CharCoachingResultPanel
+            result={charCoachingResult}
+            onApplySuggestion={handleApplyCharSuggestion}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Ruler className="mb-3 h-8 w-8 text-gray-300" />
+            <p className="text-sm text-gray-500">
+              글자수 코칭 결과가 없습니다
+            </p>
+            <p className="mt-1 text-xs text-gray-400">
+              &quot;글자수 코칭&quot; 버튼을 눌러 AI 코칭을 받아보세요
             </p>
           </div>
         )}
@@ -259,6 +309,25 @@ export function EditorLayout({
                       <>
                         <MessageSquareText className="h-4 w-4" />
                         첨삭 요청
+                      </>
+                    )}
+                  </button>
+                )}
+                {onRequestCharCoaching && (
+                  <button
+                    onClick={onRequestCharCoaching}
+                    disabled={isCharCoaching}
+                    className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {isCharCoaching ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        분석 중...
+                      </>
+                    ) : (
+                      <>
+                        <Ruler className="h-4 w-4" />
+                        글자수 코칭
                       </>
                     )}
                   </button>

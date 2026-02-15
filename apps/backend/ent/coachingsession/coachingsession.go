@@ -142,6 +142,7 @@ const (
 	SessionTypeDraft            SessionType = "draft"
 	SessionTypeReview           SessionType = "review"
 	SessionTypeEnhance          SessionType = "enhance"
+	SessionTypeCharCoaching     SessionType = "char_coaching"
 )
 
 func (st SessionType) String() string {
@@ -151,7 +152,7 @@ func (st SessionType) String() string {
 // SessionTypeValidator is a validator for the "session_type" field enum values. It is called by the builders before save.
 func SessionTypeValidator(st SessionType) error {
 	switch st {
-	case SessionTypeQuestionAnalysis, SessionTypeDraft, SessionTypeReview, SessionTypeEnhance:
+	case SessionTypeQuestionAnalysis, SessionTypeDraft, SessionTypeReview, SessionTypeEnhance, SessionTypeCharCoaching:
 		return nil
 	default:
 		return fmt.Errorf("coachingsession: invalid enum value for session_type field: %q", st)
