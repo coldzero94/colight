@@ -514,3 +514,461 @@ func TestAdminController_UpdatePrompt_NotFound(t *testing.T) {
 
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
+
+// --- System Configs ---
+
+func setupConfigTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
+	t.Helper()
+	gin.SetMode(gin.TestMode)
+	db := testutil.NewTestClient(t)
+	testutil.CleanAllTables(db)
+	ctrl := NewAdminController(db)
+
+	r := gin.New()
+	r.Use(func(c *gin.Context) {
+		if id := c.GetHeader("X-Test-UserID"); id != "" {
+			uid, _ := uuid.Parse(id)
+			c.Set("user_id", uid)
+		}
+		if role := c.GetHeader("X-Test-Role"); role != "" {
+			c.Set("role", role)
+		}
+		c.Next()
+	})
+	r.GET("/v1/admin/configs", ctrl.ListConfigs)
+	r.PUT("/v1/admin/configs/:key", ctrl.UpdateConfig)
+
+	return r, db
+}
+
+func TestAdminController_ListConfigs_ByCategory(t *testing.T) {
+	r, db := setupConfigTestRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("config-admin@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleSuperAdmin).
+		SaveX(ctx)
+
+	db.SystemConfig.Create().
+		SetConfigKey("anthropic_api_key").
+		SetConfigValue("encrypted-value").
+		SetCategory("api_key").
+		SetIsSecret(true).
+		SetUpdatedBy(admin.ID).
+		SaveX(ctx)
+	db.SystemConfig.Create().
+		SetConfigKey("heavy_model").
+		SetConfigValue("claude-sonnet-4-5").
+		SetCategory("model").
+		SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/configs?category=api_key", nil)
+	req.Header.Set("X-Test-UserID", admin.ID.String())
+	req.Header.Set("X-Test-Role", "super_admin")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	data := resp["data"].([]any)
+	assert.Len(t, data, 1)
+	item := data[0].(map[string]any)
+	assert.Equal(t, "anthropic_api_key", item["config_key"])
+	// Secret values should be masked
+	assert.NotEqual(t, "encrypted-value", item["config_value"])
+}
+
+func TestAdminController_UpdateConfig_Success(t *testing.T) {
+	r, db := setupConfigTestRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("config-upd@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleSuperAdmin).
+		SaveX(ctx)
+
+	db.SystemConfig.Create().
+		SetConfigKey("heavy_model").
+		SetConfigValue("claude-sonnet-4-5").
+		SetCategory("model").
+		SaveX(ctx)
+
+	w := sendJSONWithHeaders(r, http.MethodPut, "/v1/admin/configs/heavy_model",
+		map[string]string{"value": "gpt-4o"},
+		map[string]string{"X-Test-UserID": admin.ID.String(), "X-Test-Role": "super_admin"},
+	)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	assert.Equal(t, "gpt-4o", resp["config_value"])
+}
+
+func TestAdminController_UpdateConfig_NotFound(t *testing.T) {
+	r, db := setupConfigTestRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("config-nf@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleSuperAdmin).
+		SaveX(ctx)
+
+	w := sendJSONWithHeaders(r, http.MethodPut, "/v1/admin/configs/nonexistent",
+		map[string]string{"value": "something"},
+		map[string]string{"X-Test-UserID": admin.ID.String(), "X-Test-Role": "super_admin"},
+	)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
+// --- Usage Monitoring ---
+
+func setupAdminUsageTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
+	t.Helper()
+	gin.SetMode(gin.TestMode)
+	db := testutil.NewTestClient(t)
+	testutil.CleanAllTables(db)
+	ctrl := NewAdminController(db)
+
+	r := gin.New()
+	r.Use(func(c *gin.Context) {
+		if id := c.GetHeader("X-Test-UserID"); id != "" {
+			uid, _ := uuid.Parse(id)
+			c.Set("user_id", uid)
+		}
+		if role := c.GetHeader("X-Test-Role"); role != "" {
+			c.Set("role", role)
+		}
+		c.Next()
+	})
+	r.GET("/v1/admin/usage/summary", ctrl.GetUsageSummary)
+	r.GET("/v1/admin/usage/daily", ctrl.GetUsageDaily)
+
+	return r, db
+}
+
+func TestAdminController_GetUsageSummary(t *testing.T) {
+	r, db := setupAdminUsageTestRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("usage-admin@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleAdmin).
+		SaveX(ctx)
+
+	user := db.UserProfile.Create().
+		SetEmail("usage-user@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleUser).
+		SaveX(ctx)
+
+	// Create usage logs with AI metadata
+	db.UsageLog.Create().
+		SetUserID(user.ID).
+		SetFeature("draft").
+		SetProvider("anthropic").
+		SetModel("claude-sonnet-4-5").
+		SetInputTokens(500).
+		SetOutputTokens(200).
+		SetTotalTokens(700).
+		SetEstimatedCostKrw(14.0).
+		SetLatencyMs(1500).
+		SetStatus("success").
+		SaveX(ctx)
+	db.UsageLog.Create().
+		SetUserID(user.ID).
+		SetFeature("analysis").
+		SetProvider("gemini").
+		SetModel("gemini-2.0-flash").
+		SetInputTokens(300).
+		SetOutputTokens(100).
+		SetTotalTokens(400).
+		SetEstimatedCostKrw(2.0).
+		SetLatencyMs(800).
+		SetStatus("success").
+		SaveX(ctx)
+	db.UsageLog.Create().
+		SetUserID(user.ID).
+		SetFeature("draft").
+		SetProvider("anthropic").
+		SetModel("claude-sonnet-4-5").
+		SetInputTokens(600).
+		SetOutputTokens(0).
+		SetTotalTokens(600).
+		SetStatus("error").
+		SetErrorMessage("rate limit exceeded").
+		SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/usage/summary?days=30", nil)
+	req.Header.Set("X-Test-UserID", admin.ID.String())
+	req.Header.Set("X-Test-Role", "admin")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	assert.Equal(t, float64(3), resp["total_calls"])
+	assert.Equal(t, float64(1700), resp["total_tokens"])
+	assert.InDelta(t, 16.0, resp["total_cost_krw"], 0.01)
+	assert.InDelta(t, 33.33, resp["error_rate"], 1.0) // 1/3 errors
+}
+
+func TestAdminController_GetUsageDaily(t *testing.T) {
+	r, db := setupAdminUsageTestRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("daily-admin@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleAdmin).
+		SaveX(ctx)
+
+	user := db.UserProfile.Create().
+		SetEmail("daily-user@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleUser).
+		SaveX(ctx)
+
+	// Create today's usage
+	db.UsageLog.Create().
+		SetUserID(user.ID).
+		SetFeature("draft").
+		SetProvider("anthropic").
+		SetModel("claude-sonnet-4-5").
+		SetInputTokens(500).
+		SetOutputTokens(200).
+		SetTotalTokens(700).
+		SetStatus("success").
+		SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/usage/daily?days=7", nil)
+	req.Header.Set("X-Test-UserID", admin.ID.String())
+	req.Header.Set("X-Test-Role", "admin")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	data := resp["data"].([]any)
+	assert.NotEmpty(t, data)
+}
+
+// --- Suspend / Unsuspend ---
+
+func setupSuspendTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
+	t.Helper()
+	gin.SetMode(gin.TestMode)
+	db := testutil.NewTestClient(t)
+	testutil.CleanAllTables(db)
+	ctrl := NewAdminController(db)
+
+	r := gin.New()
+	r.Use(func(c *gin.Context) {
+		if id := c.GetHeader("X-Test-UserID"); id != "" {
+			uid, _ := uuid.Parse(id)
+			c.Set("user_id", uid)
+		}
+		if role := c.GetHeader("X-Test-Role"); role != "" {
+			c.Set("role", role)
+		}
+		c.Next()
+	})
+	r.POST("/v1/admin/users/:id/suspend", ctrl.SuspendUser)
+	r.DELETE("/v1/admin/users/:id/suspend", ctrl.UnsuspendUser)
+	r.GET("/v1/admin/users/:id/detail", ctrl.GetUserDetail)
+
+	return r, db
+}
+
+func TestAdminController_SuspendUser_Success(t *testing.T) {
+	r, db := setupSuspendTestRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("suspend-admin@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleAdmin).
+		SaveX(ctx)
+	target := db.UserProfile.Create().
+		SetEmail("suspend-target@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleUser).
+		SaveX(ctx)
+
+	w := sendJSONWithHeaders(r, http.MethodPost, "/v1/admin/users/"+target.ID.String()+"/suspend",
+		map[string]string{"reason": "규정 위반"},
+		map[string]string{"X-Test-UserID": admin.ID.String(), "X-Test-Role": "admin"},
+	)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	assert.Equal(t, true, resp["suspended"])
+}
+
+func TestAdminController_UnsuspendUser(t *testing.T) {
+	r, db := setupSuspendTestRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("unsuspend-admin@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleAdmin).
+		SaveX(ctx)
+	target := db.UserProfile.Create().
+		SetEmail("unsuspend-target@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleUser).
+		SetSuspended(true).
+		SetSuspendedReason("test").
+		SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodDelete, "/v1/admin/users/"+target.ID.String()+"/suspend", nil)
+	req.Header.Set("X-Test-UserID", admin.ID.String())
+	req.Header.Set("X-Test-Role", "admin")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	assert.Equal(t, false, resp["suspended"])
+}
+
+func TestAdminController_GetUserDetail(t *testing.T) {
+	r, db := setupSuspendTestRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("detail-admin@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleAdmin).
+		SaveX(ctx)
+	target := db.UserProfile.Create().
+		SetEmail("detail-target@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleUser).
+		SaveX(ctx)
+
+	// Add some experiences for the user
+	db.Experience.Create().
+		SetUserID(target.ID).
+		SetTitle("Test Experience").
+		SetContent("Test content").
+		SetStarSituation("Situation").
+		SetStarTask("Task").
+		SetStarAction("Action").
+		SetStarResult("Result").
+		SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/users/"+target.ID.String()+"/detail", nil)
+	req.Header.Set("X-Test-UserID", admin.ID.String())
+	req.Header.Set("X-Test-Role", "admin")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	assert.Equal(t, "detail-target@test.com", resp["email"])
+	assert.Equal(t, float64(1), resp["experience_count"])
+}
+
+// --- Audit Logs ---
+
+func setupAuditTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
+	t.Helper()
+	gin.SetMode(gin.TestMode)
+	db := testutil.NewTestClient(t)
+	testutil.CleanAllTables(db)
+	ctrl := NewAdminController(db)
+
+	r := gin.New()
+	r.Use(func(c *gin.Context) {
+		if id := c.GetHeader("X-Test-UserID"); id != "" {
+			uid, _ := uuid.Parse(id)
+			c.Set("user_id", uid)
+		}
+		if role := c.GetHeader("X-Test-Role"); role != "" {
+			c.Set("role", role)
+		}
+		c.Next()
+	})
+	r.GET("/v1/admin/audit-logs", ctrl.ListAuditLogs)
+
+	return r, db
+}
+
+func TestAdminController_ListAuditLogs(t *testing.T) {
+	r, db := setupAuditTestRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("audit-admin@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleAdmin).
+		SaveX(ctx)
+
+	// Create audit log entries
+	db.AdminAuditLog.Create().
+		SetAdminID(admin.ID).
+		SetAction("role_change").
+		SetTargetType("user").
+		SetTargetID("some-user-id").
+		SetOldValue("user").
+		SetNewValue("manager").
+		SaveX(ctx)
+	db.AdminAuditLog.Create().
+		SetAdminID(admin.ID).
+		SetAction("config_update").
+		SetTargetType("config").
+		SetTargetID("heavy_model").
+		SetOldValue("claude-sonnet-4-5").
+		SetNewValue("gpt-4o").
+		SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/audit-logs", nil)
+	req.Header.Set("X-Test-UserID", admin.ID.String())
+	req.Header.Set("X-Test-Role", "admin")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	data := resp["data"].([]any)
+	assert.Len(t, data, 2)
+}
+
+func TestAdminController_ListAuditLogs_FilterByAction(t *testing.T) {
+	r, db := setupAuditTestRouter(t)
+	ctx := t.Context()
+
+	admin := db.UserProfile.Create().
+		SetEmail("audit-filter@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleAdmin).
+		SaveX(ctx)
+
+	db.AdminAuditLog.Create().
+		SetAdminID(admin.ID).
+		SetAction("role_change").
+		SetTargetType("user").
+		SaveX(ctx)
+	db.AdminAuditLog.Create().
+		SetAdminID(admin.ID).
+		SetAction("config_update").
+		SetTargetType("config").
+		SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/audit-logs?action=role_change", nil)
+	req.Header.Set("X-Test-UserID", admin.ID.String())
+	req.Header.Set("X-Test-Role", "admin")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	data := resp["data"].([]any)
+	assert.Len(t, data, 1)
+}

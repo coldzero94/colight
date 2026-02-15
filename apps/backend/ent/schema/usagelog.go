@@ -30,6 +30,41 @@ func (UsageLog) Fields() []ent.Field {
 		field.JSON("metadata", map[string]interface{}{}).
 			Optional().
 			Comment("Additional context (e.g. cover_letter_id)"),
+		field.String("provider").
+			MaxLen(20).
+			Optional().
+			Nillable().
+			Comment("AI provider: anthropic, gemini, groq"),
+		field.String("model").
+			MaxLen(100).
+			Optional().
+			Nillable().
+			Comment("AI model name used"),
+		field.Int("input_tokens").
+			Default(0).
+			Comment("Input token count"),
+		field.Int("output_tokens").
+			Default(0).
+			Comment("Output token count"),
+		field.Int("total_tokens").
+			Default(0).
+			Comment("Total token count"),
+		field.Float("estimated_cost_krw").
+			Optional().
+			Nillable().
+			Comment("Estimated cost in KRW"),
+		field.Int("latency_ms").
+			Optional().
+			Nillable().
+			Comment("API call latency in milliseconds"),
+		field.String("status").
+			MaxLen(20).
+			Default("success").
+			Comment("Call status: success, error"),
+		field.Text("error_message").
+			Optional().
+			Nillable().
+			Comment("Error message if status=error"),
 	}
 }
 

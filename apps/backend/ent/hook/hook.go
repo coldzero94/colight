@@ -9,6 +9,18 @@ import (
 	"github.com/coby/colight/apps/backend/ent"
 )
 
+// The AdminAuditLogFunc type is an adapter to allow the use of ordinary
+// function as AdminAuditLog mutator.
+type AdminAuditLogFunc func(context.Context, *ent.AdminAuditLogMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AdminAuditLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AdminAuditLogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AdminAuditLogMutation", m)
+}
+
 // The ApplicationFunc type is an adapter to allow the use of ordinary
 // function as Application mutator.
 type ApplicationFunc func(context.Context, *ent.ApplicationMutation) (ent.Value, error)
@@ -163,6 +175,18 @@ func (f QuestionPatternFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuestionPatternMutation", m)
+}
+
+// The SystemConfigFunc type is an adapter to allow the use of ordinary
+// function as SystemConfig mutator.
+type SystemConfigFunc func(context.Context, *ent.SystemConfigMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SystemConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SystemConfigMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemConfigMutation", m)
 }
 
 // The TalentProfileFunc type is an adapter to allow the use of ordinary

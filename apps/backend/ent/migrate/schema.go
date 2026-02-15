@@ -8,6 +8,41 @@ import (
 )
 
 var (
+	// AdminAuditLogsColumns holds the columns for the "admin_audit_logs" table.
+	AdminAuditLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "admin_id", Type: field.TypeUUID},
+		{Name: "action", Type: field.TypeString, Size: 50},
+		{Name: "target_type", Type: field.TypeString, Size: 50},
+		{Name: "target_id", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "old_value", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "new_value", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "ip_address", Type: field.TypeString, Nullable: true, Size: 45},
+	}
+	// AdminAuditLogsTable holds the schema information for the "admin_audit_logs" table.
+	AdminAuditLogsTable = &schema.Table{
+		Name:       "admin_audit_logs",
+		Columns:    AdminAuditLogsColumns,
+		PrimaryKey: []*schema.Column{AdminAuditLogsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "adminauditlog_admin_id",
+				Unique:  false,
+				Columns: []*schema.Column{AdminAuditLogsColumns[2]},
+			},
+			{
+				Name:    "adminauditlog_action",
+				Unique:  false,
+				Columns: []*schema.Column{AdminAuditLogsColumns[3]},
+			},
+			{
+				Name:    "adminauditlog_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AdminAuditLogsColumns[1]},
+			},
+		},
+	}
 	// ApplicationsColumns holds the columns for the "applications" table.
 	ApplicationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -569,6 +604,36 @@ var (
 			},
 		},
 	}
+	// SystemConfigsColumns holds the columns for the "system_configs" table.
+	SystemConfigsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "config_key", Type: field.TypeString, Unique: true, Size: 100},
+		{Name: "config_value", Type: field.TypeString, Size: 2147483647},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "category", Type: field.TypeString, Size: 50},
+		{Name: "is_secret", Type: field.TypeBool, Default: false},
+		{Name: "updated_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// SystemConfigsTable holds the schema information for the "system_configs" table.
+	SystemConfigsTable = &schema.Table{
+		Name:       "system_configs",
+		Columns:    SystemConfigsColumns,
+		PrimaryKey: []*schema.Column{SystemConfigsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "systemconfig_category",
+				Unique:  false,
+				Columns: []*schema.Column{SystemConfigsColumns[6]},
+			},
+			{
+				Name:    "systemconfig_config_key",
+				Unique:  true,
+				Columns: []*schema.Column{SystemConfigsColumns[3]},
+			},
+		},
+	}
 	// TalentProfilesColumns holds the columns for the "talent_profiles" table.
 	TalentProfilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -601,6 +666,15 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "feature", Type: field.TypeString, Size: 30},
 		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "provider", Type: field.TypeString, Nullable: true, Size: 20},
+		{Name: "model", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "input_tokens", Type: field.TypeInt, Default: 0},
+		{Name: "output_tokens", Type: field.TypeInt, Default: 0},
+		{Name: "total_tokens", Type: field.TypeInt, Default: 0},
+		{Name: "estimated_cost_krw", Type: field.TypeFloat64, Nullable: true},
+		{Name: "latency_ms", Type: field.TypeInt, Nullable: true},
+		{Name: "status", Type: field.TypeString, Size: 20, Default: "success"},
+		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "user_id", Type: field.TypeUUID},
 	}
 	// UsageLogsTable holds the schema information for the "usage_logs" table.
@@ -611,7 +685,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "usage_logs_user_profiles_usage_logs",
-				Columns:    []*schema.Column{UsageLogsColumns[4]},
+				Columns:    []*schema.Column{UsageLogsColumns[13]},
 				RefColumns: []*schema.Column{UserProfilesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -620,7 +694,7 @@ var (
 			{
 				Name:    "usagelog_user_id_feature_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{UsageLogsColumns[4], UsageLogsColumns[2], UsageLogsColumns[1]},
+				Columns: []*schema.Column{UsageLogsColumns[13], UsageLogsColumns[2], UsageLogsColumns[1]},
 			},
 		},
 	}
@@ -644,6 +718,9 @@ var (
 		{Name: "experience_years", Type: field.TypeInt, Default: 0},
 		{Name: "onboarding_completed", Type: field.TypeBool, Default: false},
 		{Name: "plan", Type: field.TypeEnum, Enums: []string{"free", "starter", "pro", "season"}, Default: "free"},
+		{Name: "suspended", Type: field.TypeBool, Default: false},
+		{Name: "suspended_at", Type: field.TypeTime, Nullable: true},
+		{Name: "suspended_reason", Type: field.TypeString, Nullable: true, Size: 500},
 	}
 	// UserProfilesTable holds the schema information for the "user_profiles" table.
 	UserProfilesTable = &schema.Table{
@@ -703,6 +780,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AdminAuditLogsTable,
 		ApplicationsTable,
 		CoachingSessionsTable,
 		CompanyAnalysesTable,
@@ -716,6 +794,7 @@ var (
 		FeedbacksTable,
 		PromptTemplatesTable,
 		QuestionPatternsTable,
+		SystemConfigsTable,
 		TalentProfilesTable,
 		UsageLogsTable,
 		UserProfilesTable,

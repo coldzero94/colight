@@ -321,6 +321,60 @@ func (_u *UserProfileUpdate) SetNillablePlan(v *userprofile.Plan) *UserProfileUp
 	return _u
 }
 
+// SetSuspended sets the "suspended" field.
+func (_u *UserProfileUpdate) SetSuspended(v bool) *UserProfileUpdate {
+	_u.mutation.SetSuspended(v)
+	return _u
+}
+
+// SetNillableSuspended sets the "suspended" field if the given value is not nil.
+func (_u *UserProfileUpdate) SetNillableSuspended(v *bool) *UserProfileUpdate {
+	if v != nil {
+		_u.SetSuspended(*v)
+	}
+	return _u
+}
+
+// SetSuspendedAt sets the "suspended_at" field.
+func (_u *UserProfileUpdate) SetSuspendedAt(v time.Time) *UserProfileUpdate {
+	_u.mutation.SetSuspendedAt(v)
+	return _u
+}
+
+// SetNillableSuspendedAt sets the "suspended_at" field if the given value is not nil.
+func (_u *UserProfileUpdate) SetNillableSuspendedAt(v *time.Time) *UserProfileUpdate {
+	if v != nil {
+		_u.SetSuspendedAt(*v)
+	}
+	return _u
+}
+
+// ClearSuspendedAt clears the value of the "suspended_at" field.
+func (_u *UserProfileUpdate) ClearSuspendedAt() *UserProfileUpdate {
+	_u.mutation.ClearSuspendedAt()
+	return _u
+}
+
+// SetSuspendedReason sets the "suspended_reason" field.
+func (_u *UserProfileUpdate) SetSuspendedReason(v string) *UserProfileUpdate {
+	_u.mutation.SetSuspendedReason(v)
+	return _u
+}
+
+// SetNillableSuspendedReason sets the "suspended_reason" field if the given value is not nil.
+func (_u *UserProfileUpdate) SetNillableSuspendedReason(v *string) *UserProfileUpdate {
+	if v != nil {
+		_u.SetSuspendedReason(*v)
+	}
+	return _u
+}
+
+// ClearSuspendedReason clears the value of the "suspended_reason" field.
+func (_u *UserProfileUpdate) ClearSuspendedReason() *UserProfileUpdate {
+	_u.mutation.ClearSuspendedReason()
+	return _u
+}
+
 // AddExperienceIDs adds the "experiences" edge to the Experience entity by IDs.
 func (_u *UserProfileUpdate) AddExperienceIDs(ids ...uuid.UUID) *UserProfileUpdate {
 	_u.mutation.AddExperienceIDs(ids...)
@@ -702,6 +756,11 @@ func (_u *UserProfileUpdate) check() error {
 			return &ValidationError{Name: "plan", err: fmt.Errorf(`ent: validator failed for field "UserProfile.plan": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.SuspendedReason(); ok {
+		if err := userprofile.SuspendedReasonValidator(v); err != nil {
+			return &ValidationError{Name: "suspended_reason", err: fmt.Errorf(`ent: validator failed for field "UserProfile.suspended_reason": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -797,6 +856,21 @@ func (_u *UserProfileUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.Plan(); ok {
 		_spec.SetField(userprofile.FieldPlan, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Suspended(); ok {
+		_spec.SetField(userprofile.FieldSuspended, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SuspendedAt(); ok {
+		_spec.SetField(userprofile.FieldSuspendedAt, field.TypeTime, value)
+	}
+	if _u.mutation.SuspendedAtCleared() {
+		_spec.ClearField(userprofile.FieldSuspendedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.SuspendedReason(); ok {
+		_spec.SetField(userprofile.FieldSuspendedReason, field.TypeString, value)
+	}
+	if _u.mutation.SuspendedReasonCleared() {
+		_spec.ClearField(userprofile.FieldSuspendedReason, field.TypeString)
 	}
 	if _u.mutation.ExperiencesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1462,6 +1536,60 @@ func (_u *UserProfileUpdateOne) SetNillablePlan(v *userprofile.Plan) *UserProfil
 	return _u
 }
 
+// SetSuspended sets the "suspended" field.
+func (_u *UserProfileUpdateOne) SetSuspended(v bool) *UserProfileUpdateOne {
+	_u.mutation.SetSuspended(v)
+	return _u
+}
+
+// SetNillableSuspended sets the "suspended" field if the given value is not nil.
+func (_u *UserProfileUpdateOne) SetNillableSuspended(v *bool) *UserProfileUpdateOne {
+	if v != nil {
+		_u.SetSuspended(*v)
+	}
+	return _u
+}
+
+// SetSuspendedAt sets the "suspended_at" field.
+func (_u *UserProfileUpdateOne) SetSuspendedAt(v time.Time) *UserProfileUpdateOne {
+	_u.mutation.SetSuspendedAt(v)
+	return _u
+}
+
+// SetNillableSuspendedAt sets the "suspended_at" field if the given value is not nil.
+func (_u *UserProfileUpdateOne) SetNillableSuspendedAt(v *time.Time) *UserProfileUpdateOne {
+	if v != nil {
+		_u.SetSuspendedAt(*v)
+	}
+	return _u
+}
+
+// ClearSuspendedAt clears the value of the "suspended_at" field.
+func (_u *UserProfileUpdateOne) ClearSuspendedAt() *UserProfileUpdateOne {
+	_u.mutation.ClearSuspendedAt()
+	return _u
+}
+
+// SetSuspendedReason sets the "suspended_reason" field.
+func (_u *UserProfileUpdateOne) SetSuspendedReason(v string) *UserProfileUpdateOne {
+	_u.mutation.SetSuspendedReason(v)
+	return _u
+}
+
+// SetNillableSuspendedReason sets the "suspended_reason" field if the given value is not nil.
+func (_u *UserProfileUpdateOne) SetNillableSuspendedReason(v *string) *UserProfileUpdateOne {
+	if v != nil {
+		_u.SetSuspendedReason(*v)
+	}
+	return _u
+}
+
+// ClearSuspendedReason clears the value of the "suspended_reason" field.
+func (_u *UserProfileUpdateOne) ClearSuspendedReason() *UserProfileUpdateOne {
+	_u.mutation.ClearSuspendedReason()
+	return _u
+}
+
 // AddExperienceIDs adds the "experiences" edge to the Experience entity by IDs.
 func (_u *UserProfileUpdateOne) AddExperienceIDs(ids ...uuid.UUID) *UserProfileUpdateOne {
 	_u.mutation.AddExperienceIDs(ids...)
@@ -1856,6 +1984,11 @@ func (_u *UserProfileUpdateOne) check() error {
 			return &ValidationError{Name: "plan", err: fmt.Errorf(`ent: validator failed for field "UserProfile.plan": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.SuspendedReason(); ok {
+		if err := userprofile.SuspendedReasonValidator(v); err != nil {
+			return &ValidationError{Name: "suspended_reason", err: fmt.Errorf(`ent: validator failed for field "UserProfile.suspended_reason": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -1968,6 +2101,21 @@ func (_u *UserProfileUpdateOne) sqlSave(ctx context.Context) (_node *UserProfile
 	}
 	if value, ok := _u.mutation.Plan(); ok {
 		_spec.SetField(userprofile.FieldPlan, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Suspended(); ok {
+		_spec.SetField(userprofile.FieldSuspended, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SuspendedAt(); ok {
+		_spec.SetField(userprofile.FieldSuspendedAt, field.TypeTime, value)
+	}
+	if _u.mutation.SuspendedAtCleared() {
+		_spec.ClearField(userprofile.FieldSuspendedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.SuspendedReason(); ok {
+		_spec.SetField(userprofile.FieldSuspendedReason, field.TypeString, value)
+	}
+	if _u.mutation.SuspendedReasonCleared() {
+		_spec.ClearField(userprofile.FieldSuspendedReason, field.TypeString)
 	}
 	if _u.mutation.ExperiencesCleared() {
 		edge := &sqlgraph.EdgeSpec{

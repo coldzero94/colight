@@ -29,6 +29,24 @@ type UsageLog struct {
 	Feature string `json:"feature,omitempty"`
 	// Additional context (e.g. cover_letter_id)
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	// AI provider: anthropic, gemini, groq
+	Provider *string `json:"provider,omitempty"`
+	// AI model name used
+	Model *string `json:"model,omitempty"`
+	// Input token count
+	InputTokens int `json:"input_tokens,omitempty"`
+	// Output token count
+	OutputTokens int `json:"output_tokens,omitempty"`
+	// Total token count
+	TotalTokens int `json:"total_tokens,omitempty"`
+	// Estimated cost in KRW
+	EstimatedCostKrw *float64 `json:"estimated_cost_krw,omitempty"`
+	// API call latency in milliseconds
+	LatencyMs *int `json:"latency_ms,omitempty"`
+	// Call status: success, error
+	Status string `json:"status,omitempty"`
+	// Error message if status=error
+	ErrorMessage *string `json:"error_message,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UsageLogQuery when eager-loading is set.
 	Edges        UsageLogEdges `json:"edges"`
@@ -62,7 +80,11 @@ func (*UsageLog) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case usagelog.FieldMetadata:
 			values[i] = new([]byte)
-		case usagelog.FieldFeature:
+		case usagelog.FieldEstimatedCostKrw:
+			values[i] = new(sql.NullFloat64)
+		case usagelog.FieldInputTokens, usagelog.FieldOutputTokens, usagelog.FieldTotalTokens, usagelog.FieldLatencyMs:
+			values[i] = new(sql.NullInt64)
+		case usagelog.FieldFeature, usagelog.FieldProvider, usagelog.FieldModel, usagelog.FieldStatus, usagelog.FieldErrorMessage:
 			values[i] = new(sql.NullString)
 		case usagelog.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -114,6 +136,65 @@ func (_m *UsageLog) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &_m.Metadata); err != nil {
 					return fmt.Errorf("unmarshal field metadata: %w", err)
 				}
+			}
+		case usagelog.FieldProvider:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field provider", values[i])
+			} else if value.Valid {
+				_m.Provider = new(string)
+				*_m.Provider = value.String
+			}
+		case usagelog.FieldModel:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field model", values[i])
+			} else if value.Valid {
+				_m.Model = new(string)
+				*_m.Model = value.String
+			}
+		case usagelog.FieldInputTokens:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field input_tokens", values[i])
+			} else if value.Valid {
+				_m.InputTokens = int(value.Int64)
+			}
+		case usagelog.FieldOutputTokens:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field output_tokens", values[i])
+			} else if value.Valid {
+				_m.OutputTokens = int(value.Int64)
+			}
+		case usagelog.FieldTotalTokens:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field total_tokens", values[i])
+			} else if value.Valid {
+				_m.TotalTokens = int(value.Int64)
+			}
+		case usagelog.FieldEstimatedCostKrw:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field estimated_cost_krw", values[i])
+			} else if value.Valid {
+				_m.EstimatedCostKrw = new(float64)
+				*_m.EstimatedCostKrw = value.Float64
+			}
+		case usagelog.FieldLatencyMs:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field latency_ms", values[i])
+			} else if value.Valid {
+				_m.LatencyMs = new(int)
+				*_m.LatencyMs = int(value.Int64)
+			}
+		case usagelog.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				_m.Status = value.String
+			}
+		case usagelog.FieldErrorMessage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field error_message", values[i])
+			} else if value.Valid {
+				_m.ErrorMessage = new(string)
+				*_m.ErrorMessage = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -167,6 +248,43 @@ func (_m *UsageLog) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("metadata=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Metadata))
+	builder.WriteString(", ")
+	if v := _m.Provider; v != nil {
+		builder.WriteString("provider=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.Model; v != nil {
+		builder.WriteString("model=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("input_tokens=")
+	builder.WriteString(fmt.Sprintf("%v", _m.InputTokens))
+	builder.WriteString(", ")
+	builder.WriteString("output_tokens=")
+	builder.WriteString(fmt.Sprintf("%v", _m.OutputTokens))
+	builder.WriteString(", ")
+	builder.WriteString("total_tokens=")
+	builder.WriteString(fmt.Sprintf("%v", _m.TotalTokens))
+	builder.WriteString(", ")
+	if v := _m.EstimatedCostKrw; v != nil {
+		builder.WriteString("estimated_cost_krw=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.LatencyMs; v != nil {
+		builder.WriteString("latency_ms=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(_m.Status)
+	builder.WriteString(", ")
+	if v := _m.ErrorMessage; v != nil {
+		builder.WriteString("error_message=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

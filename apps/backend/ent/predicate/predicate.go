@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AdminAuditLog is the predicate function for adminauditlog builders.
+type AdminAuditLog func(*sql.Selector)
+
 // Application is the predicate function for application builders.
 type Application func(*sql.Selector)
 
@@ -44,6 +47,9 @@ type PromptTemplate func(*sql.Selector)
 
 // QuestionPattern is the predicate function for questionpattern builders.
 type QuestionPattern func(*sql.Selector)
+
+// SystemConfig is the predicate function for systemconfig builders.
+type SystemConfig func(*sql.Selector)
 
 // TalentProfile is the predicate function for talentprofile builders.
 type TalentProfile func(*sql.Selector)

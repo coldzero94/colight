@@ -1,0 +1,2 @@
+-- Modify "usage_logs" table
+ALTER TABLE "public"."usage_logs" ADD COLUMN "provider" character varying NULL, ADD COLUMN "model" character varying NULL, ADD COLUMN "input_tokens" bigint NOT NULL DEFAULT 0, ADD COLUMN "output_tokens" bigint NOT NULL DEFAULT 0, ADD COLUMN "total_tokens" bigint NOT NULL DEFAULT 0, ADD COLUMN "estimated_cost_krw" double precision NULL, ADD COLUMN "latency_ms" bigint NULL, ADD COLUMN "status" character varying NOT NULL DEFAULT 'success', ADD COLUMN "error_message" text NULL;

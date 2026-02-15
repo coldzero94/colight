@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/coby/colight/apps/backend/ent/adminauditlog"
 	"github.com/coby/colight/apps/backend/ent/application"
 	"github.com/coby/colight/apps/backend/ent/coachingsession"
 	"github.com/coby/colight/apps/backend/ent/companyanalysis"
@@ -19,6 +20,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
 	"github.com/coby/colight/apps/backend/ent/schema"
+	"github.com/coby/colight/apps/backend/ent/systemconfig"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
@@ -30,6 +32,35 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	adminauditlogMixin := schema.AdminAuditLog{}.Mixin()
+	adminauditlogMixinFields0 := adminauditlogMixin[0].Fields()
+	_ = adminauditlogMixinFields0
+	adminauditlogFields := schema.AdminAuditLog{}.Fields()
+	_ = adminauditlogFields
+	// adminauditlogDescCreatedAt is the schema descriptor for created_at field.
+	adminauditlogDescCreatedAt := adminauditlogMixinFields0[1].Descriptor()
+	// adminauditlog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	adminauditlog.DefaultCreatedAt = adminauditlogDescCreatedAt.Default.(func() time.Time)
+	// adminauditlogDescAction is the schema descriptor for action field.
+	adminauditlogDescAction := adminauditlogFields[1].Descriptor()
+	// adminauditlog.ActionValidator is a validator for the "action" field. It is called by the builders before save.
+	adminauditlog.ActionValidator = adminauditlogDescAction.Validators[0].(func(string) error)
+	// adminauditlogDescTargetType is the schema descriptor for target_type field.
+	adminauditlogDescTargetType := adminauditlogFields[2].Descriptor()
+	// adminauditlog.TargetTypeValidator is a validator for the "target_type" field. It is called by the builders before save.
+	adminauditlog.TargetTypeValidator = adminauditlogDescTargetType.Validators[0].(func(string) error)
+	// adminauditlogDescTargetID is the schema descriptor for target_id field.
+	adminauditlogDescTargetID := adminauditlogFields[3].Descriptor()
+	// adminauditlog.TargetIDValidator is a validator for the "target_id" field. It is called by the builders before save.
+	adminauditlog.TargetIDValidator = adminauditlogDescTargetID.Validators[0].(func(string) error)
+	// adminauditlogDescIPAddress is the schema descriptor for ip_address field.
+	adminauditlogDescIPAddress := adminauditlogFields[6].Descriptor()
+	// adminauditlog.IPAddressValidator is a validator for the "ip_address" field. It is called by the builders before save.
+	adminauditlog.IPAddressValidator = adminauditlogDescIPAddress.Validators[0].(func(string) error)
+	// adminauditlogDescID is the schema descriptor for id field.
+	adminauditlogDescID := adminauditlogMixinFields0[0].Descriptor()
+	// adminauditlog.DefaultID holds the default value on creation for the id field.
+	adminauditlog.DefaultID = adminauditlogDescID.Default.(func() uuid.UUID)
 	applicationMixin := schema.Application{}.Mixin()
 	applicationMixinFields0 := applicationMixin[0].Fields()
 	_ = applicationMixinFields0
@@ -645,6 +676,41 @@ func init() {
 	questionpatternDescID := questionpatternMixinFields0[0].Descriptor()
 	// questionpattern.DefaultID holds the default value on creation for the id field.
 	questionpattern.DefaultID = questionpatternDescID.Default.(func() uuid.UUID)
+	systemconfigMixin := schema.SystemConfig{}.Mixin()
+	systemconfigMixinFields0 := systemconfigMixin[0].Fields()
+	_ = systemconfigMixinFields0
+	systemconfigFields := schema.SystemConfig{}.Fields()
+	_ = systemconfigFields
+	// systemconfigDescCreatedAt is the schema descriptor for created_at field.
+	systemconfigDescCreatedAt := systemconfigMixinFields0[1].Descriptor()
+	// systemconfig.DefaultCreatedAt holds the default value on creation for the created_at field.
+	systemconfig.DefaultCreatedAt = systemconfigDescCreatedAt.Default.(func() time.Time)
+	// systemconfigDescUpdatedAt is the schema descriptor for updated_at field.
+	systemconfigDescUpdatedAt := systemconfigMixinFields0[2].Descriptor()
+	// systemconfig.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	systemconfig.DefaultUpdatedAt = systemconfigDescUpdatedAt.Default.(func() time.Time)
+	// systemconfig.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	systemconfig.UpdateDefaultUpdatedAt = systemconfigDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// systemconfigDescConfigKey is the schema descriptor for config_key field.
+	systemconfigDescConfigKey := systemconfigFields[0].Descriptor()
+	// systemconfig.ConfigKeyValidator is a validator for the "config_key" field. It is called by the builders before save.
+	systemconfig.ConfigKeyValidator = systemconfigDescConfigKey.Validators[0].(func(string) error)
+	// systemconfigDescDescription is the schema descriptor for description field.
+	systemconfigDescDescription := systemconfigFields[2].Descriptor()
+	// systemconfig.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	systemconfig.DescriptionValidator = systemconfigDescDescription.Validators[0].(func(string) error)
+	// systemconfigDescCategory is the schema descriptor for category field.
+	systemconfigDescCategory := systemconfigFields[3].Descriptor()
+	// systemconfig.CategoryValidator is a validator for the "category" field. It is called by the builders before save.
+	systemconfig.CategoryValidator = systemconfigDescCategory.Validators[0].(func(string) error)
+	// systemconfigDescIsSecret is the schema descriptor for is_secret field.
+	systemconfigDescIsSecret := systemconfigFields[4].Descriptor()
+	// systemconfig.DefaultIsSecret holds the default value on creation for the is_secret field.
+	systemconfig.DefaultIsSecret = systemconfigDescIsSecret.Default.(bool)
+	// systemconfigDescID is the schema descriptor for id field.
+	systemconfigDescID := systemconfigMixinFields0[0].Descriptor()
+	// systemconfig.DefaultID holds the default value on creation for the id field.
+	systemconfig.DefaultID = systemconfigDescID.Default.(func() uuid.UUID)
 	talentprofileMixin := schema.TalentProfile{}.Mixin()
 	talentprofileMixinFields0 := talentprofileMixin[0].Fields()
 	_ = talentprofileMixinFields0
@@ -703,6 +769,32 @@ func init() {
 	usagelogDescFeature := usagelogFields[1].Descriptor()
 	// usagelog.FeatureValidator is a validator for the "feature" field. It is called by the builders before save.
 	usagelog.FeatureValidator = usagelogDescFeature.Validators[0].(func(string) error)
+	// usagelogDescProvider is the schema descriptor for provider field.
+	usagelogDescProvider := usagelogFields[3].Descriptor()
+	// usagelog.ProviderValidator is a validator for the "provider" field. It is called by the builders before save.
+	usagelog.ProviderValidator = usagelogDescProvider.Validators[0].(func(string) error)
+	// usagelogDescModel is the schema descriptor for model field.
+	usagelogDescModel := usagelogFields[4].Descriptor()
+	// usagelog.ModelValidator is a validator for the "model" field. It is called by the builders before save.
+	usagelog.ModelValidator = usagelogDescModel.Validators[0].(func(string) error)
+	// usagelogDescInputTokens is the schema descriptor for input_tokens field.
+	usagelogDescInputTokens := usagelogFields[5].Descriptor()
+	// usagelog.DefaultInputTokens holds the default value on creation for the input_tokens field.
+	usagelog.DefaultInputTokens = usagelogDescInputTokens.Default.(int)
+	// usagelogDescOutputTokens is the schema descriptor for output_tokens field.
+	usagelogDescOutputTokens := usagelogFields[6].Descriptor()
+	// usagelog.DefaultOutputTokens holds the default value on creation for the output_tokens field.
+	usagelog.DefaultOutputTokens = usagelogDescOutputTokens.Default.(int)
+	// usagelogDescTotalTokens is the schema descriptor for total_tokens field.
+	usagelogDescTotalTokens := usagelogFields[7].Descriptor()
+	// usagelog.DefaultTotalTokens holds the default value on creation for the total_tokens field.
+	usagelog.DefaultTotalTokens = usagelogDescTotalTokens.Default.(int)
+	// usagelogDescStatus is the schema descriptor for status field.
+	usagelogDescStatus := usagelogFields[10].Descriptor()
+	// usagelog.DefaultStatus holds the default value on creation for the status field.
+	usagelog.DefaultStatus = usagelogDescStatus.Default.(string)
+	// usagelog.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	usagelog.StatusValidator = usagelogDescStatus.Validators[0].(func(string) error)
 	// usagelogDescID is the schema descriptor for id field.
 	usagelogDescID := usagelogMixinFields0[0].Descriptor()
 	// usagelog.DefaultID holds the default value on creation for the id field.
@@ -762,6 +854,14 @@ func init() {
 	userprofileDescOnboardingCompleted := userprofileFields[13].Descriptor()
 	// userprofile.DefaultOnboardingCompleted holds the default value on creation for the onboarding_completed field.
 	userprofile.DefaultOnboardingCompleted = userprofileDescOnboardingCompleted.Default.(bool)
+	// userprofileDescSuspended is the schema descriptor for suspended field.
+	userprofileDescSuspended := userprofileFields[15].Descriptor()
+	// userprofile.DefaultSuspended holds the default value on creation for the suspended field.
+	userprofile.DefaultSuspended = userprofileDescSuspended.Default.(bool)
+	// userprofileDescSuspendedReason is the schema descriptor for suspended_reason field.
+	userprofileDescSuspendedReason := userprofileFields[17].Descriptor()
+	// userprofile.SuspendedReasonValidator is a validator for the "suspended_reason" field. It is called by the builders before save.
+	userprofile.SuspendedReasonValidator = userprofileDescSuspendedReason.Validators[0].(func(string) error)
 	// userprofileDescID is the schema descriptor for id field.
 	userprofileDescID := userprofileMixinFields0[0].Descriptor()
 	// userprofile.DefaultID holds the default value on creation for the id field.

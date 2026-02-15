@@ -23,6 +23,24 @@ const (
 	FieldFeature = "feature"
 	// FieldMetadata holds the string denoting the metadata field in the database.
 	FieldMetadata = "metadata"
+	// FieldProvider holds the string denoting the provider field in the database.
+	FieldProvider = "provider"
+	// FieldModel holds the string denoting the model field in the database.
+	FieldModel = "model"
+	// FieldInputTokens holds the string denoting the input_tokens field in the database.
+	FieldInputTokens = "input_tokens"
+	// FieldOutputTokens holds the string denoting the output_tokens field in the database.
+	FieldOutputTokens = "output_tokens"
+	// FieldTotalTokens holds the string denoting the total_tokens field in the database.
+	FieldTotalTokens = "total_tokens"
+	// FieldEstimatedCostKrw holds the string denoting the estimated_cost_krw field in the database.
+	FieldEstimatedCostKrw = "estimated_cost_krw"
+	// FieldLatencyMs holds the string denoting the latency_ms field in the database.
+	FieldLatencyMs = "latency_ms"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldErrorMessage holds the string denoting the error_message field in the database.
+	FieldErrorMessage = "error_message"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the usagelog in the database.
@@ -43,6 +61,15 @@ var Columns = []string{
 	FieldUserID,
 	FieldFeature,
 	FieldMetadata,
+	FieldProvider,
+	FieldModel,
+	FieldInputTokens,
+	FieldOutputTokens,
+	FieldTotalTokens,
+	FieldEstimatedCostKrw,
+	FieldLatencyMs,
+	FieldStatus,
+	FieldErrorMessage,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -60,6 +87,20 @@ var (
 	DefaultCreatedAt func() time.Time
 	// FeatureValidator is a validator for the "feature" field. It is called by the builders before save.
 	FeatureValidator func(string) error
+	// ProviderValidator is a validator for the "provider" field. It is called by the builders before save.
+	ProviderValidator func(string) error
+	// ModelValidator is a validator for the "model" field. It is called by the builders before save.
+	ModelValidator func(string) error
+	// DefaultInputTokens holds the default value on creation for the "input_tokens" field.
+	DefaultInputTokens int
+	// DefaultOutputTokens holds the default value on creation for the "output_tokens" field.
+	DefaultOutputTokens int
+	// DefaultTotalTokens holds the default value on creation for the "total_tokens" field.
+	DefaultTotalTokens int
+	// DefaultStatus holds the default value on creation for the "status" field.
+	DefaultStatus string
+	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	StatusValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -85,6 +126,51 @@ func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 // ByFeature orders the results by the feature field.
 func ByFeature(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFeature, opts...).ToFunc()
+}
+
+// ByProvider orders the results by the provider field.
+func ByProvider(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProvider, opts...).ToFunc()
+}
+
+// ByModel orders the results by the model field.
+func ByModel(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldModel, opts...).ToFunc()
+}
+
+// ByInputTokens orders the results by the input_tokens field.
+func ByInputTokens(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInputTokens, opts...).ToFunc()
+}
+
+// ByOutputTokens orders the results by the output_tokens field.
+func ByOutputTokens(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOutputTokens, opts...).ToFunc()
+}
+
+// ByTotalTokens orders the results by the total_tokens field.
+func ByTotalTokens(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTotalTokens, opts...).ToFunc()
+}
+
+// ByEstimatedCostKrw orders the results by the estimated_cost_krw field.
+func ByEstimatedCostKrw(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEstimatedCostKrw, opts...).ToFunc()
+}
+
+// ByLatencyMs orders the results by the latency_ms field.
+func ByLatencyMs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLatencyMs, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByErrorMessage orders the results by the error_message field.
+func ByErrorMessage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldErrorMessage, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

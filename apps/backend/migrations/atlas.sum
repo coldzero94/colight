@@ -1,4 +1,8 @@
-h1:vSWsG9coZIeJ08xqc640i2oB+8LdqFlGiAe+7OmSqEk=
+h1:c/umt1soT4BAOXGvVntl/k0F/WXTOS050G8P7pVygd0=
 20260212082137_initial_schema.sql h1:5ARVGDV4eBzd+gepm7cIN06YAojHnjHL6M9sLV8FRm8=
 20260213012819_add_auth_fields.sql h1:G5vDhD62ZXX/6KVUbGR3KAMJFePF8tNzR25qJXeaCwM=
 20260215145153_add_role_hierarchy.sql h1:w1WGiZ9WQZUcHWldXi1ELCez09WggqL7kn3awEBvpJY=
+20260215150636_add_system_configs.sql h1:KHJY5nnSFCANNUeoFxRSOW+RwY0zUxEedlAhxciSPrQ=
+20260215151112_add_usage_monitoring_fields.sql h1:tV73sMbOHEdS6MX/V2hIZVceVx+R2X1ZJNb+IitVFMc=
+20260215151559_add_user_suspend_fields.sql h1:iI2QvxANTKr/yVQgjfSUejeTEK0EDzQsg4/NoHAWrxU=
+20260215151836_add_audit_logs.sql h1:0SNeEnBQZfheG02+1SC0HJauadPM7SCGzsxLLqFy0m0=

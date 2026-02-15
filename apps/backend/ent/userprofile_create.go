@@ -267,6 +267,48 @@ func (_c *UserProfileCreate) SetNillablePlan(v *userprofile.Plan) *UserProfileCr
 	return _c
 }
 
+// SetSuspended sets the "suspended" field.
+func (_c *UserProfileCreate) SetSuspended(v bool) *UserProfileCreate {
+	_c.mutation.SetSuspended(v)
+	return _c
+}
+
+// SetNillableSuspended sets the "suspended" field if the given value is not nil.
+func (_c *UserProfileCreate) SetNillableSuspended(v *bool) *UserProfileCreate {
+	if v != nil {
+		_c.SetSuspended(*v)
+	}
+	return _c
+}
+
+// SetSuspendedAt sets the "suspended_at" field.
+func (_c *UserProfileCreate) SetSuspendedAt(v time.Time) *UserProfileCreate {
+	_c.mutation.SetSuspendedAt(v)
+	return _c
+}
+
+// SetNillableSuspendedAt sets the "suspended_at" field if the given value is not nil.
+func (_c *UserProfileCreate) SetNillableSuspendedAt(v *time.Time) *UserProfileCreate {
+	if v != nil {
+		_c.SetSuspendedAt(*v)
+	}
+	return _c
+}
+
+// SetSuspendedReason sets the "suspended_reason" field.
+func (_c *UserProfileCreate) SetSuspendedReason(v string) *UserProfileCreate {
+	_c.mutation.SetSuspendedReason(v)
+	return _c
+}
+
+// SetNillableSuspendedReason sets the "suspended_reason" field if the given value is not nil.
+func (_c *UserProfileCreate) SetNillableSuspendedReason(v *string) *UserProfileCreate {
+	if v != nil {
+		_c.SetSuspendedReason(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UserProfileCreate) SetID(v uuid.UUID) *UserProfileCreate {
 	_c.mutation.SetID(v)
@@ -468,6 +510,10 @@ func (_c *UserProfileCreate) defaults() {
 		v := userprofile.DefaultPlan
 		_c.mutation.SetPlan(v)
 	}
+	if _, ok := _c.mutation.Suspended(); !ok {
+		v := userprofile.DefaultSuspended
+		_c.mutation.SetSuspended(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := userprofile.DefaultID()
 		_c.mutation.SetID(v)
@@ -548,6 +594,14 @@ func (_c *UserProfileCreate) check() error {
 	if v, ok := _c.mutation.Plan(); ok {
 		if err := userprofile.PlanValidator(v); err != nil {
 			return &ValidationError{Name: "plan", err: fmt.Errorf(`ent: validator failed for field "UserProfile.plan": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Suspended(); !ok {
+		return &ValidationError{Name: "suspended", err: errors.New(`ent: missing required field "UserProfile.suspended"`)}
+	}
+	if v, ok := _c.mutation.SuspendedReason(); ok {
+		if err := userprofile.SuspendedReasonValidator(v); err != nil {
+			return &ValidationError{Name: "suspended_reason", err: fmt.Errorf(`ent: validator failed for field "UserProfile.suspended_reason": %w`, err)}
 		}
 	}
 	return nil
@@ -652,6 +706,18 @@ func (_c *UserProfileCreate) createSpec() (*UserProfile, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Plan(); ok {
 		_spec.SetField(userprofile.FieldPlan, field.TypeEnum, value)
 		_node.Plan = value
+	}
+	if value, ok := _c.mutation.Suspended(); ok {
+		_spec.SetField(userprofile.FieldSuspended, field.TypeBool, value)
+		_node.Suspended = value
+	}
+	if value, ok := _c.mutation.SuspendedAt(); ok {
+		_spec.SetField(userprofile.FieldSuspendedAt, field.TypeTime, value)
+		_node.SuspendedAt = &value
+	}
+	if value, ok := _c.mutation.SuspendedReason(); ok {
+		_spec.SetField(userprofile.FieldSuspendedReason, field.TypeString, value)
+		_node.SuspendedReason = &value
 	}
 	if nodes := _c.mutation.ExperiencesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

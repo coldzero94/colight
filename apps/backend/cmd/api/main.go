@@ -265,6 +265,21 @@ func main() {
 		admin.GET("/stats", adminCtrl.GetStats)
 		admin.GET("/prompts", adminCtrl.ListPrompts)
 		admin.PUT("/prompts/:id", adminCtrl.UpdatePrompt)
+		admin.GET("/usage/summary", adminCtrl.GetUsageSummary)
+		admin.GET("/usage/daily", adminCtrl.GetUsageDaily)
+		admin.POST("/users/:id/suspend", adminCtrl.SuspendUser)
+		admin.DELETE("/users/:id/suspend", adminCtrl.UnsuspendUser)
+		admin.GET("/users/:id/detail", adminCtrl.GetUserDetail)
+		admin.GET("/audit-logs", adminCtrl.ListAuditLogs)
+	}
+
+	// Super-admin only routes
+	superAdmin := r.Group("/v1/admin")
+	superAdmin.Use(middleware.AuthMiddleware(tokenService))
+	superAdmin.Use(middleware.RequireRole("super_admin"))
+	{
+		superAdmin.GET("/configs", adminCtrl.ListConfigs)
+		superAdmin.PUT("/configs/:key", adminCtrl.UpdateConfig)
 	}
 
 	slog.Info("starting colight api server", "port", cfg.APIPort)

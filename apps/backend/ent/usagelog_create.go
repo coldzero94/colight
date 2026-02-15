@@ -54,6 +54,132 @@ func (_c *UsageLogCreate) SetMetadata(v map[string]interface{}) *UsageLogCreate 
 	return _c
 }
 
+// SetProvider sets the "provider" field.
+func (_c *UsageLogCreate) SetProvider(v string) *UsageLogCreate {
+	_c.mutation.SetProvider(v)
+	return _c
+}
+
+// SetNillableProvider sets the "provider" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableProvider(v *string) *UsageLogCreate {
+	if v != nil {
+		_c.SetProvider(*v)
+	}
+	return _c
+}
+
+// SetModel sets the "model" field.
+func (_c *UsageLogCreate) SetModel(v string) *UsageLogCreate {
+	_c.mutation.SetModel(v)
+	return _c
+}
+
+// SetNillableModel sets the "model" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableModel(v *string) *UsageLogCreate {
+	if v != nil {
+		_c.SetModel(*v)
+	}
+	return _c
+}
+
+// SetInputTokens sets the "input_tokens" field.
+func (_c *UsageLogCreate) SetInputTokens(v int) *UsageLogCreate {
+	_c.mutation.SetInputTokens(v)
+	return _c
+}
+
+// SetNillableInputTokens sets the "input_tokens" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableInputTokens(v *int) *UsageLogCreate {
+	if v != nil {
+		_c.SetInputTokens(*v)
+	}
+	return _c
+}
+
+// SetOutputTokens sets the "output_tokens" field.
+func (_c *UsageLogCreate) SetOutputTokens(v int) *UsageLogCreate {
+	_c.mutation.SetOutputTokens(v)
+	return _c
+}
+
+// SetNillableOutputTokens sets the "output_tokens" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableOutputTokens(v *int) *UsageLogCreate {
+	if v != nil {
+		_c.SetOutputTokens(*v)
+	}
+	return _c
+}
+
+// SetTotalTokens sets the "total_tokens" field.
+func (_c *UsageLogCreate) SetTotalTokens(v int) *UsageLogCreate {
+	_c.mutation.SetTotalTokens(v)
+	return _c
+}
+
+// SetNillableTotalTokens sets the "total_tokens" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableTotalTokens(v *int) *UsageLogCreate {
+	if v != nil {
+		_c.SetTotalTokens(*v)
+	}
+	return _c
+}
+
+// SetEstimatedCostKrw sets the "estimated_cost_krw" field.
+func (_c *UsageLogCreate) SetEstimatedCostKrw(v float64) *UsageLogCreate {
+	_c.mutation.SetEstimatedCostKrw(v)
+	return _c
+}
+
+// SetNillableEstimatedCostKrw sets the "estimated_cost_krw" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableEstimatedCostKrw(v *float64) *UsageLogCreate {
+	if v != nil {
+		_c.SetEstimatedCostKrw(*v)
+	}
+	return _c
+}
+
+// SetLatencyMs sets the "latency_ms" field.
+func (_c *UsageLogCreate) SetLatencyMs(v int) *UsageLogCreate {
+	_c.mutation.SetLatencyMs(v)
+	return _c
+}
+
+// SetNillableLatencyMs sets the "latency_ms" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableLatencyMs(v *int) *UsageLogCreate {
+	if v != nil {
+		_c.SetLatencyMs(*v)
+	}
+	return _c
+}
+
+// SetStatus sets the "status" field.
+func (_c *UsageLogCreate) SetStatus(v string) *UsageLogCreate {
+	_c.mutation.SetStatus(v)
+	return _c
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableStatus(v *string) *UsageLogCreate {
+	if v != nil {
+		_c.SetStatus(*v)
+	}
+	return _c
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (_c *UsageLogCreate) SetErrorMessage(v string) *UsageLogCreate {
+	_c.mutation.SetErrorMessage(v)
+	return _c
+}
+
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableErrorMessage(v *string) *UsageLogCreate {
+	if v != nil {
+		_c.SetErrorMessage(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UsageLogCreate) SetID(v uuid.UUID) *UsageLogCreate {
 	_c.mutation.SetID(v)
@@ -112,6 +238,22 @@ func (_c *UsageLogCreate) defaults() {
 		v := usagelog.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
+	if _, ok := _c.mutation.InputTokens(); !ok {
+		v := usagelog.DefaultInputTokens
+		_c.mutation.SetInputTokens(v)
+	}
+	if _, ok := _c.mutation.OutputTokens(); !ok {
+		v := usagelog.DefaultOutputTokens
+		_c.mutation.SetOutputTokens(v)
+	}
+	if _, ok := _c.mutation.TotalTokens(); !ok {
+		v := usagelog.DefaultTotalTokens
+		_c.mutation.SetTotalTokens(v)
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		v := usagelog.DefaultStatus
+		_c.mutation.SetStatus(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := usagelog.DefaultID()
 		_c.mutation.SetID(v)
@@ -132,6 +274,33 @@ func (_c *UsageLogCreate) check() error {
 	if v, ok := _c.mutation.Feature(); ok {
 		if err := usagelog.FeatureValidator(v); err != nil {
 			return &ValidationError{Name: "feature", err: fmt.Errorf(`ent: validator failed for field "UsageLog.feature": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.Provider(); ok {
+		if err := usagelog.ProviderValidator(v); err != nil {
+			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "UsageLog.provider": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.Model(); ok {
+		if err := usagelog.ModelValidator(v); err != nil {
+			return &ValidationError{Name: "model", err: fmt.Errorf(`ent: validator failed for field "UsageLog.model": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.InputTokens(); !ok {
+		return &ValidationError{Name: "input_tokens", err: errors.New(`ent: missing required field "UsageLog.input_tokens"`)}
+	}
+	if _, ok := _c.mutation.OutputTokens(); !ok {
+		return &ValidationError{Name: "output_tokens", err: errors.New(`ent: missing required field "UsageLog.output_tokens"`)}
+	}
+	if _, ok := _c.mutation.TotalTokens(); !ok {
+		return &ValidationError{Name: "total_tokens", err: errors.New(`ent: missing required field "UsageLog.total_tokens"`)}
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "UsageLog.status"`)}
+	}
+	if v, ok := _c.mutation.Status(); ok {
+		if err := usagelog.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "UsageLog.status": %w`, err)}
 		}
 	}
 	if len(_c.mutation.UserIDs()) == 0 {
@@ -183,6 +352,42 @@ func (_c *UsageLogCreate) createSpec() (*UsageLog, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Metadata(); ok {
 		_spec.SetField(usagelog.FieldMetadata, field.TypeJSON, value)
 		_node.Metadata = value
+	}
+	if value, ok := _c.mutation.Provider(); ok {
+		_spec.SetField(usagelog.FieldProvider, field.TypeString, value)
+		_node.Provider = &value
+	}
+	if value, ok := _c.mutation.Model(); ok {
+		_spec.SetField(usagelog.FieldModel, field.TypeString, value)
+		_node.Model = &value
+	}
+	if value, ok := _c.mutation.InputTokens(); ok {
+		_spec.SetField(usagelog.FieldInputTokens, field.TypeInt, value)
+		_node.InputTokens = value
+	}
+	if value, ok := _c.mutation.OutputTokens(); ok {
+		_spec.SetField(usagelog.FieldOutputTokens, field.TypeInt, value)
+		_node.OutputTokens = value
+	}
+	if value, ok := _c.mutation.TotalTokens(); ok {
+		_spec.SetField(usagelog.FieldTotalTokens, field.TypeInt, value)
+		_node.TotalTokens = value
+	}
+	if value, ok := _c.mutation.EstimatedCostKrw(); ok {
+		_spec.SetField(usagelog.FieldEstimatedCostKrw, field.TypeFloat64, value)
+		_node.EstimatedCostKrw = &value
+	}
+	if value, ok := _c.mutation.LatencyMs(); ok {
+		_spec.SetField(usagelog.FieldLatencyMs, field.TypeInt, value)
+		_node.LatencyMs = &value
+	}
+	if value, ok := _c.mutation.Status(); ok {
+		_spec.SetField(usagelog.FieldStatus, field.TypeString, value)
+		_node.Status = value
+	}
+	if value, ok := _c.mutation.ErrorMessage(); ok {
+		_spec.SetField(usagelog.FieldErrorMessage, field.TypeString, value)
+		_node.ErrorMessage = &value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

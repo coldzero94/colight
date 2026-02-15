@@ -6,9 +6,15 @@ import (
 	"strconv"
 	"time"
 
+	"context"
+
 	"github.com/coby/colight/apps/backend/ent"
+	"github.com/coby/colight/apps/backend/ent/adminauditlog"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
+	"github.com/coby/colight/apps/backend/ent/systemconfig"
+	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
+	"github.com/coby/colight/apps/backend/internal/infrastructure/crypto"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -207,6 +213,7 @@ func (ctrl *AdminController) UpdateUserRole(c *gin.Context) {
 		}
 	}
 
+	oldRole := string(target.Role)
 	user, err := ctrl.db.UserProfile.UpdateOneID(id).
 		SetRole(userprofile.Role(req.Role)).
 		Save(ctx)
@@ -216,6 +223,11 @@ func (ctrl *AdminController) UpdateUserRole(c *gin.Context) {
 			"error": gin.H{"message": "역할 변경에 실패했습니다.", "code": "SYS_001"},
 		})
 		return
+	}
+
+	// Audit log
+	if uid, ok := callerID.(uuid.UUID); ok {
+		ctrl.recordAuditLog(ctx, uid, "role_change", "user", id.String(), &oldRole, &req.Role)
 	}
 
 	c.JSON(http.StatusOK, toUserInfo(user))
@@ -283,6 +295,124 @@ func (ctrl *AdminController) ListPrompts(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": items})
+}
+
+// ListConfigs returns system configuration entries with optional category filter.
+// Secret values are masked. GET /v1/admin/configs
+func (ctrl *AdminController) ListConfigs(c *gin.Context) {
+	query := ctrl.db.SystemConfig.Query()
+
+	if cat := c.Query("category"); cat != "" {
+		query = query.Where(systemconfig.CategoryEQ(cat))
+	}
+
+	configs, err := query.
+		Order(ent.Asc(systemconfig.FieldCategory, systemconfig.FieldConfigKey)).
+		All(c.Request.Context())
+	if err != nil {
+		slog.Error("list configs failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "설정 목록 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	items := make([]map[string]any, 0, len(configs))
+	for _, cfg := range configs {
+		value := cfg.ConfigValue
+		if cfg.IsSecret {
+			value = crypto.Mask(value)
+		}
+		item := map[string]any{
+			"id":           cfg.ID.String(),
+			"config_key":   cfg.ConfigKey,
+			"config_value": value,
+			"category":     cfg.Category,
+			"is_secret":    cfg.IsSecret,
+		}
+		if cfg.Description != "" {
+			item["description"] = cfg.Description
+		}
+		if cfg.UpdatedBy != nil {
+			item["updated_by"] = cfg.UpdatedBy.String()
+		}
+		items = append(items, item)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": items})
+}
+
+// UpdateConfig updates a system configuration value by key.
+// PUT /v1/admin/configs/:key
+func (ctrl *AdminController) UpdateConfig(c *gin.Context) {
+	key := c.Param("key")
+
+	var req struct {
+		Value string `json:"value" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "값을 입력해주세요.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	// Find config by key
+	cfg, err := ctrl.db.SystemConfig.Query().
+		Where(systemconfig.ConfigKeyEQ(key)).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": gin.H{"message": "설정을 찾을 수 없습니다.", "code": "SYS_002"},
+			})
+			return
+		}
+		slog.Error("get config failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "설정 수정에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	oldValue := cfg.ConfigValue
+	update := ctrl.db.SystemConfig.UpdateOne(cfg).
+		SetConfigValue(req.Value)
+
+	// Track who updated
+	callerID, _ := c.Get("user_id")
+	if uid, ok := callerID.(uuid.UUID); ok {
+		update = update.SetUpdatedBy(uid)
+	}
+
+	updated, err := update.Save(ctx)
+	if err != nil {
+		slog.Error("update config failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "설정 수정에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	// Audit log
+	if uid, ok := callerID.(uuid.UUID); ok {
+		ctrl.recordAuditLog(ctx, uid, "config_update", "config", key, &oldValue, &req.Value)
+	}
+
+	value := updated.ConfigValue
+	if updated.IsSecret {
+		value = crypto.Mask(value)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"id":           updated.ID.String(),
+		"config_key":   updated.ConfigKey,
+		"config_value": value,
+		"category":     updated.Category,
+		"is_secret":    updated.IsSecret,
+	})
 }
 
 // UpdatePrompt updates a prompt template's fields.
@@ -355,5 +485,326 @@ func (ctrl *AdminController) UpdatePrompt(c *gin.Context) {
 		"version":              prompt.Version,
 		"is_active":            prompt.IsActive,
 		"usage_count":          prompt.UsageCount,
+	})
+}
+
+// GetUsageSummary returns aggregated usage statistics for a given period.
+// GET /v1/admin/usage/summary
+func (ctrl *AdminController) GetUsageSummary(c *gin.Context) {
+	days, _ := strconv.Atoi(c.DefaultQuery("days", "30"))
+	if days <= 0 {
+		days = 30
+	}
+
+	ctx := c.Request.Context()
+	since := time.Now().AddDate(0, 0, -days)
+
+	logs, err := ctrl.db.UsageLog.Query().
+		Where(usagelog.CreatedAtGTE(since)).
+		All(ctx)
+	if err != nil {
+		slog.Error("get usage summary failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "사용량 요약 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	totalCalls := len(logs)
+	var totalTokens int
+	var totalCost float64
+	var errorCount int
+
+	for _, l := range logs {
+		totalTokens += l.TotalTokens
+		if l.EstimatedCostKrw != nil {
+			totalCost += *l.EstimatedCostKrw
+		}
+		if l.Status == "error" {
+			errorCount++
+		}
+	}
+
+	var errorRate float64
+	if totalCalls > 0 {
+		errorRate = float64(errorCount) / float64(totalCalls) * 100
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"total_calls":   totalCalls,
+		"total_tokens":  totalTokens,
+		"total_cost_krw": totalCost,
+		"error_rate":    errorRate,
+		"error_count":   errorCount,
+		"days":          days,
+	})
+}
+
+// GetUsageDaily returns daily usage breakdown.
+// GET /v1/admin/usage/daily
+func (ctrl *AdminController) GetUsageDaily(c *gin.Context) {
+	days, _ := strconv.Atoi(c.DefaultQuery("days", "7"))
+	if days <= 0 {
+		days = 7
+	}
+
+	ctx := c.Request.Context()
+	since := time.Now().AddDate(0, 0, -days)
+
+	logs, err := ctrl.db.UsageLog.Query().
+		Where(usagelog.CreatedAtGTE(since)).
+		All(ctx)
+	if err != nil {
+		slog.Error("get usage daily failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "일별 사용량 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	// Group by date
+	dailyMap := make(map[string]map[string]any)
+	for _, l := range logs {
+		date := l.CreatedAt.Format("2006-01-02")
+		if _, ok := dailyMap[date]; !ok {
+			dailyMap[date] = map[string]any{
+				"date":        date,
+				"total_calls": 0,
+				"total_tokens": 0,
+				"error_count": 0,
+			}
+		}
+		d := dailyMap[date]
+		d["total_calls"] = d["total_calls"].(int) + 1
+		d["total_tokens"] = d["total_tokens"].(int) + l.TotalTokens
+		if l.Status == "error" {
+			d["error_count"] = d["error_count"].(int) + 1
+		}
+	}
+
+	items := make([]map[string]any, 0, len(dailyMap))
+	for _, v := range dailyMap {
+		items = append(items, v)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": items})
+}
+
+// SuspendUser suspends a user account.
+// POST /v1/admin/users/:id/suspend
+func (ctrl *AdminController) SuspendUser(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "잘못된 사용자 ID입니다.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	var req struct {
+		Reason string `json:"reason"`
+	}
+	_ = c.ShouldBindJSON(&req)
+
+	ctx := c.Request.Context()
+
+	user, err := ctrl.db.UserProfile.Get(ctx, id)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": gin.H{"message": "사용자를 찾을 수 없습니다.", "code": "AUTH_006"},
+			})
+			return
+		}
+		slog.Error("get user for suspend failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "계정 정지에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	if user.Suspended {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{"message": "이미 정지된 계정입니다.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	now := time.Now()
+	update := ctrl.db.UserProfile.UpdateOne(user).
+		SetSuspended(true).
+		SetSuspendedAt(now)
+	if req.Reason != "" {
+		update = update.SetSuspendedReason(req.Reason)
+	}
+
+	updated, err := update.Save(ctx)
+	if err != nil {
+		slog.Error("suspend user failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "계정 정지에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, toUserInfo(updated))
+}
+
+// UnsuspendUser lifts suspension on a user account.
+// DELETE /v1/admin/users/:id/suspend
+func (ctrl *AdminController) UnsuspendUser(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "잘못된 사용자 ID입니다.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	updated, err := ctrl.db.UserProfile.UpdateOneID(id).
+		SetSuspended(false).
+		ClearSuspendedAt().
+		ClearSuspendedReason().
+		Save(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": gin.H{"message": "사용자를 찾을 수 없습니다.", "code": "AUTH_006"},
+			})
+			return
+		}
+		slog.Error("unsuspend user failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "정지 해제에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, toUserInfo(updated))
+}
+
+// GetUserDetail returns detailed information about a user including counts.
+// GET /v1/admin/users/:id/detail
+func (ctrl *AdminController) GetUserDetail(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "잘못된 사용자 ID입니다.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	user, err := ctrl.db.UserProfile.Get(ctx, id)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": gin.H{"message": "사용자를 찾을 수 없습니다.", "code": "AUTH_006"},
+			})
+			return
+		}
+		slog.Error("get user detail failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "사용자 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	expCount, _ := user.QueryExperiences().Count(ctx)
+	coachCount, _ := user.QueryCoachingSessions().Count(ctx)
+	usageCount, _ := user.QueryUsageLogs().Count(ctx)
+
+	info := toUserInfo(user)
+	info["experience_count"] = expCount
+	info["coaching_count"] = coachCount
+	info["usage_count"] = usageCount
+	info["suspended"] = user.Suspended
+	if user.SuspendedAt != nil {
+		info["suspended_at"] = *user.SuspendedAt
+	}
+	if user.SuspendedReason != nil {
+		info["suspended_reason"] = *user.SuspendedReason
+	}
+
+	c.JSON(http.StatusOK, info)
+}
+
+// recordAuditLog saves an admin action to the audit log.
+func (ctrl *AdminController) recordAuditLog(ctx context.Context, adminID uuid.UUID, action, targetType, targetID string, oldValue, newValue *string) {
+	create := ctrl.db.AdminAuditLog.Create().
+		SetAdminID(adminID).
+		SetAction(action).
+		SetTargetType(targetType).
+		SetTargetID(targetID)
+	if oldValue != nil {
+		create = create.SetOldValue(*oldValue)
+	}
+	if newValue != nil {
+		create = create.SetNewValue(*newValue)
+	}
+	if err := create.Exec(ctx); err != nil {
+		slog.Error("record audit log failed", "error", err, "action", action)
+	}
+}
+
+// ListAuditLogs returns paginated audit log entries.
+// GET /v1/admin/audit-logs
+func (ctrl *AdminController) ListAuditLogs(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "50"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	actionFilter := c.Query("action")
+
+	query := ctrl.db.AdminAuditLog.Query()
+	if actionFilter != "" {
+		query = query.Where(adminauditlog.ActionEQ(actionFilter))
+	}
+
+	total, err := query.Clone().Count(c.Request.Context())
+	if err != nil {
+		slog.Error("list audit logs count failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "감사 로그 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	logs, err := query.
+		Limit(limit).
+		Offset(offset).
+		Order(ent.Desc(adminauditlog.FieldCreatedAt)).
+		All(c.Request.Context())
+	if err != nil {
+		slog.Error("list audit logs failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "감사 로그 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	items := make([]map[string]any, 0, len(logs))
+	for _, l := range logs {
+		item := map[string]any{
+			"id":          l.ID.String(),
+			"admin_id":    l.AdminID.String(),
+			"action":      l.Action,
+			"target_type": l.TargetType,
+			"target_id":   l.TargetID,
+			"created_at":  l.CreatedAt,
+		}
+		if l.OldValue != nil {
+			item["old_value"] = *l.OldValue
+		}
+		if l.NewValue != nil {
+			item["new_value"] = *l.NewValue
+		}
+		items = append(items, item)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":  items,
+		"total": total,
 	})
 }

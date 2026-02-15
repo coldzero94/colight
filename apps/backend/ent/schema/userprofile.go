@@ -83,6 +83,18 @@ func (UserProfile) Fields() []ent.Field {
 			Values("free", "starter", "pro", "season").
 			Default("free").
 			Comment("Subscription plan"),
+		field.Bool("suspended").
+			Default(false).
+			Comment("Whether account is suspended"),
+		field.Time("suspended_at").
+			Optional().
+			Nillable().
+			Comment("When account was suspended"),
+		field.String("suspended_reason").
+			Optional().
+			Nillable().
+			MaxLen(500).
+			Comment("Reason for suspension"),
 	}
 }
 

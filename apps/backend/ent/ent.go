@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/coby/colight/apps/backend/ent/adminauditlog"
 	"github.com/coby/colight/apps/backend/ent/application"
 	"github.com/coby/colight/apps/backend/ent/coachingsession"
 	"github.com/coby/colight/apps/backend/ent/companyanalysis"
@@ -25,6 +26,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
+	"github.com/coby/colight/apps/backend/ent/systemconfig"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
@@ -89,6 +91,7 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			adminauditlog.Table:        adminauditlog.ValidColumn,
 			application.Table:          application.ValidColumn,
 			coachingsession.Table:      coachingsession.ValidColumn,
 			companyanalysis.Table:      companyanalysis.ValidColumn,
@@ -102,6 +105,7 @@ func checkColumn(t, c string) error {
 			feedback.Table:             feedback.ValidColumn,
 			prompttemplate.Table:       prompttemplate.ValidColumn,
 			questionpattern.Table:      questionpattern.ValidColumn,
+			systemconfig.Table:         systemconfig.ValidColumn,
 			talentprofile.Table:        talentprofile.ValidColumn,
 			usagelog.Table:             usagelog.ValidColumn,
 			userprofile.Table:          userprofile.ValidColumn,

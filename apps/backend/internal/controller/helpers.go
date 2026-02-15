@@ -13,6 +13,7 @@ func toUserInfo(u *ent.UserProfile) map[string]any {
 		"auth_provider":        string(u.AuthProvider),
 		"role":                 string(u.Role),
 		"onboarding_completed": u.OnboardingCompleted,
+		"suspended":            u.Suspended,
 		"created_at":           u.CreatedAt,
 	}
 	if u.Email != nil {

@@ -50,6 +50,12 @@ const (
 	FieldOnboardingCompleted = "onboarding_completed"
 	// FieldPlan holds the string denoting the plan field in the database.
 	FieldPlan = "plan"
+	// FieldSuspended holds the string denoting the suspended field in the database.
+	FieldSuspended = "suspended"
+	// FieldSuspendedAt holds the string denoting the suspended_at field in the database.
+	FieldSuspendedAt = "suspended_at"
+	// FieldSuspendedReason holds the string denoting the suspended_reason field in the database.
+	FieldSuspendedReason = "suspended_reason"
 	// EdgeExperiences holds the string denoting the experiences edge name in mutations.
 	EdgeExperiences = "experiences"
 	// EdgeApplications holds the string denoting the applications edge name in mutations.
@@ -146,6 +152,9 @@ var Columns = []string{
 	FieldExperienceYears,
 	FieldOnboardingCompleted,
 	FieldPlan,
+	FieldSuspended,
+	FieldSuspendedAt,
+	FieldSuspendedReason,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -185,6 +194,10 @@ var (
 	DefaultExperienceYears int
 	// DefaultOnboardingCompleted holds the default value on creation for the "onboarding_completed" field.
 	DefaultOnboardingCompleted bool
+	// DefaultSuspended holds the default value on creation for the "suspended" field.
+	DefaultSuspended bool
+	// SuspendedReasonValidator is a validator for the "suspended_reason" field. It is called by the builders before save.
+	SuspendedReasonValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -362,6 +375,21 @@ func ByOnboardingCompleted(opts ...sql.OrderTermOption) OrderOption {
 // ByPlan orders the results by the plan field.
 func ByPlan(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPlan, opts...).ToFunc()
+}
+
+// BySuspended orders the results by the suspended field.
+func BySuspended(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSuspended, opts...).ToFunc()
+}
+
+// BySuspendedAt orders the results by the suspended_at field.
+func BySuspendedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSuspendedAt, opts...).ToFunc()
+}
+
+// BySuspendedReason orders the results by the suspended_reason field.
+func BySuspendedReason(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSuspendedReason, opts...).ToFunc()
 }
 
 // ByExperiencesCount orders the results by experiences count.

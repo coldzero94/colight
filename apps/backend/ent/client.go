@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/coby/colight/apps/backend/ent/adminauditlog"
 	"github.com/coby/colight/apps/backend/ent/application"
 	"github.com/coby/colight/apps/backend/ent/coachingsession"
 	"github.com/coby/colight/apps/backend/ent/companyanalysis"
@@ -29,6 +30,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
+	"github.com/coby/colight/apps/backend/ent/systemconfig"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
@@ -40,6 +42,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// AdminAuditLog is the client for interacting with the AdminAuditLog builders.
+	AdminAuditLog *AdminAuditLogClient
 	// Application is the client for interacting with the Application builders.
 	Application *ApplicationClient
 	// CoachingSession is the client for interacting with the CoachingSession builders.
@@ -66,6 +70,8 @@ type Client struct {
 	PromptTemplate *PromptTemplateClient
 	// QuestionPattern is the client for interacting with the QuestionPattern builders.
 	QuestionPattern *QuestionPatternClient
+	// SystemConfig is the client for interacting with the SystemConfig builders.
+	SystemConfig *SystemConfigClient
 	// TalentProfile is the client for interacting with the TalentProfile builders.
 	TalentProfile *TalentProfileClient
 	// UsageLog is the client for interacting with the UsageLog builders.
@@ -85,6 +91,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.AdminAuditLog = NewAdminAuditLogClient(c.config)
 	c.Application = NewApplicationClient(c.config)
 	c.CoachingSession = NewCoachingSessionClient(c.config)
 	c.CompanyAnalysis = NewCompanyAnalysisClient(c.config)
@@ -98,6 +105,7 @@ func (c *Client) init() {
 	c.Feedback = NewFeedbackClient(c.config)
 	c.PromptTemplate = NewPromptTemplateClient(c.config)
 	c.QuestionPattern = NewQuestionPatternClient(c.config)
+	c.SystemConfig = NewSystemConfigClient(c.config)
 	c.TalentProfile = NewTalentProfileClient(c.config)
 	c.UsageLog = NewUsageLogClient(c.config)
 	c.UserProfile = NewUserProfileClient(c.config)
@@ -194,6 +202,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                  ctx,
 		config:               cfg,
+		AdminAuditLog:        NewAdminAuditLogClient(cfg),
 		Application:          NewApplicationClient(cfg),
 		CoachingSession:      NewCoachingSessionClient(cfg),
 		CompanyAnalysis:      NewCompanyAnalysisClient(cfg),
@@ -207,6 +216,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Feedback:             NewFeedbackClient(cfg),
 		PromptTemplate:       NewPromptTemplateClient(cfg),
 		QuestionPattern:      NewQuestionPatternClient(cfg),
+		SystemConfig:         NewSystemConfigClient(cfg),
 		TalentProfile:        NewTalentProfileClient(cfg),
 		UsageLog:             NewUsageLogClient(cfg),
 		UserProfile:          NewUserProfileClient(cfg),
@@ -230,6 +240,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                  ctx,
 		config:               cfg,
+		AdminAuditLog:        NewAdminAuditLogClient(cfg),
 		Application:          NewApplicationClient(cfg),
 		CoachingSession:      NewCoachingSessionClient(cfg),
 		CompanyAnalysis:      NewCompanyAnalysisClient(cfg),
@@ -243,6 +254,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Feedback:             NewFeedbackClient(cfg),
 		PromptTemplate:       NewPromptTemplateClient(cfg),
 		QuestionPattern:      NewQuestionPatternClient(cfg),
+		SystemConfig:         NewSystemConfigClient(cfg),
 		TalentProfile:        NewTalentProfileClient(cfg),
 		UsageLog:             NewUsageLogClient(cfg),
 		UserProfile:          NewUserProfileClient(cfg),
@@ -253,7 +265,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Application.
+//		AdminAuditLog.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -276,11 +288,11 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Application, c.CoachingSession, c.CompanyAnalysis, c.CompanyAnalysisCache,
-		c.CoverLetter, c.CoverLetterVersion, c.Experience, c.ExperienceTag,
-		c.ExperienceUsage, c.ExperienceWeapon, c.Feedback, c.PromptTemplate,
-		c.QuestionPattern, c.TalentProfile, c.UsageLog, c.UserProfile,
-		c.WeaponCategory,
+		c.AdminAuditLog, c.Application, c.CoachingSession, c.CompanyAnalysis,
+		c.CompanyAnalysisCache, c.CoverLetter, c.CoverLetterVersion, c.Experience,
+		c.ExperienceTag, c.ExperienceUsage, c.ExperienceWeapon, c.Feedback,
+		c.PromptTemplate, c.QuestionPattern, c.SystemConfig, c.TalentProfile,
+		c.UsageLog, c.UserProfile, c.WeaponCategory,
 	} {
 		n.Use(hooks...)
 	}
@@ -290,11 +302,11 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Application, c.CoachingSession, c.CompanyAnalysis, c.CompanyAnalysisCache,
-		c.CoverLetter, c.CoverLetterVersion, c.Experience, c.ExperienceTag,
-		c.ExperienceUsage, c.ExperienceWeapon, c.Feedback, c.PromptTemplate,
-		c.QuestionPattern, c.TalentProfile, c.UsageLog, c.UserProfile,
-		c.WeaponCategory,
+		c.AdminAuditLog, c.Application, c.CoachingSession, c.CompanyAnalysis,
+		c.CompanyAnalysisCache, c.CoverLetter, c.CoverLetterVersion, c.Experience,
+		c.ExperienceTag, c.ExperienceUsage, c.ExperienceWeapon, c.Feedback,
+		c.PromptTemplate, c.QuestionPattern, c.SystemConfig, c.TalentProfile,
+		c.UsageLog, c.UserProfile, c.WeaponCategory,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -303,6 +315,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AdminAuditLogMutation:
+		return c.AdminAuditLog.mutate(ctx, m)
 	case *ApplicationMutation:
 		return c.Application.mutate(ctx, m)
 	case *CoachingSessionMutation:
@@ -329,6 +343,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PromptTemplate.mutate(ctx, m)
 	case *QuestionPatternMutation:
 		return c.QuestionPattern.mutate(ctx, m)
+	case *SystemConfigMutation:
+		return c.SystemConfig.mutate(ctx, m)
 	case *TalentProfileMutation:
 		return c.TalentProfile.mutate(ctx, m)
 	case *UsageLogMutation:
@@ -339,6 +355,139 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.WeaponCategory.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// AdminAuditLogClient is a client for the AdminAuditLog schema.
+type AdminAuditLogClient struct {
+	config
+}
+
+// NewAdminAuditLogClient returns a client for the AdminAuditLog from the given config.
+func NewAdminAuditLogClient(c config) *AdminAuditLogClient {
+	return &AdminAuditLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `adminauditlog.Hooks(f(g(h())))`.
+func (c *AdminAuditLogClient) Use(hooks ...Hook) {
+	c.hooks.AdminAuditLog = append(c.hooks.AdminAuditLog, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `adminauditlog.Intercept(f(g(h())))`.
+func (c *AdminAuditLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AdminAuditLog = append(c.inters.AdminAuditLog, interceptors...)
+}
+
+// Create returns a builder for creating a AdminAuditLog entity.
+func (c *AdminAuditLogClient) Create() *AdminAuditLogCreate {
+	mutation := newAdminAuditLogMutation(c.config, OpCreate)
+	return &AdminAuditLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AdminAuditLog entities.
+func (c *AdminAuditLogClient) CreateBulk(builders ...*AdminAuditLogCreate) *AdminAuditLogCreateBulk {
+	return &AdminAuditLogCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AdminAuditLogClient) MapCreateBulk(slice any, setFunc func(*AdminAuditLogCreate, int)) *AdminAuditLogCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AdminAuditLogCreateBulk{err: fmt.Errorf("calling to AdminAuditLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AdminAuditLogCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AdminAuditLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AdminAuditLog.
+func (c *AdminAuditLogClient) Update() *AdminAuditLogUpdate {
+	mutation := newAdminAuditLogMutation(c.config, OpUpdate)
+	return &AdminAuditLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AdminAuditLogClient) UpdateOne(_m *AdminAuditLog) *AdminAuditLogUpdateOne {
+	mutation := newAdminAuditLogMutation(c.config, OpUpdateOne, withAdminAuditLog(_m))
+	return &AdminAuditLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AdminAuditLogClient) UpdateOneID(id uuid.UUID) *AdminAuditLogUpdateOne {
+	mutation := newAdminAuditLogMutation(c.config, OpUpdateOne, withAdminAuditLogID(id))
+	return &AdminAuditLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AdminAuditLog.
+func (c *AdminAuditLogClient) Delete() *AdminAuditLogDelete {
+	mutation := newAdminAuditLogMutation(c.config, OpDelete)
+	return &AdminAuditLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AdminAuditLogClient) DeleteOne(_m *AdminAuditLog) *AdminAuditLogDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AdminAuditLogClient) DeleteOneID(id uuid.UUID) *AdminAuditLogDeleteOne {
+	builder := c.Delete().Where(adminauditlog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AdminAuditLogDeleteOne{builder}
+}
+
+// Query returns a query builder for AdminAuditLog.
+func (c *AdminAuditLogClient) Query() *AdminAuditLogQuery {
+	return &AdminAuditLogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAdminAuditLog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AdminAuditLog entity by its id.
+func (c *AdminAuditLogClient) Get(ctx context.Context, id uuid.UUID) (*AdminAuditLog, error) {
+	return c.Query().Where(adminauditlog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AdminAuditLogClient) GetX(ctx context.Context, id uuid.UUID) *AdminAuditLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AdminAuditLogClient) Hooks() []Hook {
+	return c.hooks.AdminAuditLog
+}
+
+// Interceptors returns the client interceptors.
+func (c *AdminAuditLogClient) Interceptors() []Interceptor {
+	return c.inters.AdminAuditLog
+}
+
+func (c *AdminAuditLogClient) mutate(ctx context.Context, m *AdminAuditLogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AdminAuditLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AdminAuditLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AdminAuditLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AdminAuditLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AdminAuditLog mutation op: %q", m.Op())
 	}
 }
 
@@ -2567,6 +2716,139 @@ func (c *QuestionPatternClient) mutate(ctx context.Context, m *QuestionPatternMu
 	}
 }
 
+// SystemConfigClient is a client for the SystemConfig schema.
+type SystemConfigClient struct {
+	config
+}
+
+// NewSystemConfigClient returns a client for the SystemConfig from the given config.
+func NewSystemConfigClient(c config) *SystemConfigClient {
+	return &SystemConfigClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `systemconfig.Hooks(f(g(h())))`.
+func (c *SystemConfigClient) Use(hooks ...Hook) {
+	c.hooks.SystemConfig = append(c.hooks.SystemConfig, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `systemconfig.Intercept(f(g(h())))`.
+func (c *SystemConfigClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SystemConfig = append(c.inters.SystemConfig, interceptors...)
+}
+
+// Create returns a builder for creating a SystemConfig entity.
+func (c *SystemConfigClient) Create() *SystemConfigCreate {
+	mutation := newSystemConfigMutation(c.config, OpCreate)
+	return &SystemConfigCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SystemConfig entities.
+func (c *SystemConfigClient) CreateBulk(builders ...*SystemConfigCreate) *SystemConfigCreateBulk {
+	return &SystemConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SystemConfigClient) MapCreateBulk(slice any, setFunc func(*SystemConfigCreate, int)) *SystemConfigCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SystemConfigCreateBulk{err: fmt.Errorf("calling to SystemConfigClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SystemConfigCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SystemConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SystemConfig.
+func (c *SystemConfigClient) Update() *SystemConfigUpdate {
+	mutation := newSystemConfigMutation(c.config, OpUpdate)
+	return &SystemConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SystemConfigClient) UpdateOne(_m *SystemConfig) *SystemConfigUpdateOne {
+	mutation := newSystemConfigMutation(c.config, OpUpdateOne, withSystemConfig(_m))
+	return &SystemConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SystemConfigClient) UpdateOneID(id uuid.UUID) *SystemConfigUpdateOne {
+	mutation := newSystemConfigMutation(c.config, OpUpdateOne, withSystemConfigID(id))
+	return &SystemConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SystemConfig.
+func (c *SystemConfigClient) Delete() *SystemConfigDelete {
+	mutation := newSystemConfigMutation(c.config, OpDelete)
+	return &SystemConfigDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SystemConfigClient) DeleteOne(_m *SystemConfig) *SystemConfigDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SystemConfigClient) DeleteOneID(id uuid.UUID) *SystemConfigDeleteOne {
+	builder := c.Delete().Where(systemconfig.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SystemConfigDeleteOne{builder}
+}
+
+// Query returns a query builder for SystemConfig.
+func (c *SystemConfigClient) Query() *SystemConfigQuery {
+	return &SystemConfigQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSystemConfig},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SystemConfig entity by its id.
+func (c *SystemConfigClient) Get(ctx context.Context, id uuid.UUID) (*SystemConfig, error) {
+	return c.Query().Where(systemconfig.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SystemConfigClient) GetX(ctx context.Context, id uuid.UUID) *SystemConfig {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SystemConfigClient) Hooks() []Hook {
+	return c.hooks.SystemConfig
+}
+
+// Interceptors returns the client interceptors.
+func (c *SystemConfigClient) Interceptors() []Interceptor {
+	return c.inters.SystemConfig
+}
+
+func (c *SystemConfigClient) mutate(ctx context.Context, m *SystemConfigMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SystemConfigCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SystemConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SystemConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SystemConfigDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SystemConfig mutation op: %q", m.Op())
+	}
+}
+
 // TalentProfileClient is a client for the TalentProfile schema.
 type TalentProfileClient struct {
 	config
@@ -3262,15 +3544,17 @@ func (c *WeaponCategoryClient) mutate(ctx context.Context, m *WeaponCategoryMuta
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Application, CoachingSession, CompanyAnalysis, CompanyAnalysisCache,
-		CoverLetter, CoverLetterVersion, Experience, ExperienceTag, ExperienceUsage,
-		ExperienceWeapon, Feedback, PromptTemplate, QuestionPattern, TalentProfile,
-		UsageLog, UserProfile, WeaponCategory []ent.Hook
+		AdminAuditLog, Application, CoachingSession, CompanyAnalysis,
+		CompanyAnalysisCache, CoverLetter, CoverLetterVersion, Experience,
+		ExperienceTag, ExperienceUsage, ExperienceWeapon, Feedback, PromptTemplate,
+		QuestionPattern, SystemConfig, TalentProfile, UsageLog, UserProfile,
+		WeaponCategory []ent.Hook
 	}
 	inters struct {
-		Application, CoachingSession, CompanyAnalysis, CompanyAnalysisCache,
-		CoverLetter, CoverLetterVersion, Experience, ExperienceTag, ExperienceUsage,
-		ExperienceWeapon, Feedback, PromptTemplate, QuestionPattern, TalentProfile,
-		UsageLog, UserProfile, WeaponCategory []ent.Interceptor
+		AdminAuditLog, Application, CoachingSession, CompanyAnalysis,
+		CompanyAnalysisCache, CoverLetter, CoverLetterVersion, Experience,
+		ExperienceTag, ExperienceUsage, ExperienceWeapon, Feedback, PromptTemplate,
+		QuestionPattern, SystemConfig, TalentProfile, UsageLog, UserProfile,
+		WeaponCategory []ent.Interceptor
 	}
 )

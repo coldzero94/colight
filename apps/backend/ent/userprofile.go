@@ -53,6 +53,12 @@ type UserProfile struct {
 	OnboardingCompleted bool `json:"onboarding_completed,omitempty"`
 	// Subscription plan
 	Plan userprofile.Plan `json:"plan,omitempty"`
+	// Whether account is suspended
+	Suspended bool `json:"suspended,omitempty"`
+	// When account was suspended
+	SuspendedAt *time.Time `json:"suspended_at,omitempty"`
+	// Reason for suspension
+	SuspendedReason *string `json:"suspended_reason,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserProfileQuery when eager-loading is set.
 	Edges        UserProfileEdges `json:"edges"`
@@ -159,13 +165,13 @@ func (*UserProfile) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case userprofile.FieldEmailVerified, userprofile.FieldOnboardingCompleted:
+		case userprofile.FieldEmailVerified, userprofile.FieldOnboardingCompleted, userprofile.FieldSuspended:
 			values[i] = new(sql.NullBool)
 		case userprofile.FieldGraduationYear, userprofile.FieldExperienceYears:
 			values[i] = new(sql.NullInt64)
-		case userprofile.FieldEmail, userprofile.FieldPasswordHash, userprofile.FieldNaverID, userprofile.FieldAuthProvider, userprofile.FieldRole, userprofile.FieldNickname, userprofile.FieldTargetJob, userprofile.FieldTargetIndustry, userprofile.FieldEducationLevel, userprofile.FieldPlan:
+		case userprofile.FieldEmail, userprofile.FieldPasswordHash, userprofile.FieldNaverID, userprofile.FieldAuthProvider, userprofile.FieldRole, userprofile.FieldNickname, userprofile.FieldTargetJob, userprofile.FieldTargetIndustry, userprofile.FieldEducationLevel, userprofile.FieldPlan, userprofile.FieldSuspendedReason:
 			values[i] = new(sql.NullString)
-		case userprofile.FieldCreatedAt, userprofile.FieldUpdatedAt, userprofile.FieldLastLoginAt:
+		case userprofile.FieldCreatedAt, userprofile.FieldUpdatedAt, userprofile.FieldLastLoginAt, userprofile.FieldSuspendedAt:
 			values[i] = new(sql.NullTime)
 		case userprofile.FieldID:
 			values[i] = new(uuid.UUID)
@@ -296,6 +302,26 @@ func (_m *UserProfile) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field plan", values[i])
 			} else if value.Valid {
 				_m.Plan = userprofile.Plan(value.String)
+			}
+		case userprofile.FieldSuspended:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field suspended", values[i])
+			} else if value.Valid {
+				_m.Suspended = value.Bool
+			}
+		case userprofile.FieldSuspendedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field suspended_at", values[i])
+			} else if value.Valid {
+				_m.SuspendedAt = new(time.Time)
+				*_m.SuspendedAt = value.Time
+			}
+		case userprofile.FieldSuspendedReason:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field suspended_reason", values[i])
+			} else if value.Valid {
+				_m.SuspendedReason = new(string)
+				*_m.SuspendedReason = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -430,6 +456,19 @@ func (_m *UserProfile) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("plan=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Plan))
+	builder.WriteString(", ")
+	builder.WriteString("suspended=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Suspended))
+	builder.WriteString(", ")
+	if v := _m.SuspendedAt; v != nil {
+		builder.WriteString("suspended_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.SuspendedReason; v != nil {
+		builder.WriteString("suspended_reason=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

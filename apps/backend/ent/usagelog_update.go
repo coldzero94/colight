@@ -69,6 +69,197 @@ func (_u *UsageLogUpdate) ClearMetadata() *UsageLogUpdate {
 	return _u
 }
 
+// SetProvider sets the "provider" field.
+func (_u *UsageLogUpdate) SetProvider(v string) *UsageLogUpdate {
+	_u.mutation.SetProvider(v)
+	return _u
+}
+
+// SetNillableProvider sets the "provider" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableProvider(v *string) *UsageLogUpdate {
+	if v != nil {
+		_u.SetProvider(*v)
+	}
+	return _u
+}
+
+// ClearProvider clears the value of the "provider" field.
+func (_u *UsageLogUpdate) ClearProvider() *UsageLogUpdate {
+	_u.mutation.ClearProvider()
+	return _u
+}
+
+// SetModel sets the "model" field.
+func (_u *UsageLogUpdate) SetModel(v string) *UsageLogUpdate {
+	_u.mutation.SetModel(v)
+	return _u
+}
+
+// SetNillableModel sets the "model" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableModel(v *string) *UsageLogUpdate {
+	if v != nil {
+		_u.SetModel(*v)
+	}
+	return _u
+}
+
+// ClearModel clears the value of the "model" field.
+func (_u *UsageLogUpdate) ClearModel() *UsageLogUpdate {
+	_u.mutation.ClearModel()
+	return _u
+}
+
+// SetInputTokens sets the "input_tokens" field.
+func (_u *UsageLogUpdate) SetInputTokens(v int) *UsageLogUpdate {
+	_u.mutation.ResetInputTokens()
+	_u.mutation.SetInputTokens(v)
+	return _u
+}
+
+// SetNillableInputTokens sets the "input_tokens" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableInputTokens(v *int) *UsageLogUpdate {
+	if v != nil {
+		_u.SetInputTokens(*v)
+	}
+	return _u
+}
+
+// AddInputTokens adds value to the "input_tokens" field.
+func (_u *UsageLogUpdate) AddInputTokens(v int) *UsageLogUpdate {
+	_u.mutation.AddInputTokens(v)
+	return _u
+}
+
+// SetOutputTokens sets the "output_tokens" field.
+func (_u *UsageLogUpdate) SetOutputTokens(v int) *UsageLogUpdate {
+	_u.mutation.ResetOutputTokens()
+	_u.mutation.SetOutputTokens(v)
+	return _u
+}
+
+// SetNillableOutputTokens sets the "output_tokens" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableOutputTokens(v *int) *UsageLogUpdate {
+	if v != nil {
+		_u.SetOutputTokens(*v)
+	}
+	return _u
+}
+
+// AddOutputTokens adds value to the "output_tokens" field.
+func (_u *UsageLogUpdate) AddOutputTokens(v int) *UsageLogUpdate {
+	_u.mutation.AddOutputTokens(v)
+	return _u
+}
+
+// SetTotalTokens sets the "total_tokens" field.
+func (_u *UsageLogUpdate) SetTotalTokens(v int) *UsageLogUpdate {
+	_u.mutation.ResetTotalTokens()
+	_u.mutation.SetTotalTokens(v)
+	return _u
+}
+
+// SetNillableTotalTokens sets the "total_tokens" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableTotalTokens(v *int) *UsageLogUpdate {
+	if v != nil {
+		_u.SetTotalTokens(*v)
+	}
+	return _u
+}
+
+// AddTotalTokens adds value to the "total_tokens" field.
+func (_u *UsageLogUpdate) AddTotalTokens(v int) *UsageLogUpdate {
+	_u.mutation.AddTotalTokens(v)
+	return _u
+}
+
+// SetEstimatedCostKrw sets the "estimated_cost_krw" field.
+func (_u *UsageLogUpdate) SetEstimatedCostKrw(v float64) *UsageLogUpdate {
+	_u.mutation.ResetEstimatedCostKrw()
+	_u.mutation.SetEstimatedCostKrw(v)
+	return _u
+}
+
+// SetNillableEstimatedCostKrw sets the "estimated_cost_krw" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableEstimatedCostKrw(v *float64) *UsageLogUpdate {
+	if v != nil {
+		_u.SetEstimatedCostKrw(*v)
+	}
+	return _u
+}
+
+// AddEstimatedCostKrw adds value to the "estimated_cost_krw" field.
+func (_u *UsageLogUpdate) AddEstimatedCostKrw(v float64) *UsageLogUpdate {
+	_u.mutation.AddEstimatedCostKrw(v)
+	return _u
+}
+
+// ClearEstimatedCostKrw clears the value of the "estimated_cost_krw" field.
+func (_u *UsageLogUpdate) ClearEstimatedCostKrw() *UsageLogUpdate {
+	_u.mutation.ClearEstimatedCostKrw()
+	return _u
+}
+
+// SetLatencyMs sets the "latency_ms" field.
+func (_u *UsageLogUpdate) SetLatencyMs(v int) *UsageLogUpdate {
+	_u.mutation.ResetLatencyMs()
+	_u.mutation.SetLatencyMs(v)
+	return _u
+}
+
+// SetNillableLatencyMs sets the "latency_ms" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableLatencyMs(v *int) *UsageLogUpdate {
+	if v != nil {
+		_u.SetLatencyMs(*v)
+	}
+	return _u
+}
+
+// AddLatencyMs adds value to the "latency_ms" field.
+func (_u *UsageLogUpdate) AddLatencyMs(v int) *UsageLogUpdate {
+	_u.mutation.AddLatencyMs(v)
+	return _u
+}
+
+// ClearLatencyMs clears the value of the "latency_ms" field.
+func (_u *UsageLogUpdate) ClearLatencyMs() *UsageLogUpdate {
+	_u.mutation.ClearLatencyMs()
+	return _u
+}
+
+// SetStatus sets the "status" field.
+func (_u *UsageLogUpdate) SetStatus(v string) *UsageLogUpdate {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableStatus(v *string) *UsageLogUpdate {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (_u *UsageLogUpdate) SetErrorMessage(v string) *UsageLogUpdate {
+	_u.mutation.SetErrorMessage(v)
+	return _u
+}
+
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableErrorMessage(v *string) *UsageLogUpdate {
+	if v != nil {
+		_u.SetErrorMessage(*v)
+	}
+	return _u
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (_u *UsageLogUpdate) ClearErrorMessage() *UsageLogUpdate {
+	_u.mutation.ClearErrorMessage()
+	return _u
+}
+
 // SetUser sets the "user" edge to the UserProfile entity.
 func (_u *UsageLogUpdate) SetUser(v *UserProfile) *UsageLogUpdate {
 	return _u.SetUserID(v.ID)
@@ -119,6 +310,21 @@ func (_u *UsageLogUpdate) check() error {
 			return &ValidationError{Name: "feature", err: fmt.Errorf(`ent: validator failed for field "UsageLog.feature": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Provider(); ok {
+		if err := usagelog.ProviderValidator(v); err != nil {
+			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "UsageLog.provider": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Model(); ok {
+		if err := usagelog.ModelValidator(v); err != nil {
+			return &ValidationError{Name: "model", err: fmt.Errorf(`ent: validator failed for field "UsageLog.model": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := usagelog.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "UsageLog.status": %w`, err)}
+		}
+	}
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "UsageLog.user"`)
 	}
@@ -145,6 +351,63 @@ func (_u *UsageLogUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.MetadataCleared() {
 		_spec.ClearField(usagelog.FieldMetadata, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Provider(); ok {
+		_spec.SetField(usagelog.FieldProvider, field.TypeString, value)
+	}
+	if _u.mutation.ProviderCleared() {
+		_spec.ClearField(usagelog.FieldProvider, field.TypeString)
+	}
+	if value, ok := _u.mutation.Model(); ok {
+		_spec.SetField(usagelog.FieldModel, field.TypeString, value)
+	}
+	if _u.mutation.ModelCleared() {
+		_spec.ClearField(usagelog.FieldModel, field.TypeString)
+	}
+	if value, ok := _u.mutation.InputTokens(); ok {
+		_spec.SetField(usagelog.FieldInputTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedInputTokens(); ok {
+		_spec.AddField(usagelog.FieldInputTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.OutputTokens(); ok {
+		_spec.SetField(usagelog.FieldOutputTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedOutputTokens(); ok {
+		_spec.AddField(usagelog.FieldOutputTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.TotalTokens(); ok {
+		_spec.SetField(usagelog.FieldTotalTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedTotalTokens(); ok {
+		_spec.AddField(usagelog.FieldTotalTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.EstimatedCostKrw(); ok {
+		_spec.SetField(usagelog.FieldEstimatedCostKrw, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedEstimatedCostKrw(); ok {
+		_spec.AddField(usagelog.FieldEstimatedCostKrw, field.TypeFloat64, value)
+	}
+	if _u.mutation.EstimatedCostKrwCleared() {
+		_spec.ClearField(usagelog.FieldEstimatedCostKrw, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.LatencyMs(); ok {
+		_spec.SetField(usagelog.FieldLatencyMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedLatencyMs(); ok {
+		_spec.AddField(usagelog.FieldLatencyMs, field.TypeInt, value)
+	}
+	if _u.mutation.LatencyMsCleared() {
+		_spec.ClearField(usagelog.FieldLatencyMs, field.TypeInt)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(usagelog.FieldStatus, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ErrorMessage(); ok {
+		_spec.SetField(usagelog.FieldErrorMessage, field.TypeString, value)
+	}
+	if _u.mutation.ErrorMessageCleared() {
+		_spec.ClearField(usagelog.FieldErrorMessage, field.TypeString)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -235,6 +498,197 @@ func (_u *UsageLogUpdateOne) ClearMetadata() *UsageLogUpdateOne {
 	return _u
 }
 
+// SetProvider sets the "provider" field.
+func (_u *UsageLogUpdateOne) SetProvider(v string) *UsageLogUpdateOne {
+	_u.mutation.SetProvider(v)
+	return _u
+}
+
+// SetNillableProvider sets the "provider" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableProvider(v *string) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetProvider(*v)
+	}
+	return _u
+}
+
+// ClearProvider clears the value of the "provider" field.
+func (_u *UsageLogUpdateOne) ClearProvider() *UsageLogUpdateOne {
+	_u.mutation.ClearProvider()
+	return _u
+}
+
+// SetModel sets the "model" field.
+func (_u *UsageLogUpdateOne) SetModel(v string) *UsageLogUpdateOne {
+	_u.mutation.SetModel(v)
+	return _u
+}
+
+// SetNillableModel sets the "model" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableModel(v *string) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetModel(*v)
+	}
+	return _u
+}
+
+// ClearModel clears the value of the "model" field.
+func (_u *UsageLogUpdateOne) ClearModel() *UsageLogUpdateOne {
+	_u.mutation.ClearModel()
+	return _u
+}
+
+// SetInputTokens sets the "input_tokens" field.
+func (_u *UsageLogUpdateOne) SetInputTokens(v int) *UsageLogUpdateOne {
+	_u.mutation.ResetInputTokens()
+	_u.mutation.SetInputTokens(v)
+	return _u
+}
+
+// SetNillableInputTokens sets the "input_tokens" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableInputTokens(v *int) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetInputTokens(*v)
+	}
+	return _u
+}
+
+// AddInputTokens adds value to the "input_tokens" field.
+func (_u *UsageLogUpdateOne) AddInputTokens(v int) *UsageLogUpdateOne {
+	_u.mutation.AddInputTokens(v)
+	return _u
+}
+
+// SetOutputTokens sets the "output_tokens" field.
+func (_u *UsageLogUpdateOne) SetOutputTokens(v int) *UsageLogUpdateOne {
+	_u.mutation.ResetOutputTokens()
+	_u.mutation.SetOutputTokens(v)
+	return _u
+}
+
+// SetNillableOutputTokens sets the "output_tokens" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableOutputTokens(v *int) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetOutputTokens(*v)
+	}
+	return _u
+}
+
+// AddOutputTokens adds value to the "output_tokens" field.
+func (_u *UsageLogUpdateOne) AddOutputTokens(v int) *UsageLogUpdateOne {
+	_u.mutation.AddOutputTokens(v)
+	return _u
+}
+
+// SetTotalTokens sets the "total_tokens" field.
+func (_u *UsageLogUpdateOne) SetTotalTokens(v int) *UsageLogUpdateOne {
+	_u.mutation.ResetTotalTokens()
+	_u.mutation.SetTotalTokens(v)
+	return _u
+}
+
+// SetNillableTotalTokens sets the "total_tokens" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableTotalTokens(v *int) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetTotalTokens(*v)
+	}
+	return _u
+}
+
+// AddTotalTokens adds value to the "total_tokens" field.
+func (_u *UsageLogUpdateOne) AddTotalTokens(v int) *UsageLogUpdateOne {
+	_u.mutation.AddTotalTokens(v)
+	return _u
+}
+
+// SetEstimatedCostKrw sets the "estimated_cost_krw" field.
+func (_u *UsageLogUpdateOne) SetEstimatedCostKrw(v float64) *UsageLogUpdateOne {
+	_u.mutation.ResetEstimatedCostKrw()
+	_u.mutation.SetEstimatedCostKrw(v)
+	return _u
+}
+
+// SetNillableEstimatedCostKrw sets the "estimated_cost_krw" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableEstimatedCostKrw(v *float64) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetEstimatedCostKrw(*v)
+	}
+	return _u
+}
+
+// AddEstimatedCostKrw adds value to the "estimated_cost_krw" field.
+func (_u *UsageLogUpdateOne) AddEstimatedCostKrw(v float64) *UsageLogUpdateOne {
+	_u.mutation.AddEstimatedCostKrw(v)
+	return _u
+}
+
+// ClearEstimatedCostKrw clears the value of the "estimated_cost_krw" field.
+func (_u *UsageLogUpdateOne) ClearEstimatedCostKrw() *UsageLogUpdateOne {
+	_u.mutation.ClearEstimatedCostKrw()
+	return _u
+}
+
+// SetLatencyMs sets the "latency_ms" field.
+func (_u *UsageLogUpdateOne) SetLatencyMs(v int) *UsageLogUpdateOne {
+	_u.mutation.ResetLatencyMs()
+	_u.mutation.SetLatencyMs(v)
+	return _u
+}
+
+// SetNillableLatencyMs sets the "latency_ms" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableLatencyMs(v *int) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetLatencyMs(*v)
+	}
+	return _u
+}
+
+// AddLatencyMs adds value to the "latency_ms" field.
+func (_u *UsageLogUpdateOne) AddLatencyMs(v int) *UsageLogUpdateOne {
+	_u.mutation.AddLatencyMs(v)
+	return _u
+}
+
+// ClearLatencyMs clears the value of the "latency_ms" field.
+func (_u *UsageLogUpdateOne) ClearLatencyMs() *UsageLogUpdateOne {
+	_u.mutation.ClearLatencyMs()
+	return _u
+}
+
+// SetStatus sets the "status" field.
+func (_u *UsageLogUpdateOne) SetStatus(v string) *UsageLogUpdateOne {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableStatus(v *string) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (_u *UsageLogUpdateOne) SetErrorMessage(v string) *UsageLogUpdateOne {
+	_u.mutation.SetErrorMessage(v)
+	return _u
+}
+
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableErrorMessage(v *string) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetErrorMessage(*v)
+	}
+	return _u
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (_u *UsageLogUpdateOne) ClearErrorMessage() *UsageLogUpdateOne {
+	_u.mutation.ClearErrorMessage()
+	return _u
+}
+
 // SetUser sets the "user" edge to the UserProfile entity.
 func (_u *UsageLogUpdateOne) SetUser(v *UserProfile) *UsageLogUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -298,6 +752,21 @@ func (_u *UsageLogUpdateOne) check() error {
 			return &ValidationError{Name: "feature", err: fmt.Errorf(`ent: validator failed for field "UsageLog.feature": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Provider(); ok {
+		if err := usagelog.ProviderValidator(v); err != nil {
+			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "UsageLog.provider": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Model(); ok {
+		if err := usagelog.ModelValidator(v); err != nil {
+			return &ValidationError{Name: "model", err: fmt.Errorf(`ent: validator failed for field "UsageLog.model": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := usagelog.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "UsageLog.status": %w`, err)}
+		}
+	}
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "UsageLog.user"`)
 	}
@@ -341,6 +810,63 @@ func (_u *UsageLogUpdateOne) sqlSave(ctx context.Context) (_node *UsageLog, err 
 	}
 	if _u.mutation.MetadataCleared() {
 		_spec.ClearField(usagelog.FieldMetadata, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Provider(); ok {
+		_spec.SetField(usagelog.FieldProvider, field.TypeString, value)
+	}
+	if _u.mutation.ProviderCleared() {
+		_spec.ClearField(usagelog.FieldProvider, field.TypeString)
+	}
+	if value, ok := _u.mutation.Model(); ok {
+		_spec.SetField(usagelog.FieldModel, field.TypeString, value)
+	}
+	if _u.mutation.ModelCleared() {
+		_spec.ClearField(usagelog.FieldModel, field.TypeString)
+	}
+	if value, ok := _u.mutation.InputTokens(); ok {
+		_spec.SetField(usagelog.FieldInputTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedInputTokens(); ok {
+		_spec.AddField(usagelog.FieldInputTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.OutputTokens(); ok {
+		_spec.SetField(usagelog.FieldOutputTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedOutputTokens(); ok {
+		_spec.AddField(usagelog.FieldOutputTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.TotalTokens(); ok {
+		_spec.SetField(usagelog.FieldTotalTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedTotalTokens(); ok {
+		_spec.AddField(usagelog.FieldTotalTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.EstimatedCostKrw(); ok {
+		_spec.SetField(usagelog.FieldEstimatedCostKrw, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedEstimatedCostKrw(); ok {
+		_spec.AddField(usagelog.FieldEstimatedCostKrw, field.TypeFloat64, value)
+	}
+	if _u.mutation.EstimatedCostKrwCleared() {
+		_spec.ClearField(usagelog.FieldEstimatedCostKrw, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.LatencyMs(); ok {
+		_spec.SetField(usagelog.FieldLatencyMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedLatencyMs(); ok {
+		_spec.AddField(usagelog.FieldLatencyMs, field.TypeInt, value)
+	}
+	if _u.mutation.LatencyMsCleared() {
+		_spec.ClearField(usagelog.FieldLatencyMs, field.TypeInt)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(usagelog.FieldStatus, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ErrorMessage(); ok {
+		_spec.SetField(usagelog.FieldErrorMessage, field.TypeString, value)
+	}
+	if _u.mutation.ErrorMessageCleared() {
+		_spec.ClearField(usagelog.FieldErrorMessage, field.TypeString)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

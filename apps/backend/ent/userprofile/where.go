@@ -126,6 +126,21 @@ func OnboardingCompleted(v bool) predicate.UserProfile {
 	return predicate.UserProfile(sql.FieldEQ(FieldOnboardingCompleted, v))
 }
 
+// Suspended applies equality check predicate on the "suspended" field. It's identical to SuspendedEQ.
+func Suspended(v bool) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldEQ(FieldSuspended, v))
+}
+
+// SuspendedAt applies equality check predicate on the "suspended_at" field. It's identical to SuspendedAtEQ.
+func SuspendedAt(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldEQ(FieldSuspendedAt, v))
+}
+
+// SuspendedReason applies equality check predicate on the "suspended_reason" field. It's identical to SuspendedReasonEQ.
+func SuspendedReason(v string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldEQ(FieldSuspendedReason, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.UserProfile {
 	return predicate.UserProfile(sql.FieldEQ(FieldCreatedAt, v))
@@ -949,6 +964,141 @@ func PlanIn(vs ...Plan) predicate.UserProfile {
 // PlanNotIn applies the NotIn predicate on the "plan" field.
 func PlanNotIn(vs ...Plan) predicate.UserProfile {
 	return predicate.UserProfile(sql.FieldNotIn(FieldPlan, vs...))
+}
+
+// SuspendedEQ applies the EQ predicate on the "suspended" field.
+func SuspendedEQ(v bool) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldEQ(FieldSuspended, v))
+}
+
+// SuspendedNEQ applies the NEQ predicate on the "suspended" field.
+func SuspendedNEQ(v bool) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldNEQ(FieldSuspended, v))
+}
+
+// SuspendedAtEQ applies the EQ predicate on the "suspended_at" field.
+func SuspendedAtEQ(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldEQ(FieldSuspendedAt, v))
+}
+
+// SuspendedAtNEQ applies the NEQ predicate on the "suspended_at" field.
+func SuspendedAtNEQ(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldNEQ(FieldSuspendedAt, v))
+}
+
+// SuspendedAtIn applies the In predicate on the "suspended_at" field.
+func SuspendedAtIn(vs ...time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldIn(FieldSuspendedAt, vs...))
+}
+
+// SuspendedAtNotIn applies the NotIn predicate on the "suspended_at" field.
+func SuspendedAtNotIn(vs ...time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldNotIn(FieldSuspendedAt, vs...))
+}
+
+// SuspendedAtGT applies the GT predicate on the "suspended_at" field.
+func SuspendedAtGT(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldGT(FieldSuspendedAt, v))
+}
+
+// SuspendedAtGTE applies the GTE predicate on the "suspended_at" field.
+func SuspendedAtGTE(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldGTE(FieldSuspendedAt, v))
+}
+
+// SuspendedAtLT applies the LT predicate on the "suspended_at" field.
+func SuspendedAtLT(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldLT(FieldSuspendedAt, v))
+}
+
+// SuspendedAtLTE applies the LTE predicate on the "suspended_at" field.
+func SuspendedAtLTE(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldLTE(FieldSuspendedAt, v))
+}
+
+// SuspendedAtIsNil applies the IsNil predicate on the "suspended_at" field.
+func SuspendedAtIsNil() predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldIsNull(FieldSuspendedAt))
+}
+
+// SuspendedAtNotNil applies the NotNil predicate on the "suspended_at" field.
+func SuspendedAtNotNil() predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldNotNull(FieldSuspendedAt))
+}
+
+// SuspendedReasonEQ applies the EQ predicate on the "suspended_reason" field.
+func SuspendedReasonEQ(v string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldEQ(FieldSuspendedReason, v))
+}
+
+// SuspendedReasonNEQ applies the NEQ predicate on the "suspended_reason" field.
+func SuspendedReasonNEQ(v string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldNEQ(FieldSuspendedReason, v))
+}
+
+// SuspendedReasonIn applies the In predicate on the "suspended_reason" field.
+func SuspendedReasonIn(vs ...string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldIn(FieldSuspendedReason, vs...))
+}
+
+// SuspendedReasonNotIn applies the NotIn predicate on the "suspended_reason" field.
+func SuspendedReasonNotIn(vs ...string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldNotIn(FieldSuspendedReason, vs...))
+}
+
+// SuspendedReasonGT applies the GT predicate on the "suspended_reason" field.
+func SuspendedReasonGT(v string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldGT(FieldSuspendedReason, v))
+}
+
+// SuspendedReasonGTE applies the GTE predicate on the "suspended_reason" field.
+func SuspendedReasonGTE(v string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldGTE(FieldSuspendedReason, v))
+}
+
+// SuspendedReasonLT applies the LT predicate on the "suspended_reason" field.
+func SuspendedReasonLT(v string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldLT(FieldSuspendedReason, v))
+}
+
+// SuspendedReasonLTE applies the LTE predicate on the "suspended_reason" field.
+func SuspendedReasonLTE(v string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldLTE(FieldSuspendedReason, v))
+}
+
+// SuspendedReasonContains applies the Contains predicate on the "suspended_reason" field.
+func SuspendedReasonContains(v string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldContains(FieldSuspendedReason, v))
+}
+
+// SuspendedReasonHasPrefix applies the HasPrefix predicate on the "suspended_reason" field.
+func SuspendedReasonHasPrefix(v string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldHasPrefix(FieldSuspendedReason, v))
+}
+
+// SuspendedReasonHasSuffix applies the HasSuffix predicate on the "suspended_reason" field.
+func SuspendedReasonHasSuffix(v string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldHasSuffix(FieldSuspendedReason, v))
+}
+
+// SuspendedReasonIsNil applies the IsNil predicate on the "suspended_reason" field.
+func SuspendedReasonIsNil() predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldIsNull(FieldSuspendedReason))
+}
+
+// SuspendedReasonNotNil applies the NotNil predicate on the "suspended_reason" field.
+func SuspendedReasonNotNil() predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldNotNull(FieldSuspendedReason))
+}
+
+// SuspendedReasonEqualFold applies the EqualFold predicate on the "suspended_reason" field.
+func SuspendedReasonEqualFold(v string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldEqualFold(FieldSuspendedReason, v))
+}
+
+// SuspendedReasonContainsFold applies the ContainsFold predicate on the "suspended_reason" field.
+func SuspendedReasonContainsFold(v string) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldContainsFold(FieldSuspendedReason, v))
 }
 
 // HasExperiences applies the HasEdge predicate on the "experiences" edge.
