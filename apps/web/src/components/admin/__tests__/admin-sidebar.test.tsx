@@ -63,7 +63,7 @@ describe("AdminSidebar", () => {
   it("renders back to main app link", () => {
     render(<AdminSidebar />);
 
-    const backLink = screen.getByText(/메인 앱으로/);
+    const backLink = screen.getByText(/메인으로 돌아가기/);
     expect(backLink.closest("a")).toHaveAttribute("href", "/experiences");
   });
 
