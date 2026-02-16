@@ -155,5 +155,24 @@ describe("apiClient", () => {
       await expect(rejected(error)).rejects.toEqual(error);
       expect(mockRefresh).not.toHaveBeenCalled();
     });
+
+    it("does not retry when refresh endpoint itself returns 401", async () => {
+      const mockRefresh = vi.fn();
+
+      mockGetState.mockReturnValue({
+        accessToken: "expired-token",
+        refreshAccessToken: mockRefresh,
+      });
+
+      const error = {
+        config: { headers: {}, url: "/v1/auth/refresh" },
+        response: { status: 401 },
+      };
+
+      const { rejected } = getResponseHandler();
+
+      await expect(rejected(error)).rejects.toEqual(error);
+      expect(mockRefresh).not.toHaveBeenCalled();
+    });
   });
 });

@@ -19,14 +19,31 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error?.config as
+      | ({ _retry?: boolean; url?: string; headers?: Record<string, string> })
+      | undefined;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const status = error?.response?.status;
+    const requestUrl = originalRequest?.url ?? "";
+    const isRefreshEndpoint = requestUrl.includes("/v1/auth/refresh");
+
+    // Never attempt refresh for refresh endpoint itself.
+    // Otherwise, refresh 401 can recurse indefinitely and crash the renderer.
+    if (
+      status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !isRefreshEndpoint
+    ) {
       originalRequest._retry = true;
       const success = await useAuthStore.getState().refreshAccessToken();
+
       if (success) {
         const { accessToken } = useAuthStore.getState();
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        originalRequest.headers = originalRequest.headers ?? {};
+        if (accessToken) {
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        }
         return apiClient(originalRequest);
       }
     }
