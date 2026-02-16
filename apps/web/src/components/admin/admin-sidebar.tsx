@@ -35,11 +35,13 @@ export function AdminSidebar() {
   );
 
   return (
-    <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
-      <div className="p-5 border-b border-sidebar-border">
-        <Link href="/experiences" className="flex items-center gap-2 text-xl font-bold font-display text-foreground tracking-tight">
+    <aside className="brand-surface relative flex h-screen w-64 flex-col border-r border-sidebar-border/90 bg-sidebar/90">
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-primary/30 to-transparent" />
+
+      <div className="border-b border-sidebar-border/80 p-5">
+        <Link href="/experiences" className="group flex items-center gap-2 text-xl font-bold font-display text-foreground tracking-tight">
           <ColightLogo size={24} />
-          Colight
+          <span className="transition-opacity group-hover:opacity-90">Colight</span>
         </Link>
       </div>
 
@@ -54,13 +56,17 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+              className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
                 isActive
-                  ? "bg-primary/10 text-primary font-medium border-l-2 border-primary"
-                  : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                  ? "brand-chip text-primary font-medium"
+                  : "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
               }`}
             >
-              <item.icon className="h-4 w-4" />
+              <span className={`inline-flex h-6 w-6 items-center justify-center rounded-lg ${
+                isActive ? "bg-black/20" : "bg-white/[0.04] group-hover:bg-white/[0.08]"
+              }`}>
+                <item.icon className="h-3.5 w-3.5" />
+              </span>
               {item.label}
             </Link>
           );
@@ -69,16 +75,18 @@ export function AdminSidebar() {
         <div className="my-3 border-t border-sidebar-border" />
         <Link
           href="/experiences"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-white/[0.04] hover:text-foreground transition-all duration-200"
+          className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-white/[0.06] hover:text-foreground transition-all duration-200"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-white/[0.04] group-hover:bg-white/[0.08]">
+            <ArrowLeft className="h-3.5 w-3.5" />
+          </span>
           메인으로 돌아가기
         </Link>
       </nav>
 
-      <div className="p-4 border-t border-sidebar-border">
+      <div className="p-4 border-t border-sidebar-border/80">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-medium text-primary">
+          <div className="brand-chip w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium text-primary">
             {user?.nickname?.[0] ?? "U"}
           </div>
           <div className="flex-1 min-w-0">

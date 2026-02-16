@@ -72,7 +72,7 @@ describe("AdminSidebar", () => {
     render(<AdminSidebar />);
 
     const dashboardLink = screen.getByText("대시보드").closest("a");
-    expect(dashboardLink?.className).toContain("bg-primary/10");
+    expect(dashboardLink?.className).toContain("brand-chip");
   });
 
   it("does not highlight /admin for /admin/users", () => {
@@ -80,10 +80,10 @@ describe("AdminSidebar", () => {
     render(<AdminSidebar />);
 
     const dashboardLink = screen.getByText("대시보드").closest("a");
-    expect(dashboardLink?.className).not.toContain("bg-primary/10");
+    expect(dashboardLink?.className).not.toContain("brand-chip");
 
     const usersLink = screen.getByText("사용자 관리").closest("a");
-    expect(usersLink?.className).toContain("bg-primary/10");
+    expect(usersLink?.className).toContain("brand-chip");
   });
 
   it("highlights /admin/prompts for prompts page", () => {
@@ -91,6 +91,6 @@ describe("AdminSidebar", () => {
     render(<AdminSidebar />);
 
     const promptsLink = screen.getByText("프롬프트 관리").closest("a");
-    expect(promptsLink?.className).toContain("bg-primary/10");
+    expect(promptsLink?.className).toContain("brand-chip");
   });
 });

@@ -28,7 +28,7 @@ export function MobileNav() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="lg:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
+        className="brand-chip lg:hidden rounded-lg p-2 text-primary hover:brightness-110 transition-all"
         aria-label="메뉴 열기"
       >
         <Menu className="h-5 w-5" />
@@ -46,7 +46,7 @@ export function MobileNav() {
 
           {/* Sheet */}
           <div
-            className={`fixed top-0 left-0 h-full w-72 bg-sidebar border-r border-sidebar-border z-50 transition-transform duration-200 lg:hidden ${
+            className={`brand-surface fixed top-0 left-0 h-full w-72 bg-sidebar/95 border-r border-sidebar-border z-50 transition-transform duration-200 lg:hidden ${
               open ? "translate-x-0" : "-translate-x-full"
             }`}
           >
@@ -71,13 +71,17 @@ export function MobileNav() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+                    className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
                       isActive
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                        ? "brand-chip text-primary font-medium"
+                        : "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
                     }`}
                   >
-                    <item.icon className="h-4 w-4" />
+                    <span className={`inline-flex h-6 w-6 items-center justify-center rounded-lg ${
+                      isActive ? "bg-black/20" : "bg-white/[0.04] group-hover:bg-white/[0.08]"
+                    }`}>
+                      <item.icon className="h-3.5 w-3.5" />
+                    </span>
                     {item.label}
                   </Link>
                 );
@@ -89,9 +93,11 @@ export function MobileNav() {
                   <Link
                     href="/admin"
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-white/[0.04] hover:text-foreground transition-all duration-200"
+                    className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-white/[0.06] hover:text-foreground transition-all duration-200"
                   >
-                    <Shield className="h-4 w-4" />
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-white/[0.04] group-hover:bg-white/[0.08]">
+                      <Shield className="h-3.5 w-3.5" />
+                    </span>
                     어드민
                   </Link>
                 </>

@@ -21,10 +21,17 @@ export function Header() {
     )?.[1] ?? "";
 
   return (
-    <header className="relative z-30 h-14 border-b border-border bg-background/85 backdrop-blur-md flex items-center justify-between px-4 shadow-[0_1px_0_rgba(255,255,255,0.04)]">
+    <header className="relative z-30 h-14 border-b border-border bg-background/78 backdrop-blur-xl flex items-center justify-between px-4 shadow-[0_1px_0_rgba(255,255,255,0.04)]">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       <div className="flex items-center gap-3">
         <MobileNav />
-        <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+        <span className="hidden h-5 w-px bg-white/15 sm:block" />
+        <h1 className="inline-flex items-center gap-2 text-lg font-semibold text-foreground">
+          <span className="brand-chip inline-flex h-5 w-5 items-center justify-center rounded-full">
+            <span className="h-1.5 w-1.5 rounded-full bg-white/90" />
+          </span>
+          {title}
+        </h1>
       </div>
       <UserDropdown />
     </header>

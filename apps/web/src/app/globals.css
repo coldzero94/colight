@@ -52,34 +52,34 @@
 /* Dark-first design inspired by Supabase */
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.13 0.005 260);
+  --background: oklch(0.115 0.012 258);
   --foreground: oklch(0.95 0 0);
-  --card: oklch(0.15 0.005 260);
+  --card: oklch(0.145 0.01 258);
   --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.16 0.005 260);
+  --popover: oklch(0.15 0.012 258);
   --popover-foreground: oklch(0.95 0 0);
   --primary: oklch(0.72 0.14 225);
   --primary-foreground: oklch(0.16 0.005 260);
-  --secondary: oklch(0.20 0.005 260);
+  --secondary: oklch(0.19 0.012 258);
   --secondary-foreground: oklch(0.90 0 0);
-  --muted: oklch(0.20 0.005 260);
+  --muted: oklch(0.19 0.01 258);
   --muted-foreground: oklch(0.60 0 0);
-  --accent: oklch(0.20 0.005 260);
+  --accent: oklch(0.2 0.012 250);
   --accent-foreground: oklch(0.95 0 0);
   --destructive: oklch(0.65 0.2 25);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 10%);
+  --border: oklch(1 0 0 / 13%);
+  --input: oklch(1 0 0 / 8%);
   --ring: oklch(0.72 0.14 225);
   --chart-1: oklch(0.72 0.14 225);
   --chart-2: oklch(0.65 0.18 250);
   --chart-3: oklch(0.75 0.15 80);
   --chart-4: oklch(0.65 0.22 300);
   --chart-5: oklch(0.70 0.20 30);
-  --sidebar: oklch(0.11 0.005 260);
+  --sidebar: oklch(0.105 0.012 258);
   --sidebar-foreground: oklch(0.95 0 0);
   --sidebar-primary: oklch(0.72 0.14 225);
   --sidebar-primary-foreground: oklch(0.16 0.005 260);
-  --sidebar-accent: oklch(0.20 0.005 260);
+  --sidebar-accent: oklch(0.19 0.012 258);
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(1 0 0 / 12%);
   --sidebar-ring: oklch(0.72 0.14 225);
@@ -126,6 +126,32 @@
   .dot-grid {
     background-image: radial-gradient(oklch(1 0 0 / 8%) 1px, transparent 1px);
     background-size: 24px 24px;
+  }
+
+  .app-shell {
+    background:
+      radial-gradient(circle at 18% 14%, oklch(0.7 0.14 226 / 15%), transparent 28%),
+      radial-gradient(circle at 86% 26%, oklch(0.74 0.11 187 / 13%), transparent 30%),
+      oklch(0.115 0.012 258);
+  }
+
+  .app-noise {
+    background-image: radial-gradient(oklch(1 0 0 / 7%) 0.5px, transparent 0.5px);
+    background-size: 2px 2px;
+    opacity: 0.24;
+    mix-blend-mode: soft-light;
+  }
+
+  .brand-chip {
+    border: 1px solid oklch(0.72 0.14 225 / 32%);
+    background: linear-gradient(135deg, oklch(0.72 0.14 225 / 22%), oklch(0.74 0.12 185 / 12%));
+  }
+
+  .brand-surface {
+    border: 1px solid oklch(1 0 0 / 14%);
+    background: linear-gradient(160deg, oklch(1 0 0 / 6%), oklch(1 0 0 / 2%));
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
   }
 
   .landing-shell {
