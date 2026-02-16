@@ -3,14 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ClipboardList, Mic, Building2, PenTool, LayoutDashboard, Shield, Menu, X } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 
 const menuItems = [
-  { label: "경험 관리", href: "/experiences", icon: "📋" },
-  { label: "경험 인터뷰", href: "/interview", icon: "🎤" },
-  { label: "기업 분석", href: "/analysis", icon: "🏢" },
-  { label: "자소서 코칭", href: "/coaching", icon: "✍️" },
-  { label: "대시보드", href: "/dashboard", icon: "📊" },
+  { label: "경험 관리", href: "/experiences", icon: ClipboardList },
+  { label: "경험 인터뷰", href: "/interview", icon: Mic },
+  { label: "기업 분석", href: "/analysis", icon: Building2 },
+  { label: "자소서 코칭", href: "/coaching", icon: PenTool },
+  { label: "대시보드", href: "/dashboard", icon: LayoutDashboard },
 ];
 
 export function MobileNav() {
@@ -25,16 +26,7 @@ export function MobileNav() {
         className="lg:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
         aria-label="메뉴 열기"
       >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M3 12h18M3 6h18M3 18h18" />
-        </svg>
+        <Menu className="h-5 w-5" />
       </button>
 
       {/* Overlay */}
@@ -57,16 +49,7 @@ export function MobileNav() {
             onClick={() => setOpen(false)}
             className="p-1 text-muted-foreground hover:text-foreground transition-colors"
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
+            <X className="h-5 w-5" />
           </button>
         </div>
 
@@ -84,7 +67,7 @@ export function MobileNav() {
                     : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
                 }`}
               >
-                <span>{item.icon}</span>
+                <item.icon className="h-4 w-4" />
                 {item.label}
               </Link>
             );
@@ -98,7 +81,7 @@ export function MobileNav() {
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-white/[0.04] hover:text-foreground transition-all duration-200"
               >
-                <span>🛡️</span>
+                <Shield className="h-4 w-4" />
                 어드민
               </Link>
             </>
