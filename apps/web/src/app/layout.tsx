@@ -19,8 +19,15 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Colight",
+  title: {
+    default: "Colight",
+    template: "%s | Colight",
+  },
   description: "AI 자소서 코칭 플랫폼",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-icon",
+  },
 };
 
 export default function RootLayout({

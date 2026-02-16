@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ClipboardList, Mic, Building2, PenTool, LayoutDashboard, Shield, Menu, X } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
+import { ColightLogo } from "@/components/common/colight-logo";
 
 const menuItems = [
   { label: "경험 관리", href: "/experiences", icon: ClipboardList },
@@ -15,15 +16,13 @@ const menuItems = [
   { label: "대시보드", href: "/dashboard", icon: LayoutDashboard },
 ];
 
+const emptySubscribe = () => () => {};
+
 export function MobileNav() {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const pathname = usePathname();
   const { user } = useAuthStore();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <>
@@ -52,7 +51,10 @@ export function MobileNav() {
             }`}
           >
             <div className="p-5 border-b border-sidebar-border flex items-center justify-between">
-              <span className="text-xl font-bold text-foreground tracking-tight">Colight</span>
+              <div className="flex items-center gap-2">
+                <ColightLogo size={24} />
+                <span className="text-xl font-bold font-display text-foreground tracking-tight">Colight</span>
+              </div>
               <button
                 onClick={() => setOpen(false)}
                 className="p-1 text-muted-foreground hover:text-foreground transition-colors"

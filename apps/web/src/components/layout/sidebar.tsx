@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ClipboardList, Mic, Building2, PenTool, LayoutDashboard, Shield } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
+import { ColightLogo } from "@/components/common/colight-logo";
 
 const menuItems = [
   { label: "경험 관리", href: "/experiences", icon: ClipboardList },
@@ -20,7 +21,8 @@ export function Sidebar() {
   return (
     <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
       <div className="p-5 border-b border-sidebar-border">
-        <Link href="/experiences" className="text-xl font-bold font-display text-foreground tracking-tight">
+        <Link href="/experiences" className="flex items-center gap-2 text-xl font-bold font-display text-foreground tracking-tight">
+          <ColightLogo size={24} />
           Colight
         </Link>
       </div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ColightLogo } from "@/components/common/colight-logo";
 
 export function LandingFooter() {
   return (
@@ -6,9 +7,7 @@ export function LandingFooter() {
       <div className="mx-auto max-w-6xl px-6">
         <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary">
-              <span className="text-xs font-bold text-primary-foreground">C</span>
-            </div>
+            <ColightLogo size={24} />
             <span className="text-sm font-medium font-display text-foreground">Colight</span>
           </div>
           <div className="flex gap-8">
