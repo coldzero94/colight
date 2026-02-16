@@ -26,8 +26,7 @@ type Config struct {
 	FrontendURL string
 
 	// AI
-	LLMLightProvider string // "gemini" (default) or "groq"
-	GeminiAPIKey     string
+	GeminiAPIKey string
 	GroqAPIKey       string
 	AnthropicAPIKey  string
 	OpenAIAPIKey     string // embeddings only
@@ -44,7 +43,6 @@ func Load() *Config {
 		JWTAccessTokenTTL:  parseDuration("JWT_ACCESS_TOKEN_TTL", 1*time.Hour),
 		JWTRefreshTokenTTL: parseDuration("JWT_REFRESH_TOKEN_TTL", 168*time.Hour),
 		FrontendURL:        getEnv("FRONTEND_URL", "http://localhost:4000"),
-		LLMLightProvider:   getEnv("LLM_LIGHT_PROVIDER", "gemini"),
 		GeminiAPIKey:       getEnv("GEMINI_API_KEY", ""),
 		GroqAPIKey:         getEnv("GROQ_API_KEY", ""),
 		AnthropicAPIKey:    getEnv("ANTHROPIC_API_KEY", ""),

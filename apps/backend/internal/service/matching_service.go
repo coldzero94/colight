@@ -15,13 +15,13 @@ import (
 // MatchingService handles experience-company matching
 type MatchingService struct {
 	entClient    *ent.Client
-	aiProvider   ai.LLMProvider
+	aiProvider   *ai.AIProvider
 	resultCache  map[string]*MatchResult // Key: experienceID_companyName
 	cacheExpiry  map[string]time.Time
 }
 
 // NewMatchingService creates a new matching service
-func NewMatchingService(entClient *ent.Client, aiProvider ai.LLMProvider) *MatchingService {
+func NewMatchingService(entClient *ent.Client, aiProvider *ai.AIProvider) *MatchingService {
 	return &MatchingService{
 		entClient:   entClient,
 		aiProvider:  aiProvider,
@@ -110,7 +110,7 @@ Return JSON with scores (0-100):
 - reasoning: brief explanation
 - suggested_angle: how to position this experience`, experienceText, companyContext)
 
-	resp, err := s.aiProvider.Call(ctx, ai.LLMRequest{
+	resp, err := s.aiProvider.CallByModelName(ctx, "groq", ai.LLMRequest{
 		SystemPrompt: "You are an experience-company matching analyst. Provide objective fit scores.",
 		UserPrompt:   prompt,
 		Temperature:  0.2,

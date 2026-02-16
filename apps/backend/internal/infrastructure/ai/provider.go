@@ -3,125 +3,108 @@ package ai
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/coby/colight/apps/backend/internal/infrastructure/config"
 )
 
-// AIProvider provides access to all AI models (light + heavy + embedding)
+// AIProvider routes AI calls to the correct provider based on model name.
+// Each provider is initialized independently based on API key availability.
 type AIProvider struct {
-	light LLMProvider    // Gemini Flash or Groq (경량 작업)
-	heavy LLMProvider    // Claude Sonnet 4.5 (심층 분석)
-	groq  *GroqProvider  // for CallByModelName routing to any Groq model
-	// embedding will be added later
+	gemini  LLMProvider   // Gemini Flash (optional)
+	claude  LLMProvider   // Claude Sonnet 4.5 (optional)
+	groq    *GroqProvider // Groq multi-model (optional)
+	groqLLM LLMProvider   // test override: routes "groq" calls to this instead of groq field
 }
 
-// NewAIProvider creates a new AI provider based on configuration
+// NewAIProvider creates providers for all available API keys.
 func NewAIProvider(ctx context.Context, cfg *config.Config) (*AIProvider, error) {
-	// 1. Select light provider based on LLM_LIGHT_PROVIDER env var
-	var light LLMProvider
-	var groq *GroqProvider
-	var err error
+	p := &AIProvider{}
 
-	switch cfg.LLMLightProvider {
-	case "groq":
-		if cfg.GroqAPIKey == "" {
-			return nil, fmt.Errorf("GROQ_API_KEY is required when LLM_LIGHT_PROVIDER=groq")
-		}
-		groq = NewGroqProvider(cfg.GroqAPIKey, "")
-		light = groq
-	default: // "gemini"
-		if cfg.GeminiAPIKey == "" {
-			return nil, fmt.Errorf("GEMINI_API_KEY is required when LLM_LIGHT_PROVIDER=gemini")
-		}
-		light, err = NewGeminiProvider(ctx, cfg.GeminiAPIKey)
+	// Gemini (optional)
+	if cfg.GeminiAPIKey != "" {
+		g, err := NewGeminiProvider(ctx, cfg.GeminiAPIKey)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create Gemini provider: %w", err)
-		}
-		// Also initialize Groq if API key is available (for CallByModelName)
-		if cfg.GroqAPIKey != "" {
-			groq = NewGroqProvider(cfg.GroqAPIKey, "")
+			slog.Warn("Gemini provider init failed, skipping", "error", err)
+		} else {
+			p.gemini = g
 		}
 	}
 
-	// 2. Initialize heavy provider (Claude) if API key is available
-	var heavy LLMProvider
+	// Groq (optional)
+	if cfg.GroqAPIKey != "" {
+		p.groq = NewGroqProvider(cfg.GroqAPIKey, "")
+	}
+
+	// Claude (optional)
 	if cfg.AnthropicAPIKey != "" {
-		heavy = NewClaudeProvider(cfg.AnthropicAPIKey)
+		p.claude = NewClaudeProvider(cfg.AnthropicAPIKey)
 	}
 
-	return &AIProvider{
-		light: light,
-		heavy: heavy,
-		groq:  groq,
-	}, nil
+	// At least one provider must be available
+	if p.gemini == nil && p.groq == nil && p.claude == nil {
+		return nil, fmt.Errorf("no AI provider available: set at least one of GEMINI_API_KEY, GROQ_API_KEY, or ANTHROPIC_API_KEY")
+	}
+
+	return p, nil
 }
 
-// CallLight calls the lightweight LLM (Gemini or Groq)
-func (p *AIProvider) CallLight(ctx context.Context, req LLMRequest) (LLMResponse, error) {
-	return p.light.Call(ctx, req)
+// CallByModelName routes to the correct provider based on model name from prompt templates.
+func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req LLMRequest) (LLMResponse, error) {
+	switch modelName {
+	case "claude-sonnet-4-5", "claude-sonnet-4.5", "claude":
+		if p.claude == nil {
+			return LLMResponse{}, fmt.Errorf("Claude not available (missing ANTHROPIC_API_KEY)")
+		}
+		return p.claude.Call(ctx, req)
+
+	case "gemini-2.0-flash", "gemini-flash", "gemini":
+		if p.gemini == nil {
+			return LLMResponse{}, fmt.Errorf("Gemini not available (missing GEMINI_API_KEY)")
+		}
+		return p.gemini.Call(ctx, req)
+
+	case "groq", "llama":
+		if p.groqLLM != nil {
+			return p.groqLLM.Call(ctx, req)
+		}
+		if p.groq == nil {
+			return LLMResponse{}, fmt.Errorf("Groq not available (missing GROQ_API_KEY)")
+		}
+		return p.groq.Call(ctx, req)
+
+	default:
+		// Check if it's a known Groq model alias (e.g. "llama-3.3-70b-versatile")
+		if _, ok := GroqModelAliases[modelName]; ok {
+			if p.groq == nil {
+				return LLMResponse{}, fmt.Errorf("Groq not available for model %s (missing GROQ_API_KEY)", modelName)
+			}
+			return p.groq.CallWithModel(ctx, modelName, req)
+		}
+		return LLMResponse{}, fmt.Errorf("unknown model: %s", modelName)
+	}
 }
 
-// Light returns the lightweight LLM provider for direct use by services
-func (p *AIProvider) Light() LLMProvider {
-	return p.light
+// Claude returns the Claude provider. Returns nil if not configured.
+func (p *AIProvider) Claude() LLMProvider {
+	return p.claude
 }
 
-// Heavy returns the heavy LLM provider (Claude) for direct use
-func (p *AIProvider) Heavy() LLMProvider {
-	return p.heavy
-}
-
-// Groq returns the Groq provider for direct model-specific calls.
-// Returns nil if Groq is not configured.
+// Groq returns the Groq provider. Returns nil if not configured.
 func (p *AIProvider) Groq() *GroqProvider {
 	return p.groq
 }
 
-// CallByModelName calls the appropriate provider based on model name.
-// This allows prompt templates to specify which model to use.
-func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req LLMRequest) (LLMResponse, error) {
-	switch {
-	case modelName == "claude-sonnet-4-5" || modelName == "claude":
-		if p.heavy == nil {
-			return LLMResponse{}, fmt.Errorf("Claude provider not initialized (missing ANTHROPIC_API_KEY)")
-		}
-		return p.heavy.Call(ctx, req)
-
-	case modelName == "gemini-2.0-flash" || modelName == "gemini-flash" || modelName == "gemini":
-		return p.light.Call(ctx, req)
-
-	case modelName == "groq" || modelName == "llama":
-		return p.light.Call(ctx, req)
-
-	default:
-		// Check if it's a known Groq model alias
-		if _, ok := GroqModelAliases[modelName]; ok && p.groq != nil {
-			return p.groq.CallWithModel(ctx, modelName, req)
-		}
-		// Default to light model for unknown models
-		return p.light.Call(ctx, req)
-	}
-}
-
-// HeavyStreaming returns the heavy LLM provider as a StreamingLLMProvider.
-// Returns nil if the heavy provider doesn't support streaming.
-func (p *AIProvider) HeavyStreaming() StreamingLLMProvider {
-	if sp, ok := p.heavy.(StreamingLLMProvider); ok {
+// ClaudeStreaming returns the Claude provider as StreamingLLMProvider.
+// Returns nil if Claude is not configured or doesn't support streaming.
+func (p *AIProvider) ClaudeStreaming() StreamingLLMProvider {
+	if sp, ok := p.claude.(StreamingLLMProvider); ok {
 		return sp
 	}
 	return nil
 }
 
-// CallHeavy calls the heavy model (Claude Sonnet 4.5)
-func (p *AIProvider) CallHeavy(ctx context.Context, req LLMRequest) (LLMResponse, error) {
-	if p.heavy == nil {
-		return LLMResponse{}, fmt.Errorf("heavy model not initialized")
-	}
-	return p.heavy.Call(ctx, req)
-}
-
-// Close closes all AI clients
+// Close closes all AI clients.
 func (p *AIProvider) Close() error {
-	// New Gemini SDK (google.golang.org/genai) doesn't require explicit Close()
 	return nil
 }

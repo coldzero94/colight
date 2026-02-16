@@ -104,14 +104,14 @@ type SaveExperienceResult struct {
 
 // InterviewService handles AI-powered experience interviews.
 type InterviewService struct {
-	aiClient            ai.LLMProvider
-	db                  *ent.Client
+	aiProvider           *ai.AIProvider
+	db                   *ent.Client
 	weaponTaggingService *WeaponTaggingService
 }
 
 // NewInterviewService creates a new interview service.
-func NewInterviewService(aiClient ai.LLMProvider, db *ent.Client, weaponTaggingService *WeaponTaggingService) *InterviewService {
-	return &InterviewService{aiClient: aiClient, db: db, weaponTaggingService: weaponTaggingService}
+func NewInterviewService(aiProvider *ai.AIProvider, db *ent.Client, weaponTaggingService *WeaponTaggingService) *InterviewService {
+	return &InterviewService{aiProvider: aiProvider, db: db, weaponTaggingService: weaponTaggingService}
 }
 
 const interviewSystemPrompt = `당신은 취업 준비생의 경험을 발굴하는 친절한 AI 인터뷰어입니다.
@@ -150,7 +150,7 @@ func (s *InterviewService) GenerateQuestion(ctx context.Context, _ uuid.UUID, in
 		userPrompt = fmt.Sprintf("대화 기록:\n%s\n\n위 대화를 바탕으로 다음 질문을 생성하세요.", history)
 	}
 
-	resp, err := s.aiClient.Call(ctx, ai.LLMRequest{
+	resp, err := s.aiProvider.CallByModelName(ctx, "groq", ai.LLMRequest{
 		SystemPrompt: systemPrompt,
 		UserPrompt:   userPrompt,
 		Temperature:  0.7,
@@ -251,7 +251,7 @@ func (s *InterviewService) ExtractSTAR(ctx context.Context, messages []ChatMessa
 	}
 	history := strings.Join(historyLines, "\n")
 
-	resp, err := s.aiClient.Call(ctx, ai.LLMRequest{
+	resp, err := s.aiProvider.CallByModelName(ctx, "groq", ai.LLMRequest{
 		SystemPrompt: extractSTARPrompt,
 		UserPrompt:   fmt.Sprintf("인터뷰 대화:\n%s\n\n위 대화에서 STAR 구조를 추출하세요.", history),
 		Temperature:  0.3,

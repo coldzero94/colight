@@ -66,7 +66,7 @@ func main() {
 
 	var matchingService *service.MatchingService
 	if aiProvider != nil {
-		matchingService = service.NewMatchingService(db, aiProvider.Light()) // matching hardcodes prompts, uses light model
+		matchingService = service.NewMatchingService(db, aiProvider)
 	}
 
 	var questionService *service.QuestionService
@@ -91,7 +91,7 @@ func main() {
 
 	var interviewService *service.InterviewService
 	if aiProvider != nil {
-		interviewService = service.NewInterviewService(aiProvider.Light(), db, weaponTaggingService)
+		interviewService = service.NewInterviewService(aiProvider, db, weaponTaggingService)
 	}
 
 	editorService := service.NewEditorService(db)

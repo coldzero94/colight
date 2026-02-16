@@ -97,7 +97,7 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 	}
 
 	// 3. Cache miss - generate new analysis with AI
-	if s.aiProvider == nil || s.aiProvider.Heavy() == nil {
+	if s.aiProvider == nil || s.aiProvider.Claude() == nil {
 		return nil, fmt.Errorf("AI provider not available for company analysis")
 	}
 
@@ -165,7 +165,7 @@ Return JSON with:
   "avoid_expressions": []
 }`, companyName, data.BasicInfo.Industry, data.BasicInfo.CEO, newsText)
 
-	resp, err := s.aiProvider.CallHeavy(ctx, ai.LLMRequest{
+	resp, err := s.aiProvider.CallByModelName(ctx, "claude-sonnet-4-5", ai.LLMRequest{
 		SystemPrompt: "You are a Korean company analyst. Analyze the company and provide insights for job seekers.",
 		UserPrompt:   prompt,
 		Temperature:  0.3,

@@ -130,7 +130,7 @@ Return JSON with these fields:
 		raw.CompanyName, raw.Position, raw.Department, raw.Career, raw.Location,
 		raw.MainTasks, raw.Requirements, raw.Preferred, raw.Skills)
 
-	resp, err := ai.CallWithRetry(ctx, s.aiProvider.Light(), ai.LLMRequest{
+	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, "groq", ai.LLMRequest{
 		SystemPrompt: "You are a job posting data extractor. Extract structured information from raw text.",
 		UserPrompt:   prompt,
 		Temperature:  0.2,

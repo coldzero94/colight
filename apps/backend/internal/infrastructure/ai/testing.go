@@ -2,9 +2,14 @@ package ai
 
 import "context"
 
-// NewAIProviderForTest creates an AIProvider with injected LLMProviders for testing.
+// NewAIProviderForTest creates an AIProvider with injected mocks for testing.
+// light handles gemini/groq routes, heavy handles claude routes.
 func NewAIProviderForTest(light, heavy LLMProvider) *AIProvider {
-	return &AIProvider{light: light, heavy: heavy}
+	return &AIProvider{
+		gemini:  light,
+		claude:  heavy,
+		groqLLM: light,
+	}
 }
 
 // MockStreamingProvider is a test double for StreamingLLMProvider.

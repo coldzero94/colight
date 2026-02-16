@@ -47,7 +47,7 @@ func TestLoad_DefaultValues(t *testing.T) {
 
 	cfg := Load()
 
-	assert.Equal(t, "9000", cfg.APIPort)
+	assert.Equal(t, "8000", cfg.APIPort)
 	assert.Equal(t, "postgres://test:test@localhost/test", cfg.DatabaseURL)
 	assert.Equal(t, "test-secret", cfg.JWTSecret)
 	assert.Equal(t, "http://localhost:4000", cfg.FrontendURL)

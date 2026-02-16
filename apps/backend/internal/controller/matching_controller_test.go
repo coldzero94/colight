@@ -64,7 +64,7 @@ func setupMatchingTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
 	aiProvider := ai.NewAIProviderForTest(mockMatchLLM, mockHeavyLLM)
 	companyDataSvc := service.NewCompanyDataService()
 	analysisService := service.NewCompanyAnalysisService(client, aiProvider, companyDataSvc)
-	matchingService := service.NewMatchingService(client, mockMatchLLM)
+	matchingService := service.NewMatchingService(client, aiProvider)
 	matchingCtrl := NewMatchingController(matchingService, analysisService)
 
 	router := gin.New()

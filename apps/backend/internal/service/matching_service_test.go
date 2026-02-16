@@ -65,7 +65,7 @@ func TestMatchExperience_ReturnsThreeCategoryScores(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	service := NewMatchingService(client, mockAI)
+	service := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 
 	// Create test user
 	user := client.UserProfile.Create().
@@ -126,7 +126,7 @@ func TestMatchExperience_ReasoningNotEmpty(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	service := NewMatchingService(client, mockAI)
+	service := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 
 	user := client.UserProfile.Create().
 		SetEmail("match-test2@example.com").
@@ -157,7 +157,7 @@ func TestMatchExperience_ReasoningNotEmpty(t *testing.T) {
 func TestMatchExperience_Forbidden(t *testing.T) {
 	mockAI := &MockLLMForMatching{}
 	client := testutil.NewTestClient(t)
-	service := NewMatchingService(client, mockAI)
+	service := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 
 	owner := client.UserProfile.Create().
 		SetEmail("owner@example.com").
@@ -232,7 +232,7 @@ func TestMatchExperience_HighRelevance_ScoreAbove70(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 	userID, expID := createTestUserAndExperience(t, client, "high-rel")
 
 	result, err := svc.MatchExperience(context.Background(), userID, expID, &CompanyAnalysis{
@@ -260,7 +260,7 @@ func TestMatchExperience_LowRelevance_ScoreBelow30(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 	userID, expID := createTestUserAndExperience(t, client, "low-rel")
 
 	result, err := svc.MatchExperience(context.Background(), userID, expID, &CompanyAnalysis{
@@ -286,7 +286,7 @@ func TestMatchAllExperiences_BatchProcessing(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 
 	user := client.UserProfile.Create().
 		SetEmail("batch-test@example.com").
@@ -330,7 +330,7 @@ func TestMatchExperience_SchemaValidation(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 	userID, expID := createTestUserAndExperience(t, client, "schema-val")
 
 	_, err := svc.MatchExperience(context.Background(), userID, expID, &CompanyAnalysis{CompanyName: "Test"})
@@ -355,7 +355,7 @@ func TestMatchExperience_MockAIClient(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 	userID, expID := createTestUserAndExperience(t, client, "mock-ai")
 
 	result, err := svc.MatchExperience(context.Background(), userID, expID, &CompanyAnalysis{CompanyName: "MockTest"})
@@ -369,7 +369,7 @@ func TestMatchExperience_MockAIClient(t *testing.T) {
 func TestMatchAllExperiences_NoExperiences(t *testing.T) {
 	mockAI := &MockLLMForMatching{}
 	client := testutil.NewTestClient(t)
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 
 	user := client.UserProfile.Create().
 		SetEmail("no-exp@example.com").
@@ -389,7 +389,7 @@ func TestMatchExperience_AIFailure(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 	userID, expID := createTestUserAndExperience(t, client, "ai-fail")
 
 	_, err := svc.MatchExperience(context.Background(), userID, expID, &CompanyAnalysis{CompanyName: "Test"})
@@ -413,7 +413,7 @@ func TestMatchExperience_InvalidScore(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 	userID, expID := createTestUserAndExperience(t, client, "invalid-score")
 
 	_, err := svc.MatchExperience(context.Background(), userID, expID, &CompanyAnalysis{CompanyName: "Test"})
@@ -427,7 +427,7 @@ func TestMatchExperience_InvalidScore(t *testing.T) {
 func TestCheckMatchingOutdated_ExperienceAdded(t *testing.T) {
 	client := testutil.NewTestClient(t)
 	mockAI := &MockLLMForMatching{}
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 
 	user := client.UserProfile.Create().
 		SetEmail("outdated-add@example.com").
@@ -460,7 +460,7 @@ func TestCheckMatchingOutdated_ExperienceAdded(t *testing.T) {
 func TestCheckMatchingOutdated_ExperienceModified(t *testing.T) {
 	client := testutil.NewTestClient(t)
 	mockAI := &MockLLMForMatching{}
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 
 	user := client.UserProfile.Create().
 		SetEmail("outdated-mod@example.com").
@@ -498,7 +498,7 @@ func TestCheckMatchingOutdated_ExperienceModified(t *testing.T) {
 func TestCheckMatchingOutdated_ExperienceDeleted(t *testing.T) {
 	client := testutil.NewTestClient(t)
 	mockAI := &MockLLMForMatching{}
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 
 	user := client.UserProfile.Create().
 		SetEmail("outdated-del@example.com").
@@ -532,7 +532,7 @@ func TestCheckMatchingOutdated_ExperienceDeleted(t *testing.T) {
 func TestCheckMatchingOutdated_SevenDaysExpired(t *testing.T) {
 	client := testutil.NewTestClient(t)
 	mockAI := &MockLLMForMatching{}
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 
 	user := client.UserProfile.Create().
 		SetEmail("outdated-7d@example.com").
@@ -567,7 +567,7 @@ func TestCheckMatchingOutdated_SevenDaysExpired(t *testing.T) {
 func TestCheckMatchingOutdated_Fresh(t *testing.T) {
 	client := testutil.NewTestClient(t)
 	mockAI := &MockLLMForMatching{}
-	svc := NewMatchingService(client, mockAI)
+	svc := NewMatchingService(client, ai.NewAIProviderForTest(mockAI, nil))
 
 	user := client.UserProfile.Create().
 		SetEmail("outdated-fresh@example.com").

@@ -181,7 +181,7 @@ func (s *CoachingService) GenerateDraftStream(
 		return ai.LLMResponse{}, err
 	}
 
-	streaming := s.aiProvider.HeavyStreaming()
+	streaming := s.aiProvider.ClaudeStreaming()
 	if streaming == nil {
 		return ai.LLMResponse{}, fmt.Errorf("streaming provider not available")
 	}

@@ -9,67 +9,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewAIProvider_GeminiDefault(t *testing.T) {
+func TestNewAIProvider_GroqOnly(t *testing.T) {
 	cfg := &config.Config{
-		LLMLightProvider: "gemini",
-		GeminiAPIKey:     "test-key",
+		GroqAPIKey: "test-groq-key",
 	}
 
 	provider, err := NewAIProvider(context.Background(), cfg)
 	require.NoError(t, err)
 	assert.NotNil(t, provider)
-	assert.NotNil(t, provider.Light())
+	assert.NotNil(t, provider.Groq())
 }
 
-func TestNewAIProvider_GeminiMissingKey(t *testing.T) {
-	cfg := &config.Config{
-		LLMLightProvider: "gemini",
-		GeminiAPIKey:     "",
-	}
+func TestNewAIProvider_NoKeysReturnsError(t *testing.T) {
+	cfg := &config.Config{}
 
 	_, err := NewAIProvider(context.Background(), cfg)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "GEMINI_API_KEY is required")
-}
-
-func TestNewAIProvider_GroqProvider(t *testing.T) {
-	cfg := &config.Config{
-		LLMLightProvider: "groq",
-		GroqAPIKey:       "test-groq-key",
-	}
-
-	provider, err := NewAIProvider(context.Background(), cfg)
-	require.NoError(t, err)
-	assert.NotNil(t, provider)
-	assert.NotNil(t, provider.Light())
-}
-
-func TestNewAIProvider_GroqMissingKey(t *testing.T) {
-	cfg := &config.Config{
-		LLMLightProvider: "groq",
-		GroqAPIKey:       "",
-	}
-
-	_, err := NewAIProvider(context.Background(), cfg)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "GROQ_API_KEY is required")
-}
-
-func TestNewAIProvider_EmptyProviderDefaultsToGemini(t *testing.T) {
-	cfg := &config.Config{
-		LLMLightProvider: "",
-		GeminiAPIKey:     "test-key",
-	}
-
-	provider, err := NewAIProvider(context.Background(), cfg)
-	require.NoError(t, err)
-	assert.NotNil(t, provider)
+	assert.Contains(t, err.Error(), "no AI provider available")
 }
 
 func TestAIProvider_Close(t *testing.T) {
 	cfg := &config.Config{
-		LLMLightProvider: "groq",
-		GroqAPIKey:       "test-key",
+		GroqAPIKey: "test-key",
 	}
 
 	provider, err := NewAIProvider(context.Background(), cfg)
@@ -79,14 +40,37 @@ func TestAIProvider_Close(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestAIProvider_CallLight(t *testing.T) {
-	// Create provider with Groq (doesn't need external connection at creation)
-	cfg := &config.Config{
-		LLMLightProvider: "groq",
-		GroqAPIKey:       "test-key",
+func TestAIProvider_CallByModelName_GroqRoute(t *testing.T) {
+	mock := &MockStreamingProvider{
+		Response: LLMResponse{Content: "test"},
 	}
+	provider := NewAIProviderForTest(mock, nil)
 
-	provider, err := NewAIProvider(context.Background(), cfg)
+	resp, err := provider.CallByModelName(context.Background(), "groq", LLMRequest{
+		UserPrompt: "hello",
+	})
 	require.NoError(t, err)
-	assert.NotNil(t, provider.Light())
+	assert.Equal(t, "test", resp.Content)
+}
+
+func TestAIProvider_CallByModelName_ClaudeMissing(t *testing.T) {
+	mock := &MockStreamingProvider{}
+	provider := NewAIProviderForTest(mock, nil)
+
+	_, err := provider.CallByModelName(context.Background(), "claude-sonnet-4-5", LLMRequest{})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Claude not available")
+}
+
+func TestAIProvider_CallByModelName_GeminiRoute(t *testing.T) {
+	mock := &MockStreamingProvider{
+		Response: LLMResponse{Content: "gemini-response"},
+	}
+	provider := NewAIProviderForTest(mock, nil)
+
+	resp, err := provider.CallByModelName(context.Background(), "gemini-2.0-flash", LLMRequest{
+		UserPrompt: "hello",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "gemini-response", resp.Content)
 }
