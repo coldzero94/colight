@@ -41,14 +41,16 @@ export function JobUrlInput({ onSubmit, isLoading, error }: JobUrlInputProps) {
           <input
             {...register("url")}
             type="text"
-            placeholder="채용공고 URL을 입력하세요 (예: https://www.jobkorea.co.kr/...)"
+            placeholder="채용공고 URL을 입력하세요"
             className="brand-input w-full rounded-xl px-4 py-3 text-sm"
             onChange={(e) => setUrl(e.target.value)}
             disabled={isLoading}
           />
           {domainInfo && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <DomainBadge domain={domainInfo.domain} label={domainInfo.label} />
+              <span className="inline-flex items-center rounded-full border border-primary/35 bg-primary/15 px-2 py-1 text-xs font-medium text-primary">
+                {domainInfo.label}
+              </span>
             </div>
           )}
         </div>
@@ -56,11 +58,6 @@ export function JobUrlInput({ onSubmit, isLoading, error }: JobUrlInputProps) {
           <p className="text-xs text-red-400">{errors.url.message}</p>
         )}
         {error && <p className="text-xs text-red-500">{error}</p>}
-        {domainInfo && !domainInfo.supported && (
-          <p className="text-xs text-amber-400">
-            {domainInfo.label}는 현재 지원 예정입니다. AI 자동 분석으로 처리됩니다.
-          </p>
-        )}
       </div>
 
       <button
@@ -71,30 +68,5 @@ export function JobUrlInput({ onSubmit, isLoading, error }: JobUrlInputProps) {
         {isLoading ? "분석 중..." : "분석 시작"}
       </button>
     </form>
-  );
-}
-
-interface DomainBadgeProps {
-  domain: string;
-  label: string;
-}
-
-function DomainBadge({ domain, label }: DomainBadgeProps) {
-  const colors = {
-    jobkorea: "border-blue-400/30 bg-blue-500/12 text-blue-300",
-    catch: "border-primary/35 bg-primary/15 text-primary",
-    wanted: "border-indigo-400/30 bg-indigo-500/14 text-indigo-300",
-    saramin: "border-red-400/30 bg-red-500/12 text-red-300",
-    unknown: "border-white/12 bg-white/[0.06] text-foreground/80",
-  };
-
-  const colorClass = colors[domain as keyof typeof colors] || colors.unknown;
-
-  return (
-    <span
-      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${colorClass}`}
-    >
-      {label}
-    </span>
   );
 }

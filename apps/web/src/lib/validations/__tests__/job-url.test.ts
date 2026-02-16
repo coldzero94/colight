@@ -29,46 +29,53 @@ describe("JobUrlSchema", () => {
 describe("detectDomain", () => {
   it("detects jobkorea domain", () => {
     const info = detectDomain("https://www.jobkorea.co.kr/Recruit/GI_Read/12345");
-    expect(info.domain).toBe("jobkorea");
-    expect(info.label).toBe("잡코리아");
-    expect(info.supported).toBe(true);
-    expect(info.method).toBe("goquery");
+    expect(info).not.toBeNull();
+    expect(info!.domain).toBe("jobkorea");
+    expect(info!.label).toBe("잡코리아");
   });
 
   it("detects catch domain", () => {
     const info = detectDomain("https://www.catch.co.kr/NCS/RecruitInfoDetail/12345");
-    expect(info.domain).toBe("catch");
-    expect(info.label).toBe("캐치");
-    expect(info.supported).toBe(true);
-    expect(info.method).toBe("goquery");
+    expect(info).not.toBeNull();
+    expect(info!.domain).toBe("catch");
+    expect(info!.label).toBe("캐치");
   });
 
-  it("detects wanted domain as unsupported", () => {
+  it("detects wanted domain", () => {
     const info = detectDomain("https://www.wanted.co.kr/wd/12345");
-    expect(info.domain).toBe("wanted");
-    expect(info.label).toBe("원티드");
-    expect(info.supported).toBe(false);
-    expect(info.method).toBe("playwright");
+    expect(info).not.toBeNull();
+    expect(info!.domain).toBe("wanted");
+    expect(info!.label).toBe("원티드");
   });
 
-  it("detects saramin domain as unsupported", () => {
+  it("detects saramin domain", () => {
     const info = detectDomain("https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=12345");
-    expect(info.domain).toBe("saramin");
-    expect(info.label).toBe("사람인");
-    expect(info.supported).toBe(false);
-    expect(info.method).toBe("api");
+    expect(info).not.toBeNull();
+    expect(info!.domain).toBe("saramin");
+    expect(info!.label).toBe("사람인");
   });
 
-  it("returns unknown for unsupported domains", () => {
+  it("detects programmers domain", () => {
+    const info = detectDomain("https://career.programmers.co.kr/job_positions/12345");
+    expect(info).not.toBeNull();
+    expect(info!.domain).toBe("programmers");
+    expect(info!.label).toBe("프로그래머스");
+  });
+
+  it("detects linkedin domain", () => {
+    const info = detectDomain("https://www.linkedin.com/jobs/view/12345");
+    expect(info).not.toBeNull();
+    expect(info!.domain).toBe("linkedin");
+    expect(info!.label).toBe("LinkedIn");
+  });
+
+  it("returns null for unknown domains", () => {
     const info = detectDomain("https://www.example.com/job/12345");
-    expect(info.domain).toBe("unknown");
-    expect(info.label).toBe("기타");
-    expect(info.supported).toBe(false);
-    expect(info.method).toBe("ai-fallback");
+    expect(info).toBeNull();
   });
 
   it("handles invalid URL gracefully", () => {
     const info = detectDomain("not-a-url");
-    expect(info.domain).toBe("unknown");
+    expect(info).toBeNull();
   });
 });

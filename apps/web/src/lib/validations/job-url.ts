@@ -7,72 +7,39 @@ export const jobUrlSchema = z.object({
 
 export type JobUrlFormValues = z.infer<typeof jobUrlSchema>;
 
-// Supported job posting domains
-export type SupportedDomain = "jobkorea" | "catch" | "wanted" | "saramin";
-
 export interface DomainInfo {
-  domain: SupportedDomain | "unknown";
+  domain: string;
   label: string;
-  supported: boolean;
-  method: "goquery" | "playwright" | "api" | "ai-fallback";
 }
 
-// Domain detection map
+// Domain detection map — all domains are supported via universal crawling pipeline
 const DOMAIN_MAP: Record<string, DomainInfo> = {
-  "jobkorea.co.kr": {
-    domain: "jobkorea",
-    label: "잡코리아",
-    supported: true,
-    method: "goquery",
-  },
-  "catch.co.kr": {
-    domain: "catch",
-    label: "캐치",
-    supported: true,
-    method: "goquery",
-  },
-  "wanted.co.kr": {
-    domain: "wanted",
-    label: "원티드",
-    supported: false,
-    method: "playwright",
-  },
-  "saramin.co.kr": {
-    domain: "saramin",
-    label: "사람인",
-    supported: false,
-    method: "api",
-  },
+  "jobkorea.co.kr": { domain: "jobkorea", label: "잡코리아" },
+  "catch.co.kr": { domain: "catch", label: "캐치" },
+  "wanted.co.kr": { domain: "wanted", label: "원티드" },
+  "saramin.co.kr": { domain: "saramin", label: "사람인" },
+  "programmers.co.kr": { domain: "programmers", label: "프로그래머스" },
+  "jumpit.saramin.co.kr": { domain: "jumpit", label: "점핏" },
+  "rocketpunch.com": { domain: "rocketpunch", label: "로켓펀치" },
+  "linkedin.com": { domain: "linkedin", label: "LinkedIn" },
 };
 
 /**
  * Detects the job posting domain from a URL
  */
-export function detectDomain(url: string): DomainInfo {
+export function detectDomain(url: string): DomainInfo | null {
   try {
     const urlObj = new URL(url);
     const hostname = urlObj.hostname;
 
-    // Check each domain pattern
     for (const [pattern, info] of Object.entries(DOMAIN_MAP)) {
       if (hostname.includes(pattern)) {
         return info;
       }
     }
 
-    // Unknown domain
-    return {
-      domain: "unknown",
-      label: "기타",
-      supported: false,
-      method: "ai-fallback",
-    };
+    return null;
   } catch {
-    return {
-      domain: "unknown",
-      label: "기타",
-      supported: false,
-      method: "ai-fallback",
-    };
+    return null;
   }
 }

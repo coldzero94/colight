@@ -28,6 +28,30 @@ describe("JobUrlInput", () => {
     expect(screen.getByText("캐치")).toBeInTheDocument();
   });
 
+  it("renders domain badge for wanted URL", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+
+    render(<JobUrlInput onSubmit={onSubmit} isLoading={false} />);
+
+    const input = screen.getByPlaceholderText(/URL을 입력/i);
+    await user.type(input, "https://www.wanted.co.kr/wd/12345");
+
+    expect(screen.getByText("원티드")).toBeInTheDocument();
+  });
+
+  it("shows no badge for unknown domain", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+
+    render(<JobUrlInput onSubmit={onSubmit} isLoading={false} />);
+
+    const input = screen.getByPlaceholderText(/URL을 입력/i);
+    await user.type(input, "https://www.example.com/job/12345");
+
+    expect(screen.queryByText("기타")).not.toBeInTheDocument();
+  });
+
   it("shows error for invalid URL", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
@@ -44,19 +68,6 @@ describe("JobUrlInput", () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it("shows unsupported domain message", async () => {
-    const user = userEvent.setup();
-    const onSubmit = vi.fn();
-
-    render(<JobUrlInput onSubmit={onSubmit} isLoading={false} />);
-
-    const input = screen.getByPlaceholderText(/URL을 입력/i);
-    await user.type(input, "https://www.wanted.co.kr/wd/12345");
-
-    expect(screen.getByText("원티드")).toBeInTheDocument();
-    expect(screen.getByText(/지원 예정/i)).toBeInTheDocument();
-  });
-
   it("shows validation error for empty submission", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
@@ -71,7 +82,6 @@ describe("JobUrlInput", () => {
   });
 
   it("shows loading state when submitting", async () => {
-    const user = userEvent.setup();
     const onSubmit = vi.fn();
 
     render(<JobUrlInput onSubmit={onSubmit} isLoading={true} />);

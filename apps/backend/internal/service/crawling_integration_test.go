@@ -104,7 +104,7 @@ func TestCrawlJobPosting_Manual(t *testing.T) {
 
 	mockLLM := &MockLLMForCrawling{}
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	service := NewCrawlingService(aiProvider)
+	svc := NewCrawlingService(aiProvider)
 
 	urls := []string{
 		"https://www.jobkorea.co.kr/Recruit/GI_Read/45942867",
@@ -114,7 +114,7 @@ func TestCrawlJobPosting_Manual(t *testing.T) {
 	for _, url := range urls {
 		t.Logf("\n=== Testing URL: %s ===", url)
 
-		html, err := service.fetchHTML(url)
+		html, err := svc.htmlFetcher.FetchHTML(url)
 		if err != nil {
 			t.Logf("Fetch error: %v", err)
 			continue
@@ -124,9 +124,9 @@ func TestCrawlJobPosting_Manual(t *testing.T) {
 
 		var rawPosting interface{}
 		if containsDomain(url, "jobkorea") {
-			rawPosting, err = service.jobkoreaParser.ParseHTML(url, html)
+			rawPosting, err = svc.jobkoreaParser.ParseHTML(url, html)
 		} else if containsDomain(url, "catch") {
-			rawPosting, err = service.catchParser.ParseHTML(url, html)
+			rawPosting, err = svc.catchParser.ParseHTML(url, html)
 		}
 
 		if err != nil {

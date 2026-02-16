@@ -24,6 +24,16 @@ func (m *MockLLMForCrawling) Call(ctx context.Context, req ai.LLMRequest) (ai.LL
 	return m.response, m.err
 }
 
+// MockHTMLFetcher mocks HTML fetching for tests
+type MockHTMLFetcher struct {
+	html string
+	err  error
+}
+
+func (m *MockHTMLFetcher) FetchHTML(url string) (string, error) {
+	return m.html, m.err
+}
+
 func TestNormalizeWithAI_Success(t *testing.T) {
 	mockLLM := &MockLLMForCrawling{
 		response: ai.LLMResponse{
@@ -199,4 +209,199 @@ func TestCrawlJobPosting_DomainRouting(t *testing.T) {
 	var parsed crawler.JobPosting
 	require.NoError(t, json.Unmarshal(data, &parsed))
 	assert.Equal(t, "테스트", parsed.CompanyName)
+}
+
+// === New tests for 3-tier crawling pipeline ===
+
+func TestExtractJobPostingFromMarkdown_Success(t *testing.T) {
+	mockLLM := &MockLLMForCrawling{
+		response: ai.LLMResponse{
+			Content: `{
+				"company_name": "네이버",
+				"position": "프론트엔드 개발자",
+				"department": "서비스개발팀",
+				"job_type": "정규직",
+				"experience_level": "5년 이상",
+				"main_tasks": ["웹 서비스 개발", "UI/UX 개선"],
+				"requirements": ["React 경험 3년+", "TypeScript"],
+				"preferred": ["Next.js", "성능 최적화 경험"],
+				"required_skills": ["React", "TypeScript", "JavaScript"],
+				"soft_skills": ["소통", "협업"],
+				"company_values_hints": ["기술 혁신", "사용자 중심"],
+				"deadline": "2026-04-30"
+			}`,
+		},
+	}
+
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingService(aiProvider)
+
+	markdown := `# 프론트엔드 개발자 채용
+
+## 담당업무
+- 웹 서비스 개발
+- UI/UX 개선
+
+## 자격요건
+- React 경험 3년 이상
+- TypeScript 필수
+
+## 우대사항
+- Next.js 경험
+- 성능 최적화 경험`
+
+	result, err := svc.extractJobPostingFromMarkdown(context.Background(), "https://example.com/job/1", markdown)
+	require.NoError(t, err)
+	assert.Equal(t, "네이버", result.CompanyName)
+	assert.Equal(t, "프론트엔드 개발자", result.Position)
+	assert.Len(t, result.MainTasks, 2)
+	assert.Contains(t, result.RequiredSkills, "React")
+}
+
+func TestExtractJobPostingFromHTML_Success(t *testing.T) {
+	mockLLM := &MockLLMForCrawling{
+		response: ai.LLMResponse{
+			Content: `{
+				"company_name": "카카오",
+				"position": "서버 엔지니어",
+				"job_type": "정규직",
+				"main_tasks": ["서버 개발"],
+				"requirements": ["Java 경험"],
+				"required_skills": ["Java", "Spring"]
+			}`,
+		},
+	}
+
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingService(aiProvider)
+
+	html := `<html><body><div>서버 엔지니어 채용</div></body></html>`
+
+	result, err := svc.extractJobPostingFromHTML(context.Background(), "https://example.com/job/2", html)
+	require.NoError(t, err)
+	assert.Equal(t, "카카오", result.CompanyName)
+	assert.Equal(t, "서버 엔지니어", result.Position)
+	assert.Contains(t, result.RequiredSkills, "Java")
+}
+
+func TestCrawlJobPosting_UnknownDomain_UsesMarkdownPath(t *testing.T) {
+	jobPostingHTML := `<html><head><title>채용</title></head><body>
+		<article>
+			<h1>데이터 엔지니어</h1>
+			<p>데이터 파이프라인을 설계하고 구축하는 업무를 담당합니다.</p>
+			<h2>자격요건</h2>
+			<ul><li>Python 경험 3년 이상</li><li>Spark/Hadoop 경험</li></ul>
+		</article>
+	</body></html>`
+
+	mockFetcher := &MockHTMLFetcher{html: jobPostingHTML}
+	mockLLM := &MockLLMForCrawling{
+		response: ai.LLMResponse{
+			Content: `{
+				"company_name": "라인",
+				"position": "데이터 엔지니어",
+				"main_tasks": ["데이터 파이프라인 설계"],
+				"requirements": ["Python 3년+"],
+				"required_skills": ["Python", "Spark"]
+			}`,
+		},
+	}
+
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingServiceWithFetcher(aiProvider, mockFetcher)
+
+	result, err := svc.CrawlJobPosting(context.Background(), "https://www.wanted.co.kr/wd/12345")
+	require.NoError(t, err)
+	assert.Equal(t, "라인", result.CompanyName)
+	assert.Equal(t, "데이터 엔지니어", result.Position)
+	assert.Equal(t, 1, mockLLM.calls, "should call LLM once for markdown extraction")
+}
+
+func TestCrawlJobPosting_JobKorea_StillUsesFastPath(t *testing.T) {
+	// JobKorea HTML that the CSS parser can handle
+	// We use a minimal HTML that will fail CSS parsing, triggering normalizeWithAI
+	// The point is: containsDomain routes correctly
+	jobkoreaHTML := `<html><body>
+		<div class="tbCol"><h3>테스트 회사</h3></div>
+		<h3>백엔드 개발자</h3>
+	</body></html>`
+
+	mockFetcher := &MockHTMLFetcher{html: jobkoreaHTML}
+	mockLLM := &MockLLMForCrawling{
+		response: ai.LLMResponse{
+			Content: `{
+				"company_name": "테스트 회사",
+				"position": "백엔드 개발자",
+				"main_tasks": ["개발"],
+				"requirements": ["경력"]
+			}`,
+		},
+	}
+
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingServiceWithFetcher(aiProvider, mockFetcher)
+
+	result, err := svc.CrawlJobPosting(context.Background(), "https://www.jobkorea.co.kr/Recruit/GI_Read/12345")
+	require.NoError(t, err)
+	assert.Equal(t, "테스트 회사", result.CompanyName)
+}
+
+func TestCrawlJobPosting_FallbackToHTML_WhenMarkdownTooShort(t *testing.T) {
+	// HTML that produces very short readability output (< MinMarkdownLength)
+	shortHTML := `<html><body><p>Hi</p></body></html>`
+
+	mockFetcher := &MockHTMLFetcher{html: shortHTML}
+	mockLLM := &MockLLMForCrawling{
+		response: ai.LLMResponse{
+			Content: `{
+				"company_name": "Unknown",
+				"position": "Developer",
+				"main_tasks": ["Develop"]
+			}`,
+		},
+	}
+
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingServiceWithFetcher(aiProvider, mockFetcher)
+
+	result, err := svc.CrawlJobPosting(context.Background(), "https://example.com/job/1")
+	require.NoError(t, err)
+	assert.Equal(t, "Unknown", result.CompanyName)
+	// Should have used HTML fallback path since markdown was too short
+	assert.Equal(t, 1, mockLLM.calls)
+}
+
+func TestCrawlJobPosting_FetchError(t *testing.T) {
+	mockFetcher := &MockHTMLFetcher{err: fmt.Errorf("connection refused")}
+	mockLLM := &MockLLMForCrawling{}
+
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingServiceWithFetcher(aiProvider, mockFetcher)
+
+	_, err := svc.CrawlJobPosting(context.Background(), "https://example.com/job/1")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to fetch HTML")
+	assert.Equal(t, 0, mockLLM.calls, "should not call LLM when fetch fails")
+}
+
+func TestTruncateString(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		maxLen   int
+		expected int // expected length
+	}{
+		{"short string", "hello", 10, 5},
+		{"exact length", "hello", 5, 5},
+		{"needs truncation", "hello world", 5, 5},
+		{"empty string", "", 10, 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := truncateString(tt.input, tt.maxLen)
+			assert.LessOrEqual(t, len(result), tt.maxLen)
+			assert.Equal(t, tt.expected, len(result))
+		})
+	}
 }
