@@ -27,7 +27,7 @@ func NewAIProvider(ctx context.Context, cfg *config.Config) (*AIProvider, error)
 		if cfg.GroqAPIKey == "" {
 			return nil, fmt.Errorf("GROQ_API_KEY is required when LLM_LIGHT_PROVIDER=groq")
 		}
-		groq = NewGroqProvider(cfg.GroqAPIKey, cfg.GroqModel)
+		groq = NewGroqProvider(cfg.GroqAPIKey, "")
 		light = groq
 	default: // "gemini"
 		if cfg.GeminiAPIKey == "" {
@@ -39,7 +39,7 @@ func NewAIProvider(ctx context.Context, cfg *config.Config) (*AIProvider, error)
 		}
 		// Also initialize Groq if API key is available (for CallByModelName)
 		if cfg.GroqAPIKey != "" {
-			groq = NewGroqProvider(cfg.GroqAPIKey, cfg.GroqModel)
+			groq = NewGroqProvider(cfg.GroqAPIKey, "")
 		}
 	}
 
