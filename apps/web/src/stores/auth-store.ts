@@ -17,6 +17,7 @@ interface AuthState {
   refreshToken: string | null;
   user: UserInfo | null;
   isLoading: boolean;
+  _hasHydrated: boolean;
 
   setTokens: (access: string, refresh: string) => void;
   fetchUser: () => Promise<void>;
@@ -31,6 +32,7 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       user: null,
       isLoading: false,
+      _hasHydrated: false,
 
       setTokens: (access, refresh) => {
         set({ accessToken: access, refreshToken: refresh });
@@ -79,7 +81,13 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
+        user: state.user,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?._hasHydrated && (state._hasHydrated = true);
+        if (!state) return;
+        state._hasHydrated = true;
+      },
     }
   )
 );
