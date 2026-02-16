@@ -25,7 +25,7 @@ export default function AnalysisPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">기업 분석</h1>
+        <h1 className="text-3xl font-bold font-display text-foreground">기업 분석</h1>
         <p className="mt-2 text-muted-foreground">
           채용공고 URL을 입력하면 AI가 기업을 자동 분석합니다.
         </p>

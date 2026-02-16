@@ -46,7 +46,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-foreground">대시보드</h1>
+      <h1 className="text-2xl font-bold font-display text-foreground">대시보드</h1>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {statCards.map((card) => (

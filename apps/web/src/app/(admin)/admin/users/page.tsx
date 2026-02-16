@@ -94,7 +94,7 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">사용자 관리</h1>
+        <h1 className="text-2xl font-bold font-display text-foreground">사용자 관리</h1>
         <p className="text-sm text-muted-foreground">총 {total}명</p>
       </div>
 

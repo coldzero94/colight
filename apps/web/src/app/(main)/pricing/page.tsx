@@ -74,7 +74,7 @@ export default function PricingPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="mb-10 text-center">
-        <h1 className="text-2xl font-bold">플랜 및 가격</h1>
+        <h1 className="text-2xl font-bold font-display">플랜 및 가격</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           나에게 맞는 플랜을 선택하세요
         </p>

@@ -48,7 +48,7 @@ export default function NewExperiencePage() {
         >
           ← 경험 목록
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-foreground">경험 등록</h1>
+        <h1 className="mt-2 text-2xl font-bold font-display text-foreground">경험 등록</h1>
       </div>
       <ExperienceForm
         mode="create"

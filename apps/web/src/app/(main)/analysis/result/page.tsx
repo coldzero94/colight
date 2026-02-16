@@ -110,7 +110,7 @@ export default function AnalysisResultPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">
+            <h1 className="text-3xl font-bold font-display text-foreground">
               {analysis.company_name}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">

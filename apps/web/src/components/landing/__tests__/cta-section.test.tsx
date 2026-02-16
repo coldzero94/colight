@@ -28,7 +28,7 @@ describe("CTASection", () => {
   it("renders description text", () => {
     render(<CTASection />);
     expect(
-      screen.getByText("경험 3건, 일 1회 분석·코칭 무료 제공")
+      screen.getByText(/경험 3건, 일 1회 분석·코칭 무료 제공/)
     ).toBeInTheDocument();
   });
 
@@ -39,14 +39,9 @@ describe("CTASection", () => {
     expect(signupLink).toHaveAttribute("href", "/signup");
   });
 
-  it("renders button text with arrow icon", () => {
+  it("renders trust signals", () => {
     render(<CTASection />);
-    expect(screen.getByText("무료 회원가입")).toBeInTheDocument();
-  });
-
-  it("has border-t section styling", () => {
-    const { container } = render(<CTASection />);
-    const section = container.querySelector("section");
-    expect(section).toHaveClass("border-t");
+    expect(screen.getByText("설치 불필요")).toBeInTheDocument();
+    expect(screen.getByText("3분 안에 첫 코칭")).toBeInTheDocument();
   });
 });

@@ -37,7 +37,7 @@ describe("LandingClient", () => {
 
     expect(mockReplace).not.toHaveBeenCalled();
     expect(screen.getByText(/AI 코치/)).toBeInTheDocument();
-    expect(screen.getByText("기업 분석")).toBeInTheDocument();
-    expect(screen.getByText("경험 매칭")).toBeInTheDocument();
+    expect(screen.getAllByText("기업 분석").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("이런 걸 할 수 있어요")).toBeInTheDocument();
   });
 });

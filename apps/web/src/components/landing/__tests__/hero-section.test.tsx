@@ -19,4 +19,16 @@ describe("HeroSection", () => {
     const login = screen.getByRole("link", { name: "로그인" });
     expect(login).toHaveAttribute("href", "/login");
   });
+
+  it("renders badge with platform description", () => {
+    render(<HeroSection />);
+    expect(screen.getByText("AI 기반 취업 코칭 플랫폼")).toBeInTheDocument();
+  });
+
+  it("renders product preview mockup", () => {
+    const { container } = render(<HeroSection />);
+    // Product mockup has window-style dots
+    const dots = container.querySelectorAll(".rounded-full.bg-white\\/10");
+    expect(dots.length).toBeGreaterThanOrEqual(3);
+  });
 });

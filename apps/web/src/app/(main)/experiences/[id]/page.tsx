@@ -73,7 +73,7 @@ export default function ExperienceDetailPage() {
               </span>
             )}
           </div>
-          <h1 className="text-2xl font-bold text-foreground">
+          <h1 className="text-2xl font-bold font-display text-foreground">
             {experience.title}
           </h1>
           {experience.role && (

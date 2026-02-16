@@ -63,7 +63,7 @@ export default function SignupPage() {
             type="email"
             autoComplete="email"
             {...register("email")}
-            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.04] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
+            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.06] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
             placeholder="example@email.com"
           />
           {errors.email && (
@@ -83,7 +83,7 @@ export default function SignupPage() {
             type="password"
             autoComplete="new-password"
             {...register("password")}
-            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.04] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
+            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.06] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
             placeholder="영문 + 숫자 조합, 8자 이상"
           />
           {errors.password && (
@@ -105,7 +105,7 @@ export default function SignupPage() {
             type="password"
             autoComplete="new-password"
             {...register("passwordConfirm")}
-            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.04] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
+            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.06] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
             placeholder="비밀번호를 다시 입력해주세요"
           />
           {errors.passwordConfirm && (
@@ -126,7 +126,7 @@ export default function SignupPage() {
             id="nickname"
             type="text"
             {...register("nickname")}
-            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.04] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
+            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.06] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
             placeholder="최대 50자"
           />
           {errors.nickname && (
@@ -141,7 +141,7 @@ export default function SignupPage() {
             id="agreeToTerms"
             type="checkbox"
             {...register("agreeToTerms")}
-            className="mt-1 h-4 w-4 rounded border-border bg-white/[0.04] accent-primary"
+            className="mt-1 h-4 w-4 rounded border-border bg-white/[0.06] accent-primary"
           />
           <label htmlFor="agreeToTerms" className="text-sm text-muted-foreground">
             <Link
@@ -171,7 +171,7 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-primary hover:brightness-110 disabled:opacity-50 text-primary-foreground font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-md shadow-primary/20"
+          className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-md shadow-primary/20"
         >
           {isSubmitting ? "가입 중..." : "회원가입"}
         </button>

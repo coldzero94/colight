@@ -85,7 +85,7 @@ export default function ExperiencesPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">내 경험</h1>
+          <h1 className="text-2xl font-bold font-display text-foreground">내 경험</h1>
         </div>
         <EmptyState
           icon={<span>📋</span>}
@@ -103,7 +103,7 @@ export default function ExperiencesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">내 경험</h1>
+        <h1 className="text-2xl font-bold font-display text-foreground">내 경험</h1>
         <button
           onClick={() => router.push("/experiences/new")}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"

@@ -71,7 +71,7 @@ export default function AdminPromptsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">프롬프트 관리</h1>
+        <h1 className="text-2xl font-bold font-display text-foreground">프롬프트 관리</h1>
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}

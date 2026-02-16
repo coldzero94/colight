@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ClipboardList, Mic, Building2, PenTool, LayoutDashboard, Shield } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 
 const menuItems = [
-  { label: "경험 관리", href: "/experiences", icon: "📋" },
-  { label: "경험 인터뷰", href: "/interview", icon: "🎤" },
-  { label: "기업 분석", href: "/analysis", icon: "🏢" },
-  { label: "자소서 코칭", href: "/coaching", icon: "✍️" },
-  { label: "대시보드", href: "/dashboard", icon: "📊" },
+  { label: "경험 관리", href: "/experiences", icon: ClipboardList },
+  { label: "경험 인터뷰", href: "/interview", icon: Mic },
+  { label: "기업 분석", href: "/analysis", icon: Building2 },
+  { label: "자소서 코칭", href: "/coaching", icon: PenTool },
+  { label: "대시보드", href: "/dashboard", icon: LayoutDashboard },
 ];
 
 export function Sidebar() {
@@ -19,7 +20,7 @@ export function Sidebar() {
   return (
     <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
       <div className="p-5 border-b border-sidebar-border">
-        <Link href="/experiences" className="text-xl font-bold text-foreground tracking-tight">
+        <Link href="/experiences" className="text-xl font-bold font-display text-foreground tracking-tight">
           Colight
         </Link>
       </div>
@@ -33,11 +34,11 @@ export function Sidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                 isActive
-                  ? "bg-primary/10 text-primary font-medium"
+                  ? "bg-primary/10 text-primary font-medium border-l-2 border-primary"
                   : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
               }`}
             >
-              <span>{item.icon}</span>
+              <item.icon className="h-4 w-4" />
               {item.label}
             </Link>
           );
@@ -50,11 +51,11 @@ export function Sidebar() {
               href="/admin"
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                 pathname.startsWith("/admin")
-                  ? "bg-primary/10 text-primary font-medium"
+                  ? "bg-primary/10 text-primary font-medium border-l-2 border-primary"
                   : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
               }`}
             >
-              <span>🛡️</span>
+              <Shield className="h-4 w-4" />
               어드민
             </Link>
           </>

@@ -72,7 +72,7 @@ export default function EditExperiencePage() {
         >
           ← 경험 상세
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-foreground">경험 수정</h1>
+        <h1 className="mt-2 text-2xl font-bold font-display text-foreground">경험 수정</h1>
       </div>
       <ExperienceForm
         mode="edit"

@@ -22,7 +22,7 @@ vi.mock("next/link", () => ({
 describe("LandingHeader", () => {
   it("renders logo", () => {
     render(<LandingHeader />);
-    const logo = screen.getByRole("link", { name: "Colight" });
+    const logo = screen.getByRole("link", { name: /Colight/ });
     expect(logo).toBeInTheDocument();
     expect(logo).toHaveAttribute("href", "/");
   });

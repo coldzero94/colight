@@ -15,20 +15,24 @@ describe("DemoSection", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders placeholder message", () => {
+  it("renders all 5 process steps", () => {
     render(<DemoSection />);
-    expect(screen.getByText("서비스 스크린샷 준비 중")).toBeInTheDocument();
+    expect(screen.getByText("URL 입력")).toBeInTheDocument();
+    expect(screen.getByText("자동 분석")).toBeInTheDocument();
+    expect(screen.getByText("소재 매칭")).toBeInTheDocument();
+    expect(screen.getByText("초안 작성")).toBeInTheDocument();
+    expect(screen.getByText("AI 첨삭")).toBeInTheDocument();
   });
 
-  it("renders monitor icon", () => {
+  it("renders step icons as svg elements", () => {
     const { container } = render(<DemoSection />);
-    const svg = container.querySelector("svg");
-    expect(svg).toBeInTheDocument();
+    const svgs = container.querySelectorAll("svg");
+    expect(svgs.length).toBeGreaterThanOrEqual(5);
   });
 
-  it("has placeholder container with card background", () => {
+  it("has glass container for steps", () => {
     const { container } = render(<DemoSection />);
-    const placeholder = container.querySelector(".bg-card");
-    expect(placeholder).toBeInTheDocument();
+    const glass = container.querySelector(".glass");
+    expect(glass).toBeInTheDocument();
   });
 });

@@ -77,7 +77,7 @@ export default function AdminSettingsPage() {
     <AdminGuard requiredRole="super_admin">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">시스템 설정</h1>
+          <h1 className="text-2xl font-bold font-display text-foreground">시스템 설정</h1>
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
