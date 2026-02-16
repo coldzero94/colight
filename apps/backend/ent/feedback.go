@@ -32,6 +32,14 @@ type Feedback struct {
 	PageURL string `json:"page_url,omitempty"`
 	// Browser user agent string
 	UserAgent string `json:"user_agent,omitempty"`
+	// Admin review status
+	AdminStatus feedback.AdminStatus `json:"admin_status,omitempty"`
+	// Admin note/response
+	AdminNote string `json:"admin_note,omitempty"`
+	// Admin who reviewed
+	ReviewedBy *uuid.UUID `json:"reviewed_by,omitempty"`
+	// When admin reviewed
+	ReviewedAt *time.Time `json:"reviewed_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FeedbackQuery when eager-loading is set.
 	Edges        FeedbackEdges `json:"edges"`
@@ -63,9 +71,11 @@ func (*Feedback) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case feedback.FieldCategory, feedback.FieldContent, feedback.FieldPageURL, feedback.FieldUserAgent:
+		case feedback.FieldReviewedBy:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case feedback.FieldCategory, feedback.FieldContent, feedback.FieldPageURL, feedback.FieldUserAgent, feedback.FieldAdminStatus, feedback.FieldAdminNote:
 			values[i] = new(sql.NullString)
-		case feedback.FieldCreatedAt:
+		case feedback.FieldCreatedAt, feedback.FieldReviewedAt:
 			values[i] = new(sql.NullTime)
 		case feedback.FieldID, feedback.FieldUserID:
 			values[i] = new(uuid.UUID)
@@ -126,6 +136,32 @@ func (_m *Feedback) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.UserAgent = value.String
 			}
+		case feedback.FieldAdminStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field admin_status", values[i])
+			} else if value.Valid {
+				_m.AdminStatus = feedback.AdminStatus(value.String)
+			}
+		case feedback.FieldAdminNote:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field admin_note", values[i])
+			} else if value.Valid {
+				_m.AdminNote = value.String
+			}
+		case feedback.FieldReviewedBy:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field reviewed_by", values[i])
+			} else if value.Valid {
+				_m.ReviewedBy = new(uuid.UUID)
+				*_m.ReviewedBy = *value.S.(*uuid.UUID)
+			}
+		case feedback.FieldReviewedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field reviewed_at", values[i])
+			} else if value.Valid {
+				_m.ReviewedAt = new(time.Time)
+				*_m.ReviewedAt = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -184,6 +220,22 @@ func (_m *Feedback) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("user_agent=")
 	builder.WriteString(_m.UserAgent)
+	builder.WriteString(", ")
+	builder.WriteString("admin_status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AdminStatus))
+	builder.WriteString(", ")
+	builder.WriteString("admin_note=")
+	builder.WriteString(_m.AdminNote)
+	builder.WriteString(", ")
+	if v := _m.ReviewedBy; v != nil {
+		builder.WriteString("reviewed_by=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.ReviewedAt; v != nil {
+		builder.WriteString("reviewed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

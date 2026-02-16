@@ -19,6 +19,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/companyanalysiscache"
 	"github.com/coby/colight/apps/backend/ent/coverletter"
 	"github.com/coby/colight/apps/backend/ent/coverletterversion"
+	"github.com/coby/colight/apps/backend/ent/deletionrequest"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experiencetag"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
@@ -98,6 +99,7 @@ func checkColumn(t, c string) error {
 			companyanalysiscache.Table: companyanalysiscache.ValidColumn,
 			coverletter.Table:          coverletter.ValidColumn,
 			coverletterversion.Table:   coverletterversion.ValidColumn,
+			deletionrequest.Table:      deletionrequest.ValidColumn,
 			experience.Table:           experience.ValidColumn,
 			experiencetag.Table:        experiencetag.ValidColumn,
 			experienceusage.Table:      experienceusage.ValidColumn,

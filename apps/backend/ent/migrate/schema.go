@@ -311,6 +311,43 @@ var (
 			},
 		},
 	}
+	// DeletionRequestsColumns holds the columns for the "deletion_requests" table.
+	DeletionRequestsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "scheduled_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "cancelled", "completed"}, Default: "pending"},
+		{Name: "requested_by", Type: field.TypeUUID},
+		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// DeletionRequestsTable holds the schema information for the "deletion_requests" table.
+	DeletionRequestsTable = &schema.Table{
+		Name:       "deletion_requests",
+		Columns:    DeletionRequestsColumns,
+		PrimaryKey: []*schema.Column{DeletionRequestsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "deletion_requests_user_profiles_deletion_requests",
+				Columns:    []*schema.Column{DeletionRequestsColumns[7]},
+				RefColumns: []*schema.Column{UserProfilesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "deletionrequest_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{DeletionRequestsColumns[7]},
+			},
+			{
+				Name:    "deletionrequest_status",
+				Unique:  false,
+				Columns: []*schema.Column{DeletionRequestsColumns[4]},
+			},
+		},
+	}
 	// ExperiencesColumns holds the columns for the "experiences" table.
 	ExperiencesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -502,6 +539,10 @@ var (
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
 		{Name: "page_url", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "user_agent", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "admin_status", Type: field.TypeEnum, Enums: []string{"pending", "reviewed", "resolved", "dismissed"}, Default: "pending"},
+		{Name: "admin_note", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "reviewed_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "reviewed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "user_id", Type: field.TypeUUID},
 	}
 	// FeedbacksTable holds the schema information for the "feedbacks" table.
@@ -512,7 +553,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "feedbacks_user_profiles_feedbacks",
-				Columns:    []*schema.Column{FeedbacksColumns[6]},
+				Columns:    []*schema.Column{FeedbacksColumns[10]},
 				RefColumns: []*schema.Column{UserProfilesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -521,7 +562,7 @@ var (
 			{
 				Name:    "feedback_user_id_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{FeedbacksColumns[6], FeedbacksColumns[1]},
+				Columns: []*schema.Column{FeedbacksColumns[10], FeedbacksColumns[1]},
 			},
 		},
 	}
@@ -721,6 +762,7 @@ var (
 		{Name: "suspended", Type: field.TypeBool, Default: false},
 		{Name: "suspended_at", Type: field.TypeTime, Nullable: true},
 		{Name: "suspended_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "force_logout_at", Type: field.TypeTime, Nullable: true},
 	}
 	// UserProfilesTable holds the schema information for the "user_profiles" table.
 	UserProfilesTable = &schema.Table{
@@ -787,6 +829,7 @@ var (
 		CompanyAnalysisCachesTable,
 		CoverLettersTable,
 		CoverLetterVersionsTable,
+		DeletionRequestsTable,
 		ExperiencesTable,
 		ExperienceTagsTable,
 		ExperienceUsagesTable,
@@ -813,6 +856,7 @@ func init() {
 	CoverLettersTable.ForeignKeys[1].RefTable = UserProfilesTable
 	CoverLetterVersionsTable.ForeignKeys[0].RefTable = CoachingSessionsTable
 	CoverLetterVersionsTable.ForeignKeys[1].RefTable = CoverLettersTable
+	DeletionRequestsTable.ForeignKeys[0].RefTable = UserProfilesTable
 	ExperiencesTable.ForeignKeys[0].RefTable = UserProfilesTable
 	ExperienceTagsTable.ForeignKeys[0].RefTable = ExperiencesTable
 	ExperienceUsagesTable.ForeignKeys[0].RefTable = ApplicationsTable

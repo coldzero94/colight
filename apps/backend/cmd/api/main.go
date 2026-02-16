@@ -277,6 +277,12 @@ func main() {
 		admin.GET("/audit-logs", adminCtrl.ListAuditLogs)
 		admin.GET("/health", adminCtrl.HealthCheck)
 		admin.GET("/feedbacks", adminCtrl.ListFeedbacks)
+		admin.PUT("/feedbacks/:id", adminCtrl.UpdateFeedbackStatus)
+		admin.GET("/usage/costs", adminCtrl.GetUsageCosts)
+		admin.GET("/usage/top-users", adminCtrl.GetUsageTopUsers)
+		admin.POST("/users/:id/force-logout", adminCtrl.ForceLogout)
+		admin.PUT("/users/:id/plan", adminCtrl.UpdateUserPlan)
+		admin.POST("/users/:id/export", adminCtrl.ExportUserData)
 	}
 
 	// Super-admin only routes
@@ -286,6 +292,9 @@ func main() {
 	{
 		superAdmin.GET("/configs", adminCtrl.ListConfigs)
 		superAdmin.PUT("/configs/:key", adminCtrl.UpdateConfig)
+		superAdmin.POST("/users/:id/delete-request", adminCtrl.CreateDeletionRequest)
+		superAdmin.DELETE("/users/:id/delete-request", adminCtrl.CancelDeletionRequest)
+		superAdmin.GET("/deletion-queue", adminCtrl.ListDeletionQueue)
 	}
 
 	slog.Info("starting colight api server", "port", cfg.APIPort)

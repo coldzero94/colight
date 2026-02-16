@@ -81,6 +81,21 @@ func UserAgent(v string) predicate.Feedback {
 	return predicate.Feedback(sql.FieldEQ(FieldUserAgent, v))
 }
 
+// AdminNote applies equality check predicate on the "admin_note" field. It's identical to AdminNoteEQ.
+func AdminNote(v string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldEQ(FieldAdminNote, v))
+}
+
+// ReviewedBy applies equality check predicate on the "reviewed_by" field. It's identical to ReviewedByEQ.
+func ReviewedBy(v uuid.UUID) predicate.Feedback {
+	return predicate.Feedback(sql.FieldEQ(FieldReviewedBy, v))
+}
+
+// ReviewedAt applies equality check predicate on the "reviewed_at" field. It's identical to ReviewedAtEQ.
+func ReviewedAt(v time.Time) predicate.Feedback {
+	return predicate.Feedback(sql.FieldEQ(FieldReviewedAt, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Feedback {
 	return predicate.Feedback(sql.FieldEQ(FieldCreatedAt, v))
@@ -374,6 +389,201 @@ func UserAgentEqualFold(v string) predicate.Feedback {
 // UserAgentContainsFold applies the ContainsFold predicate on the "user_agent" field.
 func UserAgentContainsFold(v string) predicate.Feedback {
 	return predicate.Feedback(sql.FieldContainsFold(FieldUserAgent, v))
+}
+
+// AdminStatusEQ applies the EQ predicate on the "admin_status" field.
+func AdminStatusEQ(v AdminStatus) predicate.Feedback {
+	return predicate.Feedback(sql.FieldEQ(FieldAdminStatus, v))
+}
+
+// AdminStatusNEQ applies the NEQ predicate on the "admin_status" field.
+func AdminStatusNEQ(v AdminStatus) predicate.Feedback {
+	return predicate.Feedback(sql.FieldNEQ(FieldAdminStatus, v))
+}
+
+// AdminStatusIn applies the In predicate on the "admin_status" field.
+func AdminStatusIn(vs ...AdminStatus) predicate.Feedback {
+	return predicate.Feedback(sql.FieldIn(FieldAdminStatus, vs...))
+}
+
+// AdminStatusNotIn applies the NotIn predicate on the "admin_status" field.
+func AdminStatusNotIn(vs ...AdminStatus) predicate.Feedback {
+	return predicate.Feedback(sql.FieldNotIn(FieldAdminStatus, vs...))
+}
+
+// AdminNoteEQ applies the EQ predicate on the "admin_note" field.
+func AdminNoteEQ(v string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldEQ(FieldAdminNote, v))
+}
+
+// AdminNoteNEQ applies the NEQ predicate on the "admin_note" field.
+func AdminNoteNEQ(v string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldNEQ(FieldAdminNote, v))
+}
+
+// AdminNoteIn applies the In predicate on the "admin_note" field.
+func AdminNoteIn(vs ...string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldIn(FieldAdminNote, vs...))
+}
+
+// AdminNoteNotIn applies the NotIn predicate on the "admin_note" field.
+func AdminNoteNotIn(vs ...string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldNotIn(FieldAdminNote, vs...))
+}
+
+// AdminNoteGT applies the GT predicate on the "admin_note" field.
+func AdminNoteGT(v string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldGT(FieldAdminNote, v))
+}
+
+// AdminNoteGTE applies the GTE predicate on the "admin_note" field.
+func AdminNoteGTE(v string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldGTE(FieldAdminNote, v))
+}
+
+// AdminNoteLT applies the LT predicate on the "admin_note" field.
+func AdminNoteLT(v string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldLT(FieldAdminNote, v))
+}
+
+// AdminNoteLTE applies the LTE predicate on the "admin_note" field.
+func AdminNoteLTE(v string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldLTE(FieldAdminNote, v))
+}
+
+// AdminNoteContains applies the Contains predicate on the "admin_note" field.
+func AdminNoteContains(v string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldContains(FieldAdminNote, v))
+}
+
+// AdminNoteHasPrefix applies the HasPrefix predicate on the "admin_note" field.
+func AdminNoteHasPrefix(v string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldHasPrefix(FieldAdminNote, v))
+}
+
+// AdminNoteHasSuffix applies the HasSuffix predicate on the "admin_note" field.
+func AdminNoteHasSuffix(v string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldHasSuffix(FieldAdminNote, v))
+}
+
+// AdminNoteIsNil applies the IsNil predicate on the "admin_note" field.
+func AdminNoteIsNil() predicate.Feedback {
+	return predicate.Feedback(sql.FieldIsNull(FieldAdminNote))
+}
+
+// AdminNoteNotNil applies the NotNil predicate on the "admin_note" field.
+func AdminNoteNotNil() predicate.Feedback {
+	return predicate.Feedback(sql.FieldNotNull(FieldAdminNote))
+}
+
+// AdminNoteEqualFold applies the EqualFold predicate on the "admin_note" field.
+func AdminNoteEqualFold(v string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldEqualFold(FieldAdminNote, v))
+}
+
+// AdminNoteContainsFold applies the ContainsFold predicate on the "admin_note" field.
+func AdminNoteContainsFold(v string) predicate.Feedback {
+	return predicate.Feedback(sql.FieldContainsFold(FieldAdminNote, v))
+}
+
+// ReviewedByEQ applies the EQ predicate on the "reviewed_by" field.
+func ReviewedByEQ(v uuid.UUID) predicate.Feedback {
+	return predicate.Feedback(sql.FieldEQ(FieldReviewedBy, v))
+}
+
+// ReviewedByNEQ applies the NEQ predicate on the "reviewed_by" field.
+func ReviewedByNEQ(v uuid.UUID) predicate.Feedback {
+	return predicate.Feedback(sql.FieldNEQ(FieldReviewedBy, v))
+}
+
+// ReviewedByIn applies the In predicate on the "reviewed_by" field.
+func ReviewedByIn(vs ...uuid.UUID) predicate.Feedback {
+	return predicate.Feedback(sql.FieldIn(FieldReviewedBy, vs...))
+}
+
+// ReviewedByNotIn applies the NotIn predicate on the "reviewed_by" field.
+func ReviewedByNotIn(vs ...uuid.UUID) predicate.Feedback {
+	return predicate.Feedback(sql.FieldNotIn(FieldReviewedBy, vs...))
+}
+
+// ReviewedByGT applies the GT predicate on the "reviewed_by" field.
+func ReviewedByGT(v uuid.UUID) predicate.Feedback {
+	return predicate.Feedback(sql.FieldGT(FieldReviewedBy, v))
+}
+
+// ReviewedByGTE applies the GTE predicate on the "reviewed_by" field.
+func ReviewedByGTE(v uuid.UUID) predicate.Feedback {
+	return predicate.Feedback(sql.FieldGTE(FieldReviewedBy, v))
+}
+
+// ReviewedByLT applies the LT predicate on the "reviewed_by" field.
+func ReviewedByLT(v uuid.UUID) predicate.Feedback {
+	return predicate.Feedback(sql.FieldLT(FieldReviewedBy, v))
+}
+
+// ReviewedByLTE applies the LTE predicate on the "reviewed_by" field.
+func ReviewedByLTE(v uuid.UUID) predicate.Feedback {
+	return predicate.Feedback(sql.FieldLTE(FieldReviewedBy, v))
+}
+
+// ReviewedByIsNil applies the IsNil predicate on the "reviewed_by" field.
+func ReviewedByIsNil() predicate.Feedback {
+	return predicate.Feedback(sql.FieldIsNull(FieldReviewedBy))
+}
+
+// ReviewedByNotNil applies the NotNil predicate on the "reviewed_by" field.
+func ReviewedByNotNil() predicate.Feedback {
+	return predicate.Feedback(sql.FieldNotNull(FieldReviewedBy))
+}
+
+// ReviewedAtEQ applies the EQ predicate on the "reviewed_at" field.
+func ReviewedAtEQ(v time.Time) predicate.Feedback {
+	return predicate.Feedback(sql.FieldEQ(FieldReviewedAt, v))
+}
+
+// ReviewedAtNEQ applies the NEQ predicate on the "reviewed_at" field.
+func ReviewedAtNEQ(v time.Time) predicate.Feedback {
+	return predicate.Feedback(sql.FieldNEQ(FieldReviewedAt, v))
+}
+
+// ReviewedAtIn applies the In predicate on the "reviewed_at" field.
+func ReviewedAtIn(vs ...time.Time) predicate.Feedback {
+	return predicate.Feedback(sql.FieldIn(FieldReviewedAt, vs...))
+}
+
+// ReviewedAtNotIn applies the NotIn predicate on the "reviewed_at" field.
+func ReviewedAtNotIn(vs ...time.Time) predicate.Feedback {
+	return predicate.Feedback(sql.FieldNotIn(FieldReviewedAt, vs...))
+}
+
+// ReviewedAtGT applies the GT predicate on the "reviewed_at" field.
+func ReviewedAtGT(v time.Time) predicate.Feedback {
+	return predicate.Feedback(sql.FieldGT(FieldReviewedAt, v))
+}
+
+// ReviewedAtGTE applies the GTE predicate on the "reviewed_at" field.
+func ReviewedAtGTE(v time.Time) predicate.Feedback {
+	return predicate.Feedback(sql.FieldGTE(FieldReviewedAt, v))
+}
+
+// ReviewedAtLT applies the LT predicate on the "reviewed_at" field.
+func ReviewedAtLT(v time.Time) predicate.Feedback {
+	return predicate.Feedback(sql.FieldLT(FieldReviewedAt, v))
+}
+
+// ReviewedAtLTE applies the LTE predicate on the "reviewed_at" field.
+func ReviewedAtLTE(v time.Time) predicate.Feedback {
+	return predicate.Feedback(sql.FieldLTE(FieldReviewedAt, v))
+}
+
+// ReviewedAtIsNil applies the IsNil predicate on the "reviewed_at" field.
+func ReviewedAtIsNil() predicate.Feedback {
+	return predicate.Feedback(sql.FieldIsNull(FieldReviewedAt))
+}
+
+// ReviewedAtNotNil applies the NotNil predicate on the "reviewed_at" field.
+func ReviewedAtNotNil() predicate.Feedback {
+	return predicate.Feedback(sql.FieldNotNull(FieldReviewedAt))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

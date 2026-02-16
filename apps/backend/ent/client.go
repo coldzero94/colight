@@ -23,6 +23,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/companyanalysiscache"
 	"github.com/coby/colight/apps/backend/ent/coverletter"
 	"github.com/coby/colight/apps/backend/ent/coverletterversion"
+	"github.com/coby/colight/apps/backend/ent/deletionrequest"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experiencetag"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
@@ -56,6 +57,8 @@ type Client struct {
 	CoverLetter *CoverLetterClient
 	// CoverLetterVersion is the client for interacting with the CoverLetterVersion builders.
 	CoverLetterVersion *CoverLetterVersionClient
+	// DeletionRequest is the client for interacting with the DeletionRequest builders.
+	DeletionRequest *DeletionRequestClient
 	// Experience is the client for interacting with the Experience builders.
 	Experience *ExperienceClient
 	// ExperienceTag is the client for interacting with the ExperienceTag builders.
@@ -98,6 +101,7 @@ func (c *Client) init() {
 	c.CompanyAnalysisCache = NewCompanyAnalysisCacheClient(c.config)
 	c.CoverLetter = NewCoverLetterClient(c.config)
 	c.CoverLetterVersion = NewCoverLetterVersionClient(c.config)
+	c.DeletionRequest = NewDeletionRequestClient(c.config)
 	c.Experience = NewExperienceClient(c.config)
 	c.ExperienceTag = NewExperienceTagClient(c.config)
 	c.ExperienceUsage = NewExperienceUsageClient(c.config)
@@ -209,6 +213,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CompanyAnalysisCache: NewCompanyAnalysisCacheClient(cfg),
 		CoverLetter:          NewCoverLetterClient(cfg),
 		CoverLetterVersion:   NewCoverLetterVersionClient(cfg),
+		DeletionRequest:      NewDeletionRequestClient(cfg),
 		Experience:           NewExperienceClient(cfg),
 		ExperienceTag:        NewExperienceTagClient(cfg),
 		ExperienceUsage:      NewExperienceUsageClient(cfg),
@@ -247,6 +252,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CompanyAnalysisCache: NewCompanyAnalysisCacheClient(cfg),
 		CoverLetter:          NewCoverLetterClient(cfg),
 		CoverLetterVersion:   NewCoverLetterVersionClient(cfg),
+		DeletionRequest:      NewDeletionRequestClient(cfg),
 		Experience:           NewExperienceClient(cfg),
 		ExperienceTag:        NewExperienceTagClient(cfg),
 		ExperienceUsage:      NewExperienceUsageClient(cfg),
@@ -289,10 +295,10 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AdminAuditLog, c.Application, c.CoachingSession, c.CompanyAnalysis,
-		c.CompanyAnalysisCache, c.CoverLetter, c.CoverLetterVersion, c.Experience,
-		c.ExperienceTag, c.ExperienceUsage, c.ExperienceWeapon, c.Feedback,
-		c.PromptTemplate, c.QuestionPattern, c.SystemConfig, c.TalentProfile,
-		c.UsageLog, c.UserProfile, c.WeaponCategory,
+		c.CompanyAnalysisCache, c.CoverLetter, c.CoverLetterVersion, c.DeletionRequest,
+		c.Experience, c.ExperienceTag, c.ExperienceUsage, c.ExperienceWeapon,
+		c.Feedback, c.PromptTemplate, c.QuestionPattern, c.SystemConfig,
+		c.TalentProfile, c.UsageLog, c.UserProfile, c.WeaponCategory,
 	} {
 		n.Use(hooks...)
 	}
@@ -303,10 +309,10 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AdminAuditLog, c.Application, c.CoachingSession, c.CompanyAnalysis,
-		c.CompanyAnalysisCache, c.CoverLetter, c.CoverLetterVersion, c.Experience,
-		c.ExperienceTag, c.ExperienceUsage, c.ExperienceWeapon, c.Feedback,
-		c.PromptTemplate, c.QuestionPattern, c.SystemConfig, c.TalentProfile,
-		c.UsageLog, c.UserProfile, c.WeaponCategory,
+		c.CompanyAnalysisCache, c.CoverLetter, c.CoverLetterVersion, c.DeletionRequest,
+		c.Experience, c.ExperienceTag, c.ExperienceUsage, c.ExperienceWeapon,
+		c.Feedback, c.PromptTemplate, c.QuestionPattern, c.SystemConfig,
+		c.TalentProfile, c.UsageLog, c.UserProfile, c.WeaponCategory,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -329,6 +335,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CoverLetter.mutate(ctx, m)
 	case *CoverLetterVersionMutation:
 		return c.CoverLetterVersion.mutate(ctx, m)
+	case *DeletionRequestMutation:
+		return c.DeletionRequest.mutate(ctx, m)
 	case *ExperienceMutation:
 		return c.Experience.mutate(ctx, m)
 	case *ExperienceTagMutation:
@@ -1558,6 +1566,155 @@ func (c *CoverLetterVersionClient) mutate(ctx context.Context, m *CoverLetterVer
 		return (&CoverLetterVersionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown CoverLetterVersion mutation op: %q", m.Op())
+	}
+}
+
+// DeletionRequestClient is a client for the DeletionRequest schema.
+type DeletionRequestClient struct {
+	config
+}
+
+// NewDeletionRequestClient returns a client for the DeletionRequest from the given config.
+func NewDeletionRequestClient(c config) *DeletionRequestClient {
+	return &DeletionRequestClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `deletionrequest.Hooks(f(g(h())))`.
+func (c *DeletionRequestClient) Use(hooks ...Hook) {
+	c.hooks.DeletionRequest = append(c.hooks.DeletionRequest, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `deletionrequest.Intercept(f(g(h())))`.
+func (c *DeletionRequestClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DeletionRequest = append(c.inters.DeletionRequest, interceptors...)
+}
+
+// Create returns a builder for creating a DeletionRequest entity.
+func (c *DeletionRequestClient) Create() *DeletionRequestCreate {
+	mutation := newDeletionRequestMutation(c.config, OpCreate)
+	return &DeletionRequestCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DeletionRequest entities.
+func (c *DeletionRequestClient) CreateBulk(builders ...*DeletionRequestCreate) *DeletionRequestCreateBulk {
+	return &DeletionRequestCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DeletionRequestClient) MapCreateBulk(slice any, setFunc func(*DeletionRequestCreate, int)) *DeletionRequestCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DeletionRequestCreateBulk{err: fmt.Errorf("calling to DeletionRequestClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DeletionRequestCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DeletionRequestCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DeletionRequest.
+func (c *DeletionRequestClient) Update() *DeletionRequestUpdate {
+	mutation := newDeletionRequestMutation(c.config, OpUpdate)
+	return &DeletionRequestUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DeletionRequestClient) UpdateOne(_m *DeletionRequest) *DeletionRequestUpdateOne {
+	mutation := newDeletionRequestMutation(c.config, OpUpdateOne, withDeletionRequest(_m))
+	return &DeletionRequestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DeletionRequestClient) UpdateOneID(id uuid.UUID) *DeletionRequestUpdateOne {
+	mutation := newDeletionRequestMutation(c.config, OpUpdateOne, withDeletionRequestID(id))
+	return &DeletionRequestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DeletionRequest.
+func (c *DeletionRequestClient) Delete() *DeletionRequestDelete {
+	mutation := newDeletionRequestMutation(c.config, OpDelete)
+	return &DeletionRequestDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DeletionRequestClient) DeleteOne(_m *DeletionRequest) *DeletionRequestDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DeletionRequestClient) DeleteOneID(id uuid.UUID) *DeletionRequestDeleteOne {
+	builder := c.Delete().Where(deletionrequest.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DeletionRequestDeleteOne{builder}
+}
+
+// Query returns a query builder for DeletionRequest.
+func (c *DeletionRequestClient) Query() *DeletionRequestQuery {
+	return &DeletionRequestQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDeletionRequest},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DeletionRequest entity by its id.
+func (c *DeletionRequestClient) Get(ctx context.Context, id uuid.UUID) (*DeletionRequest, error) {
+	return c.Query().Where(deletionrequest.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DeletionRequestClient) GetX(ctx context.Context, id uuid.UUID) *DeletionRequest {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a DeletionRequest.
+func (c *DeletionRequestClient) QueryUser(_m *DeletionRequest) *UserProfileQuery {
+	query := (&UserProfileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(deletionrequest.Table, deletionrequest.FieldID, id),
+			sqlgraph.To(userprofile.Table, userprofile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, deletionrequest.UserTable, deletionrequest.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DeletionRequestClient) Hooks() []Hook {
+	return c.hooks.DeletionRequest
+}
+
+// Interceptors returns the client interceptors.
+func (c *DeletionRequestClient) Interceptors() []Interceptor {
+	return c.inters.DeletionRequest
+}
+
+func (c *DeletionRequestClient) mutate(ctx context.Context, m *DeletionRequestMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DeletionRequestCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DeletionRequestUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DeletionRequestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DeletionRequestDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DeletionRequest mutation op: %q", m.Op())
 	}
 }
 
@@ -3367,6 +3524,22 @@ func (c *UserProfileClient) QueryFeedbacks(_m *UserProfile) *FeedbackQuery {
 	return query
 }
 
+// QueryDeletionRequests queries the deletion_requests edge of a UserProfile.
+func (c *UserProfileClient) QueryDeletionRequests(_m *UserProfile) *DeletionRequestQuery {
+	query := (&DeletionRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userprofile.Table, userprofile.FieldID, id),
+			sqlgraph.To(deletionrequest.Table, deletionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, userprofile.DeletionRequestsTable, userprofile.DeletionRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserProfileClient) Hooks() []Hook {
 	return c.hooks.UserProfile
@@ -3545,16 +3718,16 @@ func (c *WeaponCategoryClient) mutate(ctx context.Context, m *WeaponCategoryMuta
 type (
 	hooks struct {
 		AdminAuditLog, Application, CoachingSession, CompanyAnalysis,
-		CompanyAnalysisCache, CoverLetter, CoverLetterVersion, Experience,
-		ExperienceTag, ExperienceUsage, ExperienceWeapon, Feedback, PromptTemplate,
-		QuestionPattern, SystemConfig, TalentProfile, UsageLog, UserProfile,
-		WeaponCategory []ent.Hook
+		CompanyAnalysisCache, CoverLetter, CoverLetterVersion, DeletionRequest,
+		Experience, ExperienceTag, ExperienceUsage, ExperienceWeapon, Feedback,
+		PromptTemplate, QuestionPattern, SystemConfig, TalentProfile, UsageLog,
+		UserProfile, WeaponCategory []ent.Hook
 	}
 	inters struct {
 		AdminAuditLog, Application, CoachingSession, CompanyAnalysis,
-		CompanyAnalysisCache, CoverLetter, CoverLetterVersion, Experience,
-		ExperienceTag, ExperienceUsage, ExperienceWeapon, Feedback, PromptTemplate,
-		QuestionPattern, SystemConfig, TalentProfile, UsageLog, UserProfile,
-		WeaponCategory []ent.Interceptor
+		CompanyAnalysisCache, CoverLetter, CoverLetterVersion, DeletionRequest,
+		Experience, ExperienceTag, ExperienceUsage, ExperienceWeapon, Feedback,
+		PromptTemplate, QuestionPattern, SystemConfig, TalentProfile, UsageLog,
+		UserProfile, WeaponCategory []ent.Interceptor
 	}
 )

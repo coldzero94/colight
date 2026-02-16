@@ -56,6 +56,8 @@ const (
 	FieldSuspendedAt = "suspended_at"
 	// FieldSuspendedReason holds the string denoting the suspended_reason field in the database.
 	FieldSuspendedReason = "suspended_reason"
+	// FieldForceLogoutAt holds the string denoting the force_logout_at field in the database.
+	FieldForceLogoutAt = "force_logout_at"
 	// EdgeExperiences holds the string denoting the experiences edge name in mutations.
 	EdgeExperiences = "experiences"
 	// EdgeApplications holds the string denoting the applications edge name in mutations.
@@ -72,6 +74,8 @@ const (
 	EdgeUsageLogs = "usage_logs"
 	// EdgeFeedbacks holds the string denoting the feedbacks edge name in mutations.
 	EdgeFeedbacks = "feedbacks"
+	// EdgeDeletionRequests holds the string denoting the deletion_requests edge name in mutations.
+	EdgeDeletionRequests = "deletion_requests"
 	// Table holds the table name of the userprofile in the database.
 	Table = "user_profiles"
 	// ExperiencesTable is the table that holds the experiences relation/edge.
@@ -130,6 +134,13 @@ const (
 	FeedbacksInverseTable = "feedbacks"
 	// FeedbacksColumn is the table column denoting the feedbacks relation/edge.
 	FeedbacksColumn = "user_id"
+	// DeletionRequestsTable is the table that holds the deletion_requests relation/edge.
+	DeletionRequestsTable = "deletion_requests"
+	// DeletionRequestsInverseTable is the table name for the DeletionRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "deletionrequest" package.
+	DeletionRequestsInverseTable = "deletion_requests"
+	// DeletionRequestsColumn is the table column denoting the deletion_requests relation/edge.
+	DeletionRequestsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for userprofile fields.
@@ -155,6 +166,7 @@ var Columns = []string{
 	FieldSuspended,
 	FieldSuspendedAt,
 	FieldSuspendedReason,
+	FieldForceLogoutAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -392,6 +404,11 @@ func BySuspendedReason(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSuspendedReason, opts...).ToFunc()
 }
 
+// ByForceLogoutAt orders the results by the force_logout_at field.
+func ByForceLogoutAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldForceLogoutAt, opts...).ToFunc()
+}
+
 // ByExperiencesCount orders the results by experiences count.
 func ByExperiencesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -503,6 +520,20 @@ func ByFeedbacks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newFeedbacksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByDeletionRequestsCount orders the results by deletion_requests count.
+func ByDeletionRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDeletionRequestsStep(), opts...)
+	}
+}
+
+// ByDeletionRequests orders the results by deletion_requests terms.
+func ByDeletionRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDeletionRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newExperiencesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -557,5 +588,12 @@ func newFeedbacksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FeedbacksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FeedbacksTable, FeedbacksColumn),
+	)
+}
+func newDeletionRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DeletionRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DeletionRequestsTable, DeletionRequestsColumn),
 	)
 }

@@ -141,6 +141,11 @@ func SuspendedReason(v string) predicate.UserProfile {
 	return predicate.UserProfile(sql.FieldEQ(FieldSuspendedReason, v))
 }
 
+// ForceLogoutAt applies equality check predicate on the "force_logout_at" field. It's identical to ForceLogoutAtEQ.
+func ForceLogoutAt(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldEQ(FieldForceLogoutAt, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.UserProfile {
 	return predicate.UserProfile(sql.FieldEQ(FieldCreatedAt, v))
@@ -1101,6 +1106,56 @@ func SuspendedReasonContainsFold(v string) predicate.UserProfile {
 	return predicate.UserProfile(sql.FieldContainsFold(FieldSuspendedReason, v))
 }
 
+// ForceLogoutAtEQ applies the EQ predicate on the "force_logout_at" field.
+func ForceLogoutAtEQ(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldEQ(FieldForceLogoutAt, v))
+}
+
+// ForceLogoutAtNEQ applies the NEQ predicate on the "force_logout_at" field.
+func ForceLogoutAtNEQ(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldNEQ(FieldForceLogoutAt, v))
+}
+
+// ForceLogoutAtIn applies the In predicate on the "force_logout_at" field.
+func ForceLogoutAtIn(vs ...time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldIn(FieldForceLogoutAt, vs...))
+}
+
+// ForceLogoutAtNotIn applies the NotIn predicate on the "force_logout_at" field.
+func ForceLogoutAtNotIn(vs ...time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldNotIn(FieldForceLogoutAt, vs...))
+}
+
+// ForceLogoutAtGT applies the GT predicate on the "force_logout_at" field.
+func ForceLogoutAtGT(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldGT(FieldForceLogoutAt, v))
+}
+
+// ForceLogoutAtGTE applies the GTE predicate on the "force_logout_at" field.
+func ForceLogoutAtGTE(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldGTE(FieldForceLogoutAt, v))
+}
+
+// ForceLogoutAtLT applies the LT predicate on the "force_logout_at" field.
+func ForceLogoutAtLT(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldLT(FieldForceLogoutAt, v))
+}
+
+// ForceLogoutAtLTE applies the LTE predicate on the "force_logout_at" field.
+func ForceLogoutAtLTE(v time.Time) predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldLTE(FieldForceLogoutAt, v))
+}
+
+// ForceLogoutAtIsNil applies the IsNil predicate on the "force_logout_at" field.
+func ForceLogoutAtIsNil() predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldIsNull(FieldForceLogoutAt))
+}
+
+// ForceLogoutAtNotNil applies the NotNil predicate on the "force_logout_at" field.
+func ForceLogoutAtNotNil() predicate.UserProfile {
+	return predicate.UserProfile(sql.FieldNotNull(FieldForceLogoutAt))
+}
+
 // HasExperiences applies the HasEdge predicate on the "experiences" edge.
 func HasExperiences() predicate.UserProfile {
 	return predicate.UserProfile(func(s *sql.Selector) {
@@ -1277,6 +1332,29 @@ func HasFeedbacks() predicate.UserProfile {
 func HasFeedbacksWith(preds ...predicate.Feedback) predicate.UserProfile {
 	return predicate.UserProfile(func(s *sql.Selector) {
 		step := newFeedbacksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDeletionRequests applies the HasEdge predicate on the "deletion_requests" edge.
+func HasDeletionRequests() predicate.UserProfile {
+	return predicate.UserProfile(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DeletionRequestsTable, DeletionRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDeletionRequestsWith applies the HasEdge predicate on the "deletion_requests" edge with a given conditions (other predicates).
+func HasDeletionRequestsWith(preds ...predicate.DeletionRequest) predicate.UserProfile {
+	return predicate.UserProfile(func(s *sql.Selector) {
+		step := newDeletionRequestsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -38,6 +38,21 @@ func (Feedback) Fields() []ent.Field {
 			Optional().
 			MaxLen(500).
 			Comment("Browser user agent string"),
+		field.Enum("admin_status").
+			Values("pending", "reviewed", "resolved", "dismissed").
+			Default("pending").
+			Comment("Admin review status"),
+		field.Text("admin_note").
+			Optional().
+			Comment("Admin note/response"),
+		field.UUID("reviewed_by", uuid.UUID{}).
+			Optional().
+			Nillable().
+			Comment("Admin who reviewed"),
+		field.Time("reviewed_at").
+			Optional().
+			Nillable().
+			Comment("When admin reviewed"),
 	}
 }
 

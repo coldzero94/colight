@@ -93,6 +93,18 @@ func (f CoverLetterVersionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CoverLetterVersionMutation", m)
 }
 
+// The DeletionRequestFunc type is an adapter to allow the use of ordinary
+// function as DeletionRequest mutator.
+type DeletionRequestFunc func(context.Context, *ent.DeletionRequestMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DeletionRequestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DeletionRequestMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeletionRequestMutation", m)
+}
+
 // The ExperienceFunc type is an adapter to allow the use of ordinary
 // function as Experience mutator.
 type ExperienceFunc func(context.Context, *ent.ExperienceMutation) (ent.Value, error)

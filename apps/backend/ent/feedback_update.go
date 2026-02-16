@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -111,6 +112,80 @@ func (_u *FeedbackUpdate) ClearUserAgent() *FeedbackUpdate {
 	return _u
 }
 
+// SetAdminStatus sets the "admin_status" field.
+func (_u *FeedbackUpdate) SetAdminStatus(v feedback.AdminStatus) *FeedbackUpdate {
+	_u.mutation.SetAdminStatus(v)
+	return _u
+}
+
+// SetNillableAdminStatus sets the "admin_status" field if the given value is not nil.
+func (_u *FeedbackUpdate) SetNillableAdminStatus(v *feedback.AdminStatus) *FeedbackUpdate {
+	if v != nil {
+		_u.SetAdminStatus(*v)
+	}
+	return _u
+}
+
+// SetAdminNote sets the "admin_note" field.
+func (_u *FeedbackUpdate) SetAdminNote(v string) *FeedbackUpdate {
+	_u.mutation.SetAdminNote(v)
+	return _u
+}
+
+// SetNillableAdminNote sets the "admin_note" field if the given value is not nil.
+func (_u *FeedbackUpdate) SetNillableAdminNote(v *string) *FeedbackUpdate {
+	if v != nil {
+		_u.SetAdminNote(*v)
+	}
+	return _u
+}
+
+// ClearAdminNote clears the value of the "admin_note" field.
+func (_u *FeedbackUpdate) ClearAdminNote() *FeedbackUpdate {
+	_u.mutation.ClearAdminNote()
+	return _u
+}
+
+// SetReviewedBy sets the "reviewed_by" field.
+func (_u *FeedbackUpdate) SetReviewedBy(v uuid.UUID) *FeedbackUpdate {
+	_u.mutation.SetReviewedBy(v)
+	return _u
+}
+
+// SetNillableReviewedBy sets the "reviewed_by" field if the given value is not nil.
+func (_u *FeedbackUpdate) SetNillableReviewedBy(v *uuid.UUID) *FeedbackUpdate {
+	if v != nil {
+		_u.SetReviewedBy(*v)
+	}
+	return _u
+}
+
+// ClearReviewedBy clears the value of the "reviewed_by" field.
+func (_u *FeedbackUpdate) ClearReviewedBy() *FeedbackUpdate {
+	_u.mutation.ClearReviewedBy()
+	return _u
+}
+
+// SetReviewedAt sets the "reviewed_at" field.
+func (_u *FeedbackUpdate) SetReviewedAt(v time.Time) *FeedbackUpdate {
+	_u.mutation.SetReviewedAt(v)
+	return _u
+}
+
+// SetNillableReviewedAt sets the "reviewed_at" field if the given value is not nil.
+func (_u *FeedbackUpdate) SetNillableReviewedAt(v *time.Time) *FeedbackUpdate {
+	if v != nil {
+		_u.SetReviewedAt(*v)
+	}
+	return _u
+}
+
+// ClearReviewedAt clears the value of the "reviewed_at" field.
+func (_u *FeedbackUpdate) ClearReviewedAt() *FeedbackUpdate {
+	_u.mutation.ClearReviewedAt()
+	return _u
+}
+
 // SetUser sets the "user" edge to the UserProfile entity.
 func (_u *FeedbackUpdate) SetUser(v *UserProfile) *FeedbackUpdate {
 	return _u.SetUserID(v.ID)
@@ -176,6 +251,11 @@ func (_u *FeedbackUpdate) check() error {
 			return &ValidationError{Name: "user_agent", err: fmt.Errorf(`ent: validator failed for field "Feedback.user_agent": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.AdminStatus(); ok {
+		if err := feedback.AdminStatusValidator(v); err != nil {
+			return &ValidationError{Name: "admin_status", err: fmt.Errorf(`ent: validator failed for field "Feedback.admin_status": %w`, err)}
+		}
+	}
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Feedback.user"`)
 	}
@@ -211,6 +291,27 @@ func (_u *FeedbackUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.UserAgentCleared() {
 		_spec.ClearField(feedback.FieldUserAgent, field.TypeString)
+	}
+	if value, ok := _u.mutation.AdminStatus(); ok {
+		_spec.SetField(feedback.FieldAdminStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.AdminNote(); ok {
+		_spec.SetField(feedback.FieldAdminNote, field.TypeString, value)
+	}
+	if _u.mutation.AdminNoteCleared() {
+		_spec.ClearField(feedback.FieldAdminNote, field.TypeString)
+	}
+	if value, ok := _u.mutation.ReviewedBy(); ok {
+		_spec.SetField(feedback.FieldReviewedBy, field.TypeUUID, value)
+	}
+	if _u.mutation.ReviewedByCleared() {
+		_spec.ClearField(feedback.FieldReviewedBy, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.ReviewedAt(); ok {
+		_spec.SetField(feedback.FieldReviewedAt, field.TypeTime, value)
+	}
+	if _u.mutation.ReviewedAtCleared() {
+		_spec.ClearField(feedback.FieldReviewedAt, field.TypeTime)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -343,6 +444,80 @@ func (_u *FeedbackUpdateOne) ClearUserAgent() *FeedbackUpdateOne {
 	return _u
 }
 
+// SetAdminStatus sets the "admin_status" field.
+func (_u *FeedbackUpdateOne) SetAdminStatus(v feedback.AdminStatus) *FeedbackUpdateOne {
+	_u.mutation.SetAdminStatus(v)
+	return _u
+}
+
+// SetNillableAdminStatus sets the "admin_status" field if the given value is not nil.
+func (_u *FeedbackUpdateOne) SetNillableAdminStatus(v *feedback.AdminStatus) *FeedbackUpdateOne {
+	if v != nil {
+		_u.SetAdminStatus(*v)
+	}
+	return _u
+}
+
+// SetAdminNote sets the "admin_note" field.
+func (_u *FeedbackUpdateOne) SetAdminNote(v string) *FeedbackUpdateOne {
+	_u.mutation.SetAdminNote(v)
+	return _u
+}
+
+// SetNillableAdminNote sets the "admin_note" field if the given value is not nil.
+func (_u *FeedbackUpdateOne) SetNillableAdminNote(v *string) *FeedbackUpdateOne {
+	if v != nil {
+		_u.SetAdminNote(*v)
+	}
+	return _u
+}
+
+// ClearAdminNote clears the value of the "admin_note" field.
+func (_u *FeedbackUpdateOne) ClearAdminNote() *FeedbackUpdateOne {
+	_u.mutation.ClearAdminNote()
+	return _u
+}
+
+// SetReviewedBy sets the "reviewed_by" field.
+func (_u *FeedbackUpdateOne) SetReviewedBy(v uuid.UUID) *FeedbackUpdateOne {
+	_u.mutation.SetReviewedBy(v)
+	return _u
+}
+
+// SetNillableReviewedBy sets the "reviewed_by" field if the given value is not nil.
+func (_u *FeedbackUpdateOne) SetNillableReviewedBy(v *uuid.UUID) *FeedbackUpdateOne {
+	if v != nil {
+		_u.SetReviewedBy(*v)
+	}
+	return _u
+}
+
+// ClearReviewedBy clears the value of the "reviewed_by" field.
+func (_u *FeedbackUpdateOne) ClearReviewedBy() *FeedbackUpdateOne {
+	_u.mutation.ClearReviewedBy()
+	return _u
+}
+
+// SetReviewedAt sets the "reviewed_at" field.
+func (_u *FeedbackUpdateOne) SetReviewedAt(v time.Time) *FeedbackUpdateOne {
+	_u.mutation.SetReviewedAt(v)
+	return _u
+}
+
+// SetNillableReviewedAt sets the "reviewed_at" field if the given value is not nil.
+func (_u *FeedbackUpdateOne) SetNillableReviewedAt(v *time.Time) *FeedbackUpdateOne {
+	if v != nil {
+		_u.SetReviewedAt(*v)
+	}
+	return _u
+}
+
+// ClearReviewedAt clears the value of the "reviewed_at" field.
+func (_u *FeedbackUpdateOne) ClearReviewedAt() *FeedbackUpdateOne {
+	_u.mutation.ClearReviewedAt()
+	return _u
+}
+
 // SetUser sets the "user" edge to the UserProfile entity.
 func (_u *FeedbackUpdateOne) SetUser(v *UserProfile) *FeedbackUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -421,6 +596,11 @@ func (_u *FeedbackUpdateOne) check() error {
 			return &ValidationError{Name: "user_agent", err: fmt.Errorf(`ent: validator failed for field "Feedback.user_agent": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.AdminStatus(); ok {
+		if err := feedback.AdminStatusValidator(v); err != nil {
+			return &ValidationError{Name: "admin_status", err: fmt.Errorf(`ent: validator failed for field "Feedback.admin_status": %w`, err)}
+		}
+	}
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Feedback.user"`)
 	}
@@ -473,6 +653,27 @@ func (_u *FeedbackUpdateOne) sqlSave(ctx context.Context) (_node *Feedback, err 
 	}
 	if _u.mutation.UserAgentCleared() {
 		_spec.ClearField(feedback.FieldUserAgent, field.TypeString)
+	}
+	if value, ok := _u.mutation.AdminStatus(); ok {
+		_spec.SetField(feedback.FieldAdminStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.AdminNote(); ok {
+		_spec.SetField(feedback.FieldAdminNote, field.TypeString, value)
+	}
+	if _u.mutation.AdminNoteCleared() {
+		_spec.ClearField(feedback.FieldAdminNote, field.TypeString)
+	}
+	if value, ok := _u.mutation.ReviewedBy(); ok {
+		_spec.SetField(feedback.FieldReviewedBy, field.TypeUUID, value)
+	}
+	if _u.mutation.ReviewedByCleared() {
+		_spec.ClearField(feedback.FieldReviewedBy, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.ReviewedAt(); ok {
+		_spec.SetField(feedback.FieldReviewedAt, field.TypeTime, value)
+	}
+	if _u.mutation.ReviewedAtCleared() {
+		_spec.ClearField(feedback.FieldReviewedAt, field.TypeTime)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

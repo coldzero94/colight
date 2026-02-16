@@ -10,6 +10,7 @@ import (
 
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/adminauditlog"
+	"github.com/coby/colight/apps/backend/ent/deletionrequest"
 	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/systemconfig"
@@ -827,6 +828,491 @@ func (ctrl *AdminController) HealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"database": dbStatus,
 	})
+}
+
+// GetUsageCosts returns provider-level cost breakdown.
+// GET /v1/admin/usage/costs
+func (ctrl *AdminController) GetUsageCosts(c *gin.Context) {
+	days, _ := strconv.Atoi(c.DefaultQuery("days", "30"))
+	if days <= 0 {
+		days = 30
+	}
+
+	ctx := c.Request.Context()
+	since := time.Now().AddDate(0, 0, -days)
+
+	logs, err := ctrl.db.UsageLog.Query().
+		Where(usagelog.CreatedAtGTE(since)).
+		All(ctx)
+	if err != nil {
+		slog.Error("get usage costs failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "비용 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	type providerCost struct {
+		TotalTokens int     `json:"total_tokens"`
+		TotalCost   float64 `json:"total_cost_krw"`
+		CallCount   int     `json:"call_count"`
+	}
+	providerMap := make(map[string]*providerCost)
+	for _, l := range logs {
+		p := "unknown"
+		if l.Provider != nil {
+			p = *l.Provider
+		}
+		if _, ok := providerMap[p]; !ok {
+			providerMap[p] = &providerCost{}
+		}
+		pc := providerMap[p]
+		pc.TotalTokens += l.TotalTokens
+		if l.EstimatedCostKrw != nil {
+			pc.TotalCost += *l.EstimatedCostKrw
+		}
+		pc.CallCount++
+	}
+
+	items := make([]map[string]any, 0, len(providerMap))
+	for provider, pc := range providerMap {
+		items = append(items, map[string]any{
+			"provider":      provider,
+			"total_tokens":  pc.TotalTokens,
+			"total_cost_krw": pc.TotalCost,
+			"call_count":    pc.CallCount,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": items, "days": days})
+}
+
+// GetUsageTopUsers returns top users ranked by token usage.
+// GET /v1/admin/usage/top-users
+func (ctrl *AdminController) GetUsageTopUsers(c *gin.Context) {
+	days, _ := strconv.Atoi(c.DefaultQuery("days", "30"))
+	if days <= 0 {
+		days = 30
+	}
+
+	ctx := c.Request.Context()
+	since := time.Now().AddDate(0, 0, -days)
+
+	logs, err := ctrl.db.UsageLog.Query().
+		Where(usagelog.CreatedAtGTE(since)).
+		All(ctx)
+	if err != nil {
+		slog.Error("get usage top users failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "상위 사용자 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	type userUsage struct {
+		UserID      uuid.UUID
+		TotalTokens int
+		TotalCost   float64
+		CallCount   int
+	}
+	userMap := make(map[uuid.UUID]*userUsage)
+	for _, l := range logs {
+		if _, ok := userMap[l.UserID]; !ok {
+			userMap[l.UserID] = &userUsage{UserID: l.UserID}
+		}
+		uu := userMap[l.UserID]
+		uu.TotalTokens += l.TotalTokens
+		if l.EstimatedCostKrw != nil {
+			uu.TotalCost += *l.EstimatedCostKrw
+		}
+		uu.CallCount++
+	}
+
+	// Sort by total tokens descending
+	sorted := make([]*userUsage, 0, len(userMap))
+	for _, uu := range userMap {
+		sorted = append(sorted, uu)
+	}
+	for i := 0; i < len(sorted); i++ {
+		for j := i + 1; j < len(sorted); j++ {
+			if sorted[j].TotalTokens > sorted[i].TotalTokens {
+				sorted[i], sorted[j] = sorted[j], sorted[i]
+			}
+		}
+	}
+
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if limit > len(sorted) {
+		limit = len(sorted)
+	}
+
+	items := make([]map[string]any, 0, limit)
+	for _, uu := range sorted[:limit] {
+		items = append(items, map[string]any{
+			"user_id":       uu.UserID.String(),
+			"total_tokens":  uu.TotalTokens,
+			"total_cost_krw": uu.TotalCost,
+			"call_count":    uu.CallCount,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": items, "days": days})
+}
+
+// ForceLogout invalidates all tokens for a user by setting force_logout_at.
+// POST /v1/admin/users/:id/force-logout
+func (ctrl *AdminController) ForceLogout(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "잘못된 사용자 ID입니다.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+	now := time.Now()
+
+	updated, err := ctrl.db.UserProfile.UpdateOneID(id).
+		SetForceLogoutAt(now).
+		Save(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": gin.H{"message": "사용자를 찾을 수 없습니다.", "code": "AUTH_006"},
+			})
+			return
+		}
+		slog.Error("force logout failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "강제 로그아웃에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	info := toUserInfo(updated)
+	if updated.ForceLogoutAt != nil {
+		info["force_logout_at"] = *updated.ForceLogoutAt
+	}
+
+	c.JSON(http.StatusOK, info)
+}
+
+// UpdateUserPlan changes a user's subscription plan.
+// PUT /v1/admin/users/:id/plan
+func (ctrl *AdminController) UpdateUserPlan(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "잘못된 사용자 ID입니다.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	var req struct {
+		Plan string `json:"plan" binding:"required,oneof=free starter pro season"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "올바른 플랜을 지정해주세요. (free, starter, pro, season)", "code": "VALID_001"},
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	updated, err := ctrl.db.UserProfile.UpdateOneID(id).
+		SetPlan(userprofile.Plan(req.Plan)).
+		Save(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": gin.H{"message": "사용자를 찾을 수 없습니다.", "code": "AUTH_006"},
+			})
+			return
+		}
+		slog.Error("update user plan failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "플랜 변경에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	info := toUserInfo(updated)
+	info["plan"] = string(updated.Plan)
+
+	c.JSON(http.StatusOK, info)
+}
+
+// UpdateFeedbackStatus updates the admin review status of a feedback entry.
+// PUT /v1/admin/feedbacks/:id
+func (ctrl *AdminController) UpdateFeedbackStatus(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "잘못된 피드백 ID입니다.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	var req struct {
+		AdminStatus string `json:"admin_status" binding:"required,oneof=pending reviewed resolved dismissed"`
+		AdminNote   string `json:"admin_note"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "올바른 상태를 지정해주세요.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+	now := time.Now()
+
+	update := ctrl.db.Feedback.UpdateOneID(id).
+		SetAdminStatus(feedback.AdminStatus(req.AdminStatus)).
+		SetReviewedAt(now)
+
+	if req.AdminNote != "" {
+		update = update.SetAdminNote(req.AdminNote)
+	}
+
+	callerID, _ := c.Get("user_id")
+	if uid, ok := callerID.(uuid.UUID); ok {
+		update = update.SetReviewedBy(uid)
+	}
+
+	fb, err := update.Save(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": gin.H{"message": "피드백을 찾을 수 없습니다.", "code": "SYS_002"},
+			})
+			return
+		}
+		slog.Error("update feedback status failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "피드백 상태 변경에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	resp := map[string]any{
+		"id":           fb.ID.String(),
+		"user_id":      fb.UserID.String(),
+		"category":     string(fb.Category),
+		"content":      fb.Content,
+		"admin_status": string(fb.AdminStatus),
+		"created_at":   fb.CreatedAt,
+	}
+	if fb.AdminNote != "" {
+		resp["admin_note"] = fb.AdminNote
+	}
+	if fb.ReviewedBy != nil {
+		resp["reviewed_by"] = fb.ReviewedBy.String()
+	}
+	if fb.ReviewedAt != nil {
+		resp["reviewed_at"] = *fb.ReviewedAt
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+// ExportUserData exports all user data for PIPA compliance.
+// POST /v1/admin/users/:id/export
+func (ctrl *AdminController) ExportUserData(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "잘못된 사용자 ID입니다.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	user, err := ctrl.db.UserProfile.Get(ctx, id)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": gin.H{"message": "사용자를 찾을 수 없습니다.", "code": "AUTH_006"},
+			})
+			return
+		}
+		slog.Error("export user data failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "데이터 내보내기에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	experiences, _ := user.QueryExperiences().All(ctx)
+	expList := make([]map[string]any, 0, len(experiences))
+	for _, exp := range experiences {
+		expList = append(expList, map[string]any{
+			"id":      exp.ID.String(),
+			"title":   exp.Title,
+			"content": exp.Content,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"profile":     toUserInfo(user),
+		"experiences": expList,
+	})
+}
+
+// CreateDeletionRequest creates a data deletion request for a user.
+// POST /v1/admin/users/:id/delete-request
+func (ctrl *AdminController) CreateDeletionRequest(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "잘못된 사용자 ID입니다.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	var req struct {
+		Reason string `json:"reason"`
+	}
+	_ = c.ShouldBindJSON(&req)
+
+	ctx := c.Request.Context()
+
+	// Verify user exists
+	if _, err := ctrl.db.UserProfile.Get(ctx, id); err != nil {
+		if ent.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": gin.H{"message": "사용자를 찾을 수 없습니다.", "code": "AUTH_006"},
+			})
+			return
+		}
+		slog.Error("get user for deletion request failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "삭제 요청 생성에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	callerID, _ := c.Get("user_id")
+	adminID, _ := callerID.(uuid.UUID)
+
+	scheduledAt := time.Now().AddDate(0, 0, 30)
+
+	create := ctrl.db.DeletionRequest.Create().
+		SetUserID(id).
+		SetRequestedBy(adminID).
+		SetScheduledAt(scheduledAt)
+	if req.Reason != "" {
+		create = create.SetReason(req.Reason)
+	}
+
+	dr, err := create.Save(ctx)
+	if err != nil {
+		slog.Error("create deletion request failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "삭제 요청 생성에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"id":           dr.ID.String(),
+		"user_id":      dr.UserID.String(),
+		"status":       string(dr.Status),
+		"reason":       dr.Reason,
+		"scheduled_at": dr.ScheduledAt,
+		"requested_by": dr.RequestedBy.String(),
+		"created_at":   dr.CreatedAt,
+	})
+}
+
+// CancelDeletionRequest cancels a pending deletion request for a user.
+// DELETE /v1/admin/users/:id/delete-request
+func (ctrl *AdminController) CancelDeletionRequest(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "잘못된 사용자 ID입니다.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	dr, err := ctrl.db.DeletionRequest.Query().
+		Where(
+			deletionrequest.UserIDEQ(id),
+			deletionrequest.StatusEQ(deletionrequest.StatusPending),
+		).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": gin.H{"message": "대기 중인 삭제 요청이 없습니다.", "code": "SYS_002"},
+			})
+			return
+		}
+		slog.Error("find deletion request failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "삭제 요청 취소에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	now := time.Now()
+	updated, err := ctrl.db.DeletionRequest.UpdateOne(dr).
+		SetStatus(deletionrequest.StatusCancelled).
+		SetCancelledAt(now).
+		Save(ctx)
+	if err != nil {
+		slog.Error("cancel deletion request failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "삭제 요청 취소에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"id":           updated.ID.String(),
+		"user_id":      updated.UserID.String(),
+		"status":       string(updated.Status),
+		"cancelled_at": updated.CancelledAt,
+	})
+}
+
+// ListDeletionQueue returns pending deletion requests.
+// GET /v1/admin/deletion-queue
+func (ctrl *AdminController) ListDeletionQueue(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	requests, err := ctrl.db.DeletionRequest.Query().
+		Where(deletionrequest.StatusEQ(deletionrequest.StatusPending)).
+		Order(ent.Asc(deletionrequest.FieldScheduledAt)).
+		All(ctx)
+	if err != nil {
+		slog.Error("list deletion queue failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "삭제 대기열 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	items := make([]map[string]any, 0, len(requests))
+	for _, dr := range requests {
+		items = append(items, map[string]any{
+			"id":           dr.ID.String(),
+			"user_id":      dr.UserID.String(),
+			"status":       string(dr.Status),
+			"reason":       dr.Reason,
+			"scheduled_at": dr.ScheduledAt,
+			"requested_by": dr.RequestedBy.String(),
+			"created_at":   dr.CreatedAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": items})
 }
 
 // ListFeedbacks returns paginated feedback entries with optional category filter.

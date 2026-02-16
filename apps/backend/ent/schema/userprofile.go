@@ -95,6 +95,10 @@ func (UserProfile) Fields() []ent.Field {
 			Nillable().
 			MaxLen(500).
 			Comment("Reason for suspension"),
+		field.Time("force_logout_at").
+			Optional().
+			Nillable().
+			Comment("All tokens issued before this time are invalid"),
 	}
 }
 
@@ -108,6 +112,7 @@ func (UserProfile) Edges() []ent.Edge {
 		edge.To("experience_usages", ExperienceUsage.Type),
 		edge.To("usage_logs", UsageLog.Type),
 		edge.To("feedbacks", Feedback.Type),
+		edge.To("deletion_requests", DeletionRequest.Type),
 	}
 }
 

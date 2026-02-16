@@ -16,6 +16,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/coachingsession"
 	"github.com/coby/colight/apps/backend/ent/companyanalysis"
 	"github.com/coby/colight/apps/backend/ent/coverletter"
+	"github.com/coby/colight/apps/backend/ent/deletionrequest"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
 	"github.com/coby/colight/apps/backend/ent/feedback"
@@ -40,6 +41,7 @@ type UserProfileQuery struct {
 	withExperienceUsages *ExperienceUsageQuery
 	withUsageLogs        *UsageLogQuery
 	withFeedbacks        *FeedbackQuery
+	withDeletionRequests *DeletionRequestQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -252,6 +254,28 @@ func (_q *UserProfileQuery) QueryFeedbacks() *FeedbackQuery {
 	return query
 }
 
+// QueryDeletionRequests chains the current query on the "deletion_requests" edge.
+func (_q *UserProfileQuery) QueryDeletionRequests() *DeletionRequestQuery {
+	query := (&DeletionRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userprofile.Table, userprofile.FieldID, selector),
+			sqlgraph.To(deletionrequest.Table, deletionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, userprofile.DeletionRequestsTable, userprofile.DeletionRequestsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first UserProfile entity from the query.
 // Returns a *NotFoundError when no UserProfile was found.
 func (_q *UserProfileQuery) First(ctx context.Context) (*UserProfile, error) {
@@ -452,6 +476,7 @@ func (_q *UserProfileQuery) Clone() *UserProfileQuery {
 		withExperienceUsages: _q.withExperienceUsages.Clone(),
 		withUsageLogs:        _q.withUsageLogs.Clone(),
 		withFeedbacks:        _q.withFeedbacks.Clone(),
+		withDeletionRequests: _q.withDeletionRequests.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -546,6 +571,17 @@ func (_q *UserProfileQuery) WithFeedbacks(opts ...func(*FeedbackQuery)) *UserPro
 	return _q
 }
 
+// WithDeletionRequests tells the query-builder to eager-load the nodes that are connected to
+// the "deletion_requests" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserProfileQuery) WithDeletionRequests(opts ...func(*DeletionRequestQuery)) *UserProfileQuery {
+	query := (&DeletionRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDeletionRequests = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -624,7 +660,7 @@ func (_q *UserProfileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*UserProfile{}
 		_spec       = _q.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			_q.withExperiences != nil,
 			_q.withApplications != nil,
 			_q.withCompanyAnalyses != nil,
@@ -633,6 +669,7 @@ func (_q *UserProfileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			_q.withExperienceUsages != nil,
 			_q.withUsageLogs != nil,
 			_q.withFeedbacks != nil,
+			_q.withDeletionRequests != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -710,6 +747,15 @@ func (_q *UserProfileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := _q.loadFeedbacks(ctx, query, nodes,
 			func(n *UserProfile) { n.Edges.Feedbacks = []*Feedback{} },
 			func(n *UserProfile, e *Feedback) { n.Edges.Feedbacks = append(n.Edges.Feedbacks, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDeletionRequests; query != nil {
+		if err := _q.loadDeletionRequests(ctx, query, nodes,
+			func(n *UserProfile) { n.Edges.DeletionRequests = []*DeletionRequest{} },
+			func(n *UserProfile, e *DeletionRequest) {
+				n.Edges.DeletionRequests = append(n.Edges.DeletionRequests, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -945,6 +991,36 @@ func (_q *UserProfileQuery) loadFeedbacks(ctx context.Context, query *FeedbackQu
 	}
 	query.Where(predicate.Feedback(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(userprofile.FeedbacksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserProfileQuery) loadDeletionRequests(ctx context.Context, query *DeletionRequestQuery, nodes []*UserProfile, init func(*UserProfile), assign func(*UserProfile, *DeletionRequest)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*UserProfile)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(deletionrequest.FieldUserID)
+	}
+	query.Where(predicate.DeletionRequest(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(userprofile.DeletionRequestsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

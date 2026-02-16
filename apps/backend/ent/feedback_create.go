@@ -82,6 +82,62 @@ func (_c *FeedbackCreate) SetNillableUserAgent(v *string) *FeedbackCreate {
 	return _c
 }
 
+// SetAdminStatus sets the "admin_status" field.
+func (_c *FeedbackCreate) SetAdminStatus(v feedback.AdminStatus) *FeedbackCreate {
+	_c.mutation.SetAdminStatus(v)
+	return _c
+}
+
+// SetNillableAdminStatus sets the "admin_status" field if the given value is not nil.
+func (_c *FeedbackCreate) SetNillableAdminStatus(v *feedback.AdminStatus) *FeedbackCreate {
+	if v != nil {
+		_c.SetAdminStatus(*v)
+	}
+	return _c
+}
+
+// SetAdminNote sets the "admin_note" field.
+func (_c *FeedbackCreate) SetAdminNote(v string) *FeedbackCreate {
+	_c.mutation.SetAdminNote(v)
+	return _c
+}
+
+// SetNillableAdminNote sets the "admin_note" field if the given value is not nil.
+func (_c *FeedbackCreate) SetNillableAdminNote(v *string) *FeedbackCreate {
+	if v != nil {
+		_c.SetAdminNote(*v)
+	}
+	return _c
+}
+
+// SetReviewedBy sets the "reviewed_by" field.
+func (_c *FeedbackCreate) SetReviewedBy(v uuid.UUID) *FeedbackCreate {
+	_c.mutation.SetReviewedBy(v)
+	return _c
+}
+
+// SetNillableReviewedBy sets the "reviewed_by" field if the given value is not nil.
+func (_c *FeedbackCreate) SetNillableReviewedBy(v *uuid.UUID) *FeedbackCreate {
+	if v != nil {
+		_c.SetReviewedBy(*v)
+	}
+	return _c
+}
+
+// SetReviewedAt sets the "reviewed_at" field.
+func (_c *FeedbackCreate) SetReviewedAt(v time.Time) *FeedbackCreate {
+	_c.mutation.SetReviewedAt(v)
+	return _c
+}
+
+// SetNillableReviewedAt sets the "reviewed_at" field if the given value is not nil.
+func (_c *FeedbackCreate) SetNillableReviewedAt(v *time.Time) *FeedbackCreate {
+	if v != nil {
+		_c.SetReviewedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *FeedbackCreate) SetID(v uuid.UUID) *FeedbackCreate {
 	_c.mutation.SetID(v)
@@ -140,6 +196,10 @@ func (_c *FeedbackCreate) defaults() {
 		v := feedback.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
+	if _, ok := _c.mutation.AdminStatus(); !ok {
+		v := feedback.DefaultAdminStatus
+		_c.mutation.SetAdminStatus(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := feedback.DefaultID()
 		_c.mutation.SetID(v)
@@ -178,6 +238,14 @@ func (_c *FeedbackCreate) check() error {
 	if v, ok := _c.mutation.UserAgent(); ok {
 		if err := feedback.UserAgentValidator(v); err != nil {
 			return &ValidationError{Name: "user_agent", err: fmt.Errorf(`ent: validator failed for field "Feedback.user_agent": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.AdminStatus(); !ok {
+		return &ValidationError{Name: "admin_status", err: errors.New(`ent: missing required field "Feedback.admin_status"`)}
+	}
+	if v, ok := _c.mutation.AdminStatus(); ok {
+		if err := feedback.AdminStatusValidator(v); err != nil {
+			return &ValidationError{Name: "admin_status", err: fmt.Errorf(`ent: validator failed for field "Feedback.admin_status": %w`, err)}
 		}
 	}
 	if len(_c.mutation.UserIDs()) == 0 {
@@ -237,6 +305,22 @@ func (_c *FeedbackCreate) createSpec() (*Feedback, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.UserAgent(); ok {
 		_spec.SetField(feedback.FieldUserAgent, field.TypeString, value)
 		_node.UserAgent = value
+	}
+	if value, ok := _c.mutation.AdminStatus(); ok {
+		_spec.SetField(feedback.FieldAdminStatus, field.TypeEnum, value)
+		_node.AdminStatus = value
+	}
+	if value, ok := _c.mutation.AdminNote(); ok {
+		_spec.SetField(feedback.FieldAdminNote, field.TypeString, value)
+		_node.AdminNote = value
+	}
+	if value, ok := _c.mutation.ReviewedBy(); ok {
+		_spec.SetField(feedback.FieldReviewedBy, field.TypeUUID, value)
+		_node.ReviewedBy = &value
+	}
+	if value, ok := _c.mutation.ReviewedAt(); ok {
+		_spec.SetField(feedback.FieldReviewedAt, field.TypeTime, value)
+		_node.ReviewedAt = &value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

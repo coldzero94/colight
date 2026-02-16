@@ -12,6 +12,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/companyanalysiscache"
 	"github.com/coby/colight/apps/backend/ent/coverletter"
 	"github.com/coby/colight/apps/backend/ent/coverletterversion"
+	"github.com/coby/colight/apps/backend/ent/deletionrequest"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experiencetag"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
@@ -287,6 +288,19 @@ func init() {
 	coverletterversionDescID := coverletterversionMixinFields0[0].Descriptor()
 	// coverletterversion.DefaultID holds the default value on creation for the id field.
 	coverletterversion.DefaultID = coverletterversionDescID.Default.(func() uuid.UUID)
+	deletionrequestMixin := schema.DeletionRequest{}.Mixin()
+	deletionrequestMixinFields0 := deletionrequestMixin[0].Fields()
+	_ = deletionrequestMixinFields0
+	deletionrequestFields := schema.DeletionRequest{}.Fields()
+	_ = deletionrequestFields
+	// deletionrequestDescCreatedAt is the schema descriptor for created_at field.
+	deletionrequestDescCreatedAt := deletionrequestMixinFields0[1].Descriptor()
+	// deletionrequest.DefaultCreatedAt holds the default value on creation for the created_at field.
+	deletionrequest.DefaultCreatedAt = deletionrequestDescCreatedAt.Default.(func() time.Time)
+	// deletionrequestDescID is the schema descriptor for id field.
+	deletionrequestDescID := deletionrequestMixinFields0[0].Descriptor()
+	// deletionrequest.DefaultID holds the default value on creation for the id field.
+	deletionrequest.DefaultID = deletionrequestDescID.Default.(func() uuid.UUID)
 	experienceMixin := schema.Experience{}.Mixin()
 	experienceMixinFields0 := experienceMixin[0].Fields()
 	_ = experienceMixinFields0

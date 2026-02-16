@@ -27,6 +27,9 @@ type CoverLetter func(*sql.Selector)
 // CoverLetterVersion is the predicate function for coverletterversion builders.
 type CoverLetterVersion func(*sql.Selector)
 
+// DeletionRequest is the predicate function for deletionrequest builders.
+type DeletionRequest func(*sql.Selector)
+
 // Experience is the predicate function for experience builders.
 type Experience func(*sql.Selector)
 

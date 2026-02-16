@@ -26,6 +26,8 @@ type Tx struct {
 	CoverLetter *CoverLetterClient
 	// CoverLetterVersion is the client for interacting with the CoverLetterVersion builders.
 	CoverLetterVersion *CoverLetterVersionClient
+	// DeletionRequest is the client for interacting with the DeletionRequest builders.
+	DeletionRequest *DeletionRequestClient
 	// Experience is the client for interacting with the Experience builders.
 	Experience *ExperienceClient
 	// ExperienceTag is the client for interacting with the ExperienceTag builders.
@@ -188,6 +190,7 @@ func (tx *Tx) init() {
 	tx.CompanyAnalysisCache = NewCompanyAnalysisCacheClient(tx.config)
 	tx.CoverLetter = NewCoverLetterClient(tx.config)
 	tx.CoverLetterVersion = NewCoverLetterVersionClient(tx.config)
+	tx.DeletionRequest = NewDeletionRequestClient(tx.config)
 	tx.Experience = NewExperienceClient(tx.config)
 	tx.ExperienceTag = NewExperienceTagClient(tx.config)
 	tx.ExperienceUsage = NewExperienceUsageClient(tx.config)

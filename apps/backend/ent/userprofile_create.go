@@ -14,6 +14,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/coachingsession"
 	"github.com/coby/colight/apps/backend/ent/companyanalysis"
 	"github.com/coby/colight/apps/backend/ent/coverletter"
+	"github.com/coby/colight/apps/backend/ent/deletionrequest"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
 	"github.com/coby/colight/apps/backend/ent/feedback"
@@ -309,6 +310,20 @@ func (_c *UserProfileCreate) SetNillableSuspendedReason(v *string) *UserProfileC
 	return _c
 }
 
+// SetForceLogoutAt sets the "force_logout_at" field.
+func (_c *UserProfileCreate) SetForceLogoutAt(v time.Time) *UserProfileCreate {
+	_c.mutation.SetForceLogoutAt(v)
+	return _c
+}
+
+// SetNillableForceLogoutAt sets the "force_logout_at" field if the given value is not nil.
+func (_c *UserProfileCreate) SetNillableForceLogoutAt(v *time.Time) *UserProfileCreate {
+	if v != nil {
+		_c.SetForceLogoutAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UserProfileCreate) SetID(v uuid.UUID) *UserProfileCreate {
 	_c.mutation.SetID(v)
@@ -441,6 +456,21 @@ func (_c *UserProfileCreate) AddFeedbacks(v ...*Feedback) *UserProfileCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddFeedbackIDs(ids...)
+}
+
+// AddDeletionRequestIDs adds the "deletion_requests" edge to the DeletionRequest entity by IDs.
+func (_c *UserProfileCreate) AddDeletionRequestIDs(ids ...uuid.UUID) *UserProfileCreate {
+	_c.mutation.AddDeletionRequestIDs(ids...)
+	return _c
+}
+
+// AddDeletionRequests adds the "deletion_requests" edges to the DeletionRequest entity.
+func (_c *UserProfileCreate) AddDeletionRequests(v ...*DeletionRequest) *UserProfileCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDeletionRequestIDs(ids...)
 }
 
 // Mutation returns the UserProfileMutation object of the builder.
@@ -719,6 +749,10 @@ func (_c *UserProfileCreate) createSpec() (*UserProfile, *sqlgraph.CreateSpec) {
 		_spec.SetField(userprofile.FieldSuspendedReason, field.TypeString, value)
 		_node.SuspendedReason = &value
 	}
+	if value, ok := _c.mutation.ForceLogoutAt(); ok {
+		_spec.SetField(userprofile.FieldForceLogoutAt, field.TypeTime, value)
+		_node.ForceLogoutAt = &value
+	}
 	if nodes := _c.mutation.ExperiencesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -840,6 +874,22 @@ func (_c *UserProfileCreate) createSpec() (*UserProfile, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DeletionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.DeletionRequestsTable,
+			Columns: []string{userprofile.DeletionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deletionrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

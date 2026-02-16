@@ -15,6 +15,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/coachingsession"
 	"github.com/coby/colight/apps/backend/ent/companyanalysis"
 	"github.com/coby/colight/apps/backend/ent/coverletter"
+	"github.com/coby/colight/apps/backend/ent/deletionrequest"
 	"github.com/coby/colight/apps/backend/ent/experience"
 	"github.com/coby/colight/apps/backend/ent/experienceusage"
 	"github.com/coby/colight/apps/backend/ent/feedback"
@@ -375,6 +376,26 @@ func (_u *UserProfileUpdate) ClearSuspendedReason() *UserProfileUpdate {
 	return _u
 }
 
+// SetForceLogoutAt sets the "force_logout_at" field.
+func (_u *UserProfileUpdate) SetForceLogoutAt(v time.Time) *UserProfileUpdate {
+	_u.mutation.SetForceLogoutAt(v)
+	return _u
+}
+
+// SetNillableForceLogoutAt sets the "force_logout_at" field if the given value is not nil.
+func (_u *UserProfileUpdate) SetNillableForceLogoutAt(v *time.Time) *UserProfileUpdate {
+	if v != nil {
+		_u.SetForceLogoutAt(*v)
+	}
+	return _u
+}
+
+// ClearForceLogoutAt clears the value of the "force_logout_at" field.
+func (_u *UserProfileUpdate) ClearForceLogoutAt() *UserProfileUpdate {
+	_u.mutation.ClearForceLogoutAt()
+	return _u
+}
+
 // AddExperienceIDs adds the "experiences" edge to the Experience entity by IDs.
 func (_u *UserProfileUpdate) AddExperienceIDs(ids ...uuid.UUID) *UserProfileUpdate {
 	_u.mutation.AddExperienceIDs(ids...)
@@ -493,6 +514,21 @@ func (_u *UserProfileUpdate) AddFeedbacks(v ...*Feedback) *UserProfileUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddFeedbackIDs(ids...)
+}
+
+// AddDeletionRequestIDs adds the "deletion_requests" edge to the DeletionRequest entity by IDs.
+func (_u *UserProfileUpdate) AddDeletionRequestIDs(ids ...uuid.UUID) *UserProfileUpdate {
+	_u.mutation.AddDeletionRequestIDs(ids...)
+	return _u
+}
+
+// AddDeletionRequests adds the "deletion_requests" edges to the DeletionRequest entity.
+func (_u *UserProfileUpdate) AddDeletionRequests(v ...*DeletionRequest) *UserProfileUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDeletionRequestIDs(ids...)
 }
 
 // Mutation returns the UserProfileMutation object of the builder.
@@ -666,6 +702,27 @@ func (_u *UserProfileUpdate) RemoveFeedbacks(v ...*Feedback) *UserProfileUpdate 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFeedbackIDs(ids...)
+}
+
+// ClearDeletionRequests clears all "deletion_requests" edges to the DeletionRequest entity.
+func (_u *UserProfileUpdate) ClearDeletionRequests() *UserProfileUpdate {
+	_u.mutation.ClearDeletionRequests()
+	return _u
+}
+
+// RemoveDeletionRequestIDs removes the "deletion_requests" edge to DeletionRequest entities by IDs.
+func (_u *UserProfileUpdate) RemoveDeletionRequestIDs(ids ...uuid.UUID) *UserProfileUpdate {
+	_u.mutation.RemoveDeletionRequestIDs(ids...)
+	return _u
+}
+
+// RemoveDeletionRequests removes "deletion_requests" edges to DeletionRequest entities.
+func (_u *UserProfileUpdate) RemoveDeletionRequests(v ...*DeletionRequest) *UserProfileUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDeletionRequestIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -871,6 +928,12 @@ func (_u *UserProfileUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if _u.mutation.SuspendedReasonCleared() {
 		_spec.ClearField(userprofile.FieldSuspendedReason, field.TypeString)
+	}
+	if value, ok := _u.mutation.ForceLogoutAt(); ok {
+		_spec.SetField(userprofile.FieldForceLogoutAt, field.TypeTime, value)
+	}
+	if _u.mutation.ForceLogoutAtCleared() {
+		_spec.ClearField(userprofile.FieldForceLogoutAt, field.TypeTime)
 	}
 	if _u.mutation.ExperiencesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1225,6 +1288,51 @@ func (_u *UserProfileUpdate) sqlSave(ctx context.Context) (_node int, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DeletionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.DeletionRequestsTable,
+			Columns: []string{userprofile.DeletionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deletionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDeletionRequestsIDs(); len(nodes) > 0 && !_u.mutation.DeletionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.DeletionRequestsTable,
+			Columns: []string{userprofile.DeletionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deletionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DeletionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.DeletionRequestsTable,
+			Columns: []string{userprofile.DeletionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deletionrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1590,6 +1698,26 @@ func (_u *UserProfileUpdateOne) ClearSuspendedReason() *UserProfileUpdateOne {
 	return _u
 }
 
+// SetForceLogoutAt sets the "force_logout_at" field.
+func (_u *UserProfileUpdateOne) SetForceLogoutAt(v time.Time) *UserProfileUpdateOne {
+	_u.mutation.SetForceLogoutAt(v)
+	return _u
+}
+
+// SetNillableForceLogoutAt sets the "force_logout_at" field if the given value is not nil.
+func (_u *UserProfileUpdateOne) SetNillableForceLogoutAt(v *time.Time) *UserProfileUpdateOne {
+	if v != nil {
+		_u.SetForceLogoutAt(*v)
+	}
+	return _u
+}
+
+// ClearForceLogoutAt clears the value of the "force_logout_at" field.
+func (_u *UserProfileUpdateOne) ClearForceLogoutAt() *UserProfileUpdateOne {
+	_u.mutation.ClearForceLogoutAt()
+	return _u
+}
+
 // AddExperienceIDs adds the "experiences" edge to the Experience entity by IDs.
 func (_u *UserProfileUpdateOne) AddExperienceIDs(ids ...uuid.UUID) *UserProfileUpdateOne {
 	_u.mutation.AddExperienceIDs(ids...)
@@ -1708,6 +1836,21 @@ func (_u *UserProfileUpdateOne) AddFeedbacks(v ...*Feedback) *UserProfileUpdateO
 		ids[i] = v[i].ID
 	}
 	return _u.AddFeedbackIDs(ids...)
+}
+
+// AddDeletionRequestIDs adds the "deletion_requests" edge to the DeletionRequest entity by IDs.
+func (_u *UserProfileUpdateOne) AddDeletionRequestIDs(ids ...uuid.UUID) *UserProfileUpdateOne {
+	_u.mutation.AddDeletionRequestIDs(ids...)
+	return _u
+}
+
+// AddDeletionRequests adds the "deletion_requests" edges to the DeletionRequest entity.
+func (_u *UserProfileUpdateOne) AddDeletionRequests(v ...*DeletionRequest) *UserProfileUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDeletionRequestIDs(ids...)
 }
 
 // Mutation returns the UserProfileMutation object of the builder.
@@ -1881,6 +2024,27 @@ func (_u *UserProfileUpdateOne) RemoveFeedbacks(v ...*Feedback) *UserProfileUpda
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFeedbackIDs(ids...)
+}
+
+// ClearDeletionRequests clears all "deletion_requests" edges to the DeletionRequest entity.
+func (_u *UserProfileUpdateOne) ClearDeletionRequests() *UserProfileUpdateOne {
+	_u.mutation.ClearDeletionRequests()
+	return _u
+}
+
+// RemoveDeletionRequestIDs removes the "deletion_requests" edge to DeletionRequest entities by IDs.
+func (_u *UserProfileUpdateOne) RemoveDeletionRequestIDs(ids ...uuid.UUID) *UserProfileUpdateOne {
+	_u.mutation.RemoveDeletionRequestIDs(ids...)
+	return _u
+}
+
+// RemoveDeletionRequests removes "deletion_requests" edges to DeletionRequest entities.
+func (_u *UserProfileUpdateOne) RemoveDeletionRequests(v ...*DeletionRequest) *UserProfileUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDeletionRequestIDs(ids...)
 }
 
 // Where appends a list predicates to the UserProfileUpdate builder.
@@ -2116,6 +2280,12 @@ func (_u *UserProfileUpdateOne) sqlSave(ctx context.Context) (_node *UserProfile
 	}
 	if _u.mutation.SuspendedReasonCleared() {
 		_spec.ClearField(userprofile.FieldSuspendedReason, field.TypeString)
+	}
+	if value, ok := _u.mutation.ForceLogoutAt(); ok {
+		_spec.SetField(userprofile.FieldForceLogoutAt, field.TypeTime, value)
+	}
+	if _u.mutation.ForceLogoutAtCleared() {
+		_spec.ClearField(userprofile.FieldForceLogoutAt, field.TypeTime)
 	}
 	if _u.mutation.ExperiencesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -2470,6 +2640,51 @@ func (_u *UserProfileUpdateOne) sqlSave(ctx context.Context) (_node *UserProfile
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feedback.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DeletionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.DeletionRequestsTable,
+			Columns: []string{userprofile.DeletionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deletionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDeletionRequestsIDs(); len(nodes) > 0 && !_u.mutation.DeletionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.DeletionRequestsTable,
+			Columns: []string{userprofile.DeletionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deletionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DeletionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   userprofile.DeletionRequestsTable,
+			Columns: []string{userprofile.DeletionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(deletionrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

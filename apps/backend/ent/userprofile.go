@@ -59,6 +59,8 @@ type UserProfile struct {
 	SuspendedAt *time.Time `json:"suspended_at,omitempty"`
 	// Reason for suspension
 	SuspendedReason *string `json:"suspended_reason,omitempty"`
+	// All tokens issued before this time are invalid
+	ForceLogoutAt *time.Time `json:"force_logout_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserProfileQuery when eager-loading is set.
 	Edges        UserProfileEdges `json:"edges"`
@@ -83,9 +85,11 @@ type UserProfileEdges struct {
 	UsageLogs []*UsageLog `json:"usage_logs,omitempty"`
 	// Feedbacks holds the value of the feedbacks edge.
 	Feedbacks []*Feedback `json:"feedbacks,omitempty"`
+	// DeletionRequests holds the value of the deletion_requests edge.
+	DeletionRequests []*DeletionRequest `json:"deletion_requests,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 }
 
 // ExperiencesOrErr returns the Experiences value or an error if the edge
@@ -160,6 +164,15 @@ func (e UserProfileEdges) FeedbacksOrErr() ([]*Feedback, error) {
 	return nil, &NotLoadedError{edge: "feedbacks"}
 }
 
+// DeletionRequestsOrErr returns the DeletionRequests value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserProfileEdges) DeletionRequestsOrErr() ([]*DeletionRequest, error) {
+	if e.loadedTypes[8] {
+		return e.DeletionRequests, nil
+	}
+	return nil, &NotLoadedError{edge: "deletion_requests"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*UserProfile) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -171,7 +184,7 @@ func (*UserProfile) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case userprofile.FieldEmail, userprofile.FieldPasswordHash, userprofile.FieldNaverID, userprofile.FieldAuthProvider, userprofile.FieldRole, userprofile.FieldNickname, userprofile.FieldTargetJob, userprofile.FieldTargetIndustry, userprofile.FieldEducationLevel, userprofile.FieldPlan, userprofile.FieldSuspendedReason:
 			values[i] = new(sql.NullString)
-		case userprofile.FieldCreatedAt, userprofile.FieldUpdatedAt, userprofile.FieldLastLoginAt, userprofile.FieldSuspendedAt:
+		case userprofile.FieldCreatedAt, userprofile.FieldUpdatedAt, userprofile.FieldLastLoginAt, userprofile.FieldSuspendedAt, userprofile.FieldForceLogoutAt:
 			values[i] = new(sql.NullTime)
 		case userprofile.FieldID:
 			values[i] = new(uuid.UUID)
@@ -323,6 +336,13 @@ func (_m *UserProfile) assignValues(columns []string, values []any) error {
 				_m.SuspendedReason = new(string)
 				*_m.SuspendedReason = value.String
 			}
+		case userprofile.FieldForceLogoutAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field force_logout_at", values[i])
+			} else if value.Valid {
+				_m.ForceLogoutAt = new(time.Time)
+				*_m.ForceLogoutAt = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -374,6 +394,11 @@ func (_m *UserProfile) QueryUsageLogs() *UsageLogQuery {
 // QueryFeedbacks queries the "feedbacks" edge of the UserProfile entity.
 func (_m *UserProfile) QueryFeedbacks() *FeedbackQuery {
 	return NewUserProfileClient(_m.config).QueryFeedbacks(_m)
+}
+
+// QueryDeletionRequests queries the "deletion_requests" edge of the UserProfile entity.
+func (_m *UserProfile) QueryDeletionRequests() *DeletionRequestQuery {
+	return NewUserProfileClient(_m.config).QueryDeletionRequests(_m)
 }
 
 // Update returns a builder for updating this UserProfile.
@@ -468,6 +493,11 @@ func (_m *UserProfile) String() string {
 	if v := _m.SuspendedReason; v != nil {
 		builder.WriteString("suspended_reason=")
 		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ForceLogoutAt; v != nil {
+		builder.WriteString("force_logout_at=")
+		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteByte(')')
 	return builder.String()

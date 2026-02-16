@@ -28,6 +28,14 @@ const (
 	FieldPageURL = "page_url"
 	// FieldUserAgent holds the string denoting the user_agent field in the database.
 	FieldUserAgent = "user_agent"
+	// FieldAdminStatus holds the string denoting the admin_status field in the database.
+	FieldAdminStatus = "admin_status"
+	// FieldAdminNote holds the string denoting the admin_note field in the database.
+	FieldAdminNote = "admin_note"
+	// FieldReviewedBy holds the string denoting the reviewed_by field in the database.
+	FieldReviewedBy = "reviewed_by"
+	// FieldReviewedAt holds the string denoting the reviewed_at field in the database.
+	FieldReviewedAt = "reviewed_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the feedback in the database.
@@ -50,6 +58,10 @@ var Columns = []string{
 	FieldContent,
 	FieldPageURL,
 	FieldUserAgent,
+	FieldAdminStatus,
+	FieldAdminNote,
+	FieldReviewedBy,
+	FieldReviewedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -99,6 +111,34 @@ func CategoryValidator(c Category) error {
 	}
 }
 
+// AdminStatus defines the type for the "admin_status" enum field.
+type AdminStatus string
+
+// AdminStatusPending is the default value of the AdminStatus enum.
+const DefaultAdminStatus = AdminStatusPending
+
+// AdminStatus values.
+const (
+	AdminStatusPending   AdminStatus = "pending"
+	AdminStatusReviewed  AdminStatus = "reviewed"
+	AdminStatusResolved  AdminStatus = "resolved"
+	AdminStatusDismissed AdminStatus = "dismissed"
+)
+
+func (as AdminStatus) String() string {
+	return string(as)
+}
+
+// AdminStatusValidator is a validator for the "admin_status" field enum values. It is called by the builders before save.
+func AdminStatusValidator(as AdminStatus) error {
+	switch as {
+	case AdminStatusPending, AdminStatusReviewed, AdminStatusResolved, AdminStatusDismissed:
+		return nil
+	default:
+		return fmt.Errorf("feedback: invalid enum value for admin_status field: %q", as)
+	}
+}
+
 // OrderOption defines the ordering options for the Feedback queries.
 type OrderOption func(*sql.Selector)
 
@@ -135,6 +175,26 @@ func ByPageURL(opts ...sql.OrderTermOption) OrderOption {
 // ByUserAgent orders the results by the user_agent field.
 func ByUserAgent(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserAgent, opts...).ToFunc()
+}
+
+// ByAdminStatus orders the results by the admin_status field.
+func ByAdminStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAdminStatus, opts...).ToFunc()
+}
+
+// ByAdminNote orders the results by the admin_note field.
+func ByAdminNote(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAdminNote, opts...).ToFunc()
+}
+
+// ByReviewedBy orders the results by the reviewed_by field.
+func ByReviewedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReviewedBy, opts...).ToFunc()
+}
+
+// ByReviewedAt orders the results by the reviewed_at field.
+func ByReviewedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReviewedAt, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.
