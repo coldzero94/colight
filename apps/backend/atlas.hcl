@@ -1,6 +1,7 @@
 env "local" {
   src = "ent://ent/schema"
   dev = "postgres://postgres:password@localhost:5532/atlasdev?sslmode=disable"
+  url = "postgres://postgres:password@localhost:5532/colight?sslmode=disable"
 
   migration {
     dir = "file://migrations"

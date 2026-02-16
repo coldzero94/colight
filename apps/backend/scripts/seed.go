@@ -865,7 +865,7 @@ func seedAdmin(ctx context.Context, client *ent.Client) error {
 		return nil
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte("admin-password-change-me"), 12)
+	hash, err := bcrypt.GenerateFromPassword([]byte("admin123"), 12)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}

@@ -23,6 +23,8 @@ tasks:
     command: atlas migrate diff $0 --env local
     args: positional
   migrate-apply:
+    command: atlas migrate apply --env local
+  migrate-apply-prod:
     command: atlas migrate apply --env prod
   seed:
     command: go run ./scripts/seed.go all

@@ -1,0 +1,27 @@
+# Tests
+*_test.go
+testutil/
+testdata/
+
+# Development
+tmp/
+.env
+.env.local
+*.log
+
+# Build artifacts
+bin/
+build-errors.log
+*.test
+*.out
+
+# Documentation
+*.md
+docs/
+
+# IDE
+.vscode/
+.idea/
+
+# Moon
+.moon/

@@ -12,9 +12,13 @@ import (
 	"github.com/coby/colight/apps/backend/internal/infrastructure/middleware"
 	"github.com/coby/colight/apps/backend/internal/service"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file (optional - ignore if not found)
+	_ = godotenv.Load("../../.env")
+
 	cfg := config.Load()
 
 	db, err := database.NewClient(cfg.DatabaseURL)

@@ -11,6 +11,13 @@ packages/protocol/  # TypeSpec → OpenAPI (API single source of truth)
 docs/               # Plan, develop, phase guides
 ```
 
+## Environment Setup
+
+- **Local**: `.env` file (not committed)
+- **Production**: Set environment variables directly in your deployment platform (Railway, Fly.io, Vercel, etc.)
+- **Required**: `DATABASE_URL`, `JWT_SECRET`, AI API keys
+- See `.env.example` for all variables
+
 ## Architecture
 
 - **Codegen**: TypeSpec → OpenAPI → Go server (oapi-codegen) + TS client (@hey-api/openapi-ts)
