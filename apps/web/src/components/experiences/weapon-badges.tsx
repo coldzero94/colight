@@ -26,7 +26,7 @@ export function WeaponBadges({ weapons, maxVisible }: WeaponBadgesProps) {
         />
       ))}
       {remaining > 0 && (
-        <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+        <span className="inline-flex items-center rounded-full bg-white/[0.06] px-2 py-0.5 text-xs text-muted-foreground">
           +{remaining}
         </span>
       )}

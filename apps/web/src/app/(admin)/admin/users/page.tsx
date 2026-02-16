@@ -18,10 +18,10 @@ interface AdminUser {
 }
 
 const ROLE_BADGE_STYLES: Record<UserRole, string> = {
-  user: "bg-gray-100 text-gray-700",
-  manager: "bg-blue-100 text-blue-700",
-  admin: "bg-purple-100 text-purple-700",
-  super_admin: "bg-red-100 text-red-700",
+  user: "bg-white/[0.06] text-foreground/80",
+  manager: "bg-blue-500/10 text-blue-400",
+  admin: "bg-purple-500/10 text-purple-400",
+  super_admin: "bg-red-500/10 text-red-400",
 };
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -94,8 +94,8 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">사용자 관리</h1>
-        <p className="text-sm text-gray-500">총 {total}명</p>
+        <h1 className="text-2xl font-bold text-foreground">사용자 관리</h1>
+        <p className="text-sm text-muted-foreground">총 {total}명</p>
       </div>
 
       <div className="flex gap-3">
@@ -107,7 +107,7 @@ export default function AdminUsersPage() {
             setSearch(e.target.value);
             setPage(0);
           }}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-border rounded-lg text-sm bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
         <select
           value={roleFilter}
@@ -115,7 +115,7 @@ export default function AdminUsersPage() {
             setRoleFilter(e.target.value);
             setPage(0);
           }}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-border rounded-lg text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
         >
           <option value="">전체 역할</option>
           {ALL_ROLES.map((role) => (
@@ -126,26 +126,26 @@ export default function AdminUsersPage() {
         </select>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-white/[0.02] border-b border-border">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                 이메일
               </th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                 닉네임
               </th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                 인증
               </th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                 역할
               </th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                 최근 로그인
               </th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                 가입일
               </th>
               <th className="px-4 py-3" />
@@ -154,13 +154,13 @@ export default function AdminUsersPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} className="text-center py-8 text-gray-400">
+                <td colSpan={7} className="text-center py-8 text-muted-foreground/60">
                   로딩 중...
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-8 text-gray-400">
+                <td colSpan={7} className="text-center py-8 text-muted-foreground/60">
                   사용자가 없습니다.
                 </td>
               </tr>
@@ -176,7 +176,7 @@ export default function AdminUsersPage() {
                 return (
                   <tr
                     key={user.id}
-                    className="border-b border-gray-100 hover:bg-gray-50"
+                    className="border-b border-border hover:bg-white/[0.04]"
                   >
                     <td className="px-4 py-3">{user.email ?? "-"}</td>
                     <td className="px-4 py-3">{user.nickname ?? "-"}</td>
@@ -184,8 +184,8 @@ export default function AdminUsersPage() {
                       <span
                         className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
                           user.auth_provider === "naver"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-blue-100 text-blue-700"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-blue-500/10 text-blue-400"
                         }`}
                       >
                         {user.auth_provider === "naver" ? "Naver" : "Email"}
@@ -198,14 +198,14 @@ export default function AdminUsersPage() {
                         {ROLE_LABELS[user.role]}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {user.last_login_at
                         ? new Date(user.last_login_at).toLocaleDateString(
                             "ko-KR"
                           )
                         : "-"}
                     </td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {new Date(user.created_at).toLocaleDateString("ko-KR")}
                     </td>
                     <td className="px-4 py-3">
@@ -218,7 +218,7 @@ export default function AdminUsersPage() {
                               e.target.value as UserRole
                             )
                           }
-                          className="text-xs border border-gray-300 rounded px-2 py-1 bg-white"
+                          className="text-xs border border-border rounded px-2 py-1 bg-card text-foreground"
                         >
                           <option value={user.role}>
                             {ROLE_LABELS[user.role]}
@@ -232,7 +232,7 @@ export default function AdminUsersPage() {
                             ))}
                         </select>
                       ) : isSelf ? (
-                        <span className="text-xs text-gray-400">본인</span>
+                        <span className="text-xs text-muted-foreground/60">본인</span>
                       ) : null}
                     </td>
                   </tr>
@@ -248,17 +248,17 @@ export default function AdminUsersPage() {
           <button
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
-            className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50"
+            className="px-3 py-1 text-sm border border-border rounded text-foreground disabled:opacity-50"
           >
             이전
           </button>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-muted-foreground">
             {page + 1} / {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50"
+            className="px-3 py-1 text-sm border border-border rounded text-foreground disabled:opacity-50"
           >
             다음
           </button>

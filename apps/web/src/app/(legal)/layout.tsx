@@ -6,9 +6,9 @@ export default function LegalLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-gray-200 px-6 py-4">
-        <Link href="/" className="text-xl font-bold text-gray-900">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border px-6 py-4">
+        <Link href="/" className="text-xl font-bold text-foreground tracking-tight">
           Colight
         </Link>
       </header>

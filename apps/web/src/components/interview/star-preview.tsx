@@ -36,29 +36,29 @@ export function STARPreview({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-gray-200 bg-white p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">
+      <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+        <h3 className="text-lg font-semibold text-foreground">
           STAR 경험 카드 미리보기
         </h3>
 
         {/* Title */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">제목</label>
+          <label className="text-sm font-medium text-foreground/80">제목</label>
           <input
             type="text"
             value={form.title}
             onChange={(e) => updateField("title", e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
 
         {/* Category */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">카테고리</label>
+          <label className="text-sm font-medium text-foreground/80">카테고리</label>
           <select
             value={form.category}
             onChange={(e) => updateField("category", e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
           >
             {CATEGORY_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -78,26 +78,26 @@ export function STARPreview({
           ] as const
         ).map(([field, label]) => (
           <div key={field} className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-foreground/80">
               {label}
             </label>
             <textarea
               value={form[field]}
               onChange={(e) => updateField(field, e.target.value)}
               rows={3}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 resize-none"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
             />
           </div>
         ))}
 
         {/* Keywords */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">키워드</label>
+          <label className="text-sm font-medium text-foreground/80">키워드</label>
           <div className="flex flex-wrap gap-2">
             {form.keywords.map((kw, i) => (
               <span
                 key={i}
-                className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700"
+                className="rounded-full bg-white/[0.06] px-3 py-1 text-xs text-foreground/80"
               >
                 {kw}
               </span>

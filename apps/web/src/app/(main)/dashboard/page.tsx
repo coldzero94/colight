@@ -22,12 +22,12 @@ export default function DashboardPage() {
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-20 animate-pulse rounded-lg bg-gray-100" />
+            <div key={i} className="h-20 animate-pulse rounded-lg bg-white/[0.06]" />
           ))}
         </div>
         <div className="flex gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-64 w-[280px] shrink-0 animate-pulse rounded-lg bg-gray-100 lg:flex-1" />
+            <div key={i} className="h-64 w-[280px] shrink-0 animate-pulse rounded-lg bg-white/[0.06] lg:flex-1" />
           ))}
         </div>
       </div>
@@ -47,7 +47,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-gray-900">대시보드</h1>
+      <h1 className="text-xl font-bold text-foreground">대시보드</h1>
 
       {stats && <DashboardSummary stats={stats} />}
 

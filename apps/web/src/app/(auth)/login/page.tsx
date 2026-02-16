@@ -51,7 +51,7 @@ export default function LoginPage() {
       <button
         type="button"
         onClick={handleNaverLogin}
-        className="w-full flex items-center justify-center gap-2 bg-[#03C75A] hover:bg-[#02b351] text-white font-medium py-3 px-4 rounded-lg transition-colors"
+        className="w-full flex items-center justify-center gap-2 bg-[#03C75A] hover:bg-[#02b351] text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-md shadow-[#03C75A]/20"
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path
@@ -64,10 +64,10 @@ export default function LoginPage() {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200" />
+          <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-white px-4 text-gray-500">또는</span>
+          <span className="bg-card px-4 text-muted-foreground">또는</span>
         </div>
       </div>
 
@@ -75,7 +75,7 @@ export default function LoginPage() {
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-foreground/80 mb-1.5"
           >
             이메일
           </label>
@@ -84,18 +84,18 @@ export default function LoginPage() {
             type="email"
             autoComplete="email"
             {...register("email")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.04] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
             placeholder="example@email.com"
           />
           {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            <p className="mt-1.5 text-sm text-destructive">{errors.email.message}</p>
           )}
         </div>
 
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-foreground/80 mb-1.5"
           >
             비밀번호
           </label>
@@ -104,11 +104,11 @@ export default function LoginPage() {
             type="password"
             autoComplete="current-password"
             {...register("password")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.04] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
             placeholder="8자 이상"
           />
           {errors.password && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1.5 text-sm text-destructive">
               {errors.password.message}
             </p>
           )}
@@ -117,15 +117,15 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+          className="w-full bg-primary hover:brightness-110 disabled:opacity-50 text-primary-foreground font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-md shadow-primary/20"
         >
           {isSubmitting ? "로그인 중..." : "로그인"}
         </button>
       </form>
 
-      <p className="text-center text-sm text-gray-600">
+      <p className="text-center text-sm text-muted-foreground">
         계정이 없으신가요?{" "}
-        <Link href="/signup" className="text-blue-600 hover:underline">
+        <Link href="/signup" className="text-primary hover:underline">
           회원가입
         </Link>
       </p>

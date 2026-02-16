@@ -82,7 +82,7 @@ export function ExperienceSelector({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-2xl font-bold text-foreground">
           경험 선택 ({selectedIds.length}/{maxSelect}개 선택됨)
         </h2>
       </div>
@@ -118,7 +118,7 @@ export function ExperienceSelector({
       <button
         onClick={handleConfirm}
         disabled={selectedIds.length === 0}
-        className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+        className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
       >
         선택한 경험으로 초안 작성 시작
       </button>

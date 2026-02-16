@@ -22,19 +22,19 @@ export function DeleteDialog({
       aria-modal="true"
       aria-label="삭제 확인"
     >
-      <div className="mx-4 w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-        <h3 className="text-lg font-semibold text-gray-900">경험 삭제</h3>
-        <p className="mt-2 text-sm text-gray-600">
+      <div className="mx-4 w-full max-w-sm rounded-xl bg-card border border-border p-6 shadow-xl">
+        <h3 className="text-lg font-semibold text-foreground">경험 삭제</h3>
+        <p className="mt-2 text-sm text-muted-foreground">
           &ldquo;{title}&rdquo;을(를) 정말 삭제하시겠습니까?
         </p>
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-muted-foreground/60">
           삭제된 경험은 복구할 수 없습니다.
         </p>
         <div className="mt-6 flex gap-3 justify-end">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-white/[0.06] transition-colors"
             disabled={isDeleting}
           >
             취소

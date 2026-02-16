@@ -71,11 +71,11 @@ export default function AdminPromptsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">프롬프트 관리</h1>
+        <h1 className="text-2xl font-bold text-foreground">프롬프트 관리</h1>
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-border rounded-lg text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
         >
           <option value="">전체 카테고리</option>
           {categories.map((cat) => (
@@ -86,26 +86,26 @@ export default function AdminPromptsPage() {
         </select>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-white/[0.02] border-b border-border">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                 카테고리
               </th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                 서브카테고리
               </th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                 이름
               </th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                 모델
               </th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                 상태
               </th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                 사용횟수
               </th>
             </tr>
@@ -113,13 +113,13 @@ export default function AdminPromptsPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="text-center py-8 text-gray-400">
+                <td colSpan={6} className="text-center py-8 text-muted-foreground/60">
                   로딩 중...
                 </td>
               </tr>
             ) : prompts.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-8 text-gray-400">
+                <td colSpan={6} className="text-center py-8 text-muted-foreground/60">
                   프롬프트가 없습니다.
                 </td>
               </tr>
@@ -128,18 +128,18 @@ export default function AdminPromptsPage() {
                 <tr
                   key={p.id}
                   onClick={() => setSelected({ ...p })}
-                  className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                  className="border-b border-border hover:bg-white/[0.04] cursor-pointer"
                 >
                   <td className="px-4 py-3">{p.category}</td>
                   <td className="px-4 py-3">{p.sub_category}</td>
                   <td className="px-4 py-3 font-medium">{p.name}</td>
-                  <td className="px-4 py-3 text-gray-500">{p.model_name}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{p.model_name}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
                         p.is_active
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-500"
+                          ? "bg-primary/10 text-primary"
+                          : "bg-white/[0.06] text-muted-foreground"
                       }`}
                     >
                       {p.is_active ? "활성" : "비활성"}

@@ -60,13 +60,13 @@ export function QuestionInputForm({
   // 빈 상태: 기업 분석 이력이 없을 때
   if (companies.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-        <p className="mb-4 text-gray-600">
+      <div className="rounded-lg border border-border bg-muted p-8 text-center">
+        <p className="mb-4 text-muted-foreground">
           먼저 기업 분석을 진행해주세요
         </p>
         <Link
           href="/analysis"
-          className="inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-800"
+          className="inline-block rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
         >
           기업 분석 시작하기
         </Link>
@@ -88,7 +88,7 @@ export function QuestionInputForm({
       <div className="space-y-1">
         <label
           htmlFor="question_text"
-          className="text-sm font-medium text-gray-700"
+          className="text-sm font-medium text-foreground/80"
         >
           자소서 문항
         </label>
@@ -97,7 +97,7 @@ export function QuestionInputForm({
           {...register("question_text")}
           placeholder="자소서 문항을 입력하세요 (예: 본인이 팀 프로젝트에서 어려움을 극복한 경험을 구체적으로 기술하세요.)"
           rows={4}
-          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+          className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <div className="flex items-center justify-between">
           <div>
@@ -107,7 +107,7 @@ export function QuestionInputForm({
               </p>
             )}
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             {questionText.length}/500자
           </p>
         </div>
@@ -126,7 +126,7 @@ export function QuestionInputForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
       >
         {isSubmitting ? (
           <>

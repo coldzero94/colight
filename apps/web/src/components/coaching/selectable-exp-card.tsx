@@ -29,9 +29,9 @@ interface SelectableExpCardProps {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 70) return "text-green-600";
-  if (score >= 40) return "text-blue-600";
-  return "text-gray-500";
+  if (score >= 70) return "text-green-400";
+  if (score >= 40) return "text-blue-400";
+  return "text-muted-foreground";
 }
 
 export function SelectableExpCard({
@@ -54,8 +54,8 @@ export function SelectableExpCard({
     <div
       className={`rounded-lg border p-4 transition-colors ${
         selected
-          ? "border-blue-500 bg-blue-50"
-          : "border-gray-200 bg-white hover:border-gray-300"
+          ? "border-blue-500 bg-blue-500/10"
+          : "border-border bg-card hover:border-border/80"
       } ${disabled ? "opacity-50" : ""}`}
     >
       <div className="flex items-start gap-3">
@@ -64,27 +64,27 @@ export function SelectableExpCard({
           checked={selected}
           disabled={disabled}
           onChange={onToggle}
-          className="mt-1 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+          className="mt-1 h-5 w-5 rounded border-border text-blue-400 focus:ring-2 focus:ring-blue-500"
         />
 
         <div className="flex-1">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold text-gray-900">
+                <h3 className="text-base font-semibold text-foreground">
                   {experience.title}
                 </h3>
                 {experience.isUsed && (
                   <span
                     data-testid="used-badge"
-                    className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
+                    className="rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs font-medium text-yellow-400"
                   >
                     이미 사용됨
                   </span>
                 )}
               </div>
               {formatPeriod() && (
-                <p className="mt-1 text-xs text-gray-500">{formatPeriod()}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{formatPeriod()}</p>
               )}
             </div>
             <div className="ml-4 text-right">
@@ -95,7 +95,7 @@ export function SelectableExpCard({
                 type="button"
                 onClick={onExpand}
                 data-testid="expand-button"
-                className="mt-1 flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+                className="mt-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground/80"
               >
                 {expanded ? (
                   <>
@@ -117,7 +117,7 @@ export function SelectableExpCard({
             {experience.weapons.map((weapon, index) => (
               <span
                 key={index}
-                className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700"
+                className="rounded-full bg-white/[0.06] px-2 py-1 text-xs font-medium text-foreground/80"
               >
                 {weapon.name}
               </span>
@@ -128,7 +128,7 @@ export function SelectableExpCard({
           {experience.matchReasons && experience.matchReasons.length > 0 && (
             <div data-testid="match-reasons" className="mt-2 space-y-0.5">
               {experience.matchReasons.map((reason, index) => (
-                <p key={index} className="text-xs text-gray-500">
+                <p key={index} className="text-xs text-muted-foreground">
                   · {reason}
                 </p>
               ))}
@@ -137,26 +137,26 @@ export function SelectableExpCard({
 
           {/* Preview or Full STAR */}
           {!expanded ? (
-            <p className="mt-3 line-clamp-2 text-sm text-gray-600">
+            <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
               {experience.star_situation}
             </p>
           ) : (
-            <div className="mt-4 space-y-3 rounded-lg bg-gray-50 p-4 text-sm">
+            <div className="mt-4 space-y-3 rounded-lg bg-white/[0.02] p-4 text-sm">
               <div>
-                <span className="font-semibold text-blue-700">[상황]</span>
-                <p className="mt-1 text-gray-700">{experience.star_situation}</p>
+                <span className="font-semibold text-blue-400">[상황]</span>
+                <p className="mt-1 text-foreground/80">{experience.star_situation}</p>
               </div>
               <div>
-                <span className="font-semibold text-amber-700">[과제]</span>
-                <p className="mt-1 text-gray-700">{experience.star_task}</p>
+                <span className="font-semibold text-yellow-400">[과제]</span>
+                <p className="mt-1 text-foreground/80">{experience.star_task}</p>
               </div>
               <div>
-                <span className="font-semibold text-green-700">[행동]</span>
-                <p className="mt-1 text-gray-700">{experience.star_action}</p>
+                <span className="font-semibold text-green-400">[행동]</span>
+                <p className="mt-1 text-foreground/80">{experience.star_action}</p>
               </div>
               <div>
-                <span className="font-semibold text-purple-700">[결과]</span>
-                <p className="mt-1 text-gray-700">{experience.star_result}</p>
+                <span className="font-semibold text-purple-400">[결과]</span>
+                <p className="mt-1 text-foreground/80">{experience.star_result}</p>
               </div>
             </div>
           )}

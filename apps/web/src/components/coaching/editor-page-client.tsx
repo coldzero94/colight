@@ -145,8 +145,8 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-        <span className="ml-2 text-gray-500">에디터를 불러오는 중...</span>
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
+        <span className="ml-2 text-muted-foreground">에디터를 불러오는 중...</span>
       </div>
     );
   }
@@ -154,10 +154,10 @@ export function EditorPageClient({ coverLetterId }: EditorPageClientProps) {
   if (error || !coverLetter) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20">
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-foreground">
           자소서를 불러올 수 없습니다
         </h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           {error?.message ?? "데이터를 찾을 수 없습니다"}
         </p>
       </div>

@@ -46,7 +46,7 @@ export default function SignupPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900 text-center">
+      <h2 className="text-xl font-semibold text-foreground text-center">
         회원가입
       </h2>
 
@@ -54,7 +54,7 @@ export default function SignupPage() {
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-foreground/80 mb-1.5"
           >
             이메일
           </label>
@@ -63,18 +63,18 @@ export default function SignupPage() {
             type="email"
             autoComplete="email"
             {...register("email")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.04] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
             placeholder="example@email.com"
           />
           {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            <p className="mt-1.5 text-sm text-destructive">{errors.email.message}</p>
           )}
         </div>
 
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-foreground/80 mb-1.5"
           >
             비밀번호
           </label>
@@ -83,11 +83,11 @@ export default function SignupPage() {
             type="password"
             autoComplete="new-password"
             {...register("password")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.04] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
             placeholder="영문 + 숫자 조합, 8자 이상"
           />
           {errors.password && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1.5 text-sm text-destructive">
               {errors.password.message}
             </p>
           )}
@@ -96,7 +96,7 @@ export default function SignupPage() {
         <div>
           <label
             htmlFor="passwordConfirm"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-foreground/80 mb-1.5"
           >
             비밀번호 확인
           </label>
@@ -105,11 +105,11 @@ export default function SignupPage() {
             type="password"
             autoComplete="new-password"
             {...register("passwordConfirm")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.04] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
             placeholder="비밀번호를 다시 입력해주세요"
           />
           {errors.passwordConfirm && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1.5 text-sm text-destructive">
               {errors.passwordConfirm.message}
             </p>
           )}
@@ -118,36 +118,36 @@ export default function SignupPage() {
         <div>
           <label
             htmlFor="nickname"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-foreground/80 mb-1.5"
           >
-            닉네임 <span className="text-gray-400">(선택)</span>
+            닉네임 <span className="text-muted-foreground">(선택)</span>
           </label>
           <input
             id="nickname"
             type="text"
             {...register("nickname")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.04] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
             placeholder="최대 50자"
           />
           {errors.nickname && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1.5 text-sm text-destructive">
               {errors.nickname.message}
             </p>
           )}
         </div>
 
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-2.5">
           <input
             id="agreeToTerms"
             type="checkbox"
             {...register("agreeToTerms")}
-            className="mt-1 h-4 w-4 rounded border-gray-300"
+            className="mt-1 h-4 w-4 rounded border-border bg-white/[0.04] accent-primary"
           />
-          <label htmlFor="agreeToTerms" className="text-sm text-gray-600">
+          <label htmlFor="agreeToTerms" className="text-sm text-muted-foreground">
             <Link
               href="/terms"
               target="_blank"
-              className="text-blue-600 hover:underline"
+              className="text-primary hover:underline"
             >
               이용약관
             </Link>
@@ -155,7 +155,7 @@ export default function SignupPage() {
             <Link
               href="/privacy"
               target="_blank"
-              className="text-blue-600 hover:underline"
+              className="text-primary hover:underline"
             >
               개인정보처리방침
             </Link>
@@ -163,7 +163,7 @@ export default function SignupPage() {
           </label>
         </div>
         {errors.agreeToTerms && (
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-destructive">
             {errors.agreeToTerms.message}
           </p>
         )}
@@ -171,15 +171,15 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+          className="w-full bg-primary hover:brightness-110 disabled:opacity-50 text-primary-foreground font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-md shadow-primary/20"
         >
           {isSubmitting ? "가입 중..." : "회원가입"}
         </button>
       </form>
 
-      <p className="text-center text-sm text-gray-600">
+      <p className="text-center text-sm text-muted-foreground">
         이미 계정이 있으신가요?{" "}
-        <Link href="/login" className="text-blue-600 hover:underline">
+        <Link href="/login" className="text-primary hover:underline">
           로그인
         </Link>
       </p>

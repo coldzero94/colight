@@ -78,34 +78,34 @@ export default function InterviewPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Welcome */}
       {step === "welcome" && (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center space-y-6">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-            <Mic className="h-8 w-8 text-gray-600" />
+        <div className="rounded-lg border border-border bg-card p-8 text-center space-y-6">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/[0.06]">
+            <Mic className="h-8 w-8 text-muted-foreground" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-foreground">
               경험 인터뷰
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               AI가 5단계 질문을 통해 당신의 경험을 깊이 있게 탐색합니다.
               <br />
               답변을 바탕으로 STAR 구조의 경험 카드를 자동으로 생성합니다.
             </p>
           </div>
-          <div className="flex flex-wrap justify-center gap-2 text-xs text-gray-400">
-            <span className="rounded-full bg-gray-50 px-3 py-1">가볍게</span>
+          <div className="flex flex-wrap justify-center gap-2 text-xs text-muted-foreground/60">
+            <span className="rounded-full bg-white/[0.04] px-3 py-1">가볍게</span>
             <ArrowRight className="h-4 w-4 self-center" />
-            <span className="rounded-full bg-gray-50 px-3 py-1">
+            <span className="rounded-full bg-white/[0.04] px-3 py-1">
               기억에 남는 순간
             </span>
             <ArrowRight className="h-4 w-4 self-center" />
-            <span className="rounded-full bg-gray-50 px-3 py-1">
+            <span className="rounded-full bg-white/[0.04] px-3 py-1">
               어려웠던 점
             </span>
             <ArrowRight className="h-4 w-4 self-center" />
-            <span className="rounded-full bg-gray-50 px-3 py-1">해결법</span>
+            <span className="rounded-full bg-white/[0.04] px-3 py-1">해결법</span>
             <ArrowRight className="h-4 w-4 self-center" />
-            <span className="rounded-full bg-gray-50 px-3 py-1">
+            <span className="rounded-full bg-white/[0.04] px-3 py-1">
               결과/배운 점
             </span>
           </div>
@@ -133,7 +133,7 @@ export default function InterviewPage() {
             disabled={chat.isComplete}
           />
           {chat.error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+            <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
               {chat.error}
             </div>
           )}
@@ -142,15 +142,15 @@ export default function InterviewPage() {
 
       {/* Complete */}
       {step === "complete" && (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center space-y-6">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
-            <CheckCircle2 className="h-8 w-8 text-green-600" />
+        <div className="rounded-lg border border-border bg-card p-8 text-center space-y-6">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+            <CheckCircle2 className="h-8 w-8 text-primary" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-foreground">
               인터뷰 완료!
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               {Math.floor(chat.elapsedSeconds / 60)}분{" "}
               {chat.elapsedSeconds % 60}초 동안 인터뷰를 진행했습니다.
               <br />
@@ -158,7 +158,7 @@ export default function InterviewPage() {
             </p>
           </div>
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+            <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
               {error}
             </div>
           )}
@@ -182,9 +182,9 @@ export default function InterviewPage() {
 
       {/* Extracting */}
       {step === "extracting" && (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center space-y-4">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-gray-400" />
-          <p className="text-sm text-gray-500">
+        <div className="rounded-lg border border-border bg-card p-8 text-center space-y-4">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground">
             STAR 구조로 경험을 추출하고 있습니다...
           </p>
         </div>
@@ -202,15 +202,15 @@ export default function InterviewPage() {
 
       {/* Saved */}
       {step === "saved" && (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center space-y-6">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
-            <CheckCircle2 className="h-8 w-8 text-green-600" />
+        <div className="rounded-lg border border-border bg-card p-8 text-center space-y-6">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+            <CheckCircle2 className="h-8 w-8 text-primary" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-foreground">
               경험 카드가 저장되었습니다!
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               경험 관리 페이지에서 확인할 수 있습니다.
             </p>
           </div>

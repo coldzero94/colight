@@ -97,8 +97,8 @@ export function CoachingFlow() {
   if (appsLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-        <span className="ml-2 text-gray-500">불러오는 중...</span>
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
+        <span className="ml-2 text-muted-foreground">불러오는 중...</span>
       </div>
     );
   }
@@ -108,11 +108,11 @@ export function CoachingFlow() {
   // Empty state
   if (appList.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-        <p className="mb-4 text-gray-600">먼저 기업 분석을 진행해주세요</p>
+      <div className="rounded-lg border border-border bg-muted p-8 text-center">
+        <p className="mb-4 text-muted-foreground">먼저 기업 분석을 진행해주세요</p>
         <Link
           href="/analysis"
-          className="inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-800"
+          className="inline-block rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
         >
           기업 분석 시작하기
         </Link>
@@ -160,14 +160,14 @@ export function CoachingFlow() {
           <div className="flex gap-3">
             <button
               onClick={() => setStep("input")}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+              className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-white/[0.04]"
             >
               다시 분석하기
             </button>
             <button
               onClick={handleGoToSelect}
               disabled={experienceRecommend.isPending}
-              className="flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {experienceRecommend.isPending ? (
                 <>
@@ -204,21 +204,21 @@ export function CoachingFlow() {
 
       {/* Error display */}
       {questionAnalysis.isError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+        <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
           분석 중 오류가 발생했습니다:{" "}
           {questionAnalysis.error?.message ?? "알 수 없는 오류"}
         </div>
       )}
 
       {experienceRecommend.isError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+        <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
           경험 추천 중 오류가 발생했습니다:{" "}
           {experienceRecommend.error?.message ?? "알 수 없는 오류"}
         </div>
       )}
 
       {draftStreaming.error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+        <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
           초안 생성 중 오류가 발생했습니다: {draftStreaming.error}
         </div>
       )}

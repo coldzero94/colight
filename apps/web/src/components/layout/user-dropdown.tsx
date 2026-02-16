@@ -30,24 +30,24 @@ export function UserDropdown() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all duration-200"
       >
-        <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
+        <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary">
           {user?.nickname?.[0] ?? "U"}
         </div>
-        <span className="text-sm text-gray-700 hidden sm:block">
+        <span className="text-sm text-foreground/80 hidden sm:block">
           {user?.nickname ?? "사용자"}
         </span>
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-50">
-          <div className="px-4 py-2 border-b border-gray-100">
-            <p className="text-sm font-medium text-gray-900 truncate">
+        <div className="absolute right-0 mt-1 w-48 bg-card border border-border rounded-xl shadow-xl shadow-black/20 py-1 z-50">
+          <div className="px-4 py-2.5 border-b border-border">
+            <p className="text-sm font-medium text-foreground truncate">
               {user?.nickname ?? "사용자"}
             </p>
             {user?.email && (
-              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             )}
           </div>
 
@@ -55,7 +55,7 @@ export function UserDropdown() {
             <Link
               href="/admin"
               onClick={() => setOpen(false)}
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className="block px-4 py-2 text-sm text-foreground/80 hover:bg-white/[0.04] transition-colors"
             >
               어드민
             </Link>
@@ -63,7 +63,7 @@ export function UserDropdown() {
 
           <button
             onClick={handleLogout}
-            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+            className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-white/[0.04] transition-colors"
           >
             로그아웃
           </button>

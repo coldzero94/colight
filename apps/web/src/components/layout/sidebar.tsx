@@ -17,9 +17,9 @@ export function Sidebar() {
   const { user } = useAuthStore();
 
   return (
-    <aside className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-5 border-b border-gray-100">
-        <Link href="/experiences" className="text-xl font-bold text-gray-900">
+    <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
+      <div className="p-5 border-b border-sidebar-border">
+        <Link href="/experiences" className="text-xl font-bold text-foreground tracking-tight">
           Colight
         </Link>
       </div>
@@ -31,10 +31,10 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                 isActive
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
               }`}
             >
               <span>{item.icon}</span>
@@ -45,13 +45,13 @@ export function Sidebar() {
 
         {user?.role === "admin" && (
           <>
-            <div className="my-3 border-t border-gray-100" />
+            <div className="my-3 border-t border-sidebar-border" />
             <Link
               href="/admin"
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                 pathname.startsWith("/admin")
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
               }`}
             >
               <span>🛡️</span>
@@ -61,17 +61,17 @@ export function Sidebar() {
         )}
       </nav>
 
-      <div className="p-4 border-t border-gray-100">
+      <div className="p-4 border-t border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600">
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-medium text-primary">
             {user?.nickname?.[0] ?? "U"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="text-sm font-medium text-foreground truncate">
               {user?.nickname ?? "사용자"}
             </p>
             {user?.role === "admin" && (
-              <span className="text-xs text-purple-600">admin</span>
+              <span className="text-xs text-primary/80">admin</span>
             )}
           </div>
         </div>

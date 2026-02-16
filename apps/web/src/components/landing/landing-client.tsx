@@ -23,7 +23,7 @@ export function LandingClient() {
   if (accessToken) return null;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <LandingHeader />
       <HeroSection />
       <FeatureSection />

@@ -22,7 +22,7 @@ export function CompanySelect({
 }: CompanySelectProps) {
   return (
     <div className="space-y-1">
-      <label htmlFor="company" className="text-sm font-medium text-gray-700">
+      <label htmlFor="company" className="text-sm font-medium text-foreground/80">
         기업 선택
       </label>
       <select
@@ -30,7 +30,7 @@ export function CompanySelect({
         role="combobox"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+        className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       >
         <option value="">기업을 선택하세요</option>
         {companies.map((company) => (

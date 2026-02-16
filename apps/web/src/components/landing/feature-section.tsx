@@ -30,20 +30,20 @@ const features = [
 
 export function FeatureSection() {
   return (
-    <section className="bg-gray-50 py-20">
+    <section className="border-t border-border py-20">
       <div className="mx-auto max-w-6xl px-4">
-        <h2 className="text-center text-2xl font-bold text-gray-900 sm:text-3xl">
+        <h2 className="text-center text-2xl font-bold text-foreground sm:text-3xl">
           이런 걸 할 수 있어요
         </h2>
-        <p className="mx-auto mt-3 max-w-xl text-center text-gray-600">
+        <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
           자소서 작성의 모든 과정을 AI가 도와드립니다
         </p>
-        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (
-            <Card key={feature.title} className="border-0 shadow-sm">
+            <Card key={feature.title} className="border-border hover:border-primary/20 transition-all duration-300">
               <CardHeader>
-                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-                  <feature.icon className="h-5 w-5 text-blue-600" />
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                  <feature.icon className="h-5 w-5 text-primary" />
                 </div>
                 <CardTitle className="text-lg">{feature.title}</CardTitle>
               </CardHeader>

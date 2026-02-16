@@ -76,10 +76,10 @@ export default function AnalysisResultPage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-red-600">{crawlError}</p>
+          <p className="text-red-400">{crawlError}</p>
           <button
             onClick={() => window.history.back()}
-            className="mt-4 text-sm text-blue-600 hover:text-blue-800"
+            className="mt-4 text-sm text-blue-400 hover:text-blue-300"
           >
             ← 돌아가기
           </button>
@@ -93,12 +93,12 @@ export default function AnalysisResultPage() {
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="flex flex-col items-center justify-center py-20">
           <LoadingSpinner />
-          <p className="mt-4 text-gray-600">
+          <p className="mt-4 text-muted-foreground">
             {!companyName
               ? "채용공고를 분석하고 있습니다..."
               : "AI가 기업을 분석하고 있습니다..."}
           </p>
-          <p className="mt-2 text-sm text-gray-400">약 10-15초 소요됩니다</p>
+          <p className="mt-2 text-sm text-muted-foreground/60">약 10-15초 소요됩니다</p>
         </div>
       </div>
     );
@@ -110,16 +110,16 @@ export default function AnalysisResultPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-foreground">
               {analysis.company_name}
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-muted-foreground">
               분석 출처: {getSourceLabel(analysis.source)}
             </p>
           </div>
           <button
             onClick={() => window.history.back()}
-            className="text-sm text-gray-500 hover:text-gray-900"
+            className="text-sm text-muted-foreground hover:text-foreground"
           >
             ← 돌아가기
           </button>
@@ -128,17 +128,17 @@ export default function AnalysisResultPage() {
 
       {/* Core Values */}
       <section className="mb-8">
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">
+        <h2 className="mb-4 text-xl font-semibold text-foreground">
           핵심가치 ({analysis.core_values.length})
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
           {analysis.core_values.map((value, i) => (
             <div
               key={i}
-              className="rounded-lg border border-gray-200 bg-white p-4"
+              className="rounded-lg border border-border bg-card p-4"
             >
-              <h3 className="font-medium text-gray-900">{value.keyword}</h3>
-              <p className="mt-1 text-sm text-gray-600">{value.description}</p>
+              <h3 className="font-medium text-foreground">{value.keyword}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{value.description}</p>
             </div>
           ))}
         </div>
@@ -146,19 +146,19 @@ export default function AnalysisResultPage() {
 
       {/* Talent Traits */}
       <section className="mb-8">
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">
+        <h2 className="mb-4 text-xl font-semibold text-foreground">
           인재상 ({analysis.talent_traits.length})
         </h2>
         <div className="space-y-4">
           {analysis.talent_traits.map((trait, i) => (
             <div
               key={i}
-              className="rounded-lg border border-gray-200 bg-white p-4"
+              className="rounded-lg border border-border bg-card p-4"
             >
-              <h3 className="font-medium text-gray-900">{trait.trait}</h3>
-              <p className="mt-1 text-sm text-gray-600">{trait.description}</p>
+              <h3 className="font-medium text-foreground">{trait.trait}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{trait.description}</p>
               {trait.evidence && (
-                <p className="mt-2 text-xs text-gray-400">
+                <p className="mt-2 text-xs text-muted-foreground/60">
                   근거: {trait.evidence}
                 </p>
               )}
@@ -170,17 +170,17 @@ export default function AnalysisResultPage() {
       {/* Recent Trends */}
       {analysis.recent_trends.length > 0 && (
         <section className="mb-8">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">
+          <h2 className="mb-4 text-xl font-semibold text-foreground">
             최근 동향 ({analysis.recent_trends.length})
           </h2>
           <div className="space-y-3">
             {analysis.recent_trends.map((trend, i) => (
               <div
                 key={i}
-                className="rounded-lg border border-gray-200 bg-blue-50 p-4"
+                className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4"
               >
-                <h3 className="font-medium text-gray-900">{trend.title}</h3>
-                <p className="mt-1 text-sm text-gray-600">{trend.summary}</p>
+                <h3 className="font-medium text-foreground">{trend.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{trend.summary}</p>
               </div>
             ))}
           </div>
@@ -189,14 +189,14 @@ export default function AnalysisResultPage() {
 
       {/* Strategy Keywords */}
       <section className="mb-8">
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">
+        <h2 className="mb-4 text-xl font-semibold text-foreground">
           자소서 전략 키워드
         </h2>
         <div className="flex flex-wrap gap-2">
           {analysis.strategy_keywords.map((keyword, i) => (
             <span
               key={i}
-              className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700"
+              className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
             >
               {keyword}
             </span>
@@ -207,14 +207,14 @@ export default function AnalysisResultPage() {
       {/* Avoid Expressions */}
       {analysis.avoid_expressions.length > 0 && (
         <section className="mb-8">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">
+          <h2 className="mb-4 text-xl font-semibold text-foreground">
             피해야 할 표현
           </h2>
           <div className="flex flex-wrap gap-2">
             {analysis.avoid_expressions.map((expr, i) => (
               <span
                 key={i}
-                className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-700"
+                className="inline-flex items-center rounded-full bg-red-500/10 px-3 py-1 text-sm font-medium text-red-400"
               >
                 {expr}
               </span>
@@ -226,12 +226,12 @@ export default function AnalysisResultPage() {
       {/* Experience Matching */}
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-semibold text-foreground">
             내 경험 적합도 매칭
           </h2>
           {!isMatching && matchingResult && (
             <button
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-blue-400 hover:text-blue-300"
               onClick={triggerMatching}
             >
               다시 매칭 →
@@ -242,7 +242,7 @@ export default function AnalysisResultPage() {
         {isMatching ? (
           <div className="flex flex-col items-center py-8">
             <LoadingSpinner />
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-4 text-sm text-muted-foreground">
               경험 매칭 중입니다...
             </p>
           </div>
@@ -252,7 +252,7 @@ export default function AnalysisResultPage() {
             experiences={experiences}
           />
         ) : experiences.length === 0 ? (
-          <p className="text-sm text-gray-500 py-4">
+          <p className="text-sm text-muted-foreground py-4">
             등록된 경험이 없습니다. 경험을 먼저 추가해주세요.
           </p>
         ) : null}

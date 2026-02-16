@@ -22,21 +22,21 @@ export function StarDisplay({ situation, task, action, result }: StarDisplayProp
         return (
           <div
             key={section.key}
-            className="rounded-lg border border-gray-100 bg-white p-4"
+            className="rounded-lg border border-border bg-card p-4"
           >
-            <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+            <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">
               <span>{section.icon}</span>
               <span>{section.label}</span>
-              <span className="text-xs font-normal text-gray-400">
+              <span className="text-xs font-normal text-muted-foreground/60">
                 {section.description}
               </span>
             </h4>
             {content ? (
-              <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
+              <p className="text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
                 {content}
               </p>
             ) : (
-              <p className="text-sm text-gray-400" data-testid="star-empty">
+              <p className="text-sm text-muted-foreground/60" data-testid="star-empty">
                 아직 작성되지 않았습니다
               </p>
             )}

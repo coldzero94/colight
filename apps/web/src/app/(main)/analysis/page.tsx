@@ -25,15 +25,15 @@ export default function AnalysisPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">기업 분석</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-3xl font-bold text-foreground">기업 분석</h1>
+        <p className="mt-2 text-muted-foreground">
           채용공고 URL을 입력하면 AI가 기업을 자동 분석합니다.
         </p>
       </div>
 
       {/* URL Input */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <h2 className="mb-4 text-lg font-semibold text-foreground">
           채용공고 URL 입력
         </h2>
         <JobUrlInput onSubmit={handleAnalyze} isLoading={isAnalyzing} />
@@ -41,7 +41,7 @@ export default function AnalysisPage() {
 
       {/* Placeholder for future analysis history */}
       <div className="mt-8">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">
+        <h2 className="mb-4 text-lg font-semibold text-foreground">
           최근 분석 기록
         </h2>
         <EmptyState

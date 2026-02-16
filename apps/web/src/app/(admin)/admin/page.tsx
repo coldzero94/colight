@@ -27,13 +27,13 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-gray-900 rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-border border-t-foreground rounded-full" />
       </div>
     );
   }
 
   if (!stats) {
-    return <p className="text-gray-500">통계를 불러올 수 없습니다.</p>;
+    return <p className="text-muted-foreground">통계를 불러올 수 없습니다.</p>;
   }
 
   const statCards = [
@@ -46,16 +46,16 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">대시보드</h1>
+      <h1 className="text-2xl font-bold text-foreground">대시보드</h1>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {statCards.map((card) => (
           <div
             key={card.label}
-            className="bg-white rounded-xl border border-gray-200 p-4"
+            className="bg-card rounded-xl border border-border p-4"
           >
-            <p className="text-sm text-gray-500">{card.label}</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">
+            <p className="text-sm text-muted-foreground">{card.label}</p>
+            <p className="text-2xl font-bold text-foreground mt-1">
               {card.value.toLocaleString()}
             </p>
           </div>
@@ -65,13 +65,13 @@ export default function AdminDashboardPage() {
       <div className="flex gap-3">
         <Link
           href="/admin/users"
-          className="bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          className="bg-card border border-border rounded-lg px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-white/[0.04] transition-colors"
         >
           사용자 관리
         </Link>
         <Link
           href="/admin/prompts"
-          className="bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          className="bg-card border border-border rounded-lg px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-white/[0.04] transition-colors"
         >
           프롬프트 관리
         </Link>

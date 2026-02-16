@@ -37,7 +37,7 @@ export function InterviewChat({
   };
 
   return (
-    <div className="flex flex-col h-[500px] rounded-lg border border-gray-200 bg-white">
+    <div className="flex flex-col h-[500px] rounded-lg border border-border bg-card">
       {/* Messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, i) => (
@@ -48,8 +48,8 @@ export function InterviewChat({
             <div
               className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
                 msg.role === "user"
-                  ? "bg-gray-900 text-white"
-                  : "bg-gray-100 text-gray-900"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-white/[0.06] text-foreground"
               }`}
             >
               {msg.content}
@@ -60,11 +60,11 @@ export function InterviewChat({
         {/* Loading indicator */}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-2xl px-4 py-2.5">
+            <div className="bg-white/[0.06] rounded-2xl px-4 py-2.5">
               <span className="flex gap-1" aria-label="답변 생성 중">
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce [animation-delay:0ms]" />
+                <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce [animation-delay:150ms]" />
+                <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce [animation-delay:300ms]" />
               </span>
             </div>
           </div>
@@ -74,7 +74,7 @@ export function InterviewChat({
       {/* Input area */}
       <form
         onSubmit={handleSubmit}
-        className="border-t border-gray-200 p-3 flex gap-2"
+        className="border-t border-border p-3 flex gap-2"
       >
         <input
           type="text"
@@ -82,7 +82,7 @@ export function InterviewChat({
           onChange={(e) => setInput(e.target.value)}
           placeholder="답변을 입력하세요..."
           disabled={isLoading || disabled}
-          className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50"
+          className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-50"
         />
         <Button
           type="submit"

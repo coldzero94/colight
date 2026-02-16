@@ -18,14 +18,14 @@ export function ExperienceActions({
       <button
         type="button"
         onClick={() => router.push(`/experiences/${experienceId}/edit`)}
-        className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-white/[0.04] transition-colors"
       >
         수정
       </button>
       <button
         type="button"
         onClick={onDeleteClick}
-        className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+        className="rounded-lg border border-red-500/20 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 transition-colors"
       >
         삭제
       </button>

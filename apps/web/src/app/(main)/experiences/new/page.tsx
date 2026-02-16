@@ -43,12 +43,12 @@ export default function NewExperiencePage() {
       <div className="mb-6">
         <Link
           href="/experiences"
-          className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           aria-label="경험 목록으로 돌아가기"
         >
           ← 경험 목록
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-gray-900">경험 등록</h1>
+        <h1 className="mt-2 text-2xl font-bold text-foreground">경험 등록</h1>
       </div>
       <ExperienceForm
         mode="create"

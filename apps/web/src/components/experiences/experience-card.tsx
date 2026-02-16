@@ -17,23 +17,23 @@ export function ExperienceCard({ experience, viewMode }: ExperienceCardProps) {
     return (
       <Link
         href={`/experiences/${experience.id}`}
-        className="flex items-center gap-4 rounded-lg border border-gray-100 bg-white p-4 hover:shadow-md transition-shadow cursor-pointer"
+        className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 hover:shadow-md transition-shadow cursor-pointer"
         data-testid="experience-card-list"
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <CategoryIcon category={experience.category} />
           <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-semibold text-gray-900 truncate">
+            <h3 className="text-sm font-semibold text-foreground truncate">
               {experience.title}
             </h3>
             {period && (
-              <p className="text-xs text-gray-400 mt-0.5">{period}</p>
+              <p className="text-xs text-muted-foreground/60 mt-0.5">{period}</p>
             )}
           </div>
         </div>
         <div className="hidden md:block flex-1 min-w-0">
           {experience.star_situation && (
-            <p className="text-xs text-gray-500 truncate">
+            <p className="text-xs text-muted-foreground truncate">
               {experience.star_situation}
             </p>
           )}
@@ -50,18 +50,18 @@ export function ExperienceCard({ experience, viewMode }: ExperienceCardProps) {
   return (
     <Link
       href={`/experiences/${experience.id}`}
-      className="flex flex-col rounded-lg border border-gray-100 bg-white p-4 hover:shadow-md transition-shadow cursor-pointer h-full"
+      className="flex flex-col rounded-lg border border-border bg-card p-4 hover:shadow-md transition-shadow cursor-pointer h-full"
       data-testid="experience-card-grid"
     >
       <div className="flex items-center justify-between mb-2">
         <CategoryIcon category={experience.category} showLabel />
-        {period && <span className="text-xs text-gray-400">{period}</span>}
+        {period && <span className="text-xs text-muted-foreground/60">{period}</span>}
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 mb-2">
+      <h3 className="text-lg font-semibold text-foreground line-clamp-2 mb-2">
         {experience.title}
       </h3>
       {experience.star_situation && (
-        <p className="text-sm text-gray-500 line-clamp-2 mb-3 flex-1">
+        <p className="text-sm text-muted-foreground line-clamp-2 mb-3 flex-1">
           {experience.star_situation}
         </p>
       )}

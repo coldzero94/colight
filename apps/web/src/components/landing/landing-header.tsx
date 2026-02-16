@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 
 export function LandingHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="text-xl font-bold text-gray-900">
+        <Link href="/" className="text-xl font-bold text-foreground tracking-tight">
           Colight
         </Link>
         <div className="flex items-center gap-3">

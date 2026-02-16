@@ -22,7 +22,7 @@ export function MobileNav() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="lg:hidden p-2 text-gray-600 hover:text-gray-900"
+        className="lg:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
         aria-label="메뉴 열기"
       >
         <svg
@@ -40,22 +40,22 @@ export function MobileNav() {
       {/* Overlay */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setOpen(false)}
         />
       )}
 
       {/* Sheet */}
       <div
-        className={`fixed top-0 left-0 h-full w-72 bg-white z-50 transform transition-transform duration-200 lg:hidden ${
+        className={`fixed top-0 left-0 h-full w-72 bg-sidebar border-r border-sidebar-border z-50 transform transition-transform duration-200 lg:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-          <span className="text-xl font-bold text-gray-900">Colight</span>
+        <div className="p-5 border-b border-sidebar-border flex items-center justify-between">
+          <span className="text-xl font-bold text-foreground tracking-tight">Colight</span>
           <button
             onClick={() => setOpen(false)}
-            className="p-1 text-gray-400 hover:text-gray-600"
+            className="p-1 text-muted-foreground hover:text-foreground transition-colors"
           >
             <svg
               width="20"
@@ -78,10 +78,10 @@ export function MobileNav() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                   isActive
-                    ? "bg-gray-100 text-gray-900 font-medium"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
                 }`}
               >
                 <span>{item.icon}</span>
@@ -92,11 +92,11 @@ export function MobileNav() {
 
           {user?.role === "admin" && (
             <>
-              <div className="my-3 border-t border-gray-100" />
+              <div className="my-3 border-t border-sidebar-border" />
               <Link
                 href="/admin"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-white/[0.04] hover:text-foreground transition-all duration-200"
               >
                 <span>🛡️</span>
                 어드민

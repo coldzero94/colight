@@ -24,24 +24,24 @@ export function InterviewProgress({
           <div key={stage} className="flex items-center">
             {idx > 0 && (
               <div
-                className={`w-6 h-0.5 ${isDone ? "bg-gray-900" : "bg-gray-200"}`}
+                className={`w-6 h-0.5 ${isDone ? "bg-foreground" : "bg-border"}`}
               />
             )}
             <div className="flex flex-col items-center gap-1">
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${
                   isDone
-                    ? "bg-gray-900 text-white"
+                    ? "bg-foreground text-background"
                     : isCurrent
-                      ? "border-2 border-gray-900 text-gray-900"
-                      : "border border-gray-300 text-gray-400"
+                      ? "border-2 border-foreground text-foreground"
+                      : "border border-border text-muted-foreground/60"
                 }`}
               >
                 {isDone ? <Check className="h-3.5 w-3.5" /> : idx + 1}
               </div>
               <span
                 className={`text-[10px] whitespace-nowrap ${
-                  isDone || isCurrent ? "text-gray-900 font-medium" : "text-gray-400"
+                  isDone || isCurrent ? "text-foreground font-medium" : "text-muted-foreground/60"
                 }`}
               >
                 {STAGE_LABELS[stage]}

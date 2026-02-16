@@ -46,12 +46,12 @@ export function AdminSidebar() {
   );
 
   return (
-    <aside className="w-60 bg-gray-900 text-white flex flex-col">
-      <div className="p-4 border-b border-gray-700">
-        <h2 className="text-lg font-bold">Colight Admin</h2>
+    <aside className="w-60 bg-sidebar border-r border-sidebar-border flex flex-col">
+      <div className="p-4 border-b border-sidebar-border">
+        <h2 className="text-lg font-bold text-foreground tracking-tight">Colight Admin</h2>
       </div>
 
-      <nav className="flex-1 py-4">
+      <nav className="flex-1 py-4 px-2">
         {visibleItems.map((item) => {
           const isActive =
             item.href === "/admin"
@@ -62,10 +62,10 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                 isActive
-                  ? "bg-gray-700 text-white"
-                  : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
               }`}
             >
               <span>{item.icon}</span>
@@ -75,10 +75,10 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-sidebar-border">
         <Link
           href="/experiences"
-          className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           ← 메인 앱으로
         </Link>

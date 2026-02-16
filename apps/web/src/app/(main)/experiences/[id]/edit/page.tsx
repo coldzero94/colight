@@ -56,7 +56,7 @@ export default function EditExperiencePage() {
 
   if (!experience) {
     return (
-      <div className="py-20 text-center text-gray-500">
+      <div className="py-20 text-center text-muted-foreground">
         경험을 찾을 수 없습니다.
       </div>
     );
@@ -67,12 +67,12 @@ export default function EditExperiencePage() {
       <div className="mb-6">
         <Link
           href={`/experiences/${id}`}
-          className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           aria-label="경험 상세로 돌아가기"
         >
           ← 경험 상세
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-gray-900">경험 수정</h1>
+        <h1 className="mt-2 text-2xl font-bold text-foreground">경험 수정</h1>
       </div>
       <ExperienceForm
         mode="edit"

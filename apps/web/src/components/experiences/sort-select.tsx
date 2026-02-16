@@ -16,7 +16,7 @@ export function SortSelect({ value, onChange }: SortSelectProps) {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900"
+      className="rounded-lg border border-border bg-input px-3 py-1.5 text-sm text-foreground/80 focus:outline-none focus:ring-2 focus:ring-ring"
       aria-label="정렬"
     >
       {sortOptions.map((opt) => (

@@ -15,10 +15,10 @@ function getDeadlineDays(deadline: string): number {
 }
 
 function getDeadlineColor(days: number): string {
-  if (days <= 0) return "bg-red-50 text-red-600";
-  if (days <= 3) return "bg-red-50 text-red-600";
-  if (days <= 7) return "bg-amber-50 text-amber-600";
-  return "bg-gray-50 text-gray-500";
+  if (days <= 0) return "bg-red-500/10 text-red-400";
+  if (days <= 3) return "bg-red-500/10 text-red-400";
+  if (days <= 7) return "bg-amber-500/10 text-amber-400";
+  return "bg-white/[0.02] text-muted-foreground";
 }
 
 function DeadlineBadge({ deadline }: { deadline: string }) {
@@ -44,18 +44,18 @@ export function KanbanCard({ application, index }: KanbanCardProps) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`rounded-lg border bg-white p-3 transition-shadow ${
+          className={`rounded-lg border border-border bg-card p-3 transition-shadow ${
             snapshot.isDragging
-              ? "shadow-lg ring-2 ring-blue-200"
+              ? "shadow-lg ring-2 ring-blue-500/30"
               : "shadow-sm hover:shadow-md"
           }`}
         >
           <div className="flex items-start justify-between gap-2">
-            <h4 className="text-sm font-semibold text-gray-900 truncate">
+            <h4 className="text-sm font-semibold text-foreground truncate">
               {application.company_name}
             </h4>
             <svg
-              className="h-4 w-4 shrink-0 text-gray-300"
+              className="h-4 w-4 shrink-0 text-muted-foreground/40"
               fill="currentColor"
               viewBox="0 0 6 10"
             >
@@ -68,13 +68,13 @@ export function KanbanCard({ application, index }: KanbanCardProps) {
             </svg>
           </div>
 
-          <p className="mt-0.5 text-xs text-gray-500 truncate">
+          <p className="mt-0.5 text-xs text-muted-foreground truncate">
             {application.position}
           </p>
 
           <div className="mt-2 flex items-center gap-2 text-xs">
             {application.cover_letter_count > 0 && (
-              <span className="inline-flex items-center gap-1 text-gray-500">
+              <span className="inline-flex items-center gap-1 text-muted-foreground">
                 <svg
                   className="h-3.5 w-3.5"
                   fill="none"

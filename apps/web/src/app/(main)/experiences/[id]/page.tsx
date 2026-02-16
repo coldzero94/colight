@@ -43,7 +43,7 @@ export default function ExperienceDetailPage() {
 
   if (error || !experience) {
     return (
-      <div className="py-20 text-center text-gray-500">
+      <div className="py-20 text-center text-muted-foreground">
         경험을 찾을 수 없습니다.
       </div>
     );
@@ -53,7 +53,7 @@ export default function ExperienceDetailPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <Link
         href="/experiences"
-        className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         aria-label="경험 목록으로 돌아가기"
       >
         ← 경험 목록
@@ -66,18 +66,18 @@ export default function ExperienceDetailPage() {
               <CategoryIcon category={experience.category} showLabel />
             )}
             {experience.period_start && (
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-muted-foreground/60">
                 {experience.period_start.slice(0, 7).replace("-", ".")}
                 {experience.period_end &&
                   ` ~ ${experience.period_end.slice(0, 7).replace("-", ".")}`}
               </span>
             )}
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-foreground">
             {experience.title}
           </h1>
           {experience.role && (
-            <p className="mt-1 text-sm text-gray-500">{experience.role}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{experience.role}</p>
           )}
         </div>
         <ExperienceActions
@@ -89,7 +89,7 @@ export default function ExperienceDetailPage() {
       {experience.weapons && experience.weapons.length > 0 ? (
         <WeaponBadges weapons={experience.weapons} />
       ) : (
-        <p className="text-sm text-gray-400">AI 분석 대기 중...</p>
+        <p className="text-sm text-muted-foreground/60">AI 분석 대기 중...</p>
       )}
 
       <StarDisplay
@@ -100,17 +100,17 @@ export default function ExperienceDetailPage() {
       />
 
       {experience.content && (
-        <div className="rounded-lg border border-gray-100 bg-white p-4">
-          <h4 className="mb-2 text-sm font-semibold text-gray-900">
+        <div className="rounded-lg border border-border bg-card p-4">
+          <h4 className="mb-2 text-sm font-semibold text-foreground">
             자유 입력
           </h4>
-          <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
+          <p className="text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
             {experience.content}
           </p>
         </div>
       )}
 
-      <div className="text-xs text-gray-400 space-y-1 border-t border-gray-100 pt-4">
+      <div className="text-xs text-muted-foreground/60 space-y-1 border-t border-border pt-4">
         <p>
           생성일:{" "}
           {new Date(experience.created_at).toLocaleDateString("ko-KR")}

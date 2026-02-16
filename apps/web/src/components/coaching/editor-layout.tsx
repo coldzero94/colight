@@ -29,11 +29,11 @@ const TiptapEditor = dynamic(
     ssr: false,
     loading: () => (
       <div className="space-y-3 p-4" data-testid="editor-skeleton">
-        <div className="h-8 w-48 animate-pulse rounded bg-gray-200" />
-        <div className="h-4 w-full animate-pulse rounded bg-gray-100" />
-        <div className="h-4 w-3/4 animate-pulse rounded bg-gray-100" />
-        <div className="h-4 w-5/6 animate-pulse rounded bg-gray-100" />
-        <div className="h-4 w-2/3 animate-pulse rounded bg-gray-100" />
+        <div className="h-8 w-48 animate-pulse rounded bg-white/[0.08]" />
+        <div className="h-4 w-full animate-pulse rounded bg-white/[0.06]" />
+        <div className="h-4 w-3/4 animate-pulse rounded bg-white/[0.06]" />
+        <div className="h-4 w-5/6 animate-pulse rounded bg-white/[0.06]" />
+        <div className="h-4 w-2/3 animate-pulse rounded bg-white/[0.06]" />
       </div>
     ),
   },
@@ -159,22 +159,22 @@ export function EditorLayout({
 
   const sidebarContent = (
     <Tabs.Root defaultValue="analysis" className="flex h-full flex-col">
-      <Tabs.List className="flex shrink-0 border-b border-gray-200">
+      <Tabs.List className="flex shrink-0 border-b border-border">
         <Tabs.Trigger
           value="analysis"
-          className="flex-1 px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:border-b-2 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900"
+          className="flex-1 px-4 py-3 text-sm font-medium text-muted-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-foreground"
         >
           분석
         </Tabs.Trigger>
         <Tabs.Trigger
           value="review"
-          className="flex-1 px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:border-b-2 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900"
+          className="flex-1 px-4 py-3 text-sm font-medium text-muted-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-foreground"
         >
           첨삭 결과
         </Tabs.Trigger>
         <Tabs.Trigger
           value="char-coaching"
-          className="flex-1 px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:border-b-2 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900"
+          className="flex-1 px-4 py-3 text-sm font-medium text-muted-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-foreground"
         >
           글자수
         </Tabs.Trigger>
@@ -198,11 +198,11 @@ export function EditorLayout({
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <MessageSquareText className="mb-3 h-8 w-8 text-gray-300" />
-            <p className="text-sm text-gray-500">
+            <MessageSquareText className="mb-3 h-8 w-8 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">
               첨삭 결과가 없습니다
             </p>
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-muted-foreground/60">
               &quot;첨삭 요청&quot; 버튼을 눌러 AI 첨삭을 받아보세요
             </p>
           </div>
@@ -217,11 +217,11 @@ export function EditorLayout({
           />
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Ruler className="mb-3 h-8 w-8 text-gray-300" />
-            <p className="text-sm text-gray-500">
+            <Ruler className="mb-3 h-8 w-8 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">
               글자수 코칭 결과가 없습니다
             </p>
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-muted-foreground/60">
               &quot;글자수 코칭&quot; 버튼을 눌러 AI 코칭을 받아보세요
             </p>
           </div>
@@ -233,29 +233,29 @@ export function EditorLayout({
   return (
     <div className="flex h-screen flex-col">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white px-4 py-4 lg:px-6">
+      <div className="border-b border-border bg-card px-4 py-4 lg:px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 min-w-0">
             <Link
               href="/coaching"
-              className="flex shrink-0 items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+              className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">코칭 목록</span>
             </Link>
-            <div className="h-4 w-px bg-gray-300 hidden sm:block" />
+            <div className="h-4 w-px bg-border hidden sm:block" />
             <div className="min-w-0">
-              <h1 className="truncate text-lg font-semibold text-gray-900">
+              <h1 className="truncate text-lg font-semibold text-foreground">
                 {coverLetter.company_name} - {coverLetter.position}
               </h1>
-              <p className="truncate text-sm text-gray-600">{coverLetter.question_text}</p>
+              <p className="truncate text-sm text-muted-foreground">{coverLetter.question_text}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <SaveIndicator status={status} />
             <button
               onClick={() => setSheetOpen(true)}
-              className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 lg:hidden"
+              className="rounded-lg p-2 text-muted-foreground hover:bg-white/[0.06] lg:hidden"
               aria-label="사이드바 열기"
             >
               <PanelRight className="h-5 w-5" />
@@ -290,7 +290,7 @@ export function EditorLayout({
                 <button
                   onClick={handleSave}
                   disabled={status === "saved"}
-                  className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
                   버전 저장
                 </button>
@@ -298,7 +298,7 @@ export function EditorLayout({
                   <button
                     onClick={onRequestReview}
                     disabled={isReviewing}
-                    className="flex items-center gap-2 rounded-lg border border-gray-900 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 disabled:opacity-50"
                   >
                     {isReviewing ? (
                       <>
@@ -317,7 +317,7 @@ export function EditorLayout({
                   <button
                     onClick={onRequestCharCoaching}
                     disabled={isCharCoaching}
-                    className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-white/[0.04] disabled:opacity-50"
                   >
                     {isCharCoaching ? (
                       <>
@@ -338,7 +338,7 @@ export function EditorLayout({
         </div>
 
         {/* Desktop sidebar */}
-        <div className="hidden lg:flex w-80 flex-col border-l border-gray-200 bg-gray-50">
+        <div className="hidden lg:flex w-80 flex-col border-l border-border bg-card">
           {sidebarContent}
         </div>
 
