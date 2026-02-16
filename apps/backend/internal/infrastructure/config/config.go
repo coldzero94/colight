@@ -35,7 +35,7 @@ type Config struct {
 
 func Load() *Config {
 	return &Config{
-		APIPort:            getEnv("API_PORT", "9000"),
+		APIPort:            getPort(),
 		DatabaseURL:        mustGetEnv("DATABASE_URL"),
 		NaverClientID:      getEnv("NAVER_CLIENT_ID", ""),
 		NaverClientSecret:  getEnv("NAVER_CLIENT_SECRET", ""),
@@ -65,6 +65,14 @@ func mustGetEnv(key string) string {
 		panic("missing required env: " + key)
 	}
 	return v
+}
+
+// getPort returns the server port. Koyeb sets PORT, local dev uses API_PORT.
+func getPort() string {
+	if v := os.Getenv("PORT"); v != "" {
+		return v
+	}
+	return getEnv("API_PORT", "8000")
 }
 
 func parseDuration(key string, fallback time.Duration) time.Duration {
