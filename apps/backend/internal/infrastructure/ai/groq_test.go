@@ -172,11 +172,90 @@ func TestGroqProvider_Call_JSONMode(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestNewGroqProvider(t *testing.T) {
-	p := NewGroqProvider("my-key")
+func TestNewGroqProvider_DefaultModel(t *testing.T) {
+	p := NewGroqProvider("my-key", "")
 	assert.Equal(t, "my-key", p.apiKey)
 	assert.Equal(t, "llama-3.3-70b-versatile", p.model)
 	assert.NotNil(t, p.client)
+}
+
+func TestNewGroqProvider_CustomModel(t *testing.T) {
+	p := NewGroqProvider("my-key", "qwen/qwen3-32b")
+	assert.Equal(t, "qwen/qwen3-32b", p.model)
+}
+
+func TestNewGroqProvider_AliasResolution(t *testing.T) {
+	p := NewGroqProvider("my-key", "qwen3")
+	assert.Equal(t, "qwen/qwen3-32b", p.model)
+
+	p = NewGroqProvider("my-key", "llama-4-scout")
+	assert.Equal(t, "meta-llama/llama-4-scout-17b-16e-instruct", p.model)
+
+	p = NewGroqProvider("my-key", "compound")
+	assert.Equal(t, "groq/compound", p.model)
+}
+
+func TestGroqProvider_CallWithModel(t *testing.T) {
+	var capturedModel string
+	provider, server := newTestGroqServer(t, func(w http.ResponseWriter, r *http.Request) {
+		var req groqRequest
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&req))
+		capturedModel = req.Model
+
+		resp := groqResponse{
+			Choices: []struct {
+				Message struct {
+					Content string `json:"content"`
+				} `json:"message"`
+			}{
+				{Message: struct {
+					Content string `json:"content"`
+				}{Content: "ok"}},
+			},
+			Model: req.Model,
+		}
+		require.NoError(t, json.NewEncoder(w).Encode(resp))
+	})
+	defer server.Close()
+
+	provider.client = &http.Client{
+		Transport: &rewriteTransport{base: server.Client().Transport, target: server.URL},
+	}
+
+	// Call with alias should resolve to full model ID
+	_, err := provider.CallWithModel(context.Background(), "qwen3", LLMRequest{UserPrompt: "test"})
+	require.NoError(t, err)
+	assert.Equal(t, "qwen/qwen3-32b", capturedModel)
+
+	// Call with full ID should pass through
+	_, err = provider.CallWithModel(context.Background(), "openai/gpt-oss-120b", LLMRequest{UserPrompt: "test"})
+	require.NoError(t, err)
+	assert.Equal(t, "openai/gpt-oss-120b", capturedModel)
+}
+
+func TestResolveGroqModel(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"qwen3", "qwen/qwen3-32b"},
+		{"gpt-oss-120b", "openai/gpt-oss-120b"},
+		{"llama-4-scout", "meta-llama/llama-4-scout-17b-16e-instruct"},
+		{"kimi-k2", "moonshotai/kimi-k2-instruct"},
+		{"compound", "groq/compound"},
+		{"llama-3.3", "llama-3.3-70b-versatile"},
+		// Full IDs pass through
+		{"qwen/qwen3-32b", "qwen/qwen3-32b"},
+		{"openai/gpt-oss-120b", "openai/gpt-oss-120b"},
+		// Unknown returns as-is
+		{"unknown-model", "unknown-model"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			assert.Equal(t, tt.expected, ResolveGroqModel(tt.input))
+		})
+	}
 }
 
 // rewriteTransport redirects all requests to the test server

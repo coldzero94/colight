@@ -27,6 +27,7 @@ type Config struct {
 
 	// AI
 	LLMLightProvider string // "gemini" (default) or "groq"
+	GroqModel        string // Groq model ID or alias (default: llama-3.3-70b-versatile)
 	GeminiAPIKey     string
 	GroqAPIKey       string
 	AnthropicAPIKey  string
@@ -45,6 +46,7 @@ func Load() *Config {
 		JWTRefreshTokenTTL: parseDuration("JWT_REFRESH_TOKEN_TTL", 168*time.Hour),
 		FrontendURL:        getEnv("FRONTEND_URL", "http://localhost:4000"),
 		LLMLightProvider:   getEnv("LLM_LIGHT_PROVIDER", "gemini"),
+		GroqModel:          getEnv("GROQ_MODEL", ""),
 		GeminiAPIKey:       getEnv("GEMINI_API_KEY", ""),
 		GroqAPIKey:         getEnv("GROQ_API_KEY", ""),
 		AnthropicAPIKey:    getEnv("ANTHROPIC_API_KEY", ""),

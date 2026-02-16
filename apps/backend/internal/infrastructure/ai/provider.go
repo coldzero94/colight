@@ -9,8 +9,9 @@ import (
 
 // AIProvider provides access to all AI models (light + heavy + embedding)
 type AIProvider struct {
-	light LLMProvider // Gemini Flash or Groq (경량 작업)
-	heavy LLMProvider // Claude Sonnet 4.5 (심층 분석)
+	light LLMProvider    // Gemini Flash or Groq (경량 작업)
+	heavy LLMProvider    // Claude Sonnet 4.5 (심층 분석)
+	groq  *GroqProvider  // for CallByModelName routing to any Groq model
 	// embedding will be added later
 }
 
@@ -18,6 +19,7 @@ type AIProvider struct {
 func NewAIProvider(ctx context.Context, cfg *config.Config) (*AIProvider, error) {
 	// 1. Select light provider based on LLM_LIGHT_PROVIDER env var
 	var light LLMProvider
+	var groq *GroqProvider
 	var err error
 
 	switch cfg.LLMLightProvider {
@@ -25,7 +27,8 @@ func NewAIProvider(ctx context.Context, cfg *config.Config) (*AIProvider, error)
 		if cfg.GroqAPIKey == "" {
 			return nil, fmt.Errorf("GROQ_API_KEY is required when LLM_LIGHT_PROVIDER=groq")
 		}
-		light = NewGroqProvider(cfg.GroqAPIKey)
+		groq = NewGroqProvider(cfg.GroqAPIKey, cfg.GroqModel)
+		light = groq
 	default: // "gemini"
 		if cfg.GeminiAPIKey == "" {
 			return nil, fmt.Errorf("GEMINI_API_KEY is required when LLM_LIGHT_PROVIDER=gemini")
@@ -33,6 +36,10 @@ func NewAIProvider(ctx context.Context, cfg *config.Config) (*AIProvider, error)
 		light, err = NewGeminiProvider(ctx, cfg.GeminiAPIKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Gemini provider: %w", err)
+		}
+		// Also initialize Groq if API key is available (for CallByModelName)
+		if cfg.GroqAPIKey != "" {
+			groq = NewGroqProvider(cfg.GroqAPIKey, cfg.GroqModel)
 		}
 	}
 
@@ -45,6 +52,7 @@ func NewAIProvider(ctx context.Context, cfg *config.Config) (*AIProvider, error)
 	return &AIProvider{
 		light: light,
 		heavy: heavy,
+		groq:  groq,
 	}, nil
 }
 
@@ -63,8 +71,14 @@ func (p *AIProvider) Heavy() LLMProvider {
 	return p.heavy
 }
 
-// CallByModelName calls the appropriate provider based on model name
-// This allows prompt templates to specify which model to use
+// Groq returns the Groq provider for direct model-specific calls.
+// Returns nil if Groq is not configured.
+func (p *AIProvider) Groq() *GroqProvider {
+	return p.groq
+}
+
+// CallByModelName calls the appropriate provider based on model name.
+// This allows prompt templates to specify which model to use.
 func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req LLMRequest) (LLMResponse, error) {
 	switch {
 	case modelName == "claude-sonnet-4-5" || modelName == "claude":
@@ -80,6 +94,10 @@ func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req 
 		return p.light.Call(ctx, req)
 
 	default:
+		// Check if it's a known Groq model alias
+		if _, ok := GroqModelAliases[modelName]; ok && p.groq != nil {
+			return p.groq.CallWithModel(ctx, modelName, req)
+		}
 		// Default to light model for unknown models
 		return p.light.Call(ctx, req)
 	}
