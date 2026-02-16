@@ -80,6 +80,8 @@ func (ctrl *AdminController) ListUsers(c *gin.Context) {
 			"id":            u.ID.String(),
 			"auth_provider": string(u.AuthProvider),
 			"role":          string(u.Role),
+			"plan":          string(u.Plan),
+			"suspended":     u.Suspended,
 			"created_at":    u.CreatedAt,
 		}
 		if u.Email != nil {

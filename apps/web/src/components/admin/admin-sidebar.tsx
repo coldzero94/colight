@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, Users, FileText, Settings, BarChart3, ScrollText, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, Users, FileText, Settings, BarChart3, ScrollText, MessageSquare, ArrowLeft } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { hasRole, type UserRole } from "@/lib/auth-utils";
 import { ColightLogo } from "@/components/common/colight-logo";
@@ -22,6 +22,7 @@ const menuItems: MenuItem[] = [
   { label: "시스템 설정", href: "/admin/settings", icon: Settings, minRole: "super_admin" },
   { label: "사용량 모니터링", href: "/admin/usage", icon: BarChart3, minRole: "admin" },
   { label: "감사 로그", href: "/admin/logs", icon: ScrollText, minRole: "admin" },
+  { label: "피드백 관리", href: "/admin/feedbacks", icon: MessageSquare, minRole: "admin" },
 ];
 
 export function AdminSidebar() {
