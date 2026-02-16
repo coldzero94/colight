@@ -21,7 +21,7 @@ export function Header() {
     )?.[1] ?? "";
 
   return (
-    <header className="relative z-50 h-14 border-b border-border bg-background/80 backdrop-blur-sm flex items-center justify-between px-4">
+    <header className="h-14 border-b border-border bg-background/80 backdrop-blur-sm flex items-center justify-between px-4">
       <div className="flex items-center gap-3">
         <MobileNav />
         <h1 className="text-lg font-semibold text-foreground">{title}</h1>
