@@ -211,7 +211,12 @@ export default function AdminPromptsPage() {
                 </optgroup>
                 <optgroup label="Light Models">
                   <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-                  <option value="groq/llama-3.3-70b">Groq Llama 3.3 70B</option>
+                  <option value="llama-3.3-70b-versatile">Groq Llama 3.3 70B</option>
+                  <option value="qwen/qwen3-32b">Groq Qwen3 32B</option>
+                  <option value="openai/gpt-oss-120b">Groq GPT-OSS 120B</option>
+                  <option value="meta-llama/llama-4-scout-17b-16e-instruct">Groq Llama 4 Scout</option>
+                  <option value="moonshotai/kimi-k2-instruct">Groq Kimi K2</option>
+                  <option value="groq/compound">Groq Compound</option>
                 </optgroup>
               </select>
             </div>
