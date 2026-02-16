@@ -14,8 +14,8 @@ interface StructureChartProps {
 
 export function StructureChart({ sections, totalChars }: StructureChartProps) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
-      <h3 className="mb-4 text-lg font-semibold text-gray-900">
+    <div className="rounded-lg border border-border bg-card p-6">
+      <h3 className="mb-4 text-lg font-semibold text-foreground">
         추천 작성 구조 ({totalChars}자 기준)
       </h3>
 
@@ -26,29 +26,29 @@ export function StructureChart({ sections, totalChars }: StructureChartProps) {
           return (
             <div key={index} className="space-y-1">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-gray-700">
+                <span className="font-medium text-foreground/80">
                   {section.name}
                 </span>
-                <span className="text-gray-500">
+                <span className="text-muted-foreground">
                   {percentage}% ({section.char_count}자)
                 </span>
               </div>
 
               {/* Progress bar */}
-              <div className="h-3 w-full overflow-hidden rounded-full bg-gray-100">
+              <div className="h-3 w-full overflow-hidden rounded-full bg-white/[0.06]">
                 <div
                   className="h-full bg-gradient-to-r from-blue-500 to-blue-600"
                   style={{ width: `${percentage}%` }}
                 />
               </div>
 
-              <p className="text-xs text-gray-500">{section.guide}</p>
+              <p className="text-xs text-muted-foreground">{section.guide}</p>
             </div>
           );
         })}
       </div>
 
-      <div className="mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
+      <div className="mt-4 rounded-lg bg-blue-500/10 p-3 text-sm text-blue-400">
         💡 실행 과정에 가장 많은 비중을 할애하세요
       </div>
     </div>

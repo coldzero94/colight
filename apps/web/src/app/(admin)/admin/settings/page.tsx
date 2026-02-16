@@ -77,11 +77,11 @@ export default function AdminSettingsPage() {
     <AdminGuard requiredRole="super_admin">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">시스템 설정</h1>
+          <h1 className="text-2xl font-bold text-foreground">시스템 설정</h1>
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-border rounded-lg text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
           >
             <option value="">전체 카테고리</option>
             {categories.map((cat) => (
@@ -92,23 +92,23 @@ export default function AdminSettingsPage() {
           </select>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-white/[0.02] border-b border-border">
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                   설정 키
                 </th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                   카테고리
                 </th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                   값
                 </th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                   설명
                 </th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                   작업
                 </th>
               </tr>
@@ -116,13 +116,13 @@ export default function AdminSettingsPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-8 text-gray-400">
+                  <td colSpan={5} className="text-center py-8 text-muted-foreground/60">
                     로딩 중...
                   </td>
                 </tr>
               ) : configs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-8 text-gray-400">
+                  <td colSpan={5} className="text-center py-8 text-muted-foreground/60">
                     설정이 없습니다.
                   </td>
                 </tr>
@@ -130,17 +130,17 @@ export default function AdminSettingsPage() {
                 configs.map((cfg) => (
                   <tr
                     key={cfg.id}
-                    className="border-b border-gray-100 hover:bg-gray-50"
+                    className="border-b border-border hover:bg-white/[0.04]"
                   >
                     <td className="px-4 py-3 font-mono text-xs">
                       {cfg.config_key}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+                      <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-blue-500/10 text-blue-400">
                         {CATEGORY_LABELS[cfg.category] || cfg.category}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-gray-600">
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                       {cfg.is_secret ? (
                         <span className="text-amber-600">
                           {cfg.config_value}
@@ -149,13 +149,13 @@ export default function AdminSettingsPage() {
                         cfg.config_value
                       )}
                     </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">
+                    <td className="px-4 py-3 text-muted-foreground text-xs">
                       {cfg.description || "-"}
                     </td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => handleEdit(cfg)}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                        className="text-xs text-blue-400 hover:text-blue-300 font-medium"
                       >
                         수정
                       </button>
@@ -170,13 +170,13 @@ export default function AdminSettingsPage() {
         {/* Edit modal */}
         {editKey && (
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
-              <h2 className="text-lg font-bold text-gray-900">
+            <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-md p-6 space-y-4">
+              <h2 className="text-lg font-bold text-foreground">
                 설정 수정: {editKey}
               </h2>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground/80 mb-1">
                   새 값
                 </label>
                 <input
@@ -184,7 +184,7 @@ export default function AdminSettingsPage() {
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
                   placeholder="새 값을 입력하세요"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm font-mono bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
 
@@ -194,14 +194,14 @@ export default function AdminSettingsPage() {
                     setEditKey(null);
                     setEditValue("");
                   }}
-                  className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 text-sm border border-border rounded-lg text-foreground/80 hover:bg-white/[0.04]"
                 >
                   취소
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving || !editValue}
-                  className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-400"
+                  className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
                 >
                   {saving ? "저장 중..." : "저장"}
                 </button>

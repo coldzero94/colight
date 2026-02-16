@@ -11,7 +11,7 @@ interface SuggestionListProps {
 export function SuggestionList({ suggestions, onApply }: SuggestionListProps) {
   if (suggestions.length === 0) {
     return (
-      <p className="py-4 text-center text-sm text-gray-400">
+      <p className="py-4 text-center text-sm text-muted-foreground/60">
         수정 제안이 없습니다
       </p>
     );
@@ -19,7 +19,7 @@ export function SuggestionList({ suggestions, onApply }: SuggestionListProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium text-gray-900">
+      <h3 className="text-sm font-medium text-foreground">
         수정 제안 ({suggestions.length})
       </h3>
       {suggestions.map((suggestion, i) => (

@@ -16,9 +16,9 @@ export function BlurredPreview({
       <div className="pointer-events-none select-none blur-sm" aria-hidden>
         {children}
       </div>
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/60">
-        <Lock className="h-8 w-8 text-gray-400" />
-        <p className="text-sm font-medium text-gray-700">{message}</p>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/80">
+        <Lock className="h-8 w-8 text-muted-foreground/60" />
+        <p className="text-sm font-medium text-foreground/80">{message}</p>
         <Button asChild size="sm">
           <Link href="/pricing">플랜 업그레이드</Link>
         </Button>

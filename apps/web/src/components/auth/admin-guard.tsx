@@ -28,7 +28,7 @@ export function AdminGuard({
   if (!user || !allowed) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-gray-900 rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-border border-t-foreground rounded-full" />
       </div>
     );
   }

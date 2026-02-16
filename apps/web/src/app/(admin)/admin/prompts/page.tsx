@@ -145,7 +145,7 @@ export default function AdminPromptsPage() {
                       {p.is_active ? "활성" : "비활성"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-500">
+                  <td className="px-4 py-3 text-muted-foreground">
                     {p.usage_count.toLocaleString()}
                   </td>
                 </tr>
@@ -158,13 +158,13 @@ export default function AdminPromptsPage() {
       {/* Edit panel */}
       {selected && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-auto p-6 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">
+          <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-2xl max-h-[90vh] overflow-auto p-6 space-y-4">
+            <h2 className="text-lg font-bold text-foreground">
               프롬프트 편집: {selected.name}
             </h2>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground/80 mb-1">
                 System Prompt
               </label>
               <textarea
@@ -173,12 +173,12 @@ export default function AdminPromptsPage() {
                   setSelected({ ...selected, system_prompt: e.target.value })
                 }
                 rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm font-mono bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground/80 mb-1">
                 User Prompt Template
               </label>
               <textarea
@@ -190,12 +190,12 @@ export default function AdminPromptsPage() {
                   })
                 }
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm font-mono bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground/80 mb-1">
                 Model
               </label>
               <select
@@ -203,7 +203,7 @@ export default function AdminPromptsPage() {
                 onChange={(e) =>
                   setSelected({ ...selected, model_name: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
               >
                 <optgroup label="Heavy Models">
                   <option value="claude-sonnet-4-5">Claude Sonnet 4.5</option>
@@ -218,7 +218,7 @@ export default function AdminPromptsPage() {
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground/80 mb-1">
                   Temperature
                 </label>
                 <input
@@ -233,11 +233,11 @@ export default function AdminPromptsPage() {
                       temperature: parseFloat(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground/80 mb-1">
                   Max Tokens
                 </label>
                 <input
@@ -249,7 +249,7 @@ export default function AdminPromptsPage() {
                       max_tokens: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
               <div className="flex items-end">
@@ -270,14 +270,14 @@ export default function AdminPromptsPage() {
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setSelected(null)}
-                className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 text-sm border border-border rounded-lg text-foreground/80 hover:bg-white/[0.04]"
               >
                 취소
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-400"
+                className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
                 {saving ? "저장 중..." : "저장"}
               </button>

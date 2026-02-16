@@ -115,7 +115,7 @@ describe("EditorToolbar", () => {
     render(<EditorToolbar editor={editor} />);
 
     const boldButton = screen.getByLabelText("Bold");
-    expect(boldButton).toHaveClass("bg-gray-300");
+    expect(boldButton).toHaveClass("bg-white/[0.12]");
   });
 
   it("shows active state for italic when text is italic", () => {
@@ -124,7 +124,7 @@ describe("EditorToolbar", () => {
     render(<EditorToolbar editor={editor} />);
 
     const italicButton = screen.getByLabelText("Italic");
-    expect(italicButton).toHaveClass("bg-gray-300");
+    expect(italicButton).toHaveClass("bg-white/[0.12]");
   });
 
   it("shows active state for bullet list when list is active", () => {
@@ -133,7 +133,7 @@ describe("EditorToolbar", () => {
     render(<EditorToolbar editor={editor} />);
 
     const listButton = screen.getByLabelText("Bullet List");
-    expect(listButton).toHaveClass("bg-gray-300");
+    expect(listButton).toHaveClass("bg-white/[0.12]");
   });
 
   it("shows active state for heading 2 when active", () => {
@@ -142,6 +142,6 @@ describe("EditorToolbar", () => {
     render(<EditorToolbar editor={editor} />);
 
     const heading2Button = screen.getByLabelText("Heading 2");
-    expect(heading2Button).toHaveClass("bg-gray-300");
+    expect(heading2Button).toHaveClass("bg-white/[0.12]");
   });
 });

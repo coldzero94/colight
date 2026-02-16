@@ -49,7 +49,7 @@ describe("KanbanCard", () => {
     soon.setDate(soon.getDate() + 2);
     renderCard({ ...baseApp, deadline: soon.toISOString() });
     const badge = screen.getByTestId("deadline-badge");
-    expect(badge).toHaveClass("text-red-600");
+    expect(badge).toHaveClass("text-red-400");
   });
 
   it("shows amber deadline badge for 4-7 days", () => {
@@ -57,15 +57,15 @@ describe("KanbanCard", () => {
     later.setDate(later.getDate() + 5);
     renderCard({ ...baseApp, deadline: later.toISOString() });
     const badge = screen.getByTestId("deadline-badge");
-    expect(badge).toHaveClass("text-amber-600");
+    expect(badge).toHaveClass("text-amber-400");
   });
 
-  it("shows gray deadline badge for > 7 days", () => {
+  it("shows muted deadline badge for > 7 days", () => {
     const far = new Date();
     far.setDate(far.getDate() + 14);
     renderCard({ ...baseApp, deadline: far.toISOString() });
     const badge = screen.getByTestId("deadline-badge");
-    expect(badge).toHaveClass("text-gray-500");
+    expect(badge).toHaveClass("text-muted-foreground");
   });
 
   it("does not show deadline badge when no deadline", () => {

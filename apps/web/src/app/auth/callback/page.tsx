@@ -33,8 +33,8 @@ function CallbackHandler() {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <div className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-gray-900 rounded-full mx-auto" />
-        <p className="mt-4 text-gray-600">로그인 처리 중...</p>
+        <div className="animate-spin h-8 w-8 border-4 border-border border-t-foreground rounded-full mx-auto" />
+        <p className="mt-4 text-muted-foreground">로그인 처리 중...</p>
       </div>
     </div>
   );
@@ -45,7 +45,7 @@ export default function AuthCallbackPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center">
-          <p className="text-gray-600">로딩 중...</p>
+          <p className="text-muted-foreground">로딩 중...</p>
         </div>
       }
     >

@@ -44,9 +44,9 @@ describe("CTASection", () => {
     expect(screen.getByText("무료 회원가입")).toBeInTheDocument();
   });
 
-  it("has dark background section", () => {
+  it("has border-t section styling", () => {
     const { container } = render(<CTASection />);
     const section = container.querySelector("section");
-    expect(section).toHaveClass("bg-gray-900");
+    expect(section).toHaveClass("border-t");
   });
 });

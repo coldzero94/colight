@@ -34,8 +34,8 @@ export function RecommendCard({
     <div
       className={`rounded-lg border p-4 transition-colors ${
         selected
-          ? "border-blue-500 bg-blue-50"
-          : "border-gray-200 bg-white hover:border-gray-300"
+          ? "border-blue-500 bg-blue-500/10"
+          : "border-border bg-card hover:border-border/80"
       } ${disabled ? "opacity-50" : ""}`}
     >
       <div className="flex items-start gap-3">
@@ -44,21 +44,21 @@ export function RecommendCard({
           checked={selected}
           disabled={disabled}
           onChange={onToggle}
-          className="mt-1 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+          className="mt-1 h-5 w-5 rounded border-border text-blue-400 focus:ring-2 focus:ring-blue-500"
         />
 
         <div className="flex-1">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-base font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-foreground">
                 {experience.title}
               </h3>
               {formatPeriod() && (
-                <p className="mt-1 text-xs text-gray-500">{formatPeriod()}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{formatPeriod()}</p>
               )}
             </div>
             <div className="ml-4 text-right">
-              <div className="text-lg font-bold text-blue-600">
+              <div className="text-lg font-bold text-blue-400">
                 적합도 {experience.matchScore}%
               </div>
             </div>
@@ -69,7 +69,7 @@ export function RecommendCard({
             {experience.weapons.map((weapon, index) => (
               <span
                 key={index}
-                className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700"
+                className="rounded-full bg-white/[0.06] px-2 py-1 text-xs font-medium text-foreground/80"
               >
                 {weapon.weapon_name}
               </span>
@@ -77,7 +77,7 @@ export function RecommendCard({
           </div>
 
           {/* Preview */}
-          <p className="mt-3 line-clamp-2 text-sm text-gray-600">
+          <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
             {experience.star_situation}
           </p>
         </div>

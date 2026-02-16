@@ -59,8 +59,8 @@ describe("MatchingResults", () => {
       <MatchingResults matches={matches} experiences={experiences} />
     );
 
-    // FitScoreBadge uses bg-green-100 for score >= 80
-    const badge = container.querySelector(".bg-green-100");
+    // FitScoreBadge uses bg-primary/10 for score >= 80
+    const badge = container.querySelector('[class*="bg-primary"]');
     expect(badge).toBeInTheDocument();
   });
 
@@ -72,7 +72,7 @@ describe("MatchingResults", () => {
       <MatchingResults matches={matches} experiences={experiences} />
     );
 
-    const badge = container.querySelector(".bg-yellow-100");
+    const badge = container.querySelector('[class*="bg-yellow"]');
     expect(badge).toBeInTheDocument();
   });
 
@@ -84,7 +84,7 @@ describe("MatchingResults", () => {
       <MatchingResults matches={matches} experiences={experiences} />
     );
 
-    const badge = container.querySelector(".bg-red-100");
+    const badge = container.querySelector('[class*="bg-red"]');
     expect(badge).toBeInTheDocument();
   });
 

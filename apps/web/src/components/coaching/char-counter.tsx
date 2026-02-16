@@ -10,15 +10,15 @@ export function CharCounter({ current, limit }: CharCounterProps) {
 
   // Color rules based on percentage
   const getColor = () => {
-    if (current > limit) return "text-red-600 font-bold";
-    if (percentage >= 90) return "text-amber-600";
-    if (percentage >= 70) return "text-blue-600";
-    return "text-gray-500";
+    if (current > limit) return "text-red-400 font-bold";
+    if (percentage >= 90) return "text-yellow-400";
+    if (percentage >= 70) return "text-blue-400";
+    return "text-muted-foreground";
   };
 
   return (
-    <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-2">
-      <div className="text-xs text-gray-500">
+    <div className="flex items-center justify-between border-t border-border bg-card px-4 py-2">
+      <div className="text-xs text-muted-foreground">
         {percentage < 70 && "여유 있음"}
         {percentage >= 70 && percentage < 90 && "적절한 범위"}
         {percentage >= 90 && percentage <= 100 && "거의 다 참"}

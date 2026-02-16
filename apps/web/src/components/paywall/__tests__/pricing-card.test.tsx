@@ -41,6 +41,6 @@ describe("PricingCard", () => {
       <PricingCard {...defaultProps} highlighted />,
     );
     const card = container.firstChild as HTMLElement;
-    expect(card.className).toContain("border-gray-900");
+    expect(card.className).toContain("border-primary");
   });
 });

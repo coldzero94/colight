@@ -84,8 +84,8 @@ describe("VersionHistory", () => {
     await user.click(screen.getByText("버전 이력 (2개)"));
 
     const v1Button = screen.getByText("v1").closest("button");
-    expect(v1Button).toHaveClass("bg-blue-50");
-    expect(v1Button).toHaveClass("border-blue-200");
+    expect(v1Button?.className).toContain("bg-blue-500/10");
+    expect(v1Button?.className).toContain("border-blue-500/30");
   });
 
   it("shows change_summary when present", async () => {

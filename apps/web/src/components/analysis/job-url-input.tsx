@@ -34,7 +34,7 @@ export function JobUrlInput({ onSubmit, isLoading, error }: JobUrlInputProps) {
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">
+        <label className="text-sm font-medium text-foreground/80">
           채용공고 URL
         </label>
         <div className="relative">
@@ -42,7 +42,7 @@ export function JobUrlInput({ onSubmit, isLoading, error }: JobUrlInputProps) {
             {...register("url")}
             type="text"
             placeholder="채용공고 URL을 입력하세요 (예: https://www.jobkorea.co.kr/...)"
-            className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            className="w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
             onChange={(e) => setUrl(e.target.value)}
             disabled={isLoading}
           />
@@ -53,11 +53,11 @@ export function JobUrlInput({ onSubmit, isLoading, error }: JobUrlInputProps) {
           )}
         </div>
         {errors.url && (
-          <p className="text-xs text-red-500">{errors.url.message}</p>
+          <p className="text-xs text-red-400">{errors.url.message}</p>
         )}
         {error && <p className="text-xs text-red-500">{error}</p>}
         {domainInfo && !domainInfo.supported && (
-          <p className="text-xs text-amber-600">
+          <p className="text-xs text-amber-400">
             {domainInfo.label}는 현재 지원 예정입니다. AI 자동 분석으로 처리됩니다.
           </p>
         )}
@@ -66,7 +66,7 @@ export function JobUrlInput({ onSubmit, isLoading, error }: JobUrlInputProps) {
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50 transition-colors"
+        className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
       >
         {isLoading ? "분석 중..." : "분석 시작"}
       </button>
@@ -81,11 +81,11 @@ interface DomainBadgeProps {
 
 function DomainBadge({ domain, label }: DomainBadgeProps) {
   const colors = {
-    jobkorea: "bg-blue-100 text-blue-700",
-    catch: "bg-green-100 text-green-700",
-    wanted: "bg-purple-100 text-purple-700",
-    saramin: "bg-red-100 text-red-700",
-    unknown: "bg-gray-100 text-gray-700",
+    jobkorea: "bg-blue-500/10 text-blue-400",
+    catch: "bg-primary/10 text-primary",
+    wanted: "bg-purple-500/10 text-purple-400",
+    saramin: "bg-red-500/10 text-red-400",
+    unknown: "bg-white/[0.06] text-foreground/80",
   };
 
   const colorClass = colors[domain as keyof typeof colors] || colors.unknown;

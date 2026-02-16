@@ -33,20 +33,20 @@ interface AnalysisSidebarProps {
 
 export function AnalysisSidebar({ analysis, experiences }: AnalysisSidebarProps) {
   return (
-    <div className="space-y-6 rounded-lg border border-gray-200 bg-gray-50 p-6">
-      <h3 className="text-lg font-semibold text-gray-900">📊 분석 요약</h3>
+    <div className="space-y-6 rounded-lg border border-border bg-card p-6">
+      <h3 className="text-lg font-semibold text-foreground">📊 분석 요약</h3>
 
       {/* 필요 무기 */}
       <div>
-        <h4 className="mb-2 text-sm font-medium text-gray-700">필요 무기</h4>
+        <h4 className="mb-2 text-sm font-medium text-foreground/80">필요 무기</h4>
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
+          <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-3 py-1 text-sm font-semibold text-yellow-400">
             🏆 {analysis.required_weapons.primary.weapon_name}
           </span>
           {analysis.required_weapons.secondary.map((weapon, i) => (
             <span
               key={i}
-              className="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700"
+              className="rounded-full bg-white/[0.06] px-3 py-1 text-sm font-medium text-foreground/80"
             >
               {weapon.weapon_name}
             </span>
@@ -56,10 +56,10 @@ export function AnalysisSidebar({ analysis, experiences }: AnalysisSidebarProps)
 
       {/* 추천 구조 */}
       <div>
-        <h4 className="mb-2 text-sm font-medium text-gray-700">추천 구조</h4>
+        <h4 className="mb-2 text-sm font-medium text-foreground/80">추천 구조</h4>
         <div className="space-y-1 text-xs">
           {analysis.writing_structure.sections.map((section, i) => (
-            <div key={i} className="flex justify-between text-gray-600">
+            <div key={i} className="flex justify-between text-muted-foreground">
               <span>{section.name}</span>
               <span>
                 {Math.round(section.char_ratio * 100)}% ({section.char_count}자)
@@ -71,12 +71,12 @@ export function AnalysisSidebar({ analysis, experiences }: AnalysisSidebarProps)
 
       {/* 핵심 키워드 */}
       <div>
-        <h4 className="mb-2 text-sm font-medium text-gray-700">핵심 키워드</h4>
+        <h4 className="mb-2 text-sm font-medium text-foreground/80">핵심 키워드</h4>
         <div className="flex flex-wrap gap-1">
           {analysis.key_keywords.map((keyword, i) => (
             <span
               key={i}
-              className="rounded bg-green-100 px-2 py-1 text-xs font-medium text-green-800"
+              className="rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary"
             >
               {keyword}
             </span>
@@ -86,18 +86,18 @@ export function AnalysisSidebar({ analysis, experiences }: AnalysisSidebarProps)
 
       {/* 사용 경험 */}
       <div>
-        <h4 className="mb-2 text-sm font-medium text-gray-700">사용 경험</h4>
+        <h4 className="mb-2 text-sm font-medium text-foreground/80">사용 경험</h4>
         <div className="space-y-2">
           {experiences.map((exp) => (
             <div
               key={exp.id}
-              className="rounded-lg border border-gray-200 bg-white p-3"
+              className="rounded-lg border border-border bg-background p-3"
             >
               <div className="flex items-start justify-between">
-                <h5 className="text-sm font-semibold text-gray-900">
+                <h5 className="text-sm font-semibold text-foreground">
                   {exp.title}
                 </h5>
-                <span className="text-xs font-medium text-blue-600">
+                <span className="text-xs font-medium text-blue-400">
                   {exp.matchScore}%
                 </span>
               </div>
@@ -105,13 +105,13 @@ export function AnalysisSidebar({ analysis, experiences }: AnalysisSidebarProps)
                 {exp.weapons.map((weapon, i) => (
                   <span
                     key={i}
-                    className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600"
+                    className="rounded bg-white/[0.06] px-1.5 py-0.5 text-xs text-muted-foreground"
                   >
                     {weapon.name}
                   </span>
                 ))}
               </div>
-              <p className="mt-2 line-clamp-2 text-xs text-gray-600">
+              <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
                 {exp.star_situation}
               </p>
             </div>

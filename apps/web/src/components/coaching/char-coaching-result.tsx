@@ -14,17 +14,17 @@ interface CharCoachingResultProps {
 const STATUS_CONFIG = {
   over: {
     label: "초과",
-    color: "bg-red-100 text-red-700",
+    color: "bg-red-500/10 text-red-400",
     icon: ArrowUp,
   },
   under: {
     label: "부족",
-    color: "bg-amber-100 text-amber-700",
+    color: "bg-yellow-500/10 text-yellow-400",
     icon: ArrowDown,
   },
   good: {
     label: "적정",
-    color: "bg-green-100 text-green-700",
+    color: "bg-primary/10 text-primary",
     icon: Check,
   },
 } as const;
@@ -46,14 +46,14 @@ export function CharCoachingResult({
           <StatusIcon className="h-3.5 w-3.5" />
           {config.label}
         </span>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           <span className="font-medium">{result.current_count}</span>
-          <span className="text-gray-400"> / </span>
+          <span className="text-muted-foreground/60"> / </span>
           <span>{result.char_limit}자</span>
           {result.diff !== 0 && (
             <span
               className={
-                result.diff > 0 ? "ml-1 text-red-600" : "ml-1 text-amber-600"
+                result.diff > 0 ? "ml-1 text-red-400" : "ml-1 text-yellow-400"
               }
             >
               ({result.diff > 0 ? "+" : ""}
@@ -64,30 +64,30 @@ export function CharCoachingResult({
       </div>
 
       {/* Summary */}
-      <p className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
+      <p className="rounded-lg bg-white/[0.02] p-3 text-sm text-foreground/80">
         {result.summary}
       </p>
 
       {/* Suggestions */}
       {result.suggestions.length > 0 && (
         <div className="space-y-3">
-          <h4 className="text-sm font-medium text-gray-900">
+          <h4 className="text-sm font-medium text-foreground">
             수정 제안 ({result.suggestions.length}건)
           </h4>
           {result.suggestions.map((suggestion, idx) => (
             <div
               key={idx}
-              className="rounded-lg border border-gray-200 p-3 text-sm"
+              className="rounded-lg border border-border p-3 text-sm"
             >
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted-foreground">
                   {suggestion.section}
                 </span>
                 <span
                   className={`text-xs font-medium ${
                     suggestion.type === "trim"
-                      ? "text-red-600"
-                      : "text-blue-600"
+                      ? "text-red-400"
+                      : "text-blue-400"
                   }`}
                 >
                   {suggestion.type === "trim" ? "축약" : "보강"}{" "}
@@ -97,19 +97,19 @@ export function CharCoachingResult({
               </div>
 
               <div className="mb-2 space-y-1">
-                <div className="rounded bg-red-50 px-2 py-1 text-gray-700 line-through">
+                <div className="rounded bg-red-500/10 px-2 py-1 text-foreground/80 line-through">
                   {suggestion.original}
                 </div>
-                <div className="rounded bg-green-50 px-2 py-1 text-gray-900">
+                <div className="rounded bg-primary/10 px-2 py-1 text-foreground">
                   {suggestion.suggested}
                 </div>
               </div>
 
-              <p className="mb-2 text-xs text-gray-500">{suggestion.reason}</p>
+              <p className="mb-2 text-xs text-muted-foreground">{suggestion.reason}</p>
 
               <button
                 onClick={() => onApplySuggestion(suggestion)}
-                className="rounded border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                className="rounded border border-border px-3 py-1 text-xs font-medium text-foreground/80 hover:bg-white/[0.04]"
               >
                 적용
               </button>

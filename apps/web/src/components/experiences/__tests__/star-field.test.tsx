@@ -63,11 +63,11 @@ describe("StarField", () => {
     expect(counter.className).toContain("text-red-500");
   });
 
-  it("shows gray counter within limit", () => {
+  it("shows muted counter within limit", () => {
     render(<StarField {...baseProps} defaultValue="ab" />);
 
     const counter = screen.getByTestId("char-counter");
     expect(counter).toHaveTextContent("2/1000");
-    expect(counter.className).toContain("text-gray-400");
+    expect(counter.className).toContain("text-muted-foreground/60");
   });
 });

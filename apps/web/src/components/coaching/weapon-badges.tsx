@@ -13,14 +13,14 @@ interface WeaponBadgesProps {
 
 export function WeaponBadges({ primary, secondary }: WeaponBadgesProps) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
-      <h3 className="mb-4 text-lg font-semibold text-gray-900">필요 무기</h3>
+    <div className="rounded-lg border border-border bg-card p-6">
+      <h3 className="mb-4 text-lg font-semibold text-foreground">필요 무기</h3>
 
       <div className="flex flex-wrap gap-2">
         {/* Primary weapon - highlighted */}
         <div
           data-primary="true"
-          className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-900 ring-2 ring-amber-500"
+          className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-4 py-2 text-sm font-semibold text-yellow-400 ring-2 ring-yellow-500/50"
         >
           <span>🏆</span>
           <span>{primary.weapon_name}</span>
@@ -30,7 +30,7 @@ export function WeaponBadges({ primary, secondary }: WeaponBadgesProps) {
         {secondary.map((weapon, index) => (
           <div
             key={index}
-            className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700"
+            className="inline-flex items-center gap-1 rounded-full bg-white/[0.06] px-4 py-2 text-sm font-medium text-foreground/80"
           >
             <span>{weapon.weapon_name}</span>
           </div>
@@ -38,7 +38,7 @@ export function WeaponBadges({ primary, secondary }: WeaponBadgesProps) {
       </div>
 
       {/* Weapon reasons */}
-      <div className="mt-4 space-y-2 text-xs text-gray-600">
+      <div className="mt-4 space-y-2 text-xs text-muted-foreground">
         <div>
           <span className="font-medium">주 무기:</span> {primary.reason}
         </div>

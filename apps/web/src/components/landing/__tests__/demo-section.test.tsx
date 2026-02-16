@@ -26,9 +26,9 @@ describe("DemoSection", () => {
     expect(svg).toBeInTheDocument();
   });
 
-  it("has placeholder container with gray background", () => {
+  it("has placeholder container with card background", () => {
     const { container } = render(<DemoSection />);
-    const placeholder = container.querySelector(".bg-gray-50");
+    const placeholder = container.querySelector(".bg-card");
     expect(placeholder).toBeInTheDocument();
   });
 });

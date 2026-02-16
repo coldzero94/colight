@@ -2,25 +2,25 @@ const categoryConfig: Record<
   string,
   { icon: string; color: string; label: string }
 > = {
-  동아리: { icon: "👥", color: "text-blue-600 bg-blue-50", label: "동아리" },
-  인턴: { icon: "💼", color: "text-green-600 bg-green-50", label: "인턴" },
+  동아리: { icon: "👥", color: "text-blue-400 bg-blue-500/10", label: "동아리" },
+  인턴: { icon: "💼", color: "text-primary bg-primary/10", label: "인턴" },
   프로젝트: {
     icon: "📁",
-    color: "text-purple-600 bg-purple-50",
+    color: "text-purple-400 bg-purple-500/10",
     label: "프로젝트",
   },
   대외활동: {
     icon: "🌐",
-    color: "text-orange-600 bg-orange-50",
+    color: "text-orange-400 bg-orange-500/10",
     label: "대외활동",
   },
   아르바이트: {
     icon: "⏰",
-    color: "text-yellow-600 bg-yellow-50",
+    color: "text-yellow-400 bg-yellow-500/10",
     label: "아르바이트",
   },
-  봉사활동: { icon: "❤️", color: "text-pink-600 bg-pink-50", label: "봉사활동" },
-  기타: { icon: "⋯", color: "text-gray-600 bg-gray-50", label: "기타" },
+  봉사활동: { icon: "❤️", color: "text-pink-400 bg-pink-500/10", label: "봉사활동" },
+  기타: { icon: "⋯", color: "text-muted-foreground bg-white/[0.06]", label: "기타" },
 };
 
 interface CategoryIconProps {

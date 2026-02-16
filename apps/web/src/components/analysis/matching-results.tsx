@@ -10,7 +10,7 @@ interface MatchingResultsProps {
 export function MatchingResults({ matches, experiences }: MatchingResultsProps) {
   if (matches.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-muted-foreground">
         매칭 결과가 없습니다.
       </div>
     );
@@ -31,12 +31,12 @@ export function MatchingResults({ matches, experiences }: MatchingResultsProps) 
         return (
           <div
             key={match.experience_id}
-            className="rounded-lg border border-gray-200 bg-white p-6 hover:border-gray-300 transition-colors"
+            className="rounded-lg border border-border bg-card p-6 hover:border-white/[0.12] transition-colors"
           >
             {/* Header */}
             <div className="mb-4 flex items-start justify-between">
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-foreground">
                   {exp.title}
                 </h3>
                 {exp.weapons && exp.weapons.length > 0 && (
@@ -74,18 +74,18 @@ export function MatchingResults({ matches, experiences }: MatchingResultsProps) 
 
             {/* Reasoning */}
             <div className="mb-3">
-              <h4 className="text-sm font-medium text-gray-700 mb-1">
+              <h4 className="text-sm font-medium text-foreground/80 mb-1">
                 매칭 근거
               </h4>
-              <p className="text-sm text-gray-600">{match.reasoning}</p>
+              <p className="text-sm text-muted-foreground">{match.reasoning}</p>
             </div>
 
             {/* Suggested angle */}
-            <div className="rounded-lg bg-blue-50 p-3">
-              <h4 className="text-sm font-medium text-blue-900 mb-1">
-                💡 활용 제안
+            <div className="rounded-lg bg-blue-500/10 p-3">
+              <h4 className="text-sm font-medium text-blue-400 mb-1">
+                활용 제안
               </h4>
-              <p className="text-sm text-blue-700">{match.suggested_angle}</p>
+              <p className="text-sm text-blue-300">{match.suggested_angle}</p>
             </div>
           </div>
         );
@@ -95,21 +95,21 @@ export function MatchingResults({ matches, experiences }: MatchingResultsProps) 
 }
 
 function FitScoreBadge({ score }: { score: number }) {
-  let bgColor = "bg-gray-100";
-  let textColor = "text-gray-700";
+  let bgColor = "bg-white/[0.06]";
+  let textColor = "text-foreground/80";
 
   if (score >= 80) {
-    bgColor = "bg-green-100";
-    textColor = "text-green-700";
+    bgColor = "bg-primary/10";
+    textColor = "text-primary";
   } else if (score >= 60) {
-    bgColor = "bg-blue-100";
-    textColor = "text-blue-700";
+    bgColor = "bg-blue-500/10";
+    textColor = "text-blue-400";
   } else if (score >= 40) {
-    bgColor = "bg-yellow-100";
-    textColor = "text-yellow-700";
+    bgColor = "bg-yellow-500/10";
+    textColor = "text-yellow-400";
   } else {
-    bgColor = "bg-red-100";
-    textColor = "text-red-700";
+    bgColor = "bg-red-500/10";
+    textColor = "text-red-400";
   }
 
   return (
@@ -138,12 +138,12 @@ function ScoreBar({ label, score, color, weight }: ScoreBarProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-gray-600">
+        <span className="text-xs text-muted-foreground">
           {label} ({weight}%)
         </span>
-        <span className="text-xs font-medium text-gray-900">{score}</span>
+        <span className="text-xs font-medium text-foreground">{score}</span>
       </div>
-      <div className="h-2 w-full rounded-full bg-gray-100">
+      <div className="h-2 w-full rounded-full bg-white/[0.06]">
         <div
           className={`h-2 rounded-full ${colors[color]}`}
           style={{ width: `${score}%` }}

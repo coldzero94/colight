@@ -6,9 +6,9 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <article className="prose prose-gray max-w-none">
+    <article className="prose prose-invert max-w-none">
       <h1>개인정보처리방침</h1>
-      <p className="text-sm text-gray-500">시행일: 2026년 2월 15일</p>
+      <p className="text-sm text-muted-foreground">시행일: 2026년 2월 15일</p>
 
       <p>
         Colight(이하 &quot;서비스&quot;)는 이용자의 개인정보를 중요시하며,

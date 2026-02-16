@@ -28,7 +28,7 @@ export function ReviewTimeline({ entries }: ReviewTimelineProps) {
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-medium text-gray-900">첨삭 이력</h3>
+      <h3 className="text-sm font-medium text-foreground">첨삭 이력</h3>
       <div className="space-y-2">
         {entries.map((entry, i) => {
           const prev = i > 0 ? entries[i - 1] : null;
@@ -37,7 +37,7 @@ export function ReviewTimeline({ entries }: ReviewTimelineProps) {
           return (
             <div
               key={entry.reviewNumber}
-              className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3"
+              className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3"
             >
               <div
                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${getGradeColor(entry.overall)}`}
@@ -45,7 +45,7 @@ export function ReviewTimeline({ entries }: ReviewTimelineProps) {
                 {entry.overall}
               </div>
               <div className="flex-1">
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-medium text-foreground">
                   {entry.reviewNumber}차 첨삭
                 </span>
               </div>
@@ -53,10 +53,10 @@ export function ReviewTimeline({ entries }: ReviewTimelineProps) {
                 <span
                   className={`text-xs font-medium ${
                     diff > 0
-                      ? "text-green-600"
+                      ? "text-green-400"
                       : diff < 0
-                        ? "text-red-600"
-                        : "text-gray-400"
+                        ? "text-red-400"
+                        : "text-muted-foreground/60"
                   }`}
                 >
                   {diff > 0 ? `+${diff}` : diff === 0 ? "-" : diff}

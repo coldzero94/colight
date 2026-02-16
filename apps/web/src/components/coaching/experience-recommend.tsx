@@ -63,11 +63,11 @@ export function ExperienceRecommend({
   // Empty state
   if (experiences.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-        <p className="mb-4 text-gray-600">등록된 경험이 없습니다</p>
+      <div className="rounded-lg border border-border bg-muted p-8 text-center">
+        <p className="mb-4 text-muted-foreground">등록된 경험이 없습니다</p>
         <Link
           href="/experiences"
-          className="inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-800"
+          className="inline-block rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
         >
           경험 등록하기
         </Link>
@@ -78,10 +78,10 @@ export function ExperienceRecommend({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-2xl font-bold text-foreground">
           🎯 추천 경험 ({experiences.length}건)
         </h2>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-muted-foreground">
           적합도가 높은 경험을 선택하세요 (최대 3개)
         </p>
       </div>
@@ -106,7 +106,7 @@ export function ExperienceRecommend({
       <button
         onClick={handleSubmit}
         disabled={selectedIds.length === 0}
-        className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+        className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
       >
         🚀 선택한 경험으로 초안 작성 ({selectedIds.length}개 선택됨)
       </button>

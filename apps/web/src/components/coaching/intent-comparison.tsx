@@ -12,37 +12,37 @@ interface IntentComparisonProps {
 
 export function IntentComparison({ surface, intents }: IntentComparisonProps) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
-      <h3 className="mb-4 text-lg font-semibold text-gray-900">
+    <div className="rounded-lg border border-border bg-card p-6">
+      <h3 className="mb-4 text-lg font-semibold text-foreground">
         📊 문항 분석 결과
       </h3>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* 표면적 질문 */}
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-700">표면적 질문</h4>
-          <div className="rounded-lg bg-gray-50 p-4">
-            <p className="text-sm text-gray-900">{surface}</p>
+          <h4 className="text-sm font-medium text-foreground/80">표면적 질문</h4>
+          <div className="rounded-lg bg-white/[0.02] p-4">
+            <p className="text-sm text-foreground">{surface}</p>
           </div>
         </div>
 
         {/* 진짜 의도 */}
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-700">진짜 의도</h4>
+          <h4 className="text-sm font-medium text-foreground/80">진짜 의도</h4>
           <div className="space-y-3">
             {intents.map((intent, index) => (
               <div
                 key={index}
                 data-testid="intent-item"
-                className="rounded-lg bg-blue-50 p-3"
+                className="rounded-lg bg-blue-500/10 p-3"
               >
                 <div className="flex items-start gap-2">
-                  <span className="text-blue-600">🎯</span>
+                  <span className="text-blue-400">🎯</span>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-foreground">
                       {intent.intent}
                     </p>
-                    <p className="mt-1 text-xs text-gray-600">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       → {intent.why}
                     </p>
                   </div>

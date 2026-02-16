@@ -17,10 +17,10 @@ interface DimensionCardProps {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 80) return "text-blue-600 bg-blue-50";
-  if (score >= 60) return "text-green-600 bg-green-50";
-  if (score >= 40) return "text-yellow-600 bg-yellow-50";
-  return "text-red-600 bg-red-50";
+  if (score >= 80) return "text-blue-400 bg-blue-500/10";
+  if (score >= 60) return "text-green-400 bg-green-500/10";
+  if (score >= 40) return "text-yellow-400 bg-yellow-500/10";
+  return "text-red-400 bg-red-500/10";
 }
 
 export function DimensionCard({
@@ -32,7 +32,7 @@ export function DimensionCard({
   const scoreColor = getScoreColor(feedback.score);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white">
+    <div className="rounded-lg border border-border bg-card">
       <button
         onClick={() => setExpanded(!expanded)}
         className="flex w-full items-center justify-between p-4"
@@ -43,27 +43,27 @@ export function DimensionCard({
           >
             {feedback.score}
           </span>
-          <span className="text-sm font-medium text-gray-900">{label}</span>
+          <span className="text-sm font-medium text-foreground">{label}</span>
         </div>
         {expanded ? (
-          <ChevronUp className="h-4 w-4 text-gray-400" />
+          <ChevronUp className="h-4 w-4 text-muted-foreground/60" />
         ) : (
-          <ChevronDown className="h-4 w-4 text-gray-400" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground/60" />
         )}
       </button>
 
       {expanded && (
-        <div className="border-t border-gray-100 px-4 pb-4 pt-3">
+        <div className="border-t border-border px-4 pb-4 pt-3">
           {feedback.good.length > 0 && (
             <div className="mb-3">
-              <p className="mb-1 text-xs font-medium text-green-700">
+              <p className="mb-1 text-xs font-medium text-green-400">
                 잘한 점
               </p>
               <ul className="space-y-1">
                 {feedback.good.map((item, i) => (
                   <li
                     key={i}
-                    className="text-sm text-gray-600 before:mr-1 before:content-['·']"
+                    className="text-sm text-muted-foreground before:mr-1 before:content-['·']"
                   >
                     {item}
                   </li>
@@ -74,14 +74,14 @@ export function DimensionCard({
 
           {feedback.improve.length > 0 && (
             <div>
-              <p className="mb-1 text-xs font-medium text-amber-700">
+              <p className="mb-1 text-xs font-medium text-yellow-400">
                 개선할 점
               </p>
               <ul className="space-y-1">
                 {feedback.improve.map((item, i) => (
                   <li
                     key={i}
-                    className="text-sm text-gray-600 before:mr-1 before:content-['·']"
+                    className="text-sm text-muted-foreground before:mr-1 before:content-['·']"
                   >
                     {item}
                   </li>

@@ -41,14 +41,14 @@ export function PaywallModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader className="items-center text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-            <Lock className="h-6 w-6 text-gray-500" />
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.06]">
+            <Lock className="h-6 w-6 text-muted-foreground" />
           </div>
           <DialogTitle>무료 사용 횟수 초과</DialogTitle>
           <DialogDescription>
             {featureLabel && (
               <>
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-foreground">
                   {featureLabel}
                 </span>{" "}
                 기능의{" "}
@@ -56,7 +56,7 @@ export function PaywallModal({
             )}
             무료 사용 횟수를 모두 사용했습니다.
             {used !== undefined && limit !== undefined && (
-              <span className="mt-1 block text-xs text-gray-400">
+              <span className="mt-1 block text-xs text-muted-foreground/60">
                 {used}/{limit}회 사용
               </span>
             )}
@@ -70,7 +70,7 @@ export function PaywallModal({
               월 9,900원 — 모든 기능 일 5회
             </p>
           </div>
-          <div className="rounded-lg border border-gray-900 p-3">
+          <div className="rounded-lg border border-primary p-3">
             <p className="text-sm font-medium">Pro</p>
             <p className="text-xs text-muted-foreground">
               월 19,900원 — 무제한 사용

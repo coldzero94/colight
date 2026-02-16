@@ -46,7 +46,7 @@ export function TiptapEditor({
   const charCount = editor.storage.characterCount.characters();
 
   return (
-    <div className="rounded-lg border border-gray-200">
+    <div className="rounded-lg border border-border">
       {editable && <EditorToolbar editor={editor} />}
       <EditorContent editor={editor} />
       <CharCounter current={charCount} limit={charLimit} />

@@ -13,14 +13,14 @@ export function StreamingEditor({
 }: StreamingEditorProps) {
   return (
     <div
-      className={`min-h-[400px] rounded-lg border border-gray-200 bg-white p-6 ${
+      className={`min-h-[400px] rounded-lg border border-border bg-card p-6 ${
         isStreaming ? "animate-pulse" : ""
       }`}
     >
       {content ? (
         <StarHighlighter text={content} />
       ) : (
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-muted-foreground/60">
           초안이 생성되면 여기에 표시됩니다...
         </p>
       )}

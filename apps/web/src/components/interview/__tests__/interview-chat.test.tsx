@@ -17,15 +17,15 @@ describe("InterviewChat", () => {
     expect(screen.getByText("안녕하세요!")).toBeInTheDocument();
     expect(screen.getByText("안녕하세요, 반갑습니다")).toBeInTheDocument();
 
-    // AI message has gray background
+    // AI message has subtle background
     const aiMsg = screen.getByText("안녕하세요!").closest("div[class]");
-    expect(aiMsg).toHaveClass("bg-gray-100");
+    expect(aiMsg?.className).toContain("text-foreground");
 
-    // User message has dark background
+    // User message has primary background
     const userMsg = screen
       .getByText("안녕하세요, 반갑습니다")
       .closest("div[class]");
-    expect(userMsg).toHaveClass("bg-gray-900");
+    expect(userMsg?.className).toContain("bg-primary");
   });
 
   it("calls onSend when submit button is clicked", async () => {

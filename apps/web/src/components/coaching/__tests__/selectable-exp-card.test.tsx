@@ -95,7 +95,7 @@ describe("SelectableExpCard", () => {
     );
 
     const score = screen.getByTestId("match-score");
-    expect(score).toHaveClass("text-green-600");
+    expect(score).toHaveClass("text-green-400");
   });
 
   it("uses blue color for medium scores (40-69)", () => {
@@ -111,7 +111,7 @@ describe("SelectableExpCard", () => {
     );
 
     const score = screen.getByTestId("match-score");
-    expect(score).toHaveClass("text-blue-600");
+    expect(score).toHaveClass("text-blue-400");
   });
 
   it("uses gray color for low scores (< 40)", () => {
@@ -127,6 +127,6 @@ describe("SelectableExpCard", () => {
     );
 
     const score = screen.getByTestId("match-score");
-    expect(score).toHaveClass("text-gray-500");
+    expect(score).toHaveClass("text-muted-foreground");
   });
 });

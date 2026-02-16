@@ -24,6 +24,7 @@ describe("AuthGuard", () => {
       user: null,
       isLoading: false,
       fetchUser: vi.fn(),
+      _hasHydrated: true,
     });
 
     render(
@@ -42,6 +43,7 @@ describe("AuthGuard", () => {
       user: null,
       isLoading: true,
       fetchUser: vi.fn(),
+      _hasHydrated: true,
     });
 
     const { container } = render(
@@ -60,6 +62,7 @@ describe("AuthGuard", () => {
       user: { id: "1", role: "user" },
       isLoading: false,
       fetchUser: vi.fn(),
+      _hasHydrated: true,
     });
 
     render(
@@ -78,6 +81,7 @@ describe("AuthGuard", () => {
       user: null,
       isLoading: false,
       fetchUser,
+      _hasHydrated: true,
     });
 
     render(

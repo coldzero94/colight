@@ -66,6 +66,6 @@ describe("WeaponBadges", () => {
     // Primary weapon has data-primary="true" attribute
     const primaryBadge = container.querySelector("[data-primary='true']");
     expect(primaryBadge).toBeInTheDocument();
-    expect(primaryBadge).toHaveClass("bg-amber-100");
+    expect(primaryBadge?.className).toContain("bg-yellow-500/10");
   });
 });

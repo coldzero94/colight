@@ -57,31 +57,31 @@ export function WeaponRadarChart({ counts }: WeaponRadarChartProps) {
     .map((code) => WEAPON_CONFIG[code].name);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white">
+    <div className="rounded-lg border border-border bg-card">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-900 hover:bg-gray-50"
+        className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-white/[0.04]"
       >
         <span>무기 분포</span>
         {isOpen ? (
-          <ChevronUp className="h-4 w-4 text-gray-400" />
+          <ChevronUp className="h-4 w-4 text-muted-foreground/60" />
         ) : (
-          <ChevronDown className="h-4 w-4 text-gray-400" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground/60" />
         )}
       </button>
 
       {isOpen && (
-        <div className="border-t border-gray-100 px-4 pb-4">
+        <div className="border-t border-border px-4 pb-4">
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={data} cx="50%" cy="50%" outerRadius="70%">
-                <PolarGrid />
-                <PolarAngleAxis dataKey="weapon" tick={{ fontSize: 12 }} />
+                <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                <PolarAngleAxis dataKey="weapon" tick={{ fontSize: 12, fill: "rgba(255,255,255,0.6)" }} />
                 <Radar
                   name="보유 경험"
                   dataKey="count"
-                  stroke="#3B82F6"
-                  fill="#3B82F6"
+                  stroke="#34d399"
+                  fill="#34d399"
                   fillOpacity={0.25}
                 />
               </RadarChart>
@@ -89,7 +89,7 @@ export function WeaponRadarChart({ counts }: WeaponRadarChartProps) {
           </div>
 
           {missingWeapons.length > 0 && (
-            <p className="mt-2 text-center text-xs text-amber-600">
+            <p className="mt-2 text-center text-xs text-yellow-400">
               보완 추천: {missingWeapons.join(", ")} 역량의 경험을 추가해보세요
             </p>
           )}

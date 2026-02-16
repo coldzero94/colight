@@ -106,7 +106,7 @@ describe("TiptapEditor", () => {
 
     // Find character counter with red warning
     const counter = screen.getByText(/850.*\/ 800/);
-    expect(counter).toHaveClass("text-red-600");
+    expect(counter).toHaveClass("text-red-400");
   });
 
   it("renders read-only when editable is false", () => {
