@@ -51,6 +51,7 @@ export default function AdminPromptsPage() {
       await apiClient.put(`/v1/admin/prompts/${selected.id}`, {
         system_prompt: selected.system_prompt,
         user_prompt_template: selected.user_prompt_template,
+        model_name: selected.model_name,
         temperature: selected.temperature,
         max_tokens: selected.max_tokens,
         is_active: selected.is_active,
@@ -191,6 +192,28 @@ export default function AdminPromptsPage() {
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Model
+              </label>
+              <select
+                value={selected.model_name}
+                onChange={(e) =>
+                  setSelected({ ...selected, model_name: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <optgroup label="Heavy Models">
+                  <option value="claude-sonnet-4-5">Claude Sonnet 4.5</option>
+                  <option value="claude-opus-4">Claude Opus 4</option>
+                </optgroup>
+                <optgroup label="Light Models">
+                  <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                  <option value="groq/llama-3.3-70b">Groq Llama 3.3 70B</option>
+                </optgroup>
+              </select>
             </div>
 
             <div className="grid grid-cols-3 gap-4">

@@ -430,6 +430,7 @@ func (ctrl *AdminController) UpdatePrompt(c *gin.Context) {
 	var req struct {
 		SystemPrompt       *string  `json:"system_prompt"`
 		UserPromptTemplate *string  `json:"user_prompt_template"`
+		ModelName          *string  `json:"model_name"`
 		Temperature        *float64 `json:"temperature"`
 		MaxTokens          *int     `json:"max_tokens"`
 		IsActive           *bool    `json:"is_active"`
@@ -447,6 +448,9 @@ func (ctrl *AdminController) UpdatePrompt(c *gin.Context) {
 	}
 	if req.UserPromptTemplate != nil {
 		update = update.SetUserPromptTemplate(*req.UserPromptTemplate)
+	}
+	if req.ModelName != nil {
+		update = update.SetModel(*req.ModelName)
 	}
 	if req.Temperature != nil {
 		update = update.SetTemperature(*req.Temperature)
