@@ -14,7 +14,7 @@ export function HeroSection() {
 
       <div className="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-2 lg:items-center">
         <div className="animate-slide-up">
-          <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-primary/35 bg-primary/10 px-4 py-1.5 text-sm text-primary shadow-[0_0_30px_rgba(255,150,60,0.25)]">
+          <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-primary/35 bg-primary/10 px-4 py-1.5 text-sm text-primary shadow-[0_0_30px_rgba(56,189,248,0.25)]">
             <Sparkles className="h-3.5 w-3.5" />
             <span>AI 기반 취업 코칭 플랫폼</span>
           </div>
@@ -91,7 +91,7 @@ export function HeroSection() {
                           <div className="h-2 w-4/5 rounded bg-white/[0.06]" />
                         </div>
                         <div className="mt-3 flex gap-2">
-                          <div className="h-5 w-12 rounded-full bg-orange-400/25" />
+                          <div className="h-5 w-12 rounded-full bg-violet-400/25" />
                           <div className="h-5 w-14 rounded-full bg-cyan-400/20" />
                         </div>
                       </div>

@@ -88,6 +88,7 @@ describe("Sidebar", () => {
     render(<Sidebar />);
 
     const experiencesLink = screen.getByText("경험 관리").closest("a");
-    expect(experiencesLink?.className).toContain("bg-primary/10");
+    expect(experiencesLink?.className).toContain("bg-primary/14");
+    expect(experiencesLink?.className).toContain("text-primary");
   });
 });

@@ -25,8 +25,8 @@ const features = [
     title: "AI 코칭",
     description:
       "STAR 구조 초안 생성부터 구체성·직무적합성·기업적합성·진정성 4점 첨삭까지.",
-    color: "from-orange-500/20 to-orange-500/5",
-    iconColor: "text-orange-400",
+    color: "from-violet-500/20 to-violet-500/5",
+    iconColor: "text-violet-400",
   },
   {
     icon: Mic,
@@ -34,8 +34,8 @@ const features = [
     title: "경험 인터뷰",
     description:
       "AI가 질문하고, 답변에서 STAR 구조를 자동으로 추출합니다.",
-    color: "from-amber-500/20 to-amber-500/5",
-    iconColor: "text-amber-400",
+    color: "from-sky-500/20 to-sky-500/5",
+    iconColor: "text-sky-400",
   },
   {
     icon: BarChart3,
@@ -61,7 +61,7 @@ export function FeatureSection() {
   return (
     <section className="relative py-28 lg:py-36">
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-[18%] top-20 h-44 w-44 rounded-full bg-orange-300/10 blur-[90px]" />
+        <div className="absolute left-[18%] top-20 h-44 w-44 rounded-full bg-sky-300/12 blur-[90px]" />
         <div className="absolute right-[14%] bottom-20 h-52 w-52 rounded-full bg-cyan-300/10 blur-[100px]" />
       </div>
 

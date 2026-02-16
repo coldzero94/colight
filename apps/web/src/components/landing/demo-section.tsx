@@ -64,7 +64,7 @@ export function DemoSection() {
 
                 {/* Icon circle */}
                 <div
-                  className="relative mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-primary/30 bg-primary/[0.12] shadow-[0_0_25px_rgba(255,140,60,0.2)] animate-float-y-soft"
+                  className="relative mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-primary/30 bg-primary/[0.12] shadow-[0_0_25px_rgba(56,189,248,0.24)] animate-float-y-soft"
                   style={{ animationDelay: `${index * 0.2}s` }}
                 >
                   <step.icon className="h-5 w-5 text-primary" />

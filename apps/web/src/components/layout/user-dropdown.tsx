@@ -1,25 +1,20 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function UserDropdown() {
   const { user, logout } = useAuthStore();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleLogout = () => {
     logout();
@@ -27,48 +22,48 @@ export function UserDropdown() {
   };
 
   return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all duration-200"
-      >
-        <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary">
-          {user?.nickname?.[0] ?? "U"}
-        </div>
-        <span className="text-sm text-foreground/80 hidden sm:block">
-          {user?.nickname ?? "사용자"}
-        </span>
-      </button>
-
-      {open && (
-        <div className="absolute right-0 mt-1 w-48 bg-card border border-border rounded-xl shadow-xl shadow-black/20 py-1 z-50">
-          <div className="px-4 py-2.5 border-b border-border">
-            <p className="text-sm font-medium text-foreground truncate">
-              {user?.nickname ?? "사용자"}
-            </p>
-            {user?.email && (
-              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-            )}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          className="relative z-40 flex items-center gap-2 rounded-lg px-2 py-1.5 transition-all duration-200 hover:bg-white/[0.05]"
+          aria-label="사용자 메뉴"
+        >
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/20 text-xs font-medium text-primary ring-1 ring-primary/30">
+            {user?.nickname?.[0] ?? "U"}
           </div>
+          <span className="hidden text-sm text-foreground/80 sm:block">
+            {user?.nickname ?? "사용자"}
+          </span>
+        </button>
+      </DropdownMenuTrigger>
 
-          {user?.role === "admin" && (
-            <Link
-              href="/admin"
-              onClick={() => setOpen(false)}
-              className="block px-4 py-2 text-sm text-foreground/80 hover:bg-white/[0.04] transition-colors"
-            >
-              어드민
-            </Link>
+      <DropdownMenuContent
+        align="end"
+        className="z-[80] w-52 rounded-xl border-border bg-card/95 p-1 shadow-xl shadow-black/30 backdrop-blur-md"
+      >
+        <DropdownMenuLabel className="px-3 py-2">
+          <p className="truncate text-sm font-medium text-foreground">
+            {user?.nickname ?? "사용자"}
+          </p>
+          {user?.email && (
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
           )}
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
 
-          <button
-            onClick={handleLogout}
-            className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-white/[0.04] transition-colors"
-          >
-            로그아웃
-          </button>
-        </div>
-      )}
-    </div>
+        {user?.role === "admin" && (
+          <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm text-foreground/80">
+            <Link href="/admin">어드민</Link>
+          </DropdownMenuItem>
+        )}
+
+        <DropdownMenuItem
+          onClick={handleLogout}
+          className="cursor-pointer rounded-lg px-3 py-2 text-sm text-destructive focus:text-destructive"
+        >
+          로그아웃
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

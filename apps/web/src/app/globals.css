@@ -58,7 +58,7 @@
   --card-foreground: oklch(0.95 0 0);
   --popover: oklch(0.16 0.005 260);
   --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.72 0.19 42);
+  --primary: oklch(0.72 0.14 225);
   --primary-foreground: oklch(0.16 0.005 260);
   --secondary: oklch(0.20 0.005 260);
   --secondary-foreground: oklch(0.90 0 0);
@@ -69,20 +69,20 @@
   --destructive: oklch(0.65 0.2 25);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.72 0.19 42);
-  --chart-1: oklch(0.72 0.19 42);
+  --ring: oklch(0.72 0.14 225);
+  --chart-1: oklch(0.72 0.14 225);
   --chart-2: oklch(0.65 0.18 250);
   --chart-3: oklch(0.75 0.15 80);
   --chart-4: oklch(0.65 0.22 300);
   --chart-5: oklch(0.70 0.20 30);
   --sidebar: oklch(0.11 0.005 260);
   --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.76 0.17 163);
+  --sidebar-primary: oklch(0.72 0.14 225);
   --sidebar-primary-foreground: oklch(0.16 0.005 260);
   --sidebar-accent: oklch(0.20 0.005 260);
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.76 0.17 163);
+  --sidebar-ring: oklch(0.72 0.14 225);
 }
 
 @layer base {
@@ -96,22 +96,22 @@
 
 @layer utilities {
   .gradient-text {
-    background-image: linear-gradient(to right, oklch(0.72 0.19 42), oklch(0.8 0.18 75));
+    background-image: linear-gradient(to right, oklch(0.72 0.14 225), oklch(0.74 0.12 185));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
   .glow-sm {
-    box-shadow: 0 0 15px oklch(0.72 0.19 42 / 10%);
+    box-shadow: 0 0 15px oklch(0.72 0.14 225 / 12%);
   }
 
   .glow-md {
-    box-shadow: 0 0 30px oklch(0.72 0.19 42 / 15%), 0 0 60px oklch(0.72 0.19 42 / 5%);
+    box-shadow: 0 0 30px oklch(0.72 0.14 225 / 18%), 0 0 60px oklch(0.72 0.14 225 / 6%);
   }
 
   .glow-lg {
-    box-shadow: 0 0 50px oklch(0.72 0.19 42 / 20%), 0 0 100px oklch(0.72 0.19 42 / 8%);
+    box-shadow: 0 0 50px oklch(0.72 0.14 225 / 22%), 0 0 100px oklch(0.72 0.14 225 / 9%);
   }
 
   .glass {
@@ -130,9 +130,9 @@
 
   .landing-shell {
     background:
-      radial-gradient(circle at 12% 15%, oklch(0.74 0.21 50 / 18%), transparent 35%),
-      radial-gradient(circle at 84% 32%, oklch(0.72 0.16 220 / 18%), transparent 32%),
-      radial-gradient(circle at 45% 80%, oklch(0.76 0.16 170 / 12%), transparent 35%),
+      radial-gradient(circle at 12% 15%, oklch(0.72 0.14 225 / 20%), transparent 35%),
+      radial-gradient(circle at 84% 32%, oklch(0.75 0.12 270 / 16%), transparent 32%),
+      radial-gradient(circle at 45% 80%, oklch(0.74 0.11 185 / 12%), transparent 35%),
       oklch(0.12 0.006 260);
   }
 

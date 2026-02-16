@@ -21,9 +21,9 @@ export function Sidebar() {
   return (
     <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
       <div className="p-5 border-b border-sidebar-border">
-        <Link href="/experiences" className="flex items-center gap-2 text-xl font-bold font-display text-foreground tracking-tight">
+        <Link href="/experiences" className="group flex items-center gap-2 text-xl font-bold font-display text-foreground tracking-tight">
           <ColightLogo size={24} />
-          Colight
+          <span className="transition-opacity group-hover:opacity-90">Colight</span>
         </Link>
       </div>
 
@@ -34,13 +34,13 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+              className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                 isActive
-                  ? "bg-primary/10 text-primary font-medium border-l-2 border-primary"
-                  : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                  ? "bg-primary/14 text-primary font-medium border border-primary/25 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)]"
+                  : "text-muted-foreground hover:bg-white/[0.05] hover:text-foreground hover:translate-x-0.5"
               }`}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className={`h-4 w-4 transition-colors ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
               {item.label}
             </Link>
           );
@@ -51,13 +51,13 @@ export function Sidebar() {
             <div className="my-3 border-t border-sidebar-border" />
             <Link
               href="/admin"
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+              className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                 pathname.startsWith("/admin")
-                  ? "bg-primary/10 text-primary font-medium border-l-2 border-primary"
-                  : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                  ? "bg-primary/14 text-primary font-medium border border-primary/25 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)]"
+                  : "text-muted-foreground hover:bg-white/[0.05] hover:text-foreground hover:translate-x-0.5"
               }`}
             >
-              <Shield className="h-4 w-4" />
+              <Shield className={`h-4 w-4 transition-colors ${pathname.startsWith("/admin") ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
               어드민
             </Link>
           </>

@@ -13,10 +13,10 @@ interface EmptyStateProps {
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border bg-card/70 px-6 py-16 text-center">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.2),_transparent_60%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.2),_transparent_62%)]" />
       <div className="relative flex flex-col items-center justify-center gap-4">
         {icon && (
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-background/80 text-primary shadow-[0_0_30px_rgba(16,185,129,0.25)] animate-pulse-glow">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-background/80 text-primary shadow-[0_0_30px_rgba(56,189,248,0.28)] animate-pulse-glow">
             {icon}
           </div>
         )}
