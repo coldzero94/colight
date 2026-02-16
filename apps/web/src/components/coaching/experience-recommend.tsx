@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ArrowRight, Sparkles, Target } from "lucide-react";
 import { RecommendCard } from "./recommend-card";
 
 interface ExperienceWithScore {
@@ -78,8 +79,11 @@ export function ExperienceRecommend({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground">
-          🎯 추천 경험 ({experiences.length}건)
+        <h2 className="flex items-center gap-2 text-2xl font-bold text-foreground">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/15 text-blue-300">
+            <Target className="h-4 w-4" aria-hidden="true" />
+          </span>
+          추천 경험 ({experiences.length}건)
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           적합도가 높은 경험을 선택하세요 (최대 3개)
@@ -106,9 +110,11 @@ export function ExperienceRecommend({
       <button
         onClick={handleSubmit}
         disabled={selectedIds.length === 0}
-        className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        className="group inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_10px_24px_rgba(16,185,129,0.25)] disabled:opacity-50"
       >
-        🚀 선택한 경험으로 초안 작성 ({selectedIds.length}개 선택됨)
+        <Sparkles className="h-4 w-4" aria-hidden="true" />
+        선택한 경험으로 초안 작성 ({selectedIds.length}개 선택됨)
+        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
       </button>
     </div>
   );

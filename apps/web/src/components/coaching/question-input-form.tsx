@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { CompanySelect } from "./company-select";
 import { CharLimitInput } from "./char-limit-input";
 import {
@@ -126,15 +126,19 @@ export function QuestionInputForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_10px_24px_rgba(16,185,129,0.25)] disabled:opacity-50"
       >
+        <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 transition-opacity group-hover:opacity-100" />
         {isSubmitting ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" data-testid="loading-spinner" />
             분석 중...
           </>
         ) : (
-          "🔍 분석 시작"
+          <>
+            <Search className="h-4 w-4" aria-hidden="true" />
+            분석 시작
+          </>
         )}
       </button>
     </form>

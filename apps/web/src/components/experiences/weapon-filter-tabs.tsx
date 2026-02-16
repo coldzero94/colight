@@ -32,6 +32,7 @@ export function WeaponFilterTabs({
 
       {WEAPON_CODES.map((code) => {
         const config = WEAPON_CONFIG[code];
+        const Icon = config.icon;
         const count = counts[code] || 0;
         const isActive = activeWeapon === code;
 
@@ -41,13 +42,18 @@ export function WeaponFilterTabs({
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(code)}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+            className={`shrink-0 rounded-full px-3 py-2 text-sm font-medium transition-all ${
               isActive
                 ? `${config.bgColor} ${config.textColor} ${config.borderColor} border`
-                : "bg-white/[0.06] text-muted-foreground hover:bg-white/[0.08]"
+                : "bg-white/[0.06] text-muted-foreground hover:bg-white/[0.08] hover:text-foreground"
             }`}
           >
-            {config.icon} {config.name} ({count})
+            <span className="inline-flex items-center gap-1.5">
+              <span className={`inline-flex h-5 w-5 items-center justify-center rounded-md ${isActive ? config.iconBgColor : "bg-white/[0.08]"}`}>
+                <Icon className={`h-3.5 w-3.5 ${isActive ? config.iconColor : "text-muted-foreground"}`} aria-hidden="true" />
+              </span>
+              <span>{config.name} ({count})</span>
+            </span>
           </button>
         );
       })}

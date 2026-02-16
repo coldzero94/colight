@@ -5,7 +5,7 @@ import type { UseFormRegisterReturn } from "react-hook-form";
 
 interface StarFieldProps {
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   placeholder: string;
   guide: string;
   maxLength: number;
@@ -32,7 +32,7 @@ export function StarField({
   return (
     <div className="space-y-1.5">
       <label htmlFor={fieldId} className="flex items-center gap-1.5 text-sm font-medium text-foreground/80">
-        <span>{icon}</span>
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-white/[0.06]">{icon}</span>
         <span>{label}</span>
       </label>
       <p id={`${fieldId}-guide`} className="text-xs text-muted-foreground/60">{guide}</p>

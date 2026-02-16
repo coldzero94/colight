@@ -1,13 +1,14 @@
 "use client";
 
 import { Droppable } from "@hello-pangea/dnd";
+import type { LucideIcon } from "lucide-react";
 import { KanbanCard } from "./kanban-card";
 import type { ApplicationDetail, ApplicationStatus } from "@/lib/api/applications";
 
 export interface ColumnConfig {
   status: ApplicationStatus;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   color: string;
   bgColor: string;
 }
@@ -18,10 +19,14 @@ interface KanbanColumnProps {
 }
 
 export function KanbanColumn({ config, applications }: KanbanColumnProps) {
+  const Icon = config.icon;
+
   return (
     <div className="flex w-[280px] shrink-0 flex-col rounded-lg bg-white/[0.02] lg:w-auto lg:flex-1">
       <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border">
-        <span>{config.icon}</span>
+        <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md ${config.bgColor}`}>
+          <Icon className={`h-3.5 w-3.5 ${config.color}`} aria-hidden="true" />
+        </span>
         <h3 className="text-sm font-semibold text-foreground/80">{config.label}</h3>
         <span
           data-testid={`column-count-${config.status}`}

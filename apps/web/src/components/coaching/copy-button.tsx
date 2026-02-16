@@ -39,10 +39,10 @@ export function CopyButton({ content, removeStarTags = false }: CopyButtonProps)
   return (
     <button
       onClick={handleCopy}
-      className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground/80 hover:bg-white/[0.04]"
+      className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-white/[0.04]"
     >
       <Copy className="h-4 w-4" />
-      📋 복사
+      복사하기
     </button>
   );
 }

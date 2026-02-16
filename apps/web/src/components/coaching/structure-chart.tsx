@@ -1,5 +1,7 @@
 "use client";
 
+import { Lightbulb } from "lucide-react";
+
 interface Section {
   name: string;
   char_ratio: number;
@@ -48,8 +50,9 @@ export function StructureChart({ sections, totalChars }: StructureChartProps) {
         })}
       </div>
 
-      <div className="mt-4 rounded-lg bg-blue-500/10 p-3 text-sm text-blue-400">
-        💡 실행 과정에 가장 많은 비중을 할애하세요
+      <div className="mt-4 flex items-center gap-2 rounded-lg bg-blue-500/10 p-3 text-sm text-blue-300">
+        <Lightbulb className="h-4 w-4" aria-hidden="true" />
+        <span>실행 과정에 가장 많은 비중을 할애하세요</span>
       </div>
     </div>
   );

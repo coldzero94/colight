@@ -76,7 +76,7 @@ describe("AnalysisSidebar", () => {
       />
     );
 
-    expect(screen.getByText("문제해결력")).toBeInTheDocument();
+    expect(screen.getAllByText("문제해결력").length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders secondary weapons", () => {

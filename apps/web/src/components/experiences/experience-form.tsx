@@ -2,6 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { BarChart3, Search, Target, Zap } from "lucide-react";
 import {
   experienceSchema,
   type ExperienceFormValues,
@@ -121,7 +122,7 @@ export function ExperienceForm({
 
         <StarField
           label="Situation"
-          icon="🔍"
+          icon={<Search className="h-3.5 w-3.5 text-blue-300" />}
           placeholder="어떤 상황이었나요? (배경, 맥락)"
           guide="언제, 어디서, 어떤 조직에서, 규모는?"
           maxLength={1000}
@@ -132,7 +133,7 @@ export function ExperienceForm({
 
         <StarField
           label="Task"
-          icon="🎯"
+          icon={<Target className="h-3.5 w-3.5 text-amber-300" />}
           placeholder="무엇을 해야 했나요? (과제, 목표)"
           guide="구체적 목표, 기대 성과, 주어진 제약 조건은?"
           maxLength={1000}
@@ -143,7 +144,7 @@ export function ExperienceForm({
 
         <StarField
           label="Action"
-          icon="⚡"
+          icon={<Zap className="h-3.5 w-3.5 text-emerald-300" />}
           placeholder="어떻게 행동했나요? (구체적 행동)"
           guide="어떤 전략을 세웠고, 구체적으로 무엇을 했나요? 수치를 포함하면 좋아요."
           maxLength={2000}
@@ -154,7 +155,7 @@ export function ExperienceForm({
 
         <StarField
           label="Result"
-          icon="📊"
+          icon={<BarChart3 className="h-3.5 w-3.5 text-violet-300" />}
           placeholder="결과는 어땠나요? (성과, 교훈)"
           guide="정량적 성과 (%, 건수, 금액), 질적 변화, 배운 점은?"
           maxLength={1000}

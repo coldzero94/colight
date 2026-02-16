@@ -79,7 +79,7 @@ describe("CoachingFlow", () => {
     });
     render(<CoachingFlow />, { wrapper: createWrapper() });
     await waitFor(() =>
-      expect(screen.getByText("🔍 분석 시작")).toBeInTheDocument()
+      expect(screen.getByText("분석 시작")).toBeInTheDocument()
     );
   });
 

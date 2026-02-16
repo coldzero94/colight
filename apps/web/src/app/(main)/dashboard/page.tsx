@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { BarChart3 } from "lucide-react";
 import { useApplications, useApplicationStats, useUpdateApplicationStatus } from "@/hooks/use-applications";
 import { DashboardSummary } from "@/components/dashboard/dashboard-summary";
 import { KanbanBoard } from "@/components/dashboard/kanban-board";
@@ -37,7 +38,7 @@ export default function DashboardPage() {
   if (!applications || applications.length === 0) {
     return (
       <EmptyState
-        icon={<span className="text-4xl">📊</span>}
+        icon={<BarChart3 className="h-8 w-8" />}
         title="지원 현황이 없습니다"
         description="기업 분석을 시작하면 지원 현황이 여기에 표시됩니다."
         action={{ label: "기업 분석 시작", onClick: () => router.push("/analysis") }}

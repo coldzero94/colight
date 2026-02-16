@@ -1,5 +1,7 @@
 "use client";
 
+import { Award, BarChart3 } from "lucide-react";
+
 interface AnalysisResult {
   required_weapons: {
     primary: { weapon_id: string; weapon_name: string; reason: string };
@@ -34,14 +36,20 @@ interface AnalysisSidebarProps {
 export function AnalysisSidebar({ analysis, experiences }: AnalysisSidebarProps) {
   return (
     <div className="space-y-6 rounded-lg border border-border bg-card p-6">
-      <h3 className="text-lg font-semibold text-foreground">📊 분석 요약</h3>
+      <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/15 text-blue-300">
+          <BarChart3 className="h-4 w-4" aria-hidden="true" />
+        </span>
+        분석 요약
+      </h3>
 
       {/* 필요 무기 */}
       <div>
         <h4 className="mb-2 text-sm font-medium text-foreground/80">필요 무기</h4>
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-3 py-1 text-sm font-semibold text-yellow-400">
-            🏆 {analysis.required_weapons.primary.weapon_name}
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-3 py-1 text-sm font-semibold text-amber-300">
+            <Award className="h-3.5 w-3.5" aria-hidden="true" />
+            {analysis.required_weapons.primary.weapon_name}
           </span>
           {analysis.required_weapons.secondary.map((weapon, i) => (
             <span

@@ -2,6 +2,14 @@
 
 import { useCallback, useMemo } from "react";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
+import {
+  CheckCircle2,
+  ClipboardList,
+  FileText,
+  Mic,
+  Send,
+  XCircle,
+} from "lucide-react";
 import { KanbanColumn, type ColumnConfig } from "./kanban-column";
 import type { ApplicationDetail, ApplicationStatus } from "@/lib/api/applications";
 
@@ -9,42 +17,42 @@ const COLUMNS: ColumnConfig[] = [
   {
     status: "preparing",
     label: "준비중",
-    icon: "\uD83D\uDCDD",
+    icon: FileText,
     color: "text-muted-foreground",
     bgColor: "bg-white/[0.06]",
   },
   {
     status: "submitted",
     label: "제출완료",
-    icon: "\uD83D\uDCE4",
+    icon: Send,
     color: "text-blue-400",
     bgColor: "bg-blue-500/10",
   },
   {
     status: "in_review",
     label: "서류검토",
-    icon: "\uD83D\uDCCB",
+    icon: ClipboardList,
     color: "text-amber-400",
     bgColor: "bg-amber-500/10",
   },
   {
     status: "interview",
     label: "면접",
-    icon: "\uD83C\uDFA4",
+    icon: Mic,
     color: "text-purple-400",
     bgColor: "bg-purple-500/10",
   },
   {
     status: "accepted",
     label: "합격",
-    icon: "\u2705",
+    icon: CheckCircle2,
     color: "text-primary",
     bgColor: "bg-primary/10",
   },
   {
     status: "rejected",
     label: "불합격",
-    icon: "\u274C",
+    icon: XCircle,
     color: "text-red-400",
     bgColor: "bg-red-500/10",
   },

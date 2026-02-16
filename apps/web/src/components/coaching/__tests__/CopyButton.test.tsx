@@ -11,7 +11,7 @@ describe("CopyButton", () => {
   it("renders with icon", () => {
     render(<CopyButton content="Test" />);
     const button = screen.getByRole("button", { name: /복사/ });
-    expect(button).toHaveTextContent("📋");
+    expect(button.querySelector("svg")).toBeInTheDocument();
   });
 
   it("accepts removeStarTags prop", () => {

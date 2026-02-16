@@ -22,11 +22,11 @@ describe("WeaponBadges", () => {
     },
   ];
 
-  it("renders primary weapon with trophy icon", () => {
+  it("renders primary weapon with highlighted icon", () => {
     render(
       <WeaponBadges primary={primaryWeapon} secondary={secondaryWeapons} />
     );
-    expect(screen.getByText("🏆")).toBeInTheDocument();
+    expect(document.querySelector("[data-primary='true'] svg")).toBeInTheDocument();
     expect(screen.getByText("프로젝트 리딩")).toBeInTheDocument();
   });
 
@@ -66,6 +66,6 @@ describe("WeaponBadges", () => {
     // Primary weapon has data-primary="true" attribute
     const primaryBadge = container.querySelector("[data-primary='true']");
     expect(primaryBadge).toBeInTheDocument();
-    expect(primaryBadge?.className).toContain("bg-yellow-500/10");
+    expect(primaryBadge?.className).toContain("bg-amber-500/10");
   });
 });

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { JobUrlInput } from "@/components/analysis/job-url-input";
 import { EmptyState } from "@/components/common/empty-state";
@@ -45,7 +46,7 @@ export default function AnalysisPage() {
           최근 분석 기록
         </h2>
         <EmptyState
-          icon="📊"
+          icon={<BarChart3 className="h-7 w-7" />}
           title="분석 기록이 없습니다"
           description="채용공고 URL을 입력하여 첫 기업 분석을 시작하세요."
         />

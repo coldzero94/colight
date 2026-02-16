@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ClipboardList, Search } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { ExperienceList } from "@/components/experiences/experience-list";
@@ -88,7 +89,7 @@ export default function ExperiencesPage() {
           <h1 className="text-2xl font-bold font-display text-foreground">내 경험</h1>
         </div>
         <EmptyState
-          icon={<span>📋</span>}
+          icon={<ClipboardList className="h-7 w-7" />}
           title="아직 등록된 경험이 없습니다"
           description="첫 번째 경험을 등록해보세요!"
           action={{
@@ -129,7 +130,7 @@ export default function ExperiencesPage() {
 
       {!experiences || experiences.length === 0 ? (
         <EmptyState
-          icon={<span>🔍</span>}
+          icon={<Search className="h-7 w-7" />}
           title={`아직 ${WEAPON_CONFIG[weapon as WeaponCode]?.name || ""} 역량의 경험이 없습니다`}
           description="다른 무기를 선택하거나 경험을 등록해보세요."
           action={{
