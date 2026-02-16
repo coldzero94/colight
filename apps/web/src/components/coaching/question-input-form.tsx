@@ -60,13 +60,13 @@ export function QuestionInputForm({
   // 빈 상태: 기업 분석 이력이 없을 때
   if (companies.length === 0) {
     return (
-      <div className="rounded-lg border border-border bg-muted p-8 text-center">
+      <div className="brand-surface rounded-2xl p-8 text-center">
         <p className="mb-4 text-muted-foreground">
           먼저 기업 분석을 진행해주세요
         </p>
         <Link
           href="/analysis"
-          className="inline-block rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+          className="inline-block rounded-xl bg-primary px-4 py-2 text-sm text-primary-foreground shadow-[0_10px_24px_rgba(72,132,255,0.25)] transition-all hover:-translate-y-0.5 hover:bg-primary/90"
         >
           기업 분석 시작하기
         </Link>
@@ -97,7 +97,7 @@ export function QuestionInputForm({
           {...register("question_text")}
           placeholder="자소서 문항을 입력하세요 (예: 본인이 팀 프로젝트에서 어려움을 극복한 경험을 구체적으로 기술하세요.)"
           rows={4}
-          className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="brand-input w-full rounded-xl px-3 py-2 text-sm"
         />
         <div className="flex items-center justify-between">
           <div>
@@ -126,7 +126,7 @@ export function QuestionInputForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_10px_24px_rgba(16,185,129,0.25)] disabled:opacity-50"
+        className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_12px_26px_rgba(72,132,255,0.26)] disabled:opacity-50"
       >
         <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 transition-opacity group-hover:opacity-100" />
         {isSubmitting ? (

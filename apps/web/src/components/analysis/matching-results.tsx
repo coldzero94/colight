@@ -10,7 +10,7 @@ interface MatchingResultsProps {
 export function MatchingResults({ matches, experiences }: MatchingResultsProps) {
   if (matches.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
+      <div className="brand-surface-soft rounded-2xl py-8 text-center text-muted-foreground">
         매칭 결과가 없습니다.
       </div>
     );
@@ -31,7 +31,7 @@ export function MatchingResults({ matches, experiences }: MatchingResultsProps) 
         return (
           <div
             key={match.experience_id}
-            className="rounded-lg border border-border bg-card p-6 hover:border-white/[0.12] transition-colors"
+            className="brand-surface-soft rounded-2xl p-6 transition-all hover:-translate-y-0.5 hover:border-primary/30"
           >
             {/* Header */}
             <div className="mb-4 flex items-start justify-between">
@@ -82,10 +82,10 @@ export function MatchingResults({ matches, experiences }: MatchingResultsProps) 
 
             {/* Suggested angle */}
             <div className="rounded-lg bg-blue-500/10 p-3">
-              <h4 className="text-sm font-medium text-blue-400 mb-1">
+              <h4 className="mb-1 text-sm font-medium text-primary">
                 활용 제안
               </h4>
-              <p className="text-sm text-blue-300">{match.suggested_angle}</p>
+              <p className="text-sm text-primary/85">{match.suggested_angle}</p>
             </div>
           </div>
         );
@@ -99,14 +99,14 @@ function FitScoreBadge({ score }: { score: number }) {
   let textColor = "text-foreground/80";
 
   if (score >= 80) {
-    bgColor = "bg-primary/10";
+    bgColor = "bg-primary/12";
     textColor = "text-primary";
   } else if (score >= 60) {
-    bgColor = "bg-blue-500/10";
-    textColor = "text-blue-400";
+    bgColor = "bg-cyan-500/12";
+    textColor = "text-cyan-300";
   } else if (score >= 40) {
-    bgColor = "bg-yellow-500/10";
-    textColor = "text-yellow-400";
+    bgColor = "bg-amber-500/12";
+    textColor = "text-amber-300";
   } else {
     bgColor = "bg-red-500/10";
     textColor = "text-red-400";
@@ -130,9 +130,9 @@ interface ScoreBarProps {
 
 function ScoreBar({ label, score, color, weight }: ScoreBarProps) {
   const colors = {
-    blue: "bg-blue-500",
-    green: "bg-green-500",
-    purple: "bg-purple-500",
+    blue: "bg-cyan-400",
+    green: "bg-primary",
+    purple: "bg-indigo-400",
   };
 
   return (
@@ -143,7 +143,7 @@ function ScoreBar({ label, score, color, weight }: ScoreBarProps) {
         </span>
         <span className="text-xs font-medium text-foreground">{score}</span>
       </div>
-      <div className="h-2 w-full rounded-full bg-white/[0.06]">
+      <div className="h-2 w-full rounded-full bg-white/[0.08]">
         <div
           className={`h-2 rounded-full ${colors[color]}`}
           style={{ width: `${score}%` }}

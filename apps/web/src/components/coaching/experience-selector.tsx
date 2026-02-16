@@ -118,7 +118,7 @@ export function ExperienceSelector({
       <button
         onClick={handleConfirm}
         disabled={selectedIds.length === 0}
-        className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-[0_12px_26px_rgba(72,132,255,0.25)] transition-all hover:-translate-y-0.5 hover:bg-primary/90 disabled:opacity-50"
       >
         선택한 경험으로 초안 작성 시작
       </button>

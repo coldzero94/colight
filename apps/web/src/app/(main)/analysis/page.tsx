@@ -24,24 +24,30 @@ export default function AnalysisPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold font-display text-foreground">기업 분석</h1>
-        <p className="mt-2 text-muted-foreground">
-          채용공고 URL을 입력하면 AI가 기업을 자동 분석합니다.
-        </p>
+    <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 animate-fade-in">
+      <div className="brand-surface relative overflow-hidden rounded-2xl px-6 py-5">
+        <div className="pointer-events-none absolute -right-10 -top-8 h-48 w-48 rounded-full bg-cyan-400/16 blur-3xl" />
+        <div className="relative">
+          <span className="brand-kicker inline-flex rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.18em] uppercase">
+            Insight Engine
+          </span>
+          <h1 className="mt-3 text-3xl font-bold font-display text-foreground">
+            기업 분석
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            채용공고 URL을 입력하면 AI가 기업의 핵심가치와 전략 키워드를 정리합니다.
+          </p>
+        </div>
       </div>
 
-      {/* URL Input */}
-      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+      <div className="brand-surface rounded-2xl p-6 shadow-[0_20px_36px_rgba(0,0,0,0.2)]">
         <h2 className="mb-4 text-lg font-semibold text-foreground">
           채용공고 URL 입력
         </h2>
         <JobUrlInput onSubmit={handleAnalyze} isLoading={isAnalyzing} />
       </div>
 
-      {/* Placeholder for future analysis history */}
-      <div className="mt-8">
+      <div>
         <h2 className="mb-4 text-lg font-semibold text-foreground">
           최근 분석 기록
         </h2>

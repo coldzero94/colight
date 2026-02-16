@@ -96,7 +96,7 @@ export function CoachingFlow() {
   // Loading state
   if (appsLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
+      <div className="brand-surface-soft flex items-center justify-center rounded-2xl py-20">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
         <span className="ml-2 text-muted-foreground">불러오는 중...</span>
       </div>
@@ -108,11 +108,11 @@ export function CoachingFlow() {
   // Empty state
   if (appList.length === 0) {
     return (
-      <div className="rounded-lg border border-border bg-muted p-8 text-center">
+      <div className="brand-surface rounded-2xl p-8 text-center">
         <p className="mb-4 text-muted-foreground">먼저 기업 분석을 진행해주세요</p>
         <Link
           href="/analysis"
-          className="inline-block rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+          className="inline-block rounded-xl bg-primary px-4 py-2 text-sm text-primary-foreground shadow-[0_10px_24px_rgba(72,132,255,0.25)] transition-all hover:-translate-y-0.5 hover:bg-primary/90"
         >
           기업 분석 시작하기
         </Link>
@@ -160,14 +160,14 @@ export function CoachingFlow() {
           <div className="flex gap-3">
             <button
               onClick={() => setStep("input")}
-              className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-white/[0.04]"
+              className="brand-outline-btn rounded-xl px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
             >
               다시 분석하기
             </button>
             <button
               onClick={handleGoToSelect}
               disabled={experienceRecommend.isPending}
-              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-[0_10px_24px_rgba(72,132,255,0.25)] transition-all hover:-translate-y-0.5 hover:bg-primary/90 disabled:opacity-50"
             >
               {experienceRecommend.isPending ? (
                 <>

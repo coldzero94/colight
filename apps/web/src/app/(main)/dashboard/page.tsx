@@ -20,15 +20,21 @@ export default function DashboardPage() {
 
   if (appsLoading || statsLoading) {
     return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="space-y-5 animate-fade-in">
+        <div className="brand-surface-soft grid grid-cols-2 gap-3 rounded-2xl p-4 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-20 animate-pulse rounded-lg bg-white/[0.06]" />
+            <div
+              key={i}
+              className="h-20 animate-pulse rounded-xl bg-white/[0.07]"
+            />
           ))}
         </div>
-        <div className="flex gap-3">
+        <div className="brand-surface-soft flex gap-3 rounded-2xl p-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-64 w-[280px] shrink-0 animate-pulse rounded-lg bg-white/[0.06] lg:flex-1" />
+            <div
+              key={i}
+              className="h-64 w-[280px] shrink-0 animate-pulse rounded-xl bg-white/[0.07] lg:flex-1"
+            />
           ))}
         </div>
       </div>
@@ -47,8 +53,23 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-bold text-foreground">대시보드</h1>
+    <div className="space-y-6 animate-fade-in">
+      <section className="brand-surface relative overflow-hidden rounded-2xl px-6 py-5">
+        <div className="pointer-events-none absolute inset-y-0 right-[-8%] w-1/2 bg-[radial-gradient(circle,_rgba(61,169,255,0.22)_0%,_transparent_70%)]" />
+        <div className="relative flex items-start justify-between gap-4">
+          <div>
+            <span className="brand-kicker inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.18em] uppercase">
+              Pipeline Command
+            </span>
+            <h1 className="mt-3 text-2xl font-bold font-display text-foreground">
+              대시보드
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              지원 진행 흐름과 마감 상태를 한눈에 정리하세요.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {stats && <DashboardSummary stats={stats} />}
 

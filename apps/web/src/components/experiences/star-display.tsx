@@ -50,10 +50,10 @@ export function StarDisplay({ situation, task, action, result }: StarDisplayProp
         return (
           <div
             key={section.key}
-            className="rounded-lg border border-border bg-card p-4"
+            className="brand-surface-soft rounded-xl p-4"
           >
             <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-white/[0.06]">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-md border border-white/10 bg-white/[0.06]">
                 <Icon className={`h-3.5 w-3.5 ${section.iconColor}`} aria-hidden="true" />
               </span>
               <span>{section.label}</span>

@@ -93,12 +93,14 @@ export function KanbanBoard({ applications, onStatusChange }: KanbanBoardProps) 
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory lg:snap-none lg:overflow-visible">
-        {COLUMNS.map((col) => (
-          <div key={col.status} className="snap-start">
-            <KanbanColumn config={col} applications={grouped[col.status]} />
-          </div>
-        ))}
+      <div className="brand-surface rounded-2xl p-3 md:p-4">
+        <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory lg:snap-none lg:overflow-visible">
+          {COLUMNS.map((col) => (
+            <div key={col.status} className="snap-start">
+              <KanbanColumn config={col} applications={grouped[col.status]} />
+            </div>
+          ))}
+        </div>
       </div>
     </DragDropContext>
   );

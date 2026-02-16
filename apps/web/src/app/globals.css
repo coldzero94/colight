@@ -154,6 +154,49 @@
     backdrop-filter: blur(18px);
   }
 
+  .brand-surface-soft {
+    border: 1px solid oklch(1 0 0 / 10%);
+    background: linear-gradient(165deg, oklch(1 0 0 / 4%), oklch(1 0 0 / 1%));
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+
+  .brand-kicker {
+    border: 1px solid oklch(0.72 0.14 225 / 30%);
+    background: linear-gradient(125deg, oklch(0.72 0.14 225 / 18%), oklch(0.74 0.11 185 / 10%));
+    color: oklch(0.93 0.03 230);
+  }
+
+  .brand-outline-btn {
+    border: 1px solid oklch(1 0 0 / 14%);
+    background: linear-gradient(165deg, oklch(1 0 0 / 7%), oklch(1 0 0 / 2%));
+    color: oklch(0.92 0 0);
+    transition-property: border-color, background-color, transform, box-shadow;
+    transition-duration: 240ms;
+  }
+
+  .brand-outline-btn:hover {
+    border-color: oklch(0.72 0.14 225 / 46%);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 28px oklch(0 0 0 / 28%);
+  }
+
+  .brand-input {
+    border: 1px solid oklch(1 0 0 / 14%);
+    background: linear-gradient(160deg, oklch(1 0 0 / 7%), oklch(1 0 0 / 2%));
+    color: oklch(0.95 0 0);
+  }
+
+  .brand-input::placeholder {
+    color: oklch(0.66 0.01 255);
+  }
+
+  .brand-input:focus-visible {
+    outline: none;
+    border-color: oklch(0.72 0.14 225 / 60%);
+    box-shadow: 0 0 0 3px oklch(0.72 0.14 225 / 18%);
+  }
+
   .landing-shell {
     background:
       radial-gradient(circle at 12% 15%, oklch(0.72 0.14 225 / 20%), transparent 35%),

@@ -18,7 +18,7 @@ function getDeadlineColor(days: number): string {
   if (days <= 0) return "bg-red-500/10 text-red-400";
   if (days <= 3) return "bg-red-500/10 text-red-400";
   if (days <= 7) return "bg-amber-500/10 text-amber-400";
-  return "bg-white/[0.02] text-muted-foreground";
+  return "bg-white/[0.04] text-muted-foreground";
 }
 
 function DeadlineBadge({ deadline }: { deadline: string }) {
@@ -29,7 +29,7 @@ function DeadlineBadge({ deadline }: { deadline: string }) {
   return (
     <span
       data-testid="deadline-badge"
-      className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium ${color}`}
+      className={`inline-flex items-center gap-1 rounded-md border border-white/10 px-1.5 py-0.5 text-xs font-medium ${color}`}
     >
       {label}
     </span>
@@ -44,18 +44,18 @@ export function KanbanCard({ application, index }: KanbanCardProps) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`rounded-lg border border-border bg-card p-3 transition-shadow ${
+          className={`group rounded-xl border border-white/12 bg-[linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-3 shadow-[0_10px_20px_rgba(0,0,0,0.16)] transition-all ${
             snapshot.isDragging
-              ? "shadow-lg ring-2 ring-blue-500/30"
-              : "shadow-sm hover:shadow-md"
+              ? "shadow-lg ring-2 ring-primary/35"
+              : "hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_16px_26px_rgba(0,0,0,0.24)]"
           }`}
         >
           <div className="flex items-start justify-between gap-2">
-            <h4 className="text-sm font-semibold text-foreground truncate">
+            <h4 className="truncate text-sm font-semibold text-foreground">
               {application.company_name}
             </h4>
             <svg
-              className="h-4 w-4 shrink-0 text-muted-foreground/40"
+              className="h-4 w-4 shrink-0 text-muted-foreground/30 transition-colors group-hover:text-muted-foreground/55"
               fill="currentColor"
               viewBox="0 0 6 10"
             >
@@ -68,7 +68,7 @@ export function KanbanCard({ application, index }: KanbanCardProps) {
             </svg>
           </div>
 
-          <p className="mt-0.5 text-xs text-muted-foreground truncate">
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
             {application.position}
           </p>
 

@@ -16,15 +16,19 @@ export function WeaponFilterTabs({
   const totalCount = Object.values(counts).reduce((sum, n) => sum + n, 0);
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label="무기 역량 필터">
+    <div
+      className="brand-surface-soft flex gap-2 overflow-x-auto rounded-2xl p-3"
+      role="tablist"
+      aria-label="무기 역량 필터"
+    >
       <button
         role="tab"
         aria-selected={activeWeapon === null}
         onClick={() => onChange(null)}
-        className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+        className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all ${
           activeWeapon === null
-            ? "bg-primary text-primary-foreground"
-            : "bg-white/[0.06] text-muted-foreground hover:bg-white/[0.08]"
+            ? "bg-primary text-primary-foreground shadow-[0_10px_24px_rgba(72,132,255,0.25)]"
+            : "bg-white/[0.05] text-muted-foreground hover:-translate-y-0.5 hover:bg-white/[0.08] hover:text-foreground"
         }`}
       >
         전체 ({totalCount})
@@ -44,8 +48,8 @@ export function WeaponFilterTabs({
             onClick={() => onChange(code)}
             className={`shrink-0 rounded-full px-3 py-2 text-sm font-medium transition-all ${
               isActive
-                ? `${config.bgColor} ${config.textColor} ${config.borderColor} border`
-                : "bg-white/[0.06] text-muted-foreground hover:bg-white/[0.08] hover:text-foreground"
+                ? `${config.bgColor} ${config.textColor} ${config.borderColor} border shadow-[0_8px_20px_rgba(0,0,0,0.2)]`
+                : "bg-white/[0.05] text-muted-foreground hover:-translate-y-0.5 hover:bg-white/[0.08] hover:text-foreground"
             }`}
           >
             <span className="inline-flex items-center gap-1.5">

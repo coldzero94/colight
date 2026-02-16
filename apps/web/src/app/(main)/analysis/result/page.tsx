@@ -75,11 +75,11 @@ export default function AnalysisResultPage() {
   if (crawlError) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="flex flex-col items-center justify-center py-20">
+        <div className="brand-surface flex flex-col items-center justify-center rounded-2xl py-20">
           <p className="text-red-400">{crawlError}</p>
           <button
             onClick={() => window.history.back()}
-            className="mt-4 text-sm text-blue-400 hover:text-blue-300"
+            className="mt-4 text-sm text-primary hover:text-primary/80"
           >
             ← 돌아가기
           </button>
@@ -91,7 +91,7 @@ export default function AnalysisResultPage() {
   if (!analysis) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="flex flex-col items-center justify-center py-20">
+        <div className="brand-surface flex flex-col items-center justify-center rounded-2xl py-20">
           <LoadingSpinner />
           <p className="mt-4 text-muted-foreground">
             {!companyName
@@ -105,12 +105,15 @@ export default function AnalysisResultPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
+    <div className="mx-auto max-w-4xl space-y-8 px-4 py-8 animate-fade-in">
+      <div className="brand-surface relative overflow-hidden rounded-2xl px-6 py-5">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-primary/18 blur-3xl" />
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold font-display text-foreground">
+            <span className="brand-kicker inline-flex rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.18em] uppercase">
+              Analysis Report
+            </span>
+            <h1 className="mt-3 text-3xl font-bold font-display text-foreground">
               {analysis.company_name}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -119,15 +122,14 @@ export default function AnalysisResultPage() {
           </div>
           <button
             onClick={() => window.history.back()}
-            className="text-sm text-muted-foreground hover:text-foreground"
+            className="brand-outline-btn rounded-xl px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
             ← 돌아가기
           </button>
         </div>
       </div>
 
-      {/* Core Values */}
-      <section className="mb-8">
+      <section>
         <h2 className="mb-4 text-xl font-semibold text-foreground">
           핵심가치 ({analysis.core_values.length})
         </h2>
@@ -135,7 +137,7 @@ export default function AnalysisResultPage() {
           {analysis.core_values.map((value, i) => (
             <div
               key={i}
-              className="rounded-lg border border-border bg-card p-4"
+              className="brand-surface-soft rounded-xl p-4"
             >
               <h3 className="font-medium text-foreground">{value.keyword}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{value.description}</p>
@@ -144,8 +146,7 @@ export default function AnalysisResultPage() {
         </div>
       </section>
 
-      {/* Talent Traits */}
-      <section className="mb-8">
+      <section>
         <h2 className="mb-4 text-xl font-semibold text-foreground">
           인재상 ({analysis.talent_traits.length})
         </h2>
@@ -153,7 +154,7 @@ export default function AnalysisResultPage() {
           {analysis.talent_traits.map((trait, i) => (
             <div
               key={i}
-              className="rounded-lg border border-border bg-card p-4"
+              className="brand-surface-soft rounded-xl p-4"
             >
               <h3 className="font-medium text-foreground">{trait.trait}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{trait.description}</p>
@@ -167,9 +168,8 @@ export default function AnalysisResultPage() {
         </div>
       </section>
 
-      {/* Recent Trends */}
       {analysis.recent_trends.length > 0 && (
-        <section className="mb-8">
+        <section>
           <h2 className="mb-4 text-xl font-semibold text-foreground">
             최근 동향 ({analysis.recent_trends.length})
           </h2>
@@ -177,7 +177,7 @@ export default function AnalysisResultPage() {
             {analysis.recent_trends.map((trend, i) => (
               <div
                 key={i}
-                className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4"
+                className="rounded-xl border border-primary/25 bg-primary/10 p-4"
               >
                 <h3 className="font-medium text-foreground">{trend.title}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{trend.summary}</p>
@@ -187,8 +187,7 @@ export default function AnalysisResultPage() {
         </section>
       )}
 
-      {/* Strategy Keywords */}
-      <section className="mb-8">
+      <section>
         <h2 className="mb-4 text-xl font-semibold text-foreground">
           자소서 전략 키워드
         </h2>
@@ -196,7 +195,7 @@ export default function AnalysisResultPage() {
           {analysis.strategy_keywords.map((keyword, i) => (
             <span
               key={i}
-              className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
+              className="inline-flex items-center rounded-full border border-primary/30 bg-primary/12 px-3 py-1 text-sm font-medium text-primary"
             >
               {keyword}
             </span>
@@ -204,9 +203,8 @@ export default function AnalysisResultPage() {
         </div>
       </section>
 
-      {/* Avoid Expressions */}
       {analysis.avoid_expressions.length > 0 && (
-        <section className="mb-8">
+        <section>
           <h2 className="mb-4 text-xl font-semibold text-foreground">
             피해야 할 표현
           </h2>
@@ -214,7 +212,7 @@ export default function AnalysisResultPage() {
             {analysis.avoid_expressions.map((expr, i) => (
               <span
                 key={i}
-                className="inline-flex items-center rounded-full bg-red-500/10 px-3 py-1 text-sm font-medium text-red-400"
+                className="inline-flex items-center rounded-full border border-red-400/30 bg-red-500/10 px-3 py-1 text-sm font-medium text-red-300"
               >
                 {expr}
               </span>
@@ -223,7 +221,6 @@ export default function AnalysisResultPage() {
         </section>
       )}
 
-      {/* Experience Matching */}
       <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-foreground">
@@ -231,7 +228,7 @@ export default function AnalysisResultPage() {
           </h2>
           {!isMatching && matchingResult && (
             <button
-              className="text-sm text-blue-400 hover:text-blue-300"
+              className="text-sm text-primary hover:text-primary/80"
               onClick={triggerMatching}
             >
               다시 매칭 →

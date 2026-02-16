@@ -42,7 +42,7 @@ export function JobUrlInput({ onSubmit, isLoading, error }: JobUrlInputProps) {
             {...register("url")}
             type="text"
             placeholder="채용공고 URL을 입력하세요 (예: https://www.jobkorea.co.kr/...)"
-            className="w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="brand-input w-full rounded-xl px-4 py-3 text-sm"
             onChange={(e) => setUrl(e.target.value)}
             disabled={isLoading}
           />
@@ -66,7 +66,7 @@ export function JobUrlInput({ onSubmit, isLoading, error }: JobUrlInputProps) {
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+        className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-[0_12px_28px_rgba(72,132,255,0.26)] transition-all hover:-translate-y-0.5 hover:bg-primary/90 disabled:opacity-50"
       >
         {isLoading ? "분석 중..." : "분석 시작"}
       </button>
@@ -81,18 +81,18 @@ interface DomainBadgeProps {
 
 function DomainBadge({ domain, label }: DomainBadgeProps) {
   const colors = {
-    jobkorea: "bg-blue-500/10 text-blue-400",
-    catch: "bg-primary/10 text-primary",
-    wanted: "bg-purple-500/10 text-purple-400",
-    saramin: "bg-red-500/10 text-red-400",
-    unknown: "bg-white/[0.06] text-foreground/80",
+    jobkorea: "border-blue-400/30 bg-blue-500/12 text-blue-300",
+    catch: "border-primary/35 bg-primary/15 text-primary",
+    wanted: "border-indigo-400/30 bg-indigo-500/14 text-indigo-300",
+    saramin: "border-red-400/30 bg-red-500/12 text-red-300",
+    unknown: "border-white/12 bg-white/[0.06] text-foreground/80",
   };
 
   const colorClass = colors[domain as keyof typeof colors] || colors.unknown;
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${colorClass}`}
+      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${colorClass}`}
     >
       {label}
     </span>

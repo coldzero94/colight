@@ -50,40 +50,42 @@ export default function ExperienceDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6 animate-fade-in">
       <Link
         href="/experiences"
-        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
         aria-label="경험 목록으로 돌아가기"
       >
         ← 경험 목록
       </Link>
 
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            {experience.category && (
-              <CategoryIcon category={experience.category} showLabel />
-            )}
-            {experience.period_start && (
-              <span className="text-xs text-muted-foreground/60">
-                {experience.period_start.slice(0, 7).replace("-", ".")}
-                {experience.period_end &&
-                  ` ~ ${experience.period_end.slice(0, 7).replace("-", ".")}`}
-              </span>
+      <div className="brand-surface rounded-2xl px-5 py-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="mb-2 flex items-center gap-2">
+              {experience.category && (
+                <CategoryIcon category={experience.category} showLabel />
+              )}
+              {experience.period_start && (
+                <span className="text-xs text-muted-foreground/60">
+                  {experience.period_start.slice(0, 7).replace("-", ".")}
+                  {experience.period_end &&
+                    ` ~ ${experience.period_end.slice(0, 7).replace("-", ".")}`}
+                </span>
+              )}
+            </div>
+            <h1 className="text-2xl font-bold font-display text-foreground">
+              {experience.title}
+            </h1>
+            {experience.role && (
+              <p className="mt-1 text-sm text-muted-foreground">{experience.role}</p>
             )}
           </div>
-          <h1 className="text-2xl font-bold font-display text-foreground">
-            {experience.title}
-          </h1>
-          {experience.role && (
-            <p className="mt-1 text-sm text-muted-foreground">{experience.role}</p>
-          )}
+          <ExperienceActions
+            experienceId={experience.id}
+            onDeleteClick={deleteDialog.open}
+          />
         </div>
-        <ExperienceActions
-          experienceId={experience.id}
-          onDeleteClick={deleteDialog.open}
-        />
       </div>
 
       {experience.weapons && experience.weapons.length > 0 ? (
@@ -100,7 +102,7 @@ export default function ExperienceDetailPage() {
       />
 
       {experience.content && (
-        <div className="rounded-lg border border-border bg-card p-4">
+        <div className="brand-surface-soft rounded-xl p-4">
           <h4 className="mb-2 text-sm font-semibold text-foreground">
             자유 입력
           </h4>
@@ -110,7 +112,7 @@ export default function ExperienceDetailPage() {
         </div>
       )}
 
-      <div className="text-xs text-muted-foreground/60 space-y-1 border-t border-border pt-4">
+      <div className="space-y-1 border-t border-white/10 pt-4 text-xs text-muted-foreground/60">
         <p>
           생성일:{" "}
           {new Date(experience.created_at).toLocaleDateString("ko-KR")}

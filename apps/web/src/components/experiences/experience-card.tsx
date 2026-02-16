@@ -17,13 +17,13 @@ export function ExperienceCard({ experience, viewMode }: ExperienceCardProps) {
     return (
       <Link
         href={`/experiences/${experience.id}`}
-        className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 hover:shadow-md transition-shadow cursor-pointer"
+        className="group brand-surface-soft flex cursor-pointer items-center gap-4 rounded-xl p-4 transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_16px_32px_rgba(0,0,0,0.24)]"
         data-testid="experience-card-list"
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <CategoryIcon category={experience.category} />
           <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-semibold text-foreground truncate">
+            <h3 className="truncate text-sm font-semibold text-foreground">
               {experience.title}
             </h3>
             {period && (
@@ -33,7 +33,7 @@ export function ExperienceCard({ experience, viewMode }: ExperienceCardProps) {
         </div>
         <div className="hidden md:block flex-1 min-w-0">
           {experience.star_situation && (
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="truncate text-xs text-muted-foreground group-hover:text-muted-foreground/90">
               {experience.star_situation}
             </p>
           )}
@@ -50,18 +50,22 @@ export function ExperienceCard({ experience, viewMode }: ExperienceCardProps) {
   return (
     <Link
       href={`/experiences/${experience.id}`}
-      className="flex flex-col rounded-lg border border-border bg-card p-4 hover:shadow-md transition-shadow cursor-pointer h-full"
+      className="group brand-surface-soft flex h-full cursor-pointer flex-col rounded-xl p-4 transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_16px_32px_rgba(0,0,0,0.24)]"
       data-testid="experience-card-grid"
     >
       <div className="flex items-center justify-between mb-2">
         <CategoryIcon category={experience.category} showLabel />
-        {period && <span className="text-xs text-muted-foreground/60">{period}</span>}
+        {period && (
+          <span className="text-xs text-muted-foreground/65 group-hover:text-muted-foreground/85">
+            {period}
+          </span>
+        )}
       </div>
-      <h3 className="text-lg font-semibold text-foreground line-clamp-2 mb-2">
+      <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-foreground">
         {experience.title}
       </h3>
       {experience.star_situation && (
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-3 flex-1">
+        <p className="mb-3 flex-1 line-clamp-2 text-sm text-muted-foreground group-hover:text-muted-foreground/90">
           {experience.star_situation}
         </p>
       )}

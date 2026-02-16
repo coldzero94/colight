@@ -84,9 +84,22 @@ export default function ExperiencesPage() {
 
   if (!allExperiences || allExperiences.length === 0) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold font-display text-foreground">내 경험</h1>
+      <div className="space-y-6 animate-fade-in">
+        <div className="brand-surface relative overflow-hidden rounded-2xl px-6 py-5">
+          <div className="pointer-events-none absolute -right-10 top-1/2 h-44 w-44 -translate-y-1/2 rounded-full bg-primary/18 blur-3xl" />
+          <div className="relative flex items-center justify-between">
+            <div>
+              <span className="brand-kicker inline-flex rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.18em] uppercase">
+                Experience Atlas
+              </span>
+              <h1 className="mt-3 text-2xl font-bold font-display text-foreground">
+                내 경험
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                경험을 구조화하고 역량 지도를 촘촘하게 채워보세요.
+              </p>
+            </div>
+          </div>
         </div>
         <EmptyState
           icon={<ClipboardList className="h-7 w-7" />}
@@ -102,12 +115,27 @@ export default function ExperiencesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold font-display text-foreground">내 경험</h1>
+    <div className="space-y-6 animate-fade-in">
+      <div className="brand-surface relative overflow-hidden rounded-2xl px-6 py-5">
+        <div className="pointer-events-none absolute -right-10 top-1/2 h-44 w-44 -translate-y-1/2 rounded-full bg-primary/18 blur-3xl" />
+        <div className="relative flex items-center justify-between gap-3">
+          <div>
+            <span className="brand-kicker inline-flex rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.18em] uppercase">
+              Experience Atlas
+            </span>
+            <h1 className="mt-3 text-2xl font-bold font-display text-foreground">
+              내 경험
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              무기 역량 분포를 확인하고 강점을 균형 있게 확장하세요.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-3">
         <button
           onClick={() => router.push("/experiences/new")}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-[0_12px_28px_rgba(72,132,255,0.26)] transition-all hover:-translate-y-0.5 hover:bg-primary/90"
         >
           + 경험 추가
         </button>
@@ -121,7 +149,7 @@ export default function ExperiencesPage() {
         onChange={handleWeaponChange}
       />
 
-      <div className="flex items-center justify-between">
+      <div className="brand-surface-soft flex items-center justify-between rounded-xl px-3 py-2">
         <div className="flex items-center gap-3">
           <SortSelect value={sort} onChange={handleSortChange} />
         </div>

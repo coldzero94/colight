@@ -57,12 +57,15 @@ export function WeaponRadarChart({ counts }: WeaponRadarChartProps) {
     .map((code) => WEAPON_CONFIG[code].name);
 
   return (
-    <div className="rounded-lg border border-border bg-card">
+    <div className="brand-surface rounded-2xl">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-white/[0.04]"
+        className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white/[0.04]"
       >
-        <span>무기 분포</span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
+          무기 분포
+        </span>
         {isOpen ? (
           <ChevronUp className="h-4 w-4 text-muted-foreground/60" />
         ) : (
@@ -71,7 +74,7 @@ export function WeaponRadarChart({ counts }: WeaponRadarChartProps) {
       </button>
 
       {isOpen && (
-        <div className="border-t border-border px-4 pb-4">
+        <div className="border-t border-white/12 px-4 pb-4">
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={data} cx="50%" cy="50%" outerRadius="70%">
@@ -80,16 +83,16 @@ export function WeaponRadarChart({ counts }: WeaponRadarChartProps) {
                 <Radar
                   name="보유 경험"
                   dataKey="count"
-                  stroke="#34d399"
-                  fill="#34d399"
-                  fillOpacity={0.25}
+                  stroke="#4f8eff"
+                  fill="#39d0ff"
+                  fillOpacity={0.22}
                 />
               </RadarChart>
             </ResponsiveContainer>
           </div>
 
           {missingWeapons.length > 0 && (
-            <p className="mt-2 text-center text-xs text-yellow-400">
+            <p className="mt-2 text-center text-xs text-amber-300">
               보완 추천: {missingWeapons.join(", ")} 역량의 경험을 추가해보세요
             </p>
           )}

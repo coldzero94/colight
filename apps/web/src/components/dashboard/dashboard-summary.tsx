@@ -31,17 +31,22 @@ function StatCard({
   iconBgTone,
 }: StatCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-border/80 bg-card/90 p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-white/20 hover:shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/[0.06] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+    <div className="brand-surface-soft group relative overflow-hidden rounded-2xl p-4 shadow-[0_16px_32px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-1 hover:border-primary/35 hover:shadow-[0_20px_38px_rgba(0,0,0,0.26)]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-18 bg-gradient-to-b from-white/[0.08] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       <div className="relative flex items-center gap-3">
-        <span className={cn("inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15", iconBgTone)}>
+        <span
+          className={cn(
+            "inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]",
+            iconBgTone
+          )}
+        >
           <Icon className={cn("h-5 w-5", iconTone)} aria-hidden="true" />
         </span>
         <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">{label}</p>
+          <p className="text-xs font-medium text-muted-foreground">{label}</p>
           <p
             data-testid={testId}
-            className={`text-2xl font-bold ${color}`}
+            className={`text-2xl font-bold tracking-tight ${color}`}
           >
             {value}
           </p>
@@ -63,7 +68,7 @@ export function DashboardSummary({ stats }: DashboardSummaryProps) {
   const deadlineCount = stats.upcoming_deadlines?.length ?? 0;
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 animate-slide-up">
       <StatCard
         testId="stat-total"
         label="전체 지원"
