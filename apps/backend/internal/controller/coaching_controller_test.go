@@ -48,7 +48,7 @@ func setupCoachingTestRouter(t *testing.T, mockAI *mockLLMForCoaching) (*gin.Eng
 	gin.SetMode(gin.TestMode)
 
 	client := testutil.NewTestClient(t)
-	coachingService := service.NewCoachingService(client, mockAI)
+	coachingService := service.NewCoachingService(client, ai.NewAIProviderForTest(mockAI, mockAI))
 	coachingCtrl := NewCoachingController(coachingService)
 
 	router := gin.New()

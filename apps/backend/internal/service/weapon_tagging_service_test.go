@@ -30,7 +30,8 @@ func (m *MockLLMProvider) Call(ctx context.Context, req ai.LLMRequest) (ai.LLMRe
 func newTestWeaponTaggingService(t *testing.T, mockAI *MockLLMProvider) (*WeaponTaggingService, *ent.Client) {
 	t.Helper()
 	client := testutil.NewTestClient(t)
-	svc := NewWeaponTaggingService(client, mockAI)
+	aiProvider := ai.NewAIProviderForTest(mockAI, mockAI)
+	svc := NewWeaponTaggingService(client, aiProvider)
 	return svc, client
 }
 

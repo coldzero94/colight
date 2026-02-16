@@ -49,7 +49,7 @@ func main() {
 
 	var weaponTaggingService *service.WeaponTaggingService
 	if aiProvider != nil {
-		weaponTaggingService = service.NewWeaponTaggingService(db, aiProvider.Light())
+		weaponTaggingService = service.NewWeaponTaggingService(db, aiProvider)
 	}
 
 	var crawlingService *service.CrawlingService
@@ -66,27 +66,27 @@ func main() {
 
 	var matchingService *service.MatchingService
 	if aiProvider != nil {
-		matchingService = service.NewMatchingService(db, aiProvider.Light())
+		matchingService = service.NewMatchingService(db, aiProvider.Light()) // matching hardcodes prompts, uses light model
 	}
 
 	var questionService *service.QuestionService
 	if aiProvider != nil {
-		questionService = service.NewQuestionService(db, aiProvider.Heavy())
+		questionService = service.NewQuestionService(db, aiProvider)
 	}
 
 	var coachingService *service.CoachingService
 	if aiProvider != nil {
-		coachingService = service.NewCoachingService(db, aiProvider.HeavyStreaming())
+		coachingService = service.NewCoachingService(db, aiProvider)
 	}
 
 	var reviewService *service.ReviewService
 	if aiProvider != nil {
-		reviewService = service.NewReviewService(db, aiProvider.Heavy())
+		reviewService = service.NewReviewService(db, aiProvider)
 	}
 
 	var charCoachingService *service.CharCoachingService
 	if aiProvider != nil {
-		charCoachingService = service.NewCharCoachingService(db, aiProvider.Heavy())
+		charCoachingService = service.NewCharCoachingService(db, aiProvider)
 	}
 
 	var interviewService *service.InterviewService

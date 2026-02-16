@@ -154,7 +154,7 @@ func TestCharCoaching_OverLimit(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewCharCoachingService(client, mockAI)
+	svc := NewCharCoachingService(client, newTestAIProviderForReview(mockAI))
 	ctx := context.Background()
 
 	userID, appID, _ := createTestCoachingData(t, client)
@@ -190,7 +190,7 @@ func TestCharCoaching_UnderLimit(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewCharCoachingService(client, mockAI)
+	svc := NewCharCoachingService(client, newTestAIProviderForReview(mockAI))
 	ctx := context.Background()
 
 	userID, appID, _ := createTestCoachingData(t, client)
@@ -213,7 +213,7 @@ func TestCharCoaching_NoCharLimit(t *testing.T) {
 	mockAI := &MockLLMForReview{}
 
 	client := testutil.NewTestClient(t)
-	svc := NewCharCoachingService(client, mockAI)
+	svc := NewCharCoachingService(client, newTestAIProviderForReview(mockAI))
 	ctx := context.Background()
 
 	userID, appID, _ := createTestCoachingData(t, client)
@@ -233,7 +233,7 @@ func TestCharCoaching_NoCharLimit(t *testing.T) {
 func TestCharCoaching_NotFound(t *testing.T) {
 	mockAI := &MockLLMForReview{}
 	client := testutil.NewTestClient(t)
-	svc := NewCharCoachingService(client, mockAI)
+	svc := NewCharCoachingService(client, newTestAIProviderForReview(mockAI))
 	ctx := context.Background()
 
 	userID, _, _ := createTestCoachingData(t, client)
@@ -246,7 +246,7 @@ func TestCharCoaching_NotFound(t *testing.T) {
 func TestCharCoaching_Forbidden(t *testing.T) {
 	mockAI := &MockLLMForReview{}
 	client := testutil.NewTestClient(t)
-	svc := NewCharCoachingService(client, mockAI)
+	svc := NewCharCoachingService(client, newTestAIProviderForReview(mockAI))
 	ctx := context.Background()
 
 	userID, appID, _ := createTestCoachingData(t, client)
@@ -265,7 +265,7 @@ func TestCharCoaching_AIError(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewCharCoachingService(client, mockAI)
+	svc := NewCharCoachingService(client, newTestAIProviderForReview(mockAI))
 	ctx := context.Background()
 
 	userID, appID, _ := createTestCoachingData(t, client)
@@ -287,7 +287,7 @@ func TestCharCoaching_RecordsSession(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewCharCoachingService(client, mockAI)
+	svc := NewCharCoachingService(client, newTestAIProviderForReview(mockAI))
 	ctx := context.Background()
 
 	userID, appID, _ := createTestCoachingData(t, client)

@@ -16,11 +16,11 @@ import (
 // CharCoachingService handles AI-powered character count coaching.
 type CharCoachingService struct {
 	entClient  *ent.Client
-	aiProvider ai.LLMProvider
+	aiProvider *ai.AIProvider
 }
 
 // NewCharCoachingService creates a new char coaching service.
-func NewCharCoachingService(entClient *ent.Client, aiProvider ai.LLMProvider) *CharCoachingService {
+func NewCharCoachingService(entClient *ent.Client, aiProvider *ai.AIProvider) *CharCoachingService {
 	return &CharCoachingService{
 		entClient:  entClient,
 		aiProvider: aiProvider,
@@ -152,7 +152,7 @@ func (s *CharCoachingService) CoachCharCount(
 		MaxTokens:    prompt.MaxTokens,
 	}
 
-	resp, err := s.aiProvider.Call(ctx, llmReq)
+	resp, err := s.aiProvider.CallByModelName(ctx, prompt.Model, llmReq)
 	if err != nil {
 		return nil, fmt.Errorf("AI char coaching call failed: %w", err)
 	}

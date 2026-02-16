@@ -45,7 +45,7 @@ func setupReviewTestRouter(t *testing.T, mockAI *mockLLMForReview) (*gin.Engine,
 	gin.SetMode(gin.TestMode)
 
 	client := testutil.NewTestClient(t)
-	reviewService := service.NewReviewService(client, mockAI)
+	reviewService := service.NewReviewService(client, ai.NewAIProviderForTest(mockAI, mockAI))
 	reviewCtrl := NewReviewController(reviewService)
 
 	router := gin.New()

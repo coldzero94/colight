@@ -17,11 +17,11 @@ import (
 // ReviewService handles AI-powered cover letter review.
 type ReviewService struct {
 	entClient  *ent.Client
-	aiProvider ai.LLMProvider
+	aiProvider *ai.AIProvider
 }
 
 // NewReviewService creates a new review service.
-func NewReviewService(entClient *ent.Client, aiProvider ai.LLMProvider) *ReviewService {
+func NewReviewService(entClient *ent.Client, aiProvider *ai.AIProvider) *ReviewService {
 	return &ReviewService{
 		entClient:  entClient,
 		aiProvider: aiProvider,
@@ -195,7 +195,7 @@ func (s *ReviewService) ReviewCoverLetter(
 		MaxTokens:    prompt.MaxTokens,
 	}
 
-	resp, err := s.aiProvider.Call(ctx, llmReq)
+	resp, err := s.aiProvider.CallByModelName(ctx, prompt.Model, llmReq)
 	if err != nil {
 		return nil, fmt.Errorf("AI review call failed: %w", err)
 	}

@@ -41,6 +41,10 @@ func (m *MockLLMForCoaching) Stream(ctx context.Context, req ai.LLMRequest, onCh
 	return m.response, nil
 }
 
+func newTestAIProviderForCoaching(mockAI *MockLLMForCoaching) *ai.AIProvider {
+	return ai.NewAIProviderForTest(mockAI, mockAI)
+}
+
 func createTestCoachingData(t *testing.T, client *ent.Client) (uuid.UUID, uuid.UUID, []uuid.UUID) {
 	t.Helper()
 	ctx := context.Background()
@@ -127,7 +131,7 @@ func TestGenerateDraft_CoachingPromptComposition(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewCoachingService(client, mockAI)
+	svc := NewCoachingService(client, newTestAIProviderForCoaching(mockAI))
 	ctx := context.Background()
 
 	userID, appID, expIDs := createTestCoachingData(t, client)
@@ -148,7 +152,7 @@ func TestGenerateDraft_StreamingResponse(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewCoachingService(client, mockAI)
+	svc := NewCoachingService(client, newTestAIProviderForCoaching(mockAI))
 	ctx := context.Background()
 
 	userID, appID, expIDs := createTestCoachingData(t, client)
@@ -169,7 +173,7 @@ func TestGenerateDraft_STARStructure(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewCoachingService(client, mockAI)
+	svc := NewCoachingService(client, newTestAIProviderForCoaching(mockAI))
 	ctx := context.Background()
 
 	userID, appID, expIDs := createTestCoachingData(t, client)
@@ -194,7 +198,7 @@ func TestGenerateDraft_CharLimitRespected(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewCoachingService(client, mockAI)
+	svc := NewCoachingService(client, newTestAIProviderForCoaching(mockAI))
 	ctx := context.Background()
 
 	userID, appID, expIDs := createTestCoachingData(t, client)
@@ -216,7 +220,7 @@ func TestGenerateDraft_ErrorHandling(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewCoachingService(client, mockAI)
+	svc := NewCoachingService(client, newTestAIProviderForCoaching(mockAI))
 	ctx := context.Background()
 
 	userID, appID, expIDs := createTestCoachingData(t, client)
@@ -343,7 +347,7 @@ func TestGenerateDraftStream_StreamsChunks(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewCoachingService(client, mockAI)
+	svc := NewCoachingService(client, newTestAIProviderForCoaching(mockAI))
 	ctx := context.Background()
 
 	userID, appID, expIDs := createTestCoachingData(t, client)
@@ -367,7 +371,7 @@ func TestGenerateDraftStream_ErrorHandling(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewCoachingService(client, mockAI)
+	svc := NewCoachingService(client, newTestAIProviderForCoaching(mockAI))
 	ctx := context.Background()
 
 	userID, appID, expIDs := createTestCoachingData(t, client)

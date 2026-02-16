@@ -28,6 +28,10 @@ func (m *MockLLMForReview) Call(ctx context.Context, req ai.LLMRequest) (ai.LLMR
 	return m.response, m.err
 }
 
+func newTestAIProviderForReview(mockAI *MockLLMForReview) *ai.AIProvider {
+	return ai.NewAIProviderForTest(mockAI, mockAI)
+}
+
 const validReviewJSON = `{
 	"scores": {
 		"specificity": 75,
@@ -179,7 +183,7 @@ func TestReviewCoverLetter_Success(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewReviewService(client, mockAI)
+	svc := NewReviewService(client, newTestAIProviderForReview(mockAI))
 	ctx := context.Background()
 
 	userID, appID, _ := createTestCoachingData(t, client)
@@ -207,7 +211,7 @@ func TestReviewCoverLetter_Success(t *testing.T) {
 func TestReviewCoverLetter_NotFound(t *testing.T) {
 	mockAI := &MockLLMForReview{}
 	client := testutil.NewTestClient(t)
-	svc := NewReviewService(client, mockAI)
+	svc := NewReviewService(client, newTestAIProviderForReview(mockAI))
 	ctx := context.Background()
 
 	userID, _, _ := createTestCoachingData(t, client)
@@ -220,7 +224,7 @@ func TestReviewCoverLetter_NotFound(t *testing.T) {
 func TestReviewCoverLetter_Forbidden(t *testing.T) {
 	mockAI := &MockLLMForReview{}
 	client := testutil.NewTestClient(t)
-	svc := NewReviewService(client, mockAI)
+	svc := NewReviewService(client, newTestAIProviderForReview(mockAI))
 	ctx := context.Background()
 
 	userID, appID, _ := createTestCoachingData(t, client)
@@ -239,7 +243,7 @@ func TestReviewCoverLetter_AIError(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewReviewService(client, mockAI)
+	svc := NewReviewService(client, newTestAIProviderForReview(mockAI))
 	ctx := context.Background()
 
 	userID, appID, _ := createTestCoachingData(t, client)
@@ -261,7 +265,7 @@ func TestReviewCoverLetter_RecordsSession(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewReviewService(client, mockAI)
+	svc := NewReviewService(client, newTestAIProviderForReview(mockAI))
 	ctx := context.Background()
 
 	userID, appID, _ := createTestCoachingData(t, client)

@@ -27,6 +27,10 @@ func (m *MockLLMForQuestion) Call(ctx context.Context, req ai.LLMRequest) (ai.LL
 	return m.response, m.err
 }
 
+func newTestAIProviderForQuestion(mockAI *MockLLMForQuestion) *ai.AIProvider {
+	return ai.NewAIProviderForTest(mockAI, mockAI)
+}
+
 func createTestUserAndApplication(t *testing.T, client *ent.Client) (uuid.UUID, uuid.UUID) {
 	t.Helper()
 	ctx := context.Background()
@@ -150,7 +154,7 @@ func TestAnalyzeQuestion_ReturnsStructuredResult(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewQuestionService(client, mockAI)
+	svc := NewQuestionService(client, newTestAIProviderForQuestion(mockAI))
 	ctx := context.Background()
 
 	userID, appID := createTestUserAndApplication(t, client)
@@ -198,7 +202,7 @@ func TestAnalyzeQuestion_RealIntentsAlwaysThree(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewQuestionService(client, mockAI)
+	svc := NewQuestionService(client, newTestAIProviderForQuestion(mockAI))
 	ctx := context.Background()
 
 	userID, appID := createTestUserAndApplication(t, client)
@@ -236,7 +240,7 @@ func TestAnalyzeQuestion_PrimaryWeaponExists(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewQuestionService(client, mockAI)
+	svc := NewQuestionService(client, newTestAIProviderForQuestion(mockAI))
 	ctx := context.Background()
 
 	userID, appID := createTestUserAndApplication(t, client)
@@ -280,7 +284,7 @@ func TestAnalyzeQuestion_CharCountSumsCorrectly(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewQuestionService(client, mockAI)
+	svc := NewQuestionService(client, newTestAIProviderForQuestion(mockAI))
 	ctx := context.Background()
 
 	userID, appID := createTestUserAndApplication(t, client)
@@ -328,7 +332,7 @@ func TestAnalyzeQuestion_CategoryMatching(t *testing.T) {
 	}
 
 	client := testutil.NewTestClient(t)
-	svc := NewQuestionService(client, mockAI)
+	svc := NewQuestionService(client, newTestAIProviderForQuestion(mockAI))
 	ctx := context.Background()
 
 	userID, appID := createTestUserAndApplication(t, client)

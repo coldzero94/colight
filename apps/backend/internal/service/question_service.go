@@ -19,11 +19,11 @@ import (
 // QuestionService handles question analysis
 type QuestionService struct {
 	entClient  *ent.Client
-	aiProvider ai.LLMProvider
+	aiProvider *ai.AIProvider
 }
 
 // NewQuestionService creates a new question service
-func NewQuestionService(entClient *ent.Client, aiProvider ai.LLMProvider) *QuestionService {
+func NewQuestionService(entClient *ent.Client, aiProvider *ai.AIProvider) *QuestionService {
 	return &QuestionService{
 		entClient:  entClient,
 		aiProvider: aiProvider,
@@ -178,7 +178,7 @@ func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID,
 		MaxTokens:    prompt.MaxTokens,
 	}
 
-	resp, err := s.aiProvider.Call(ctx, llmReq)
+	resp, err := s.aiProvider.CallByModelName(ctx, prompt.Model, llmReq)
 	if err != nil {
 		return nil, fmt.Errorf("AI call failed: %w", err)
 	}

@@ -18,11 +18,11 @@ import (
 // CoachingService handles draft coaching
 type CoachingService struct {
 	entClient  *ent.Client
-	aiProvider ai.StreamingLLMProvider
+	aiProvider *ai.AIProvider
 }
 
 // NewCoachingService creates a new coaching service
-func NewCoachingService(entClient *ent.Client, aiProvider ai.StreamingLLMProvider) *CoachingService {
+func NewCoachingService(entClient *ent.Client, aiProvider *ai.AIProvider) *CoachingService {
 	return &CoachingService{
 		entClient:  entClient,
 		aiProvider: aiProvider,
@@ -30,6 +30,7 @@ func NewCoachingService(entClient *ent.Client, aiProvider ai.StreamingLLMProvide
 }
 
 // buildDraftRequest builds the LLM request for draft generation (shared by sync and streaming).
+// Returns the LLM request and the model name from the prompt template.
 func (s *CoachingService) buildDraftRequest(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -37,7 +38,7 @@ func (s *CoachingService) buildDraftRequest(
 	experienceIDs []uuid.UUID,
 	questionText string,
 	charLimit int,
-) (ai.LLMRequest, error) {
+) (ai.LLMRequest, string, error) {
 	// 1. Verify application ownership
 	app, err := s.entClient.Application.Query().
 		Where(application.IDEQ(applicationID)).
@@ -45,13 +46,13 @@ func (s *CoachingService) buildDraftRequest(
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return ai.LLMRequest{}, ErrApplicationNotFound
+			return ai.LLMRequest{}, "", ErrApplicationNotFound
 		}
-		return ai.LLMRequest{}, err
+		return ai.LLMRequest{}, "", err
 	}
 
 	if app.UserID != userID {
-		return ai.LLMRequest{}, ErrApplicationForbidden
+		return ai.LLMRequest{}, "", ErrApplicationForbidden
 	}
 
 	// 2. Load selected experiences
@@ -60,12 +61,12 @@ func (s *CoachingService) buildDraftRequest(
 		WithWeapons().
 		All(ctx)
 	if err != nil {
-		return ai.LLMRequest{}, fmt.Errorf("failed to load experiences: %w", err)
+		return ai.LLMRequest{}, "", fmt.Errorf("failed to load experiences: %w", err)
 	}
 
 	for _, exp := range experiences {
 		if exp.UserID != userID {
-			return ai.LLMRequest{}, ErrExperienceForbidden
+			return ai.LLMRequest{}, "", ErrExperienceForbidden
 		}
 	}
 
@@ -78,7 +79,7 @@ func (s *CoachingService) buildDraftRequest(
 		).
 		First(ctx)
 	if err != nil {
-		return ai.LLMRequest{}, fmt.Errorf("failed to load prompt template: %w", err)
+		return ai.LLMRequest{}, "", fmt.Errorf("failed to load prompt template: %w", err)
 	}
 
 	// 4. Build experiences context
@@ -136,7 +137,7 @@ func (s *CoachingService) buildDraftRequest(
 		UserPrompt:   userPrompt,
 		Temperature:  prompt.Temperature,
 		MaxTokens:    prompt.MaxTokens,
-	}, nil
+	}, prompt.Model, nil
 }
 
 // GenerateDraft generates a cover letter draft synchronously.
@@ -149,12 +150,12 @@ func (s *CoachingService) GenerateDraft(
 	charLimit int,
 	analysisResult any,
 ) (string, error) {
-	llmReq, err := s.buildDraftRequest(ctx, userID, applicationID, experienceIDs, questionText, charLimit)
+	llmReq, modelName, err := s.buildDraftRequest(ctx, userID, applicationID, experienceIDs, questionText, charLimit)
 	if err != nil {
 		return "", err
 	}
 
-	resp, err := s.aiProvider.Call(ctx, llmReq)
+	resp, err := s.aiProvider.CallByModelName(ctx, modelName, llmReq)
 	if err != nil {
 		return "", fmt.Errorf("AI call failed: %w", err)
 	}
@@ -164,6 +165,7 @@ func (s *CoachingService) GenerateDraft(
 
 // GenerateDraftStream generates a cover letter draft with streaming.
 // Calls onChunk for each text delta. Returns final LLMResponse with token usage.
+// Streaming always uses the heavy model (Claude) as it's the only streaming provider.
 func (s *CoachingService) GenerateDraftStream(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -174,12 +176,17 @@ func (s *CoachingService) GenerateDraftStream(
 	analysisResult any,
 	onChunk ai.StreamCallback,
 ) (ai.LLMResponse, error) {
-	llmReq, err := s.buildDraftRequest(ctx, userID, applicationID, experienceIDs, questionText, charLimit)
+	llmReq, _, err := s.buildDraftRequest(ctx, userID, applicationID, experienceIDs, questionText, charLimit)
 	if err != nil {
 		return ai.LLMResponse{}, err
 	}
 
-	resp, err := s.aiProvider.Stream(ctx, llmReq, onChunk)
+	streaming := s.aiProvider.HeavyStreaming()
+	if streaming == nil {
+		return ai.LLMResponse{}, fmt.Errorf("streaming provider not available")
+	}
+
+	resp, err := streaming.Stream(ctx, llmReq, onChunk)
 	if err != nil {
 		return ai.LLMResponse{}, fmt.Errorf("AI streaming failed: %w", err)
 	}

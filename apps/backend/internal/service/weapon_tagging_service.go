@@ -19,16 +19,16 @@ import (
 // WeaponTaggingService handles AI-powered weapon classification for experiences
 type WeaponTaggingService struct {
 	entClient      *ent.Client
-	aiClient       ai.LLMProvider
+	aiProvider     *ai.AIProvider
 	promptCache    *ent.PromptTemplate
 	promptCachedAt time.Time
 }
 
 // NewWeaponTaggingService creates a new WeaponTaggingService
-func NewWeaponTaggingService(entClient *ent.Client, aiClient ai.LLMProvider) *WeaponTaggingService {
+func NewWeaponTaggingService(entClient *ent.Client, aiProvider *ai.AIProvider) *WeaponTaggingService {
 	return &WeaponTaggingService{
-		entClient: entClient,
-		aiClient:  aiClient,
+		entClient:  entClient,
+		aiProvider: aiProvider,
 	}
 }
 
@@ -125,9 +125,9 @@ func (s *WeaponTaggingService) TagExperience(ctx context.Context, experienceID u
 		"weapon_categories": weaponList,
 	})
 
-	// 6. Call AI with DB-loaded prompt (with retry for transient errors)
+	// 6. Call AI with DB-loaded prompt (model-aware, with retry for transient errors)
 	startTime := time.Now()
-	aiResp, err := ai.CallWithRetry(ctx, s.aiClient, ai.LLMRequest{
+	aiResp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, promptTemplate.Model, ai.LLMRequest{
 		SystemPrompt: promptTemplate.SystemPrompt,
 		UserPrompt:   userPrompt,
 		Temperature:  promptTemplate.Temperature,

@@ -35,7 +35,7 @@ func setupQuestionTestRouter(t *testing.T, mockAI *mockLLMForQuestion) (*gin.Eng
 	gin.SetMode(gin.TestMode)
 
 	client := testutil.NewTestClient(t)
-	questionService := service.NewQuestionService(client, mockAI)
+	questionService := service.NewQuestionService(client, ai.NewAIProviderForTest(mockAI, mockAI))
 	questionCtrl := NewQuestionController(questionService)
 
 	router := gin.New()
