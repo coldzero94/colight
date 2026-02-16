@@ -25,8 +25,8 @@ const features = [
     title: "AI 코칭",
     description:
       "STAR 구조 초안 생성부터 구체성·직무적합성·기업적합성·진정성 4점 첨삭까지.",
-    color: "from-violet-500/20 to-violet-500/5",
-    iconColor: "text-violet-400",
+    color: "from-orange-500/20 to-orange-500/5",
+    iconColor: "text-orange-400",
   },
   {
     icon: Mic,
@@ -60,6 +60,11 @@ const features = [
 export function FeatureSection() {
   return (
     <section className="relative py-28 lg:py-36">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute left-[18%] top-20 h-44 w-44 rounded-full bg-orange-300/10 blur-[90px]" />
+        <div className="absolute right-[14%] bottom-20 h-52 w-52 rounded-full bg-cyan-300/10 blur-[100px]" />
+      </div>
+
       <div className="mx-auto max-w-6xl px-6">
         {/* Section header */}
         <div className="mx-auto max-w-2xl text-center">
@@ -74,20 +79,29 @@ export function FeatureSection() {
           </p>
         </div>
 
-        {/* Feature grid - bento style */}
-        <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
+        {/* Feature grid */}
+        <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+          {features.map((feature, index) => (
             <div
               key={feature.title}
-              className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.04]"
+              className={`group relative rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-white/[0.2] hover:bg-white/[0.06] ${
+                index === 0
+                  ? "sm:col-span-2 lg:col-span-4"
+                  : index === 3
+                    ? "sm:col-span-2 lg:col-span-4"
+                    : index === 4 || index === 5
+                      ? "sm:col-span-1 lg:col-span-3"
+                      : "sm:col-span-1 lg:col-span-2"
+              }`}
+              style={{ animationDelay: `${index * 80}ms` }}
             >
               {/* Number */}
-              <span className="font-display text-xs font-medium text-muted-foreground/40">
+              <span className="font-display text-xs font-medium text-muted-foreground/45">
                 {feature.number}
               </span>
 
               {/* Icon */}
-              <div className={`mt-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${feature.color}`}>
+              <div className={`mt-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-gradient-to-br ${feature.color}`}>
                 <feature.icon className={`h-5 w-5 ${feature.iconColor}`} />
               </div>
 
@@ -99,8 +113,12 @@ export function FeatureSection() {
                 {feature.description}
               </p>
 
-              {/* Hover glow */}
-              <div className={`absolute -inset-px rounded-2xl bg-gradient-to-br ${feature.color} opacity-0 transition-opacity duration-300 group-hover:opacity-100 -z-10 blur-xl`} />
+              <div className="mt-5 h-px w-full bg-gradient-to-r from-white/0 via-white/20 to-white/0" />
+              <p className="mt-4 text-xs uppercase tracking-[0.2em] text-muted-foreground/60">
+                Precision AI Workflow
+              </p>
+
+              <div className={`absolute -inset-px -z-10 rounded-2xl bg-gradient-to-br ${feature.color} opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100`} />
             </div>
           ))}
         </div>

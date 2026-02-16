@@ -1,17 +1,23 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function CTASection() {
   return (
     <section className="relative overflow-hidden py-28 lg:py-36">
       {/* Background */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/[0.06] to-transparent" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/[0.15] rounded-full blur-[150px]" />
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.07] to-transparent" />
+        <div className="absolute bottom-0 left-1/2 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-primary/[0.16] blur-[160px]" />
+        <div className="absolute left-[20%] top-10 h-20 w-20 rounded-full border border-white/10 animate-float-y-soft" />
+        <div className="absolute right-[20%] bottom-10 h-16 w-16 rounded-full border border-cyan-300/20 animate-float-y" />
       </div>
 
       <div className="mx-auto max-w-3xl px-6 text-center">
+        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/35 bg-primary/10 px-4 py-1.5 text-sm text-primary">
+          <Rocket className="h-3.5 w-3.5" />
+          Ready To Ship
+        </div>
         <h2 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
           지금 무료로 시작하세요
         </h2>
