@@ -62,7 +62,7 @@ export default function AnalysisResultPage() {
     if (!companyName || analysis || analyzeMutation.isPending) return;
 
     setCurrentStep("analyzing");
-    analyzeMutation.mutate(companyName, {
+    analyzeMutation.mutate({ companyName, url: url || undefined }, {
       onSuccess: (data) => {
         setAnalysis(data);
         setCurrentStep("loading_experiences");

@@ -49,6 +49,9 @@ model CompanyAnalysis {
 model AnalyzeCompanyRequest {
   @encodedName("application/json", "company_name")
   companyName: string;
+
+  @encodedName("application/json", "job_posting_url")
+  jobPostingUrl?: string;
 }
 
 model BasicInfo {

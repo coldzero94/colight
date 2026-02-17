@@ -272,6 +272,7 @@ export type CommonErrorDetail = {
 
 export type CompanyAnalyzeCompanyRequest = {
     company_name: string;
+    job_posting_url?: string;
 };
 
 export type CompanyBasicInfo = {

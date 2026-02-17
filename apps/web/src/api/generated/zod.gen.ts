@@ -267,7 +267,8 @@ export const zCommonErrorDetail = z.object({
 });
 
 export const zCompanyAnalyzeCompanyRequest = z.object({
-    company_name: z.string()
+    company_name: z.string(),
+    job_posting_url: z.optional(z.string())
 });
 
 export const zCompanyBasicInfo = z.object({

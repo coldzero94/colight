@@ -63,20 +63,22 @@ type Trend struct {
 	Relevance string `json:"relevance,omitempty"`
 }
 
-// AnalyzeCompany performs full company analysis with 3-tier lookup
-func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName string) (*CompanyAnalysis, error) {
+// AnalyzeCompany performs full company analysis with 3-tier lookup.
+// cacheSource is used for cache key (job_posting_url or company_name).
+// Returns (analysis, fromCache, error) where fromCache indicates if result came from cache.
+func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName, cacheSource string) (*CompanyAnalysis, bool, error) {
 	// 1. Check talent_profiles table (pre-seeded major companies)
 	talentProfile, err := s.entClient.TalentProfile.Query().
 		Where(talentprofile.CompanyNameEQ(companyName)).
 		First(ctx)
 
 	if err == nil {
-		// Found in talent_profiles - return verified data
-		return s.buildAnalysisFromTalentProfile(talentProfile), nil
+		// Found in talent_profiles - return verified data (not counted as cache)
+		return s.buildAnalysisFromTalentProfile(talentProfile), false, nil
 	}
 
-	// 2. Check company_analysis_cache (365-day TTL)
-	cacheKey := s.generateCacheKey(companyName)
+	// 2. Check company_analysis_cache (365-day TTL, keyed by URL or company name)
+	cacheKey := s.generateCacheKey(cacheSource)
 	cache, err := s.entClient.CompanyAnalysisCache.Query().
 		Where(
 			companyanalysiscache.CacheKeyEQ(cacheKey),
@@ -96,26 +98,27 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 		if err == nil {
 			if err := json.Unmarshal(dataJSON, &analysis); err == nil {
 				analysis.Source = "cache"
-				return &analysis, nil
+				slog.Info("analysis_cache_hit", "company", companyName, "cache_key", cacheKey)
+				return &analysis, true, nil // fromCache = true
 			}
 		}
 	}
 
 	// 3. Cache miss - generate new analysis with AI
 	if s.aiProvider == nil {
-		return nil, fmt.Errorf("AI provider not available for company analysis")
+		return nil, false, fmt.Errorf("AI provider not available for company analysis")
 	}
 
 	// Fetch company data (Naver search + News)
 	companyData, err := s.companyDataService.GetCompanyData(ctx, companyName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch company data: %w", err)
+		return nil, false, fmt.Errorf("failed to fetch company data: %w", err)
 	}
 
 	// Generate analysis with AI (model from prompt_templates)
 	analysis, err := s.analyzeWithAI(ctx, companyName, companyData)
 	if err != nil {
-		return nil, fmt.Errorf("failed to analyze with AI: %w", err)
+		return nil, false, fmt.Errorf("failed to analyze with AI: %w", err)
 	}
 
 	// Save to cache (365 days TTL)
@@ -123,14 +126,14 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 	if err != nil {
 		slog.Error("failed to marshal analysis for cache", "error", err)
 		analysis.Source = "ai_generated"
-		return analysis, nil // Return analysis even if cache save fails
+		return analysis, false, nil // Return analysis even if cache save fails
 	}
 
 	var dataMap map[string]interface{}
 	if err := json.Unmarshal(analysisJSON, &dataMap); err != nil {
 		slog.Error("failed to unmarshal analysis to map", "error", err)
 		analysis.Source = "ai_generated"
-		return analysis, nil
+		return analysis, false, nil
 	}
 
 	// Try to save to cache (upsert if key exists)
@@ -166,7 +169,7 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 	}
 
 	analysis.Source = "ai_generated"
-	return analysis, nil
+	return analysis, false, nil // fromCache = false (new AI analysis)
 }
 
 // analyzeWithAI uses prompt_templates to analyze company (model configurable via admin)
@@ -289,8 +292,9 @@ func (s *CompanyAnalysisService) loadAnalysisPrompt(ctx context.Context) (*ent.P
 	}, nil
 }
 
-// generateCacheKey creates a unique cache key for company
-func (s *CompanyAnalysisService) generateCacheKey(companyName string) string {
-	hash := sha256.Sum256([]byte(companyName))
+// generateCacheKey creates a unique cache key based on URL or company name.
+// URL-based caching ensures different job postings get different analyses.
+func (s *CompanyAnalysisService) generateCacheKey(source string) string {
+	hash := sha256.Sum256([]byte(source))
 	return "company_" + hex.EncodeToString(hash[:16])
 }

@@ -13,8 +13,9 @@ export function useAnalyzeCompany() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (companyName: string) => analyzeCompany(companyName),
-    onSuccess: (data, companyName) => {
+    mutationFn: ({ companyName, url }: { companyName: string; url?: string }) =>
+      analyzeCompany(companyName, url),
+    onSuccess: (data, { companyName }) => {
       // Cache the analysis result
       queryClient.setQueryData(["company-analysis", companyName], data);
     },

@@ -4576,6 +4576,8 @@ components:
       properties:
         company_name:
           type: string
+        job_posting_url:
+          type: string
     Company.BasicInfo:
       type: object
       required:

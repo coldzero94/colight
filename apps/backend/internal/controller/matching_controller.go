@@ -42,8 +42,8 @@ func (c *MatchingController) MatchExperiences(ctx *gin.Context) {
 		return
 	}
 
-	// 1. Get company analysis
-	companyAnalysis, err := c.analysisService.AnalyzeCompany(ctx.Request.Context(), req.CompanyName)
+	// 1. Get company analysis (use company_name as cache key since URL not available)
+	companyAnalysis, _, err := c.analysisService.AnalyzeCompany(ctx.Request.Context(), req.CompanyName, req.CompanyName)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": gin.H{"message": "기업 분석 실패: " + err.Error(), "code": "SYS_001"},

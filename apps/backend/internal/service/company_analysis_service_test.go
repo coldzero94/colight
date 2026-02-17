@@ -39,7 +39,7 @@ func TestAnalyzeCompany_TalentProfileTier(t *testing.T) {
 
 	svc := NewCompanyAnalysisService(client, nil, nil)
 
-	result, err := svc.AnalyzeCompany(ctx, "삼성전자")
+	result, _, err := svc.AnalyzeCompany(ctx, "삼성전자", "삼성전자")
 	require.NoError(t, err)
 	assert.Equal(t, "삼성전자", result.CompanyName)
 	assert.Equal(t, "talent_profiles", result.Source)
@@ -71,13 +71,13 @@ func TestAnalyzeCompany_CacheTier(t *testing.T) {
 	svc := NewCompanyAnalysisService(client, aiProvider, companyDataSvc)
 
 	// First call generates and caches
-	result1, err := svc.AnalyzeCompany(ctx, "캐시테스트회사")
+	result1, _, err := svc.AnalyzeCompany(ctx, "캐시테스트회사", "캐시테스트회사")
 	require.NoError(t, err)
 	assert.Equal(t, "ai_generated", result1.Source)
 	firstCallCount := mock.calls
 
 	// Second call should hit cache
-	result2, err := svc.AnalyzeCompany(ctx, "캐시테스트회사")
+	result2, _, err := svc.AnalyzeCompany(ctx, "캐시테스트회사", "캐시테스트회사")
 	require.NoError(t, err)
 	assert.Equal(t, "cache", result2.Source)
 	assert.Equal(t, firstCallCount, mock.calls) // No additional AI call
@@ -103,7 +103,7 @@ func TestAnalyzeCompany_AITier(t *testing.T) {
 	companyDataSvc := NewCompanyDataService()
 	svc := NewCompanyAnalysisService(client, aiProvider, companyDataSvc)
 
-	result, err := svc.AnalyzeCompany(ctx, "AI분석회사")
+	result, _, err := svc.AnalyzeCompany(ctx, "AI분석회사", "AI분석회사")
 	require.NoError(t, err)
 	assert.Equal(t, "AI분석회사", result.CompanyName)
 	assert.Equal(t, "ai_generated", result.Source)
@@ -119,7 +119,7 @@ func TestAnalyzeCompany_NoAIProvider(t *testing.T) {
 
 	svc := NewCompanyAnalysisService(client, nil, nil)
 
-	_, err := svc.AnalyzeCompany(ctx, "프로바이더없음")
+	_, _, err := svc.AnalyzeCompany(ctx, "프로바이더없음", "프로바이더없음")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "AI provider not available")
 }
@@ -136,7 +136,7 @@ func TestAnalyzeCompany_AIFailure(t *testing.T) {
 	companyDataSvc := NewCompanyDataService()
 	svc := NewCompanyAnalysisService(client, aiProvider, companyDataSvc)
 
-	_, err := svc.AnalyzeCompany(ctx, "실패회사")
+	_, _, err := svc.AnalyzeCompany(ctx, "실패회사", "실패회사")
 	assert.Error(t, err)
 }
 

@@ -79,11 +79,11 @@ describe("useAnalyzeCompany", () => {
       wrapper: createWrapper(),
     });
 
-    result.current.mutate("LG전자");
+    result.current.mutate({ companyName: "LG전자" });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(mockAnalyzeCompany).toHaveBeenCalledWith("LG전자");
+    expect(mockAnalyzeCompany).toHaveBeenCalledWith("LG전자", undefined);
     expect(result.current.data?.company_name).toBe("LG전자");
   });
 
@@ -94,7 +94,7 @@ describe("useAnalyzeCompany", () => {
       wrapper: createWrapper(),
     });
 
-    result.current.mutate("실패회사");
+    result.current.mutate({ companyName: "실패회사" });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
 

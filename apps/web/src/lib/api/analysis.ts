@@ -29,9 +29,13 @@ export interface CompanyAnalysis {
 }
 
 // Analyze company
-export async function analyzeCompany(companyName: string): Promise<CompanyAnalysis> {
+export async function analyzeCompany(
+  companyName: string,
+  jobPostingUrl?: string
+): Promise<CompanyAnalysis> {
   const { data } = await apiClient.post<CompanyAnalysis>("/v1/analyze-company", {
     company_name: companyName,
+    job_posting_url: jobPostingUrl,
   });
   return data;
 }
