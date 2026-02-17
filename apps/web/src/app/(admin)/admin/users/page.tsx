@@ -62,6 +62,16 @@ export default function AdminUsersPage() {
   const [deleteReason, setDeleteReason] = useState("");
   const [planValue, setPlanValue] = useState("");
 
+  // Create user modal
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    email: "",
+    password: "",
+    nickname: "",
+    role: "user" as UserRole,
+    plan: "free",
+  });
+
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
@@ -227,6 +237,36 @@ export default function AdminUsersPage() {
     setDeleteReason("");
   };
 
+  const handleCreateUser = async () => {
+    if (!createForm.email || !createForm.password) {
+      toast.error("이메일과 비밀번호를 입력해주세요.");
+      return;
+    }
+    if (createForm.password.length < 8) {
+      toast.error("비밀번호는 최소 8자 이상이어야 합니다.");
+      return;
+    }
+    setActionLoading(true);
+    try {
+      await apiClient.post("/v1/admin/users", createForm);
+      toast.success("사용자가 생성되었습니다.");
+      setShowCreateModal(false);
+      setCreateForm({
+        email: "",
+        password: "",
+        nickname: "",
+        role: "user",
+        plan: "free",
+      });
+      fetchUsers();
+    } catch (err: any) {
+      const msg = err.response?.data?.error?.message || "사용자 생성에 실패했습니다.";
+      toast.error(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // Roles the current user can assign (strictly below their own level)
   const assignableRoles = currentUser
     ? ALL_ROLES.filter(
@@ -243,7 +283,15 @@ export default function AdminUsersPage() {
         <h1 className="text-2xl font-bold font-display text-foreground">
           사용자 관리
         </h1>
-        <p className="text-sm text-muted-foreground">총 {total}명</p>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 text-sm font-medium"
+          >
+            + 사용자 추가
+          </button>
+          <p className="text-sm text-muted-foreground">총 {total}명</p>
+        </div>
       </div>
 
       <div className="flex gap-3">
@@ -613,6 +661,135 @@ export default function AdminUsersPage() {
           >
             다음
           </button>
+        </div>
+      )}
+
+      {/* Create User Modal */}
+      {showCreateModal && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div
+            className="bg-card border border-border rounded-xl p-6 w-full max-w-md space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">
+                새 사용자 추가
+              </h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  이메일 <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={createForm.email}
+                  onChange={(e) =>
+                    setCreateForm({ ...createForm, email: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="user@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  비밀번호 <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="password"
+                  value={createForm.password}
+                  onChange={(e) =>
+                    setCreateForm({ ...createForm, password: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="최소 8자"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  닉네임
+                </label>
+                <input
+                  type="text"
+                  value={createForm.nickname}
+                  onChange={(e) =>
+                    setCreateForm({ ...createForm, nickname: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="선택사항"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  역할
+                </label>
+                <select
+                  value={createForm.role}
+                  onChange={(e) =>
+                    setCreateForm({
+                      ...createForm,
+                      role: e.target.value as UserRole,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-card text-foreground"
+                >
+                  {assignableRoles.map((role) => (
+                    <option key={role} value={role}>
+                      {ROLE_LABELS[role]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  플랜
+                </label>
+                <select
+                  value={createForm.plan}
+                  onChange={(e) =>
+                    setCreateForm({ ...createForm, plan: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-card text-foreground"
+                >
+                  {ALL_PLANS.map((p) => (
+                    <option key={p} value={p}>
+                      {PLAN_LABELS[p]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg text-foreground hover:bg-white/[0.04]"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleCreateUser}
+                disabled={actionLoading}
+                className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
+              >
+                {actionLoading ? "생성 중..." : "생성"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
