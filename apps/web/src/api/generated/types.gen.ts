@@ -294,6 +294,7 @@ export type CompanyCompanyAnalysis = {
     source: 'talent_profiles' | 'cache' | 'ai_generated';
     cached_at?: string;
     view_count?: number;
+    source_news?: Array<CompanyNewsItem>;
 };
 
 export type CompanyCompanyData = {

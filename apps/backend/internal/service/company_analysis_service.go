@@ -46,6 +46,14 @@ type CompanyAnalysis struct {
 	Source             string                   `json:"source"` // "talent_profiles", "cache", "ai_generated"
 	CachedAt           *string                  `json:"cached_at,omitempty"`
 	ViewCount          *int                     `json:"view_count,omitempty"`
+	SourceNews         []NewsArticle            `json:"source_news,omitempty"`
+}
+
+type NewsArticle struct {
+	Title       string `json:"title"`
+	Link        string `json:"link"`
+	Description string `json:"description,omitempty"`
+	PubDate     string `json:"pub_date,omitempty"`
 }
 
 type CoreValue struct {
@@ -259,6 +267,18 @@ func (s *CompanyAnalysisService) analyzeWithAI(ctx context.Context, companyName 
 	}
 
 	analysis.CompanyName = companyName
+
+	// Include source news for transparency
+	analysis.SourceNews = make([]NewsArticle, 0, len(data.News))
+	for _, n := range data.News {
+		analysis.SourceNews = append(analysis.SourceNews, NewsArticle{
+			Title:       n.Title,
+			Link:        n.Link,
+			Description: n.Description,
+			PubDate:     n.PubDate,
+		})
+	}
+
 	return &analysis, nil
 }
 

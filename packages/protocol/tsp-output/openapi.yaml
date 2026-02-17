@@ -4639,6 +4639,10 @@ components:
         view_count:
           type: integer
           format: int32
+        source_news:
+          type: array
+          items:
+            $ref: '#/components/schemas/Company.NewsItem'
     Company.CompanyData:
       type: object
       required:

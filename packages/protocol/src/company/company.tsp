@@ -50,6 +50,9 @@ model CompanyAnalysis {
 
   @encodedName("application/json", "view_count")
   viewCount?: int32;
+
+  @encodedName("application/json", "source_news")
+  sourceNews?: NewsItem[];
 }
 
 model AnalyzeCompanyRequest {

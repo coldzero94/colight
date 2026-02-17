@@ -18,6 +18,13 @@ export interface Trend {
   relevance?: string;
 }
 
+export interface NewsArticle {
+  title: string;
+  link: string;
+  description?: string;
+  pub_date?: string;
+}
+
 export interface CompanyAnalysis {
   company_name: string;
   core_values: CoreValue[];
@@ -28,6 +35,7 @@ export interface CompanyAnalysis {
   source: "talent_profiles" | "cache" | "ai_generated";
   cached_at?: string;
   view_count?: number;
+  source_news?: NewsArticle[];
 }
 
 // Analyze company

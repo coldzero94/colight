@@ -343,7 +343,8 @@ export const zCompanyCompanyAnalysis = z.object({
         'ai_generated'
     ]),
     cached_at: z.optional(z.string()),
-    view_count: z.optional(z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }))
+    view_count: z.optional(z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })),
+    source_news: z.optional(z.array(zCompanyNewsItem))
 });
 
 export const zExperienceCreateExperienceRequest = z.object({
