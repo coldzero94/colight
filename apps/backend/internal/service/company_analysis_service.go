@@ -119,18 +119,32 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 	}
 
 	// Save to cache (365 days TTL)
-	analysisJSON, _ := json.Marshal(analysis)
-	var dataMap map[string]interface{}
-	_ = json.Unmarshal(analysisJSON, &dataMap)
+	analysisJSON, err := json.Marshal(analysis)
+	if err != nil {
+		slog.Error("failed to marshal analysis for cache", "error", err)
+		analysis.Source = "ai_generated"
+		return analysis, nil // Return analysis even if cache save fails
+	}
 
-	_, _ = s.entClient.CompanyAnalysisCache.Create().
+	var dataMap map[string]interface{}
+	if err := json.Unmarshal(analysisJSON, &dataMap); err != nil {
+		slog.Error("failed to unmarshal analysis to map", "error", err)
+		analysis.Source = "ai_generated"
+		return analysis, nil
+	}
+
+	if _, err := s.entClient.CompanyAnalysisCache.Create().
 		SetCacheKey(cacheKey).
 		SetCacheType("company_analysis").
 		SetCompanyName(companyName).
 		SetData(dataMap).
 		SetExpiresAt(time.Now().AddDate(1, 0, 0)). // 365 days
 		SetViewCount(1).
-		Save(ctx)
+		Save(ctx); err != nil {
+		slog.Error("failed to save analysis to cache", "company", companyName, "error", err)
+	} else {
+		slog.Info("analysis_cached", "company", companyName, "cache_key", cacheKey)
+	}
 
 	analysis.Source = "ai_generated"
 	return analysis, nil

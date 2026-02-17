@@ -18,11 +18,12 @@ export default function AnalysisResultPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const url = searchParams.get("url");
-  const [companyName, setCompanyName] = useState<string | null>(null);
+  const companyParam = searchParams.get("company");
+  const [companyName, setCompanyName] = useState<string | null>(companyParam);
   const [analysis, setAnalysis] = useState<CompanyAnalysis | null>(null);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [crawlError, setCrawlError] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState<AnalysisStep>("crawling");
+  const [currentStep, setCurrentStep] = useState<AnalysisStep>(companyParam ? "analyzing" : "crawling");
 
   const analyzeMutation = useAnalyzeCompany();
 
@@ -41,8 +42,14 @@ export default function AnalysisResultPage() {
     (async () => {
       try {
         const jobPosting = await crawlJobPosting(url);
-        setCompanyName(jobPosting.company_name);
+        const extractedName = jobPosting.company_name;
+        setCompanyName(extractedName);
         setCurrentStep("analyzing");
+
+        // Update URL to persist company name
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set("company", extractedName);
+        window.history.replaceState({}, "", newUrl.toString());
       } catch {
         setCrawlError("채용공고에서 회사명을 추출하지 못했습니다.");
         toast.error("크롤링에 실패했습니다. URL을 확인해주세요.");
