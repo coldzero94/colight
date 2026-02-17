@@ -769,7 +769,7 @@ priority: 1=높음, 2=중간, 3=낮음
 			Category:    "crawling",
 			SubCategory: "extract_markdown",
 			Name:        "마크다운 채용공고 추출",
-			SystemPrompt: "You are a Korean job posting data extractor. Extract structured information from the provided content. Always respond in valid JSON.",
+			SystemPrompt: "You are a Korean job posting data extractor. Extract structured information from the provided content. Return a single JSON object (not an array). Do not include any explanatory text, only the JSON object.",
 			UserPromptTemplate: `다음은 채용공고 페이지에서 추출된 마크다운 콘텐츠입니다.
 
 URL: {{source_url}}
@@ -786,7 +786,7 @@ URL: {{source_url}}
 			OutputSchema: map[string]interface{}{},
 			Model:       "gemini-2.5-flash",
 			Temperature: 0.1,
-			MaxTokens:   2000,
+			MaxTokens:   12000,
 			Version:     1,
 			IsActive:    true,
 		},
@@ -795,7 +795,7 @@ URL: {{source_url}}
 			Category:    "crawling",
 			SubCategory: "extract_html",
 			Name:        "HTML 채용공고 추출",
-			SystemPrompt: "You are a Korean job posting data extractor. Extract structured information from raw HTML. Always respond in valid JSON.",
+			SystemPrompt: "You are a Korean job posting data extractor. Extract structured information from raw HTML. Return a single JSON object (not an array). Do not include any explanatory text, only the JSON object.",
 			UserPromptTemplate: `다음은 채용공고 페이지의 HTML입니다.
 
 URL: {{source_url}}
@@ -812,7 +812,7 @@ URL: {{source_url}}
 			OutputSchema: map[string]interface{}{},
 			Model:       "gemini-2.5-flash",
 			Temperature: 0.1,
-			MaxTokens:   2000,
+			MaxTokens:   12000,
 			Version:     1,
 			IsActive:    true,
 		},
@@ -821,7 +821,7 @@ URL: {{source_url}}
 			Category:    "crawling",
 			SubCategory: "normalize",
 			Name:        "채용공고 정규화",
-			SystemPrompt: "You are a job posting data extractor. Extract structured information from raw text. Always respond in valid JSON.",
+			SystemPrompt: "You are a job posting data extractor. Extract structured information from raw text. Return a single JSON object (not an array). Do not include any explanatory text, only the JSON object.",
 			UserPromptTemplate: `Company: {{company_name}}
 Position: {{position}}
 Department: {{department}}
@@ -836,7 +836,7 @@ Return JSON with: company_name, position, department, job_type, experience_level
 			OutputSchema: map[string]interface{}{},
 			Model:       "gemini-2.5-flash",
 			Temperature: 0.2,
-			MaxTokens:   2000,
+			MaxTokens:   12000,
 			Version:     1,
 			IsActive:    true,
 		},
