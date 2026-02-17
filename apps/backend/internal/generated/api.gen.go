@@ -220,13 +220,27 @@ type AuthUserInfoAuthProvider string
 // AuthUserInfoRole defines model for AuthUserInfo.Role.
 type AuthUserInfoRole string
 
-// CoachingApplicationSummary defines model for Coaching.ApplicationSummary.
-type CoachingApplicationSummary struct {
-	CompanyName string    `json:"company_name"`
-	CreatedAt   time.Time `json:"created_at"`
-	Id          string    `json:"id"`
-	Position    string    `json:"position"`
-	Status      string    `json:"status"`
+// CoachingApplicationDetail defines model for Coaching.ApplicationDetail.
+type CoachingApplicationDetail struct {
+	AnalysisId       *string  `json:"analysis_id,omitempty"`
+	AppliedAt        *string  `json:"applied_at,omitempty"`
+	CompanyName      string   `json:"company_name"`
+	CoverLetterCount int32    `json:"cover_letter_count"`
+	CreatedAt        string   `json:"created_at"`
+	Deadline         *string  `json:"deadline,omitempty"`
+	Id               string   `json:"id"`
+	Notes            string   `json:"notes"`
+	Position         string   `json:"position"`
+	Status           string   `json:"status"`
+	Tags             []string `json:"tags"`
+	UpdatedAt        string   `json:"updated_at"`
+}
+
+// CoachingApplicationStats defines model for Coaching.ApplicationStats.
+type CoachingApplicationStats struct {
+	ByStatus          map[string]int32            `json:"by_status"`
+	Total             int32                       `json:"total"`
+	UpcomingDeadlines []CoachingApplicationDetail `json:"upcoming_deadlines"`
 }
 
 // CoachingCoachingSession defines model for Coaching.CoachingSession.
@@ -257,6 +271,16 @@ type CoachingCoverLetterVersion struct {
 	VersionNumber int32     `json:"version_number"`
 }
 
+// CoachingCreateApplicationRequest defines model for Coaching.CreateApplicationRequest.
+type CoachingCreateApplicationRequest struct {
+	CompanyName string     `json:"company_name"`
+	Deadline    *time.Time `json:"deadline,omitempty"`
+	JobUrl      *string    `json:"job_url,omitempty"`
+	Notes       *string    `json:"notes,omitempty"`
+	Position    *string    `json:"position,omitempty"`
+	Tags        *[]string  `json:"tags,omitempty"`
+}
+
 // CoachingDimensionFeedback defines model for Coaching.DimensionFeedback.
 type CoachingDimensionFeedback struct {
 	Dimension string   `json:"dimension"`
@@ -280,17 +304,24 @@ type CoachingExperienceRecommendation struct {
 // CoachingGenerateDraftRequest defines model for Coaching.GenerateDraftRequest.
 type CoachingGenerateDraftRequest struct {
 	AnalysisResult *CoachingQuestionAnalysisResult `json:"analysis_result,omitempty"`
-	ApplicationId  string                          `json:"application_id"`
+	ApplicationId  *string                         `json:"application_id,omitempty"`
 	CharLimit      int32                           `json:"char_limit"`
+	CompanyName    *string                         `json:"company_name,omitempty"`
 	ExperienceIds  []string                        `json:"experience_ids"`
 	QuestionText   string                          `json:"question_text"`
 }
 
+// CoachingLinkAnalysisRequest defines model for Coaching.LinkAnalysisRequest.
+type CoachingLinkAnalysisRequest struct {
+	AnalysisId string `json:"analysis_id"`
+}
+
 // CoachingQuestionAnalysisRequest defines model for Coaching.QuestionAnalysisRequest.
 type CoachingQuestionAnalysisRequest struct {
-	ApplicationId string `json:"application_id"`
-	CharLimit     int32  `json:"char_limit"`
-	QuestionText  string `json:"question_text"`
+	ApplicationId *string `json:"application_id,omitempty"`
+	CharLimit     int32   `json:"char_limit"`
+	CompanyName   *string `json:"company_name,omitempty"`
+	QuestionText  string  `json:"question_text"`
 }
 
 // CoachingQuestionAnalysisResult defines model for Coaching.QuestionAnalysisResult.
@@ -352,6 +383,17 @@ type CoachingSpecificSuggestion struct {
 	Original  string `json:"original"`
 	Reason    string `json:"reason"`
 	Suggested string `json:"suggested"`
+}
+
+// CoachingUpdateApplicationRequest defines model for Coaching.UpdateApplicationRequest.
+type CoachingUpdateApplicationRequest struct {
+	AppliedAt   *time.Time `json:"applied_at,omitempty"`
+	CompanyName *string    `json:"company_name,omitempty"`
+	Deadline    *time.Time `json:"deadline,omitempty"`
+	JobUrl      *string    `json:"job_url,omitempty"`
+	Notes       *string    `json:"notes,omitempty"`
+	Position    *string    `json:"position,omitempty"`
+	Tags        *[]string  `json:"tags,omitempty"`
 }
 
 // CoachingWeaponRef defines model for Coaching.WeaponRef.
@@ -643,6 +685,19 @@ type AdminAPIListUsersParams struct {
 // AdminAPIListUsersParamsRole defines parameters for AdminAPIListUsers.
 type AdminAPIListUsersParamsRole string
 
+// CoachingAPISearchApplicationsParams defines parameters for CoachingAPISearchApplications.
+type CoachingAPISearchApplicationsParams struct {
+	Q            *string `form:"q,omitempty" json:"q,omitempty"`
+	Tags         *string `form:"tags,omitempty" json:"tags,omitempty"`
+	DeadlineFrom *string `form:"deadlineFrom,omitempty" json:"deadlineFrom,omitempty"`
+	DeadlineTo   *string `form:"deadlineTo,omitempty" json:"deadlineTo,omitempty"`
+}
+
+// CoachingAPIUpdateApplicationStatusJSONBody defines parameters for CoachingAPIUpdateApplicationStatus.
+type CoachingAPIUpdateApplicationStatusJSONBody struct {
+	Status *string `json:"status,omitempty"`
+}
+
 // AuthAPINaverCallbackParams defines parameters for AuthAPINaverCallback.
 type AuthAPINaverCallbackParams struct {
 	Code  string `form:"code" json:"code"`
@@ -692,6 +747,18 @@ type AdminAPIUpdateUserRoleJSONRequestBody = AdminUpdateRoleRequest
 
 // CompanyAPIAnalyzeCompanyJSONRequestBody defines body for CompanyAPIAnalyzeCompany for application/json ContentType.
 type CompanyAPIAnalyzeCompanyJSONRequestBody = CompanyAnalyzeCompanyRequest
+
+// CoachingAPICreateApplicationJSONRequestBody defines body for CoachingAPICreateApplication for application/json ContentType.
+type CoachingAPICreateApplicationJSONRequestBody = CoachingCreateApplicationRequest
+
+// CoachingAPIUpdateApplicationJSONRequestBody defines body for CoachingAPIUpdateApplication for application/json ContentType.
+type CoachingAPIUpdateApplicationJSONRequestBody = CoachingUpdateApplicationRequest
+
+// CoachingAPILinkAnalysisJSONRequestBody defines body for CoachingAPILinkAnalysis for application/json ContentType.
+type CoachingAPILinkAnalysisJSONRequestBody = CoachingLinkAnalysisRequest
+
+// CoachingAPIUpdateApplicationStatusJSONRequestBody defines body for CoachingAPIUpdateApplicationStatus for application/json ContentType.
+type CoachingAPIUpdateApplicationStatusJSONRequestBody CoachingAPIUpdateApplicationStatusJSONBody
 
 // AuthAPILoginJSONRequestBody defines body for AuthAPILogin for application/json ContentType.
 type AuthAPILoginJSONRequestBody = AuthLoginRequest
@@ -770,6 +837,27 @@ type ServerInterface interface {
 
 	// (GET /v1/applications)
 	CoachingAPIGetApplications(c *gin.Context)
+
+	// (POST /v1/applications)
+	CoachingAPICreateApplication(c *gin.Context)
+
+	// (GET /v1/applications/search)
+	CoachingAPISearchApplications(c *gin.Context, params CoachingAPISearchApplicationsParams)
+
+	// (GET /v1/applications/stats)
+	CoachingAPIGetApplicationStats(c *gin.Context)
+
+	// (DELETE /v1/applications/{id})
+	CoachingAPIDeleteApplication(c *gin.Context, id string)
+
+	// (PATCH /v1/applications/{id})
+	CoachingAPIUpdateApplication(c *gin.Context, id string)
+
+	// (POST /v1/applications/{id}/link-analysis)
+	CoachingAPILinkAnalysis(c *gin.Context, id string)
+
+	// (PATCH /v1/applications/{id}/status)
+	CoachingAPIUpdateApplicationStatus(c *gin.Context, id string)
 
 	// (POST /v1/auth/login)
 	AuthAPILogin(c *gin.Context)
@@ -1082,6 +1170,192 @@ func (siw *ServerInterfaceWrapper) CoachingAPIGetApplications(c *gin.Context) {
 	}
 
 	siw.Handler.CoachingAPIGetApplications(c)
+}
+
+// CoachingAPICreateApplication operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPICreateApplication(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPICreateApplication(c)
+}
+
+// CoachingAPISearchApplications operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPISearchApplications(c *gin.Context) {
+
+	var err error
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CoachingAPISearchApplicationsParams
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "q", c.Request.URL.Query(), &params.Q)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter q: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "tags" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "tags", c.Request.URL.Query(), &params.Tags)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tags: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "deadlineFrom" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "deadlineFrom", c.Request.URL.Query(), &params.DeadlineFrom)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter deadlineFrom: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "deadlineTo" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "deadlineTo", c.Request.URL.Query(), &params.DeadlineTo)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter deadlineTo: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPISearchApplications(c, params)
+}
+
+// CoachingAPIGetApplicationStats operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIGetApplicationStats(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIGetApplicationStats(c)
+}
+
+// CoachingAPIDeleteApplication operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIDeleteApplication(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIDeleteApplication(c, id)
+}
+
+// CoachingAPIUpdateApplication operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIUpdateApplication(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIUpdateApplication(c, id)
+}
+
+// CoachingAPILinkAnalysis operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPILinkAnalysis(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPILinkAnalysis(c, id)
+}
+
+// CoachingAPIUpdateApplicationStatus operation middleware
+func (siw *ServerInterfaceWrapper) CoachingAPIUpdateApplicationStatus(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CoachingAPIUpdateApplicationStatus(c, id)
 }
 
 // AuthAPILogin operation middleware
@@ -1737,6 +2011,13 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.PUT(options.BaseURL+"/v1/admin/users/:id/role", wrapper.AdminAPIUpdateUserRole)
 	router.POST(options.BaseURL+"/v1/analyze-company", wrapper.CompanyAPIAnalyzeCompany)
 	router.GET(options.BaseURL+"/v1/applications", wrapper.CoachingAPIGetApplications)
+	router.POST(options.BaseURL+"/v1/applications", wrapper.CoachingAPICreateApplication)
+	router.GET(options.BaseURL+"/v1/applications/search", wrapper.CoachingAPISearchApplications)
+	router.GET(options.BaseURL+"/v1/applications/stats", wrapper.CoachingAPIGetApplicationStats)
+	router.DELETE(options.BaseURL+"/v1/applications/:id", wrapper.CoachingAPIDeleteApplication)
+	router.PATCH(options.BaseURL+"/v1/applications/:id", wrapper.CoachingAPIUpdateApplication)
+	router.POST(options.BaseURL+"/v1/applications/:id/link-analysis", wrapper.CoachingAPILinkAnalysis)
+	router.PATCH(options.BaseURL+"/v1/applications/:id/status", wrapper.CoachingAPIUpdateApplicationStatus)
 	router.POST(options.BaseURL+"/v1/auth/login", wrapper.AuthAPILogin)
 	router.POST(options.BaseURL+"/v1/auth/logout", wrapper.AuthAPILogout)
 	router.GET(options.BaseURL+"/v1/auth/me", wrapper.AuthAPIMe)
@@ -2389,7 +2670,7 @@ type CoachingAPIGetApplicationsResponseObject interface {
 }
 
 type CoachingAPIGetApplications200JSONResponse struct {
-	Applications []CoachingApplicationSummary `json:"applications"`
+	Applications []CoachingApplicationDetail `json:"applications"`
 }
 
 func (response CoachingAPIGetApplications200JSONResponse) VisitCoachingAPIGetApplicationsResponse(w http.ResponseWriter) error {
@@ -2459,6 +2740,590 @@ type CoachingAPIGetApplications500JSONResponse struct {
 }
 
 func (response CoachingAPIGetApplications500JSONResponse) VisitCoachingAPIGetApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateApplicationRequestObject struct {
+	Body *CoachingAPICreateApplicationJSONRequestBody
+}
+
+type CoachingAPICreateApplicationResponseObject interface {
+	VisitCoachingAPICreateApplicationResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPICreateApplication201JSONResponse CoachingApplicationDetail
+
+func (response CoachingAPICreateApplication201JSONResponse) VisitCoachingAPICreateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateApplication400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPICreateApplication400JSONResponse) VisitCoachingAPICreateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateApplication401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPICreateApplication401JSONResponse) VisitCoachingAPICreateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateApplication403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPICreateApplication403JSONResponse) VisitCoachingAPICreateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateApplication404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPICreateApplication404JSONResponse) VisitCoachingAPICreateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateApplication409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPICreateApplication409JSONResponse) VisitCoachingAPICreateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPICreateApplication500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPICreateApplication500JSONResponse) VisitCoachingAPICreateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPISearchApplicationsRequestObject struct {
+	Params CoachingAPISearchApplicationsParams
+}
+
+type CoachingAPISearchApplicationsResponseObject interface {
+	VisitCoachingAPISearchApplicationsResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPISearchApplications200JSONResponse struct {
+	Applications []CoachingApplicationDetail `json:"applications"`
+}
+
+func (response CoachingAPISearchApplications200JSONResponse) VisitCoachingAPISearchApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPISearchApplications400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPISearchApplications400JSONResponse) VisitCoachingAPISearchApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPISearchApplications401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPISearchApplications401JSONResponse) VisitCoachingAPISearchApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPISearchApplications403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPISearchApplications403JSONResponse) VisitCoachingAPISearchApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPISearchApplications404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPISearchApplications404JSONResponse) VisitCoachingAPISearchApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPISearchApplications409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPISearchApplications409JSONResponse) VisitCoachingAPISearchApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPISearchApplications500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPISearchApplications500JSONResponse) VisitCoachingAPISearchApplicationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplicationStatsRequestObject struct {
+}
+
+type CoachingAPIGetApplicationStatsResponseObject interface {
+	VisitCoachingAPIGetApplicationStatsResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIGetApplicationStats200JSONResponse CoachingApplicationStats
+
+func (response CoachingAPIGetApplicationStats200JSONResponse) VisitCoachingAPIGetApplicationStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplicationStats400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetApplicationStats400JSONResponse) VisitCoachingAPIGetApplicationStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplicationStats401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetApplicationStats401JSONResponse) VisitCoachingAPIGetApplicationStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplicationStats403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetApplicationStats403JSONResponse) VisitCoachingAPIGetApplicationStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplicationStats404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetApplicationStats404JSONResponse) VisitCoachingAPIGetApplicationStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplicationStats409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetApplicationStats409JSONResponse) VisitCoachingAPIGetApplicationStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIGetApplicationStats500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIGetApplicationStats500JSONResponse) VisitCoachingAPIGetApplicationStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIDeleteApplicationRequestObject struct {
+	Id string `json:"id"`
+}
+
+type CoachingAPIDeleteApplicationResponseObject interface {
+	VisitCoachingAPIDeleteApplicationResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIDeleteApplication204Response struct {
+}
+
+func (response CoachingAPIDeleteApplication204Response) VisitCoachingAPIDeleteApplicationResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type CoachingAPIDeleteApplication400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIDeleteApplication400JSONResponse) VisitCoachingAPIDeleteApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIDeleteApplication401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIDeleteApplication401JSONResponse) VisitCoachingAPIDeleteApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIDeleteApplication403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIDeleteApplication403JSONResponse) VisitCoachingAPIDeleteApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIDeleteApplication404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIDeleteApplication404JSONResponse) VisitCoachingAPIDeleteApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIDeleteApplication409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIDeleteApplication409JSONResponse) VisitCoachingAPIDeleteApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIDeleteApplication500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIDeleteApplication500JSONResponse) VisitCoachingAPIDeleteApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplicationRequestObject struct {
+	Id   string `json:"id"`
+	Body *CoachingAPIUpdateApplicationJSONRequestBody
+}
+
+type CoachingAPIUpdateApplicationResponseObject interface {
+	VisitCoachingAPIUpdateApplicationResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIUpdateApplication200JSONResponse CoachingApplicationDetail
+
+func (response CoachingAPIUpdateApplication200JSONResponse) VisitCoachingAPIUpdateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplication400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateApplication400JSONResponse) VisitCoachingAPIUpdateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplication401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateApplication401JSONResponse) VisitCoachingAPIUpdateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplication403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateApplication403JSONResponse) VisitCoachingAPIUpdateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplication404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateApplication404JSONResponse) VisitCoachingAPIUpdateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplication409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateApplication409JSONResponse) VisitCoachingAPIUpdateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplication500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateApplication500JSONResponse) VisitCoachingAPIUpdateApplicationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPILinkAnalysisRequestObject struct {
+	Id   string `json:"id"`
+	Body *CoachingAPILinkAnalysisJSONRequestBody
+}
+
+type CoachingAPILinkAnalysisResponseObject interface {
+	VisitCoachingAPILinkAnalysisResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPILinkAnalysis200JSONResponse CoachingApplicationDetail
+
+func (response CoachingAPILinkAnalysis200JSONResponse) VisitCoachingAPILinkAnalysisResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPILinkAnalysis400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPILinkAnalysis400JSONResponse) VisitCoachingAPILinkAnalysisResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPILinkAnalysis401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPILinkAnalysis401JSONResponse) VisitCoachingAPILinkAnalysisResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPILinkAnalysis403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPILinkAnalysis403JSONResponse) VisitCoachingAPILinkAnalysisResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPILinkAnalysis404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPILinkAnalysis404JSONResponse) VisitCoachingAPILinkAnalysisResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPILinkAnalysis409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPILinkAnalysis409JSONResponse) VisitCoachingAPILinkAnalysisResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPILinkAnalysis500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPILinkAnalysis500JSONResponse) VisitCoachingAPILinkAnalysisResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplicationStatusRequestObject struct {
+	Id   string `json:"id"`
+	Body *CoachingAPIUpdateApplicationStatusJSONRequestBody
+}
+
+type CoachingAPIUpdateApplicationStatusResponseObject interface {
+	VisitCoachingAPIUpdateApplicationStatusResponse(w http.ResponseWriter) error
+}
+
+type CoachingAPIUpdateApplicationStatus200JSONResponse CoachingApplicationDetail
+
+func (response CoachingAPIUpdateApplicationStatus200JSONResponse) VisitCoachingAPIUpdateApplicationStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplicationStatus400JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateApplicationStatus400JSONResponse) VisitCoachingAPIUpdateApplicationStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplicationStatus401JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateApplicationStatus401JSONResponse) VisitCoachingAPIUpdateApplicationStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplicationStatus403JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateApplicationStatus403JSONResponse) VisitCoachingAPIUpdateApplicationStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplicationStatus404JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateApplicationStatus404JSONResponse) VisitCoachingAPIUpdateApplicationStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplicationStatus409JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateApplicationStatus409JSONResponse) VisitCoachingAPIUpdateApplicationStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CoachingAPIUpdateApplicationStatus500JSONResponse struct {
+	Error CommonErrorDetail `json:"error"`
+}
+
+func (response CoachingAPIUpdateApplicationStatus500JSONResponse) VisitCoachingAPIUpdateApplicationStatusResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 
@@ -4731,6 +5596,27 @@ type StrictServerInterface interface {
 	// (GET /v1/applications)
 	CoachingAPIGetApplications(ctx context.Context, request CoachingAPIGetApplicationsRequestObject) (CoachingAPIGetApplicationsResponseObject, error)
 
+	// (POST /v1/applications)
+	CoachingAPICreateApplication(ctx context.Context, request CoachingAPICreateApplicationRequestObject) (CoachingAPICreateApplicationResponseObject, error)
+
+	// (GET /v1/applications/search)
+	CoachingAPISearchApplications(ctx context.Context, request CoachingAPISearchApplicationsRequestObject) (CoachingAPISearchApplicationsResponseObject, error)
+
+	// (GET /v1/applications/stats)
+	CoachingAPIGetApplicationStats(ctx context.Context, request CoachingAPIGetApplicationStatsRequestObject) (CoachingAPIGetApplicationStatsResponseObject, error)
+
+	// (DELETE /v1/applications/{id})
+	CoachingAPIDeleteApplication(ctx context.Context, request CoachingAPIDeleteApplicationRequestObject) (CoachingAPIDeleteApplicationResponseObject, error)
+
+	// (PATCH /v1/applications/{id})
+	CoachingAPIUpdateApplication(ctx context.Context, request CoachingAPIUpdateApplicationRequestObject) (CoachingAPIUpdateApplicationResponseObject, error)
+
+	// (POST /v1/applications/{id}/link-analysis)
+	CoachingAPILinkAnalysis(ctx context.Context, request CoachingAPILinkAnalysisRequestObject) (CoachingAPILinkAnalysisResponseObject, error)
+
+	// (PATCH /v1/applications/{id}/status)
+	CoachingAPIUpdateApplicationStatus(ctx context.Context, request CoachingAPIUpdateApplicationStatusRequestObject) (CoachingAPIUpdateApplicationStatusResponseObject, error)
+
 	// (POST /v1/auth/login)
 	AuthAPILogin(ctx context.Context, request AuthAPILoginRequestObject) (AuthAPILoginResponseObject, error)
 
@@ -5083,6 +5969,223 @@ func (sh *strictHandler) CoachingAPIGetApplications(ctx *gin.Context) {
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(CoachingAPIGetApplicationsResponseObject); ok {
 		if err := validResponse.VisitCoachingAPIGetApplicationsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPICreateApplication operation middleware
+func (sh *strictHandler) CoachingAPICreateApplication(ctx *gin.Context) {
+	var request CoachingAPICreateApplicationRequestObject
+
+	var body CoachingAPICreateApplicationJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPICreateApplication(ctx, request.(CoachingAPICreateApplicationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPICreateApplication")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPICreateApplicationResponseObject); ok {
+		if err := validResponse.VisitCoachingAPICreateApplicationResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPISearchApplications operation middleware
+func (sh *strictHandler) CoachingAPISearchApplications(ctx *gin.Context, params CoachingAPISearchApplicationsParams) {
+	var request CoachingAPISearchApplicationsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPISearchApplications(ctx, request.(CoachingAPISearchApplicationsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPISearchApplications")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPISearchApplicationsResponseObject); ok {
+		if err := validResponse.VisitCoachingAPISearchApplicationsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPIGetApplicationStats operation middleware
+func (sh *strictHandler) CoachingAPIGetApplicationStats(ctx *gin.Context) {
+	var request CoachingAPIGetApplicationStatsRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIGetApplicationStats(ctx, request.(CoachingAPIGetApplicationStatsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIGetApplicationStats")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIGetApplicationStatsResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIGetApplicationStatsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPIDeleteApplication operation middleware
+func (sh *strictHandler) CoachingAPIDeleteApplication(ctx *gin.Context, id string) {
+	var request CoachingAPIDeleteApplicationRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIDeleteApplication(ctx, request.(CoachingAPIDeleteApplicationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIDeleteApplication")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIDeleteApplicationResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIDeleteApplicationResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPIUpdateApplication operation middleware
+func (sh *strictHandler) CoachingAPIUpdateApplication(ctx *gin.Context, id string) {
+	var request CoachingAPIUpdateApplicationRequestObject
+
+	request.Id = id
+
+	var body CoachingAPIUpdateApplicationJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIUpdateApplication(ctx, request.(CoachingAPIUpdateApplicationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIUpdateApplication")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIUpdateApplicationResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIUpdateApplicationResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPILinkAnalysis operation middleware
+func (sh *strictHandler) CoachingAPILinkAnalysis(ctx *gin.Context, id string) {
+	var request CoachingAPILinkAnalysisRequestObject
+
+	request.Id = id
+
+	var body CoachingAPILinkAnalysisJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPILinkAnalysis(ctx, request.(CoachingAPILinkAnalysisRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPILinkAnalysis")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPILinkAnalysisResponseObject); ok {
+		if err := validResponse.VisitCoachingAPILinkAnalysisResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CoachingAPIUpdateApplicationStatus operation middleware
+func (sh *strictHandler) CoachingAPIUpdateApplicationStatus(ctx *gin.Context, id string) {
+	var request CoachingAPIUpdateApplicationStatusRequestObject
+
+	request.Id = id
+
+	var body CoachingAPIUpdateApplicationStatusJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CoachingAPIUpdateApplicationStatus(ctx, request.(CoachingAPIUpdateApplicationStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CoachingAPIUpdateApplicationStatus")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CoachingAPIUpdateApplicationStatusResponseObject); ok {
+		if err := validResponse.VisitCoachingAPIUpdateApplicationStatusResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {
@@ -5970,95 +7073,103 @@ func (sh *strictHandler) SystemAPIGetUsage(ctx *gin.Context) {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"H4sIAAAAAAAC/+yd23LkNpKwX4XB/7+Yia2W2mPvxehO7m73aqPt7ZHU9oWjgwGRWVWwSIIGwJJkhyL2",
+	"IfYJ90k2cOAZYJElVak0kze2uohDIgHiywTAxJ9hzLKC5ZBLEZ79GYp4DRnRf54nGc1P9H+/COCfqJAX",
+	"EjL1qOCsAC4p6ISklOuo4GxDE+DqB8jLLDz7NYSM0DRchDnZAA+/LkL5UEB4FgrJab4KHxdhzIFISCIi",
+	"Vb4l45n6K0yIhDeSZhA68phSz/50PLkvgFPIY4hiVubdMmkuv/1bUx7NJayAq2w0cZaWEiGjlK1oPku8",
+	"nMa3OcnAWSZnKbQ1VArg4SIkSskOBakc8HtJOSQqNU1CW8Sip3RH2zvKbYpmN79BLJUspn8/c5YV8hqy",
+	"IiUS3oO0yu12cUwkrBh/cDbKoz8qIhJLumlr4oaxFEiuHmfkPpLsFnIxsZsylkAaeVXrfSDKm2hUfvEg",
+	"JGRKmVkhnSkkZAVwIksOHWGXKSOyETYvsxsjaynIat4gVCPBihBJ2xtOWTbABWX5pGJd46dWRU8zVoN9",
+	"dXgk63RHV0Gdrm3kbQ+IroL8g/NKi3IliZmcetOOLitS4olIsoQ8TFS1nkAi/QLpzBOz6VlsfjbJJEkj",
+	"kpP0QcC8TDEj8Zrmq0iAUDqcl7uZEeblm9643vBqZ1+4usclmb+tA9U5usDRmf7R9KVQE7eZ8C7h9xKE",
+	"HI6q55619jK5TJoqHrco4pKl4FXD00Clczs7opTrE/WfSxAFywUMa260+/85LMOz8P+dNibKqbVPTuuC",
+	"rk1yq5ZJ2ZQ1c5Ev2UBs20grwaj817WU/UkpBiHMEPHZKJSDiGg+cQBxWHIQa2+RvTZ0BOjn7lTvbd8n",
+	"ZfN4R4bf/CqIEHeMJ9uFrAzDOodXliu6ystiB2FGzbB9SFqPquO1jz2G2qiqWH7DCE/UzKzepxQkJO6p",
+	"cX+2rVOGrfbtO0uUk/OiSGlMJGW5z741jKEi8qiIqCLqfhh2E8sKkj/4jdOYKXClICXwWWZhdwAMyk2A",
+	"JCnNYVZ3M2ln2sFrwQSV1rYcWsmSyNKdT5KVYaeEzJPC/EA4Jw96rtYE8jTLabW2NdyStJarapeVxqny",
+	"jjo7QkwdPx5T9OYhatRDkkTLRtLPnURTDLC+DNoCmupBFDHL1DtSDYpun4xhceRVGXSey+gLFy0VOCUZ",
+	"VXD1x5Ux/Rzu5w7ToM8rzYtSzjPhWCln57FWbGSeTBrinSw9QftCTJ/83qnX4JN+Cxx6XRMepTSju01H",
+	"0zoiLjmHXEYxyyXkcs5UpamvdQL37ozdiWSKQC7Vd+tZtPUylH/HWaTVET83LryjP2bhYUSnz/jSWB8+",
+	"sj7IrksPvWIa8Rftls8Y2zpda87y2olbAd0G6TRV/cZuopKnz4nYuRzt6bjTyFHFvacZ5KorfgBIbkh8",
+	"O9RYUiVxyrFiLJlHfJopgw7mZRIxm+YU9zTRCF+VYUVu5BjVz4d6geISYpZlkCdEut/YHRZGMyLjdTS5",
+	"bYtQCcOSCHJ3efaxkIRLn+nGI0FlSfxDj8rU/WbcASns0tOO41K/+6aC7vJjV6ymqq6KRnvqI+TAiYT3",
+	"nCz9izq1ec9BlKmcbA79w3Lh3Oa/NNkrh8BMOj6fYT5ct01SrTV+msy0uLehtO/3dqsaReRoB32i+W2j",
+	"vm39Qye45O3Eo1UPe89X/Ut05swO2VX/niE81MGG0SRKqdHP9HGlptVISF7GsuQQwT1RDroz6y08RLfw",
+	"cMf43MHLgaQR1bbCDk7NJZD0whgazrKNkqPWRNdVTcFpRswUP6m+X3RBl7A0jkDM8sRmnyd3p5zRGbaS",
+	"sF2da1SIki9JDFE1mNwTPqdSL8RXnTrUiIBY0j4UprXJFH5lCnD1h90OWJOnbEKY7ItG0KE2evkGqumN",
+	"OsdAcamqN8oX7ffK+7KMvsCt0TvcrPBb/3frhwl+Z2V+q9RbpLB2UGMa+efTOfPkv87r198j6Td8i/43",
+	"FO5G/JsRP7C9EDYFsP0MjZ82SUQ3X1SZJE0nG7xRbcNHy5aTMq8Lh36Oz8mYQxPVzCuTSWUvIKZLGkei",
+	"XK3M3LHDvHhlS7mqC9k66qzci1q1Xr15hJzQm1e1boZbGpBLGlP5MK1LK3to2ZsZvBmUfz05cdW+ieL0",
+	"NdnK3VTclXnRbfOo7hydOXwfOF3RnLjXDzgQ4VuGN2XChPe4rqKdqy58tAVmh3jKykp3Z2TiiuA/62qM",
+	"X6ENTIZb7f7ONmjw+ST2qUeLvcHQFNXNOG089My2Z1i4VBm4GlrTXvBVSZNZ5756zbdtbVXbW3M0FbiV",
+	"kGUsP/nAOePe83HMI10GQpDVBAGrhAtTlkcQ9dqcaFfuD7D/3HXNc/7ioan9eyJo7NnoThIOwv2uxMA8",
+	"1gkvIq/69FPvNEHzpBTSd6pPsvjWV/Kg8VU1Yy23/688aZ8PDfcFb53Xmu7lTthF5hBtSFrO2tqrhOfw",
+	"s8rq9oFjyGUkOeTJ/KKvVTanZcVKHnfOBEiSqooKzpY01cZLTOK13vOn0cqu5SXOoxBCqmerXZcQbM2S",
+	"Eyp3aKLOfa0yz1uG73ZaX4y+5l2tXDiGVa3aCcP1PZHEsWOt3uKI2td4igqa915NunA3X4k/wZ3QJ8i3",
+	"abAlnK1qvJ3VyB5uYoCIOS28iLdK3j5BVAkXnSLHpPqRyHh96LnZVuo7Wrd1gtHL7jtMLlW9dnHcuaSz",
+	"y2JO71WqxKtKnKIKpzPaWd12akLZkxxS2JA8nrhLY92w6U6LMbxUhaOGfkTylWdF1c4mk2ssc/p7Cbll",
+	"9Ewvqau0bnv7CuuI1qm33exhI8d6tJ4+Zr/mKc1v3fZ/eRMlvoP2Db0m75b11yLtnpeuf6xpbbzMbh1s",
+	"aAK5T9KqzC2S6mTTZzeDfIcr03pjHCM6qxbynqrRqiiXjM0KpT0g0N7N9c3HY9u4Y4truxkjT93QbbYx",
+	"vV8YuTeBSTx2vo9HIwVP2ETWSSQRt0/v4i0d2/z5jH35nKfMRER4vKYb32HZVzRu/NPg0Q6pXc6F2e8q",
+	"RtdapltGzrFqFoGmnZeohHGenLDnpJvjU1bJjjMVjQK7/dXtnbqbu0N33lG3sTa7diyWDbe2my7+F621",
+	"P+Q4lD5qY2kla0l45ntTdZqMJXRJfUnsetq0tYb2CpzOsWjrotOirq3UE7Yv2ZYeMSu6iMJjR+FYH5p3",
+	"6ZqsZixAzn3Pxl6YgXc2HL1N9q8T2+J3V+1rYDdIZ8y4jZ7aO8DRE+bwTolT9oIroV31uzRzkUvgGwp3",
+	"J+/WRP7YrBpP3+f1fX8jBBWSdHZvxz7bG9/tbeT8cC85ieXV9fmldy6xi9rTVe5Wwzad19XMkNi9MHDg",
+	"yW/bHPNqzPWOdfKcZkmt1/GurY6BVqfdDj4itdyrzvt3R3hWFuEizCCzilmTNIVc7/IIlpa2xayUMeus",
+	"7Hl0bapYTB3vQ6X4Zloq6g/r3BZODvcyqlvoPcvoG2b7Vkzr0Falo5bEi077xnV2RTYdI8mnse0riJKs",
+	"Vm6Dccu6ms3oktPEQzj5AfTX4l/cjCBpyu58puq8o1kZoZUpMC2ERbLLKm8lsC2hErItwKgyzCmXi7wo",
+	"t8zo1QC8KVfNlwCZmaqYXPu+wR2Z9guyAs+5g76xNJwfJzRqZC3/uRYrnF9bjn+AY4XU488v4dKM0tFv",
+	"IsdmXtdgdxnIRUrydu8uOYDliNQWUMGZtsN6xxw8CtDFLRrpnQf5BMQlp/LhSslqmvI9EA78vJTrOo6S",
+	"ymR+bnpjLWURPj7q3Wuz+WZBG75jKV2tZXD++aIVNuUsfHvy9uSt3mAoICcFDc/Cb/VPavjJta78dA0k",
+	"NTWvQI8IpmNKUJZfJOFZ+B/68bs16NNg3PaZzvq3t297lmXrOPzpb/ZoiukUx0lg31fBQ3SpdA5lPnZX",
+	"nc/C6zUE3PA7WBMRiDKOARJIToyDpI/l/GoHYfhV/Xa6+eZUf2d+asJiiJYiuoV/okIGJlFQxc7QZ+g6",
+	"6tJhMs4/X6jUn22JStucZCB1dJRfNQJS7XUtSSpA9Wd4pkjUxNI563ztUmuwr6mvz9ojid3vnWTdjMSA",
+	"2mZ063qe2p+L8LsnNRY4Z3zCLmX/AM+Awbqcqa0RwDfAg5iVaRLkTAZlngBXTlYSyFZrkxICyQKab0hK",
+	"k0A85JLc21Z/86pafa6jigRUBGVOSrlmnP5Rd+C3r7QpS8ZvaJJAbtvx3asdiCRXo3BJu+MPkoCDWde1",
+	"Lfz7q2th9SrFLF+mNJYiuKNyrVtpv8sOFFogYEv9o9GIbu6/v7KZ5cp0psnQNjI0bdrmxa9fFTMqEJ6b",
+	"ACtODp7+SZNH3bjSAUOzJtzHoZeG7fhZQxxq/CmDpKGfielSK0PyErZyUHf39yx5mNV32xnnCv712O0s",
+	"Jd/jXli8K4IRuYhcRC4iF5H7CpArqthQTsfzI8jAxILU2qNC0tjveH4EaUJNvRCO2oFXkUJIIaQQUggp",
+	"9BooVEdv9i9/6iRGnQVZ0VzrJVBz2JKm0oRV9q+HfrGBl3dYDa32dRrVJ7Akegf7b28XU/aNptXDlksB",
+	"noqesx57XqKpZXLo02nlCyA8Xh9w7XjOF5w7rDMP75KYtMi8CH1x4tHmQJsDbQ60OdDmeHmbo15q9rq/",
+	"KlmQaMlHPd8vhp77WV9+AWfagT10qRFviDfEG+LtVeHttDpjP7adqjFnXcOxjVRFhEuT7DVupbavDzqi",
+	"jVSELcIWYYuwRdi+OtiasGZvbNAX3TImHJy18c8CmzD4S8w4BCbE0iIwgUcCE2FpEZjISn8dsLgK5vX5",
+	"ohtOLdwPOcdjt+2Bn9NignUDmiEDkYHIQGQgMvBgDKyo01Cwaeb4YaJ2wsDGl+8jzkRvNauq5+2Cn9U5",
+	"64u87yvnOvWhI4cQQ4ghxBBiLwkxM5eHX01MdQexTCS+NrSCjOQlSdOHMW4Nbvjbm3u27UrBSS7aN88v",
+	"kAOPMwCnT3WRIIe7+kXUCW4A8sB+5R0QEZDARNxAICIQEYgIRATicwHR4dad2nOdPu/uSj/uOnhaxb7j",
+	"uS1gmrw9X2+Ho7q/j546nXh+1d7E/uRyqutgfuAse87yrtkBz9ail4xGARoFaBSgUYBGgdMo2Pr5aNt5",
+	"Fvbr0Ikrvs/yMelcUFWfjyJpkDRIGiQNkuY4SFN9qJFAFfC1W+17/XsbN2OgMam7S7QH+HTju6Hc12vg",
+	"oF7jnAW2j9VkKyBP1JsdyDUV1fBZBDel1ONjDURN1UFGHoIbfXp3WaYnAZIISYQkQhIhiZ5vZ5BIs+rp",
+	"/Gyi7d0sKaTJqHszuKD6FX1Fsf2W7YOfB32WzUb03pCZyExkJjJz397baUrz2zekfRG589TNJ5rf1p9J",
+	"VMnVFDbRt1P5668DXiFg2/IjW5GtyFZkK7IV2TrK1uZKk+kOq8kT/CXhZPUm4az46yzn9cpUeVyEnX7R",
+	"i6O7ELAIWAQsAhYB+y8P2FKuT1O2ornfT/2QEZoGJtEgaE4p18oVtQ/3EtamlOsTXcFxBbRRYqn/1Hfs",
+	"YSgbxB5iD7GH2DsU9upYNYp1A6Yxe+Ose/HVPPfzzDx9zss4S/1eTbhzuEr5DPdxTg32M1RgBqPHXaux",
+	"pePp6ctSPar8EcKXYfMXAfxCCYZcRi4jl5HLyOVjCzE3pE5ONsBPY5KmNyS+9RLoJ5Us+C9VQFAlDv73",
+	"v/8ngPt4TfIViCBmCZiDpewWcuHDky7pXVXfbtdIqwRzln2nXjAizX2fx30Q93FCf9YLDFs7U98Lr3uS",
+	"Q0I5qPdGssAk0cUEBVnBaG82ixFHpQoOSw5i7TdJL02C4D9/ud4yaG3K8Lm2D6xoka51+3Xx3eRfD7DF",
+	"8ITlmWujSTQC0QhEIxCNQDQCj2BxRtBVXhbbdhxsKg8Dr6qne9tzMDXsMcTUcW46YFQq5CByEDmIHNwn",
+	"B2O7FX8asw3wNylIOemaNp08MMm3RJh4p5J+qlIe3YVt0yI+ttqAzhlCCaGEUEIoHeMXwm0wVYup249Z",
+	"H4JRz7FC2sr2Aiesu7KUWnNJRLqXgasf30iaQbjYsn7bKgBXQBGyCFmELEL2mE5ljziHpxvgYuv1Mx0Y",
+	"1znG3cWfm2RHfrl3WwXzAvW2zA3b3K2ReuvKEJWISkQlohJR+RrusnERcPtdNj/XCV+pK9rujirhbgd0",
+	"vnk6oJ+EZTeGcWsTqY3URmojtf85HNyEk+XIV1ofIVe8hkCnC6ps456syfJel7znEFadyg73eXKltHH+",
+	"m2TotiIAEYAIQATgUQJQ646yfEK8SB0r8Y+ea1vlH0OizfiPJuleoVjVcyyxHYfyKN8OOYgcRA4iB5GD",
+	"R8FBDjHLMsiTN3BfAKeQxyDGvpW0yYNW8uCGCEgClgdVs4I7IMWWrc+6qA+tiveMSFedB3Mfa1Xvet1p",
+	"I/Rlp6ite6n9mtE3RSYjk5HJyOQjZfKGwt0YhNXzyZ+kmOT7R6uq5aV9zkoK9DSRakg1pBpS7WioJkBM",
+	"OUBrUgdVah0PiMz5/PKqqmfHoFL1kZiLlzxr29bW3LO25g+rh63OYV0TeoXIT+Qn8hP5eVz81BfVvanC",
+	"1Iyg09xopxIGf3l/fnkd/FvwE9wJ1607OmkVrkD/470qfydk6v8dTwQD3ZqTdquQY8gx5BhyDDl2QI7p",
+	"6bfBWG930UmxT1TIzr6iVuuSphpHfYg1u2H6TlYhd6OXYFzlbFQOeZmpJqREgi6UpYn5Q1KZQkttcwML",
+	"x0TCiulfnhyk2GywhodzSHsdOMknbbqotXe51SFt14Q+KbIcWY4sR5a/HMtbU/fWzz+buXuc1yb5nvYk",
+	"W9gx9bQPzhwoqixNtn8oQhP8rBJ5iDxEHiIPXysPh+5tHUs2gRQkDFH5Xv8+GZUm+fFHBzr8PXsIM4QZ",
+	"wgxhhjB7NufOu7vY0Cq4eQgu3o8z6yPI1xb63LNWiURCIiGRkEhIpJdabhyNfj7ViTLJjyy+3EQcGdl3",
+	"XMN8e+RrmAhNhCZCE6GJ0Nz7muSpJKuRKDelZG8kWbU9Pa1m36f8Hb5ek9Urdvh+0U28JqvW9Y6IMEQY",
+	"IgwRhgh7QYQtAZIbEt/6sXVV3mRUBqUAHtSp+6i6ehASsvPPFyb1D026fbhupraTqpaLvCj3cuBkhgw7",
+	"cQ2PlyAHkYPIQeTgQTlopu6GgTSXwDcU7k7hXnISj4Tt/mASBFfX55eBkLyMZckhWHKWBXUxSvcb4II4",
+	"w5deVMnOP1/Y4lRpe0JlXdtJq64XiiHjkQUjySAGEYOIQcTgYTFYT8cuEtbRt7ffYJHDvWzBr8rZxCwV",
+	"kqxA+zqTwVgVvufI3g2R+hW+OCKHAuHCKZISSYmkRFIeFSkF2cDI6inZQGDdSkgGW3+klMzu/wWSrFau",
+	"K6DaXFTFfWifyDmgz9j4aYdbZW1E6bYcl1uRnkhPpCfS81XSM6uOnLqh+aN63IlTQ1aE5qIOwTYSb03n",
+	"PcSFFyYKmq7uxWJyd2RA/xAJh4RDwiHhXjwWWynICkZjieoUQUozKoVZGrW6jFkuyqxwrpDWp2w+gvyi",
+	"q9gjXewBF10PwgXhgnBBuCBcXvK0is6jCjGH/7vFf+YsKWOLjZKn4Vm4lrIQZ6enMUvpai3fkIKe3LIH",
+	"uDkhRRE+LgbRQVlM0iCBDaSsyJRS2yWdnZ6mKsGaCXn297dv34YtKf+sPj/QLVBFV/9OMpq3f+iEqax/",
+	"bXzE1o8VVjs/2ejdrd+sgh6/Pv5fAAAA//+c6TULVnIBAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

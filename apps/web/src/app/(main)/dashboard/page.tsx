@@ -1,18 +1,34 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Plus } from "lucide-react";
 import { useApplications, useApplicationStats, useUpdateApplicationStatus } from "@/hooks/use-applications";
 import { DashboardSummary } from "@/components/dashboard/dashboard-summary";
 import { KanbanBoard } from "@/components/dashboard/kanban-board";
+import { KanbanFilterBar, filterApplications, type KanbanFilters } from "@/components/dashboard/kanban-filter-bar";
 import { EmptyState } from "@/components/common/empty-state";
-import type { ApplicationStatus } from "@/lib/api/applications";
+import { ApplicationCreateModal } from "@/components/dashboard/application-create-modal";
+import { ApplicationEditModal } from "@/components/dashboard/application-edit-modal";
+import { ApplicationDeleteDialog } from "@/components/dashboard/application-delete-dialog";
+import { Button } from "@/components/ui/button";
+import type { ApplicationDetail, ApplicationStatus } from "@/lib/api/applications";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { data: applications, isLoading: appsLoading } = useApplications();
   const { data: stats, isLoading: statsLoading } = useApplicationStats();
   const updateStatus = useUpdateApplicationStatus();
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editApp, setEditApp] = useState<ApplicationDetail | null>(null);
+  const [deleteApp, setDeleteApp] = useState<ApplicationDetail | null>(null);
+  const [filters, setFilters] = useState<KanbanFilters>({ query: "", tags: [] });
+
+  const filteredApplications = useMemo(
+    () => (applications ? filterApplications(applications, filters) : []),
+    [applications, filters],
+  );
 
   const handleStatusChange = (id: string, status: ApplicationStatus) => {
     updateStatus.mutate({ id, status });
@@ -43,12 +59,15 @@ export default function DashboardPage() {
 
   if (!applications || applications.length === 0) {
     return (
-      <EmptyState
-        icon={<BarChart3 className="h-8 w-8" />}
-        title="지원 현황이 없습니다"
-        description="기업 분석을 시작하면 지원 현황이 여기에 표시됩니다."
-        action={{ label: "기업 분석 시작", onClick: () => router.push("/analysis") }}
-      />
+      <>
+        <EmptyState
+          icon={<BarChart3 className="h-8 w-8" />}
+          title="지원 현황이 없습니다"
+          description="직접 추가하거나 기업 분석을 시작하면 지원 현황이 여기에 표시됩니다."
+          action={{ label: "지원 현황 추가", onClick: () => setCreateOpen(true) }}
+        />
+        <ApplicationCreateModal open={createOpen} onOpenChange={setCreateOpen} />
+      </>
     );
   }
 
@@ -68,14 +87,38 @@ export default function DashboardPage() {
               지원 진행 흐름과 마감 상태를 한눈에 정리하세요.
             </p>
           </div>
+          <Button size="sm" onClick={() => setCreateOpen(true)} className="shrink-0">
+            <Plus className="mr-1.5 h-4 w-4" />
+            추가
+          </Button>
         </div>
       </section>
 
       {stats && <DashboardSummary stats={stats} />}
 
-      <KanbanBoard
+      <KanbanFilterBar
         applications={applications}
+        filters={filters}
+        onFiltersChange={setFilters}
+      />
+
+      <KanbanBoard
+        applications={filteredApplications}
         onStatusChange={handleStatusChange}
+        onEdit={setEditApp}
+        onDelete={setDeleteApp}
+      />
+
+      <ApplicationCreateModal open={createOpen} onOpenChange={setCreateOpen} />
+      <ApplicationEditModal
+        open={editApp !== null}
+        onOpenChange={(v) => { if (!v) setEditApp(null); }}
+        application={editApp}
+      />
+      <ApplicationDeleteDialog
+        open={deleteApp !== null}
+        onOpenChange={(v) => { if (!v) setDeleteApp(null); }}
+        application={deleteApp}
       />
     </div>
   );

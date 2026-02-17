@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import Link from "next/link";
+import { Building2, Loader2, PenLine } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { QuestionInputForm } from "./question-input-form";
+import { StandaloneQuestionForm } from "./standalone-question-form";
 import { AnalysisResult } from "./analysis-result";
 import { ExperienceSelector } from "./experience-selector";
 import { DraftStreaming } from "./draft-streaming";
@@ -20,10 +20,12 @@ import {
 } from "@/lib/api/coaching";
 
 type FlowStep = "input" | "analysis" | "select" | "draft";
+type CoachingMode = "application" | "standalone";
 
 export function CoachingFlow() {
   const router = useRouter();
   const [step, setStep] = useState<FlowStep>("input");
+  const [mode, setMode] = useState<CoachingMode>("application");
   const [analysisResult, setAnalysisResult] =
     useState<QuestionAnalysisResult | null>(null);
   const [formData, setFormData] = useState<QuestionAnalysisRequest | null>(
@@ -47,7 +49,7 @@ export function CoachingFlow() {
     }: {
       requiredWeapons: QuestionAnalysisResult["required_weapons"];
       keyKeywords: string[];
-      applicationId: string;
+      applicationId?: string;
     }) => recommendExperiences(requiredWeapons, keyKeywords, applicationId),
   });
 
@@ -77,6 +79,7 @@ export function CoachingFlow() {
     setStep("draft");
     draftStreaming.streamDraft({
       application_id: formData.application_id,
+      company_name: formData.company_name,
       experience_ids: selectedIds,
       question_text: formData.question_text,
       char_limit: formData.char_limit,
@@ -104,21 +107,7 @@ export function CoachingFlow() {
   }
 
   const appList = applications ?? [];
-
-  // Empty state
-  if (appList.length === 0) {
-    return (
-      <div className="brand-surface rounded-2xl p-8 text-center">
-        <p className="mb-4 text-muted-foreground">먼저 기업 분석을 진행해주세요</p>
-        <Link
-          href="/analysis"
-          className="inline-block rounded-xl bg-primary px-4 py-2 text-sm text-primary-foreground shadow-[0_10px_24px_rgba(72,132,255,0.25)] transition-all hover:-translate-y-0.5 hover:bg-primary/90"
-        >
-          기업 분석 시작하기
-        </Link>
-      </div>
-    );
-  }
+  const hasApplications = appList.length > 0;
 
   // Map to QuestionInputForm's company format
   const companies = appList.map((app) => ({
@@ -148,10 +137,43 @@ export function CoachingFlow() {
 
   return (
     <div className="space-y-8">
-      {/* Step 1: Question Input */}
+      {/* Mode Toggle (only on input step) */}
       {step === "input" && (
-        <QuestionInputForm companies={companies} onSubmit={handleAnalyze} />
+        <div className="flex gap-2">
+          {hasApplications && (
+            <button
+              onClick={() => setMode("application")}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
+                mode === "application"
+                  ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(72,132,255,0.2)]"
+                  : "brand-outline-btn text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Building2 className="h-4 w-4" />
+              기업 분석 기반
+            </button>
+          )}
+          <button
+            onClick={() => setMode("standalone")}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
+              mode === "standalone" || !hasApplications
+                ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(72,132,255,0.2)]"
+                : "brand-outline-btn text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <PenLine className="h-4 w-4" />
+            자유 코칭
+          </button>
+        </div>
       )}
+
+      {/* Step 1: Question Input */}
+      {step === "input" &&
+        (mode === "application" && hasApplications ? (
+          <QuestionInputForm companies={companies} onSubmit={handleAnalyze} />
+        ) : (
+          <StandaloneQuestionForm onSubmit={handleAnalyze} />
+        ))}
 
       {/* Step 2: Analysis Result */}
       {step === "analysis" && analysisResult && (
@@ -198,6 +220,7 @@ export function CoachingFlow() {
           content={draftStreaming.content}
           isStreaming={draftStreaming.isStreaming}
           charLimit={formData?.char_limit ?? 800}
+          advice={draftStreaming.advice}
           onComplete={handleDraftComplete}
         />
       )}

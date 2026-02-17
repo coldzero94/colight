@@ -82,6 +82,27 @@ export const zAuthAuthResponse = z.object({
     tokens: zAuthAuthTokens
 });
 
+export const zCoachingApplicationDetail = z.object({
+    id: z.string(),
+    company_name: z.string(),
+    position: z.string(),
+    status: z.string(),
+    deadline: z.optional(z.string()),
+    applied_at: z.optional(z.string()),
+    notes: z.string(),
+    tags: z.array(z.string()),
+    analysis_id: z.optional(z.string()),
+    cover_letter_count: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    created_at: z.string(),
+    updated_at: z.string()
+});
+
+export const zCoachingApplicationStats = z.object({
+    total: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    by_status: z.record(z.string(), z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })),
+    upcoming_deadlines: z.array(zCoachingApplicationDetail)
+});
+
 export const zCoachingApplicationSummary = z.object({
     id: z.string(),
     company_name: z.string(),
@@ -115,6 +136,15 @@ export const zCoachingCoverLetterVersion = z.object({
     created_at: z.iso.datetime()
 });
 
+export const zCoachingCreateApplicationRequest = z.object({
+    company_name: z.string(),
+    position: z.optional(z.string()),
+    job_url: z.optional(z.string()),
+    deadline: z.optional(z.iso.datetime()),
+    notes: z.optional(z.string()),
+    tags: z.optional(z.array(z.string()))
+});
+
 export const zCoachingDimensionFeedback = z.object({
     dimension: z.string(),
     score: z.number(),
@@ -133,8 +163,13 @@ export const zCoachingExperienceRecommendation = z.object({
     match_score: z.number()
 });
 
+export const zCoachingLinkAnalysisRequest = z.object({
+    analysis_id: z.string()
+});
+
 export const zCoachingQuestionAnalysisRequest = z.object({
-    application_id: z.string(),
+    application_id: z.optional(z.string()),
+    company_name: z.optional(z.string()),
     question_text: z.string(),
     char_limit: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
 });
@@ -167,6 +202,16 @@ export const zCoachingReviewResult = z.object({
     overall: z.number(),
     per_dimension_feedback: z.array(zCoachingDimensionFeedback),
     specific_suggestions: z.array(zCoachingSpecificSuggestion)
+});
+
+export const zCoachingUpdateApplicationRequest = z.object({
+    company_name: z.optional(z.string()),
+    position: z.optional(z.string()),
+    job_url: z.optional(z.string()),
+    deadline: z.optional(z.iso.datetime()),
+    applied_at: z.optional(z.iso.datetime()),
+    notes: z.optional(z.string()),
+    tags: z.optional(z.array(z.string()))
 });
 
 export const zCoachingWeaponRef = z.object({
@@ -207,7 +252,8 @@ export const zCoachingQuestionAnalysisResult = z.object({
 });
 
 export const zCoachingGenerateDraftRequest = z.object({
-    application_id: z.string(),
+    application_id: z.optional(z.string()),
+    company_name: z.optional(z.string()),
     experience_ids: z.array(z.string()),
     question_text: z.string(),
     char_limit: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
@@ -577,8 +623,102 @@ export const zCoachingApiGetApplicationsData = z.object({
  * The request has succeeded.
  */
 export const zCoachingApiGetApplicationsResponse = z.object({
-    applications: z.array(zCoachingApplicationSummary)
+    applications: z.array(zCoachingApplicationDetail)
 });
+
+export const zCoachingApiCreateApplicationData = z.object({
+    body: zCoachingCreateApplicationRequest,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded and a new resource has been created as a result.
+ */
+export const zCoachingApiCreateApplicationResponse = zCoachingApplicationDetail;
+
+export const zCoachingApiSearchApplicationsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        q: z.optional(z.string()),
+        tags: z.optional(z.string()),
+        deadlineFrom: z.optional(z.string()),
+        deadlineTo: z.optional(z.string())
+    }))
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiSearchApplicationsResponse = z.object({
+    applications: z.array(zCoachingApplicationDetail)
+});
+
+export const zCoachingApiGetApplicationStatsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiGetApplicationStatsResponse = zCoachingApplicationStats;
+
+export const zCoachingApiDeleteApplicationData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * There is no content to send for this request, but the headers may be useful.
+ */
+export const zCoachingApiDeleteApplicationResponse = z.void();
+
+export const zCoachingApiUpdateApplicationData = z.object({
+    body: zCoachingUpdateApplicationRequest,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiUpdateApplicationResponse = zCoachingApplicationDetail;
+
+export const zCoachingApiLinkAnalysisData = z.object({
+    body: zCoachingLinkAnalysisRequest,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiLinkAnalysisResponse = zCoachingApplicationDetail;
+
+export const zCoachingApiUpdateApplicationStatusData = z.object({
+    body: z.object({
+        status: z.optional(z.string())
+    }),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCoachingApiUpdateApplicationStatusResponse = zCoachingApplicationDetail;
 
 export const zAuthApiLoginData = z.object({
     body: zAuthLoginRequest,

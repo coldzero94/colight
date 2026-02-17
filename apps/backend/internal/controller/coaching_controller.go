@@ -32,7 +32,8 @@ func (c *CoachingController) PostDraft(ctx *gin.Context) {
 	}
 
 	var req struct {
-		ApplicationID  string   `json:"application_id" binding:"required,uuid"`
+		ApplicationID  string   `json:"application_id" binding:"omitempty,uuid"`
+		CompanyName    string   `json:"company_name"`
 		ExperienceIDs  []string `json:"experience_ids" binding:"required,min=1,max=3,dive,uuid"`
 		QuestionText   string   `json:"question_text" binding:"required,min=10"`
 		CharLimit      int      `json:"char_limit" binding:"required,min=200,max=2000"`
@@ -46,13 +47,17 @@ func (c *CoachingController) PostDraft(ctx *gin.Context) {
 		return
 	}
 
-	// Parse UUIDs
-	appID, err := uuid.Parse(req.ApplicationID)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "유효하지 않은 application_id입니다",
-		})
-		return
+	// Parse optional application ID
+	var appID *uuid.UUID
+	if req.ApplicationID != "" {
+		parsed, err := uuid.Parse(req.ApplicationID)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "유효하지 않은 application_id입니다",
+			})
+			return
+		}
+		appID = &parsed
 	}
 
 	expIDs := make([]uuid.UUID, len(req.ExperienceIDs))
@@ -81,6 +86,7 @@ func (c *CoachingController) PostDraft(ctx *gin.Context) {
 		ctx.Request.Context(),
 		uid,
 		appID,
+		req.CompanyName,
 		expIDs,
 		req.QuestionText,
 		req.CharLimit,
@@ -128,12 +134,21 @@ func (c *CoachingController) PostDraft(ctx *gin.Context) {
 	// Track usage after successful draft
 	TrackUsageAfterSuccess(ctx, map[string]interface{}{"cover_letter_id": result.CoverLetterID.String()})
 
-	// Send done event with IDs
-	data, _ := json.Marshal(gin.H{
+	// Generate advice using light model (best-effort — don't fail if advice generation fails)
+	var adviceItems []service.AdviceItem
+	advice, err := c.coachingService.GenerateAdvice(ctx.Request.Context(), resp.Content, req.QuestionText, "")
+	if err == nil {
+		adviceItems = advice
+	}
+
+	// Send done event with IDs + advice
+	donePayload := gin.H{
 		"type":            "done",
 		"cover_letter_id": result.CoverLetterID.String(),
 		"session_id":      result.SessionID.String(),
-	})
+		"advice":          adviceItems,
+	}
+	data, _ := json.Marshal(donePayload)
 	fmt.Fprintf(ctx.Writer, "event: done\ndata: %s\n\n", data)
 	ctx.Writer.Flush()
 }

@@ -15,6 +15,7 @@ vi.mock("@/hooks/use-draft-streaming", () => ({
     error: null,
     coverLetterId: null,
     sessionId: null,
+    advice: [],
     streamDraft: vi.fn(),
     abort: vi.fn(),
   }),
@@ -51,12 +52,14 @@ describe("CoachingFlow", () => {
     expect(screen.getByText("불러오는 중...")).toBeInTheDocument();
   });
 
-  it("shows empty state when no applications exist", async () => {
+  it("shows standalone form when no applications exist", async () => {
     mockUseApplications.mockReturnValue({ data: [], isLoading: false });
     render(<CoachingFlow />, { wrapper: createWrapper() });
     await waitFor(() =>
-      expect(screen.getByText("먼저 기업 분석을 진행해주세요")).toBeInTheDocument()
+      expect(screen.getByText("자유 코칭")).toBeInTheDocument()
     );
+    // Standalone form should be rendered with question input
+    expect(screen.getByText("분석 시작")).toBeInTheDocument();
   });
 
   it("shows question form when applications exist", async () => {

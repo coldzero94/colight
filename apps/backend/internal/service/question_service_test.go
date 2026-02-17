@@ -161,7 +161,7 @@ func TestAnalyzeQuestion_ReturnsStructuredResult(t *testing.T) {
 	ensureQuestionAnalysisPrompt(t, client)
 	ensureWeaponCategoriesForQuestion(t, client)
 
-	result, err := svc.AnalyzeQuestion(ctx, userID, appID, "팀 프로젝트에서 어려움을 극복한 경험을 구체적으로 기술하세요.", 800)
+	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "팀 프로젝트에서 어려움을 극복한 경험을 구체적으로 기술하세요.", 800)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
@@ -209,7 +209,7 @@ func TestAnalyzeQuestion_RealIntentsAlwaysThree(t *testing.T) {
 	ensureQuestionAnalysisPrompt(t, client)
 	ensureWeaponCategoriesForQuestion(t, client)
 
-	result, err := svc.AnalyzeQuestion(ctx, userID, appID, "문항", 800)
+	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "문항", 800)
 	require.NoError(t, err)
 	assert.Len(t, result.RealIntents, 3, "real_intents should always have exactly 3 items")
 }
@@ -247,7 +247,7 @@ func TestAnalyzeQuestion_PrimaryWeaponExists(t *testing.T) {
 	ensureQuestionAnalysisPrompt(t, client)
 	ensureWeaponCategoriesForQuestion(t, client)
 
-	result, err := svc.AnalyzeQuestion(ctx, userID, appID, "문항", 800)
+	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "문항", 800)
 	require.NoError(t, err)
 	assert.NotEmpty(t, result.RequiredWeapons.Primary.WeaponID, "primary weapon must exist")
 	assert.NotEmpty(t, result.RequiredWeapons.Primary.WeaponName)
@@ -291,7 +291,7 @@ func TestAnalyzeQuestion_CharCountSumsCorrectly(t *testing.T) {
 	ensureQuestionAnalysisPrompt(t, client)
 	ensureWeaponCategoriesForQuestion(t, client)
 
-	result, err := svc.AnalyzeQuestion(ctx, userID, appID, "문항", 800)
+	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "문항", 800)
 	require.NoError(t, err)
 
 	// Calculate sum of char_count
@@ -339,7 +339,7 @@ func TestAnalyzeQuestion_CategoryMatching(t *testing.T) {
 	ensureQuestionAnalysisPrompt(t, client)
 	ensureWeaponCategoriesForQuestion(t, client)
 
-	result, err := svc.AnalyzeQuestion(ctx, userID, appID, "문항", 800)
+	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "문항", 800)
 	require.NoError(t, err)
 
 	// Verify weapon IDs match existing categories
@@ -541,7 +541,7 @@ func TestRecommendExperiences_UsageDedup(t *testing.T) {
 			Primary:   WeaponInfo{WeaponID: w01.Code, WeaponName: "문제해결"},
 			Secondary: []WeaponInfo{},
 		},
-		ApplicationID: appID,
+		ApplicationID: &appID,
 		Limit:         5,
 	}
 
@@ -676,4 +676,131 @@ func TestRecommendExperiences_MatchReasons(t *testing.T) {
 
 	// Should have keyword matches
 	assert.Equal(t, []string{"데이터", "분석"}, rec.KeywordMatches)
+}
+
+// === Phase 8.3.1: Standalone coaching — nil applicationID ===
+
+func TestAnalyzeQuestion_NilApplicationID_UsesCompanyName(t *testing.T) {
+	mockAI := &MockLLMForQuestion{
+		response: ai.LLMResponse{
+			Content: `{
+				"surface_question": "자유 코칭 분석",
+				"real_intents": [
+					{"intent": "의도1", "why": "이유1"},
+					{"intent": "의도2", "why": "이유2"},
+					{"intent": "의도3", "why": "이유3"}
+				],
+				"required_weapons": {
+					"primary": {"weapon_id": "W01", "weapon_name": "문제해결", "reason": "핵심"},
+					"secondary": []
+				},
+				"writing_structure": {
+					"total_chars": 800,
+					"sections": [{"name": "전체", "char_ratio": 1.0, "char_count": 800, "guide": "가이드"}]
+				},
+				"key_keywords": ["키워드"],
+				"avoid_list": ["피할말"],
+				"good_structure_example": "예시"
+			}`,
+		},
+	}
+
+	client := testutil.NewTestClient(t)
+	svc := NewQuestionService(client, newTestAIProviderForQuestion(mockAI))
+	ctx := context.Background()
+
+	email := "standalone-q-" + uuid.New().String()[:8] + "@example.com"
+	user := client.UserProfile.Create().
+		SetEmail(email).
+		SetPasswordHash("hash").
+		SetRole("user").
+		SaveX(ctx)
+
+	ensureQuestionAnalysisPrompt(t, client)
+	ensureWeaponCategoriesForQuestion(t, client)
+
+	// Call with nil applicationID and a company name
+	result, err := svc.AnalyzeQuestion(ctx, user.ID, nil, "카카오", "팀 프로젝트 경험을 기술하세요.", 800)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Len(t, result.RealIntents, 3)
+	assert.Equal(t, 1, mockAI.calls)
+}
+
+func TestAnalyzeQuestion_NilApplicationID_EmptyCompanyName(t *testing.T) {
+	mockAI := &MockLLMForQuestion{
+		response: ai.LLMResponse{
+			Content: `{
+				"surface_question": "범용 코칭",
+				"real_intents": [
+					{"intent": "1", "why": "a"},
+					{"intent": "2", "why": "b"},
+					{"intent": "3", "why": "c"}
+				],
+				"required_weapons": {
+					"primary": {"weapon_id": "W01", "weapon_name": "문제해결", "reason": "핵심"},
+					"secondary": []
+				},
+				"writing_structure": {
+					"total_chars": 800,
+					"sections": [{"name": "전체", "char_ratio": 1.0, "char_count": 800, "guide": "가이드"}]
+				},
+				"key_keywords": ["키워드"],
+				"avoid_list": ["피할말"],
+				"good_structure_example": "예시"
+			}`,
+		},
+	}
+
+	client := testutil.NewTestClient(t)
+	svc := NewQuestionService(client, newTestAIProviderForQuestion(mockAI))
+	ctx := context.Background()
+
+	email := "standalone-q2-" + uuid.New().String()[:8] + "@example.com"
+	user := client.UserProfile.Create().
+		SetEmail(email).
+		SetPasswordHash("hash").
+		SetRole("user").
+		SaveX(ctx)
+
+	ensureQuestionAnalysisPrompt(t, client)
+	ensureWeaponCategoriesForQuestion(t, client)
+
+	// Call with nil applicationID and empty company name
+	result, err := svc.AnalyzeQuestion(ctx, user.ID, nil, "", "리더십을 발휘한 경험을 기술하세요.", 800)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, 1, mockAI.calls)
+}
+
+func TestRecommendExperiences_NilApplicationID(t *testing.T) {
+	client := testutil.NewTestClient(t)
+	svc := NewQuestionService(client, nil)
+	ctx := context.Background()
+
+	userID, _ := createTestUserAndApplication(t, client)
+	ensureWeaponCategoriesForQuestion(t, client)
+
+	w01, _ := client.WeaponCategory.Query().Where(weaponcategory.CodeEQ("W01")).Only(ctx)
+
+	exp := client.Experience.Create().
+		SetUserID(userID).SetTitle("경험").SetContent("내용").SetCategory("프로젝트").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SaveX(ctx)
+	client.ExperienceWeapon.Create().SetExperience(exp).SetWeaponCode(w01.Code).SetConfidence(0.9).SetIsPrimary(true).SaveX(ctx)
+
+	// ApplicationID is nil pointer — should still work (no usage dedup)
+	input := RecommendInput{
+		RequiredWeapons: RequiredWeapons{
+			Primary:   WeaponInfo{WeaponID: w01.Code, WeaponName: "문제해결"},
+			Secondary: []WeaponInfo{},
+		},
+		ApplicationID: nil,
+		Limit:         5,
+	}
+
+	recommendations, err := svc.RecommendExperiences(ctx, userID, input)
+	require.NoError(t, err)
+	require.Len(t, recommendations, 1)
+	assert.Equal(t, "경험", recommendations[0].Title)
 }

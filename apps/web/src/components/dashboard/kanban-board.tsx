@@ -61,9 +61,11 @@ const COLUMNS: ColumnConfig[] = [
 interface KanbanBoardProps {
   applications: ApplicationDetail[];
   onStatusChange: (id: string, status: ApplicationStatus) => void;
+  onEdit?: (app: ApplicationDetail) => void;
+  onDelete?: (app: ApplicationDetail) => void;
 }
 
-export function KanbanBoard({ applications, onStatusChange }: KanbanBoardProps) {
+export function KanbanBoard({ applications, onStatusChange, onEdit, onDelete }: KanbanBoardProps) {
   const grouped = useMemo(() => {
     const map: Record<string, ApplicationDetail[]> = {};
     for (const col of COLUMNS) {
@@ -97,7 +99,7 @@ export function KanbanBoard({ applications, onStatusChange }: KanbanBoardProps) 
         <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory lg:snap-none lg:overflow-visible">
           {COLUMNS.map((col) => (
             <div key={col.status} className="snap-start">
-              <KanbanColumn config={col} applications={grouped[col.status]} />
+              <KanbanColumn config={col} applications={grouped[col.status]} onEdit={onEdit} onDelete={onDelete} />
             </div>
           ))}
         </div>

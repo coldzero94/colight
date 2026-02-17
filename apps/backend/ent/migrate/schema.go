@@ -49,12 +49,13 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "company_name", Type: field.TypeString, Size: 100},
-		{Name: "position", Type: field.TypeString, Size: 200},
+		{Name: "position", Type: field.TypeString, Nullable: true, Size: 200},
 		{Name: "job_url", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"preparing", "submitted", "in_review", "interview", "accepted", "rejected"}, Default: "preparing"},
 		{Name: "deadline", Type: field.TypeTime, Nullable: true},
 		{Name: "applied_at", Type: field.TypeTime, Nullable: true},
 		{Name: "notes", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "tags", Type: field.TypeJSON, Nullable: true},
 		{Name: "company_analysis_applications", Type: field.TypeUUID, Nullable: true},
 		{Name: "user_id", Type: field.TypeUUID},
 	}
@@ -66,13 +67,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "applications_company_analyses_applications",
-				Columns:    []*schema.Column{ApplicationsColumns[10]},
+				Columns:    []*schema.Column{ApplicationsColumns[11]},
 				RefColumns: []*schema.Column{CompanyAnalysesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "applications_user_profiles_applications",
-				Columns:    []*schema.Column{ApplicationsColumns[11]},
+				Columns:    []*schema.Column{ApplicationsColumns[12]},
 				RefColumns: []*schema.Column{UserProfilesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -81,17 +82,22 @@ var (
 			{
 				Name:    "application_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationsColumns[11]},
+				Columns: []*schema.Column{ApplicationsColumns[12]},
 			},
 			{
 				Name:    "application_user_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationsColumns[11], ApplicationsColumns[6]},
+				Columns: []*schema.Column{ApplicationsColumns[12], ApplicationsColumns[6]},
 			},
 			{
 				Name:    "application_user_id_deadline",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationsColumns[11], ApplicationsColumns[7]},
+				Columns: []*schema.Column{ApplicationsColumns[12], ApplicationsColumns[7]},
+			},
+			{
+				Name:    "application_user_id_company_name",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationsColumns[12], ApplicationsColumns[3]},
 			},
 		},
 	}

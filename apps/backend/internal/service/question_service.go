@@ -85,22 +85,59 @@ func (s *QuestionService) ListApplications(ctx context.Context, userID uuid.UUID
 	return apps, nil
 }
 
-// AnalyzeQuestion analyzes a cover letter question using Claude
-func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID, applicationID uuid.UUID, questionText string, charLimit int) (*QuestionAnalysisResult, error) {
-	// 1. Verify application exists and user owns it
-	app, err := s.entClient.Application.Query().
-		Where(application.IDEQ(applicationID)).
-		WithAnalysis(). // Load company analysis if exists
-		Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, ErrApplicationNotFound
-		}
-		return nil, err
-	}
+// AnalyzeQuestion analyzes a cover letter question using Claude.
+// applicationID is optional — when nil, companyName is used directly (standalone coaching).
+func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID, applicationID *uuid.UUID, companyName string, questionText string, charLimit int) (*QuestionAnalysisResult, error) {
+	// 1. Resolve company context from application or direct input
+	resolvedCompanyName := companyName
+	resolvedPosition := ""
+	talentKeywords := ""
+	valuesKeywords := ""
 
-	if app.UserID != userID {
-		return nil, ErrApplicationForbidden
+	if applicationID != nil {
+		app, err := s.entClient.Application.Query().
+			Where(application.IDEQ(*applicationID)).
+			WithAnalysis().
+			Only(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return nil, ErrApplicationNotFound
+			}
+			return nil, err
+		}
+
+		if app.UserID != userID {
+			return nil, ErrApplicationForbidden
+		}
+
+		resolvedCompanyName = app.CompanyName
+		resolvedPosition = app.Position
+
+		if app.Edges.Analysis != nil && app.Edges.Analysis.AnalysisResult != nil {
+			if coreValues, ok := app.Edges.Analysis.AnalysisResult["core_values"].([]any); ok && len(coreValues) > 0 {
+				var keywords []string
+				for _, v := range coreValues {
+					if vm, ok := v.(map[string]any); ok {
+						if keyword, ok := vm["keyword"].(string); ok {
+							keywords = append(keywords, keyword)
+						}
+					}
+				}
+				valuesKeywords = strings.Join(keywords, ", ")
+			}
+
+			if talentTraits, ok := app.Edges.Analysis.AnalysisResult["talent_traits"].([]any); ok && len(talentTraits) > 0 {
+				var traits []string
+				for _, t := range talentTraits {
+					if tm, ok := t.(map[string]any); ok {
+						if trait, ok := tm["trait"].(string); ok {
+							traits = append(traits, trait)
+						}
+					}
+				}
+				talentKeywords = strings.Join(traits, ", ")
+			}
+		}
 	}
 
 	// 2. Load weapon categories for context
@@ -116,39 +153,7 @@ func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID,
 	}
 	weaponContext := strings.Join(weaponList, "\n")
 
-	// 3. Extract talent keywords and values keywords from analysis if available
-	talentKeywords := ""
-	valuesKeywords := ""
-
-	if app.Edges.Analysis != nil && app.Edges.Analysis.AnalysisResult != nil {
-		// Extract core values from analysis_result JSON
-		if coreValues, ok := app.Edges.Analysis.AnalysisResult["core_values"].([]any); ok && len(coreValues) > 0 {
-			var keywords []string
-			for _, v := range coreValues {
-				if vm, ok := v.(map[string]any); ok {
-					if keyword, ok := vm["keyword"].(string); ok {
-						keywords = append(keywords, keyword)
-					}
-				}
-			}
-			valuesKeywords = strings.Join(keywords, ", ")
-		}
-
-		// Extract talent traits from analysis_result JSON
-		if talentTraits, ok := app.Edges.Analysis.AnalysisResult["talent_traits"].([]any); ok && len(talentTraits) > 0 {
-			var traits []string
-			for _, t := range talentTraits {
-				if tm, ok := t.(map[string]any); ok {
-					if trait, ok := tm["trait"].(string); ok {
-						traits = append(traits, trait)
-					}
-				}
-			}
-			talentKeywords = strings.Join(traits, ", ")
-		}
-	}
-
-	// 4. Load prompt template
+	// 3. Load prompt template
 	prompt, err := s.entClient.PromptTemplate.Query().
 		Where(
 			prompttemplate.CategoryEQ("coaching"),
@@ -160,16 +165,16 @@ func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID,
 		return nil, fmt.Errorf("failed to load prompt template: %w", err)
 	}
 
-	// 5. Build prompt
-	userPrompt := strings.ReplaceAll(prompt.UserPromptTemplate, "{{company_name}}", app.CompanyName)
-	userPrompt = strings.ReplaceAll(userPrompt, "{{position}}", app.Position)
+	// 4. Build prompt
+	userPrompt := strings.ReplaceAll(prompt.UserPromptTemplate, "{{company_name}}", resolvedCompanyName)
+	userPrompt = strings.ReplaceAll(userPrompt, "{{position}}", resolvedPosition)
 	userPrompt = strings.ReplaceAll(userPrompt, "{{talent_keywords}}", talentKeywords)
 	userPrompt = strings.ReplaceAll(userPrompt, "{{values_keywords}}", valuesKeywords)
 	userPrompt = strings.ReplaceAll(userPrompt, "{{weapon_categories}}", weaponContext)
 	userPrompt = strings.ReplaceAll(userPrompt, "{{question_text}}", questionText)
 	userPrompt = strings.ReplaceAll(userPrompt, "{{char_limit}}", fmt.Sprintf("%d", charLimit))
 
-	// 6. Call Claude
+	// 5. Call Claude
 	llmReq := ai.LLMRequest{
 		SystemPrompt: prompt.SystemPrompt,
 		UserPrompt:   userPrompt,
@@ -182,13 +187,13 @@ func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID,
 		return nil, fmt.Errorf("AI call failed: %w", err)
 	}
 
-	// 7. Parse response
+	// 6. Parse response
 	var result QuestionAnalysisResult
 	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
-	// 8. Validate result structure
+	// 7. Validate result structure
 	if len(result.RealIntents) != 3 {
 		return nil, fmt.Errorf("real_intents must have exactly 3 items, got %d", len(result.RealIntents))
 	}
@@ -213,7 +218,7 @@ func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID,
 type RecommendInput struct {
 	RequiredWeapons RequiredWeapons `json:"required_weapons"`
 	KeyKeywords     []string        `json:"key_keywords"`
-	ApplicationID   uuid.UUID       `json:"application_id"`
+	ApplicationID   *uuid.UUID      `json:"application_id"`
 	Limit           int             `json:"limit"`
 }
 
@@ -259,9 +264,9 @@ func (s *QuestionService) RecommendExperiences(ctx context.Context, userID uuid.
 
 	// 2. Query usage data: which experience IDs are already used in this application
 	usedInAppSet := make(map[uuid.UUID]bool)
-	if input.ApplicationID != uuid.Nil {
+	if input.ApplicationID != nil {
 		usedIDs, err := s.entClient.ExperienceUsage.Query().
-			Where(experienceusage.HasApplicationWith(application.IDEQ(input.ApplicationID))).
+			Where(experienceusage.HasApplicationWith(application.IDEQ(*input.ApplicationID))).
 			QueryExperience().
 			IDs(ctx)
 		if err != nil {

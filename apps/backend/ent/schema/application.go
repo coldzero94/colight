@@ -28,7 +28,7 @@ func (Application) Fields() []ent.Field {
 			MaxLen(100).
 			Comment("Company name"),
 		field.String("position").
-			NotEmpty().
+			Optional().
 			MaxLen(200).
 			Comment("Position title"),
 		field.Text("job_url").
@@ -49,6 +49,9 @@ func (Application) Fields() []ent.Field {
 		field.Text("notes").
 			Optional().
 			Comment("Notes"),
+		field.JSON("tags", []string{}).
+			Optional().
+			Comment("User-defined tags for filtering"),
 	}
 }
 
@@ -74,5 +77,6 @@ func (Application) Indexes() []ent.Index {
 		index.Fields("user_id"),
 		index.Fields("user_id", "status"),
 		index.Fields("user_id", "deadline"),
+		index.Fields("user_id", "company_name"),
 	}
 }

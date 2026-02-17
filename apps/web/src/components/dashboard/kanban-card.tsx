@@ -1,11 +1,14 @@
 "use client";
 
 import { Draggable } from "@hello-pangea/dnd";
+import { Pencil, Trash2 } from "lucide-react";
 import type { ApplicationDetail } from "@/lib/api/applications";
 
 interface KanbanCardProps {
   application: ApplicationDetail;
   index: number;
+  onEdit?: (app: ApplicationDetail) => void;
+  onDelete?: (app: ApplicationDetail) => void;
 }
 
 function getDeadlineDays(deadline: string): number {
@@ -36,7 +39,7 @@ function DeadlineBadge({ deadline }: { deadline: string }) {
   );
 }
 
-export function KanbanCard({ application, index }: KanbanCardProps) {
+export function KanbanCard({ application, index, onEdit, onDelete }: KanbanCardProps) {
   return (
     <Draggable draggableId={application.id} index={index}>
       {(provided, snapshot) => (
@@ -54,23 +57,63 @@ export function KanbanCard({ application, index }: KanbanCardProps) {
             <h4 className="truncate text-sm font-semibold text-foreground">
               {application.company_name}
             </h4>
-            <svg
-              className="h-4 w-4 shrink-0 text-muted-foreground/30 transition-colors group-hover:text-muted-foreground/55"
-              fill="currentColor"
-              viewBox="0 0 6 10"
-            >
-              <circle cx="1" cy="1" r="1" />
-              <circle cx="5" cy="1" r="1" />
-              <circle cx="1" cy="5" r="1" />
-              <circle cx="5" cy="5" r="1" />
-              <circle cx="1" cy="9" r="1" />
-              <circle cx="5" cy="9" r="1" />
-            </svg>
+            <div className="flex shrink-0 items-center gap-1">
+              {onEdit && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit(application); }}
+                  className="hidden rounded p-0.5 text-muted-foreground/40 transition-colors hover:text-foreground group-hover:inline-flex"
+                  aria-label="수정"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDelete(application); }}
+                  className="hidden rounded p-0.5 text-muted-foreground/40 transition-colors hover:text-red-400 group-hover:inline-flex"
+                  aria-label="삭제"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <svg
+                className="h-4 w-4 text-muted-foreground/30 transition-colors group-hover:text-muted-foreground/55"
+                fill="currentColor"
+                viewBox="0 0 6 10"
+              >
+                <circle cx="1" cy="1" r="1" />
+                <circle cx="5" cy="1" r="1" />
+                <circle cx="1" cy="5" r="1" />
+                <circle cx="5" cy="5" r="1" />
+                <circle cx="1" cy="9" r="1" />
+                <circle cx="5" cy="9" r="1" />
+              </svg>
+            </div>
           </div>
 
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {application.position}
-          </p>
+          {application.position && (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {application.position}
+            </p>
+          )}
+
+          {application.tags.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {application.tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary/80"
+                >
+                  {tag}
+                </span>
+              ))}
+              {application.tags.length > 3 && (
+                <span className="text-[10px] text-muted-foreground">
+                  +{application.tags.length - 3}
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="mt-2 flex items-center gap-2 text-xs">
             {application.cover_letter_count > 0 && (
@@ -93,6 +136,11 @@ export function KanbanCard({ application, index }: KanbanCardProps) {
             )}
             {application.deadline && (
               <DeadlineBadge deadline={application.deadline} />
+            )}
+            {application.analysis_id && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary/70">
+                분석 연결됨
+              </span>
             )}
           </div>
         </div>

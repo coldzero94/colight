@@ -20,6 +20,10 @@ var (
 	ErrApplicationNotFound  = errors.New("application not found")
 	ErrApplicationForbidden = errors.New("forbidden: not the owner of this application")
 
+	// Analysis errors
+	ErrAnalysisNotFound  = errors.New("company analysis not found")
+	ErrAnalysisForbidden = errors.New("forbidden: not the owner of this analysis")
+
 	// Cover letter errors
 	ErrCoverLetterNotFound  = errors.New("cover letter not found")
 	ErrCoverLetterForbidden = errors.New("forbidden: not the owner of this cover letter")

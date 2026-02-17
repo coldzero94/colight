@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/coby/colight/apps/backend/ent/application"
 	"github.com/coby/colight/apps/backend/ent/companyanalysis"
@@ -78,6 +79,12 @@ func (_u *ApplicationUpdate) SetNillablePosition(v *string) *ApplicationUpdate {
 	if v != nil {
 		_u.SetPosition(*v)
 	}
+	return _u
+}
+
+// ClearPosition clears the value of the "position" field.
+func (_u *ApplicationUpdate) ClearPosition() *ApplicationUpdate {
+	_u.mutation.ClearPosition()
 	return _u
 }
 
@@ -172,6 +179,24 @@ func (_u *ApplicationUpdate) SetNillableNotes(v *string) *ApplicationUpdate {
 // ClearNotes clears the value of the "notes" field.
 func (_u *ApplicationUpdate) ClearNotes() *ApplicationUpdate {
 	_u.mutation.ClearNotes()
+	return _u
+}
+
+// SetTags sets the "tags" field.
+func (_u *ApplicationUpdate) SetTags(v []string) *ApplicationUpdate {
+	_u.mutation.SetTags(v)
+	return _u
+}
+
+// AppendTags appends value to the "tags" field.
+func (_u *ApplicationUpdate) AppendTags(v []string) *ApplicationUpdate {
+	_u.mutation.AppendTags(v)
+	return _u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (_u *ApplicationUpdate) ClearTags() *ApplicationUpdate {
+	_u.mutation.ClearTags()
 	return _u
 }
 
@@ -368,6 +393,9 @@ func (_u *ApplicationUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	if value, ok := _u.mutation.Position(); ok {
 		_spec.SetField(application.FieldPosition, field.TypeString, value)
 	}
+	if _u.mutation.PositionCleared() {
+		_spec.ClearField(application.FieldPosition, field.TypeString)
+	}
 	if value, ok := _u.mutation.JobURL(); ok {
 		_spec.SetField(application.FieldJobURL, field.TypeString, value)
 	}
@@ -394,6 +422,17 @@ func (_u *ApplicationUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if _u.mutation.NotesCleared() {
 		_spec.ClearField(application.FieldNotes, field.TypeString)
+	}
+	if value, ok := _u.mutation.Tags(); ok {
+		_spec.SetField(application.FieldTags, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, application.FieldTags, value)
+		})
+	}
+	if _u.mutation.TagsCleared() {
+		_spec.ClearField(application.FieldTags, field.TypeJSON)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -611,6 +650,12 @@ func (_u *ApplicationUpdateOne) SetNillablePosition(v *string) *ApplicationUpdat
 	return _u
 }
 
+// ClearPosition clears the value of the "position" field.
+func (_u *ApplicationUpdateOne) ClearPosition() *ApplicationUpdateOne {
+	_u.mutation.ClearPosition()
+	return _u
+}
+
 // SetJobURL sets the "job_url" field.
 func (_u *ApplicationUpdateOne) SetJobURL(v string) *ApplicationUpdateOne {
 	_u.mutation.SetJobURL(v)
@@ -702,6 +747,24 @@ func (_u *ApplicationUpdateOne) SetNillableNotes(v *string) *ApplicationUpdateOn
 // ClearNotes clears the value of the "notes" field.
 func (_u *ApplicationUpdateOne) ClearNotes() *ApplicationUpdateOne {
 	_u.mutation.ClearNotes()
+	return _u
+}
+
+// SetTags sets the "tags" field.
+func (_u *ApplicationUpdateOne) SetTags(v []string) *ApplicationUpdateOne {
+	_u.mutation.SetTags(v)
+	return _u
+}
+
+// AppendTags appends value to the "tags" field.
+func (_u *ApplicationUpdateOne) AppendTags(v []string) *ApplicationUpdateOne {
+	_u.mutation.AppendTags(v)
+	return _u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (_u *ApplicationUpdateOne) ClearTags() *ApplicationUpdateOne {
+	_u.mutation.ClearTags()
 	return _u
 }
 
@@ -928,6 +991,9 @@ func (_u *ApplicationUpdateOne) sqlSave(ctx context.Context) (_node *Application
 	if value, ok := _u.mutation.Position(); ok {
 		_spec.SetField(application.FieldPosition, field.TypeString, value)
 	}
+	if _u.mutation.PositionCleared() {
+		_spec.ClearField(application.FieldPosition, field.TypeString)
+	}
 	if value, ok := _u.mutation.JobURL(); ok {
 		_spec.SetField(application.FieldJobURL, field.TypeString, value)
 	}
@@ -954,6 +1020,17 @@ func (_u *ApplicationUpdateOne) sqlSave(ctx context.Context) (_node *Application
 	}
 	if _u.mutation.NotesCleared() {
 		_spec.ClearField(application.FieldNotes, field.TypeString)
+	}
+	if value, ok := _u.mutation.Tags(); ok {
+		_spec.SetField(application.FieldTags, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, application.FieldTags, value)
+		})
+	}
+	if _u.mutation.TagsCleared() {
+		_spec.ClearField(application.FieldTags, field.TypeJSON)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

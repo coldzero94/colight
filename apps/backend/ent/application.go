@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -41,6 +42,8 @@ type Application struct {
 	AppliedAt *time.Time `json:"applied_at,omitempty"`
 	// Notes
 	Notes string `json:"notes,omitempty"`
+	// User-defined tags for filtering
+	Tags []string `json:"tags,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationQuery when eager-loading is set.
 	Edges                         ApplicationEdges `json:"edges"`
@@ -108,6 +111,8 @@ func (*Application) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case application.FieldTags:
+			values[i] = new([]byte)
 		case application.FieldCompanyName, application.FieldPosition, application.FieldJobURL, application.FieldStatus, application.FieldNotes:
 			values[i] = new(sql.NullString)
 		case application.FieldCreatedAt, application.FieldUpdatedAt, application.FieldDeadline, application.FieldAppliedAt:
@@ -198,6 +203,14 @@ func (_m *Application) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field notes", values[i])
 			} else if value.Valid {
 				_m.Notes = value.String
+			}
+		case application.FieldTags:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field tags", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Tags); err != nil {
+					return fmt.Errorf("unmarshal field tags: %w", err)
+				}
 			}
 		case application.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -295,6 +308,9 @@ func (_m *Application) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("notes=")
 	builder.WriteString(_m.Notes)
+	builder.WriteString(", ")
+	builder.WriteString("tags=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Tags))
 	builder.WriteByte(')')
 	return builder.String()
 }

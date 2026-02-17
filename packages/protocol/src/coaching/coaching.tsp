@@ -36,7 +36,10 @@ model RealIntent {
 
 model QuestionAnalysisRequest {
   @encodedName("application/json", "application_id")
-  applicationId: string;
+  applicationId?: string;
+
+  @encodedName("application/json", "company_name")
+  companyName?: string;
 
   @encodedName("application/json", "question_text")
   questionText: string;
@@ -78,7 +81,10 @@ model QuestionAnalysisResult {
 
 model GenerateDraftRequest {
   @encodedName("application/json", "application_id")
-  applicationId: string;
+  applicationId?: string;
+
+  @encodedName("application/json", "company_name")
+  companyName?: string;
 
   @encodedName("application/json", "experience_ids")
   experienceIds: string[];
@@ -229,6 +235,82 @@ model ApplicationSummary {
   createdAt: utcDateTime;
 }
 
+model ApplicationDetail {
+  id: string;
+
+  @encodedName("application/json", "company_name")
+  companyName: string;
+
+  position: string;
+  status: string;
+  deadline?: string;
+
+  @encodedName("application/json", "applied_at")
+  appliedAt?: string;
+
+  notes: string;
+  tags: string[];
+
+  @encodedName("application/json", "analysis_id")
+  analysisId?: string;
+
+  @encodedName("application/json", "cover_letter_count")
+  coverLetterCount: int32;
+
+  @encodedName("application/json", "created_at")
+  createdAt: string;
+
+  @encodedName("application/json", "updated_at")
+  updatedAt: string;
+}
+
+model CreateApplicationRequest {
+  @encodedName("application/json", "company_name")
+  companyName: string;
+
+  position?: string;
+
+  @encodedName("application/json", "job_url")
+  jobUrl?: string;
+
+  deadline?: utcDateTime;
+  notes?: string;
+  tags?: string[];
+}
+
+model UpdateApplicationRequest {
+  @encodedName("application/json", "company_name")
+  companyName?: string;
+
+  position?: string;
+
+  @encodedName("application/json", "job_url")
+  jobUrl?: string;
+
+  deadline?: utcDateTime;
+
+  @encodedName("application/json", "applied_at")
+  appliedAt?: utcDateTime;
+
+  notes?: string;
+  tags?: string[];
+}
+
+model LinkAnalysisRequest {
+  @encodedName("application/json", "analysis_id")
+  analysisId: string;
+}
+
+model ApplicationStats {
+  total: int32;
+
+  @encodedName("application/json", "by_status")
+  byStatus: Record<int32>;
+
+  @encodedName("application/json", "upcoming_deadlines")
+  upcomingDeadlines: ApplicationDetail[];
+}
+
 // ─── Coaching Interface ───
 
 @tag("Coaching")
@@ -311,6 +393,66 @@ interface CoachingAPI {
   @route("/v1/applications")
   getApplications(): {
     @statusCode statusCode: 200;
-    @body body: { applications: ApplicationSummary[] };
+    @body body: { applications: ApplicationDetail[] };
+  } | Colight.Common.ErrorResponse;
+
+  /** Create application manually */
+  @post
+  @route("/v1/applications")
+  createApplication(@body body: CreateApplicationRequest): {
+    @statusCode statusCode: 201;
+    @body body: ApplicationDetail;
+  } | Colight.Common.ErrorResponse;
+
+  /** Update application fields */
+  @patch(#{implicitOptionality: true})
+  @route("/v1/applications/{id}")
+  updateApplication(@path id: string, @body body: UpdateApplicationRequest): {
+    @statusCode statusCode: 200;
+    @body body: ApplicationDetail;
+  } | Colight.Common.ErrorResponse;
+
+  /** Delete application */
+  @delete
+  @route("/v1/applications/{id}")
+  deleteApplication(@path id: string): {
+    @statusCode statusCode: 204;
+  } | Colight.Common.ErrorResponse;
+
+  /** Update application status (drag-drop) */
+  @patch(#{implicitOptionality: true})
+  @route("/v1/applications/{id}/status")
+  updateApplicationStatus(@path id: string, @body body: { status: string }): {
+    @statusCode statusCode: 200;
+    @body body: ApplicationDetail;
+  } | Colight.Common.ErrorResponse;
+
+  /** Get application stats */
+  @get
+  @route("/v1/applications/stats")
+  getApplicationStats(): {
+    @statusCode statusCode: 200;
+    @body body: ApplicationStats;
+  } | Colight.Common.ErrorResponse;
+
+  /** Link company analysis to application */
+  @post
+  @route("/v1/applications/{id}/link-analysis")
+  linkAnalysis(@path id: string, @body body: LinkAnalysisRequest): {
+    @statusCode statusCode: 200;
+    @body body: ApplicationDetail;
+  } | Colight.Common.ErrorResponse;
+
+  /** Search applications with filters */
+  @get
+  @route("/v1/applications/search")
+  searchApplications(
+    @query q?: string,
+    @query tags?: string,
+    @query @encodedName("application/json", "deadline_from") deadlineFrom?: string,
+    @query @encodedName("application/json", "deadline_to") deadlineTo?: string,
+  ): {
+    @statusCode statusCode: 200;
+    @body body: { applications: ApplicationDetail[] };
   } | Colight.Common.ErrorResponse;
 }

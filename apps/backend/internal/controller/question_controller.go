@@ -66,7 +66,8 @@ func (c *QuestionController) PostQuestionAnalysis(ctx *gin.Context) {
 	}
 
 	var req struct {
-		ApplicationID string `json:"application_id" binding:"required,uuid"`
+		ApplicationID string `json:"application_id" binding:"omitempty,uuid"`
+		CompanyName   string `json:"company_name"`
 		QuestionText  string `json:"question_text" binding:"required,min=10,max=500"`
 		CharLimit     int    `json:"char_limit" binding:"required,min=200,max=2000"`
 	}
@@ -78,13 +79,17 @@ func (c *QuestionController) PostQuestionAnalysis(ctx *gin.Context) {
 		return
 	}
 
-	// Parse application ID
-	appID, err := uuid.Parse(req.ApplicationID)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "유효하지 않은 application_id입니다",
-		})
-		return
+	// Parse optional application ID
+	var appID *uuid.UUID
+	if req.ApplicationID != "" {
+		parsed, err := uuid.Parse(req.ApplicationID)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "유효하지 않은 application_id입니다",
+			})
+			return
+		}
+		appID = &parsed
 	}
 
 	// Call question analysis service
@@ -92,6 +97,7 @@ func (c *QuestionController) PostQuestionAnalysis(ctx *gin.Context) {
 		ctx.Request.Context(),
 		userID.(uuid.UUID),
 		appID,
+		req.CompanyName,
 		req.QuestionText,
 		req.CharLimit,
 	)

@@ -3,8 +3,14 @@ import {
   getApplications,
   getApplicationStats,
   updateApplicationStatus,
+  createApplication,
+  updateApplication,
+  deleteApplication,
+  linkAnalysis,
   type ApplicationDetail,
   type ApplicationStatus,
+  type CreateApplicationInput,
+  type UpdateApplicationInput,
 } from "@/lib/api/applications";
 
 const APPLICATIONS_KEY = ["applications"] as const;
@@ -52,6 +58,55 @@ export function useUpdateApplicationStatus() {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: APPLICATIONS_KEY });
       queryClient.invalidateQueries({ queryKey: APPLICATION_STATS_KEY });
+    },
+  });
+}
+
+export function useCreateApplication() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: CreateApplicationInput) => createApplication(input),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: APPLICATIONS_KEY });
+      queryClient.invalidateQueries({ queryKey: APPLICATION_STATS_KEY });
+    },
+  });
+}
+
+export function useUpdateApplication() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: UpdateApplicationInput }) =>
+      updateApplication(id, input),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: APPLICATIONS_KEY });
+      queryClient.invalidateQueries({ queryKey: APPLICATION_STATS_KEY });
+    },
+  });
+}
+
+export function useDeleteApplication() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deleteApplication(id),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: APPLICATIONS_KEY });
+      queryClient.invalidateQueries({ queryKey: APPLICATION_STATS_KEY });
+    },
+  });
+}
+
+export function useLinkAnalysis() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ appId, analysisId }: { appId: string; analysisId: string }) =>
+      linkAnalysis(appId, analysisId),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: APPLICATIONS_KEY });
     },
   });
 }

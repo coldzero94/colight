@@ -84,6 +84,29 @@ export type AuthUserInfo = {
     created_at: string;
 };
 
+export type CoachingApplicationDetail = {
+    id: string;
+    company_name: string;
+    position: string;
+    status: string;
+    deadline?: string;
+    applied_at?: string;
+    notes: string;
+    tags: Array<string>;
+    analysis_id?: string;
+    cover_letter_count: number;
+    created_at: string;
+    updated_at: string;
+};
+
+export type CoachingApplicationStats = {
+    total: number;
+    by_status: {
+        [key: string]: number;
+    };
+    upcoming_deadlines: Array<CoachingApplicationDetail>;
+};
+
 export type CoachingApplicationSummary = {
     id: string;
     company_name: string;
@@ -117,6 +140,15 @@ export type CoachingCoverLetterVersion = {
     created_at: string;
 };
 
+export type CoachingCreateApplicationRequest = {
+    company_name: string;
+    position?: string;
+    job_url?: string;
+    deadline?: string;
+    notes?: string;
+    tags?: Array<string>;
+};
+
 export type CoachingDimensionFeedback = {
     dimension: string;
     score: number;
@@ -136,15 +168,21 @@ export type CoachingExperienceRecommendation = {
 };
 
 export type CoachingGenerateDraftRequest = {
-    application_id: string;
+    application_id?: string;
+    company_name?: string;
     experience_ids: Array<string>;
     question_text: string;
     char_limit: number;
     analysis_result?: CoachingQuestionAnalysisResult;
 };
 
+export type CoachingLinkAnalysisRequest = {
+    analysis_id: string;
+};
+
 export type CoachingQuestionAnalysisRequest = {
-    application_id: string;
+    application_id?: string;
+    company_name?: string;
     question_text: string;
     char_limit: number;
 };
@@ -201,6 +239,16 @@ export type CoachingSpecificSuggestion = {
     original: string;
     suggested: string;
     reason: string;
+};
+
+export type CoachingUpdateApplicationRequest = {
+    company_name?: string;
+    position?: string;
+    job_url?: string;
+    deadline?: string;
+    applied_at?: string;
+    notes?: string;
+    tags?: Array<string>;
 };
 
 export type CoachingWeaponRef = {
@@ -926,11 +974,427 @@ export type CoachingApiGetApplicationsResponses = {
      * The request has succeeded.
      */
     200: {
-        applications: Array<CoachingApplicationSummary>;
+        applications: Array<CoachingApplicationDetail>;
     };
 };
 
 export type CoachingApiGetApplicationsResponse = CoachingApiGetApplicationsResponses[keyof CoachingApiGetApplicationsResponses];
+
+export type CoachingApiCreateApplicationData = {
+    body: CoachingCreateApplicationRequest;
+    path?: never;
+    query?: never;
+    url: '/v1/applications';
+};
+
+export type CoachingApiCreateApplicationErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiCreateApplicationError = CoachingApiCreateApplicationErrors[keyof CoachingApiCreateApplicationErrors];
+
+export type CoachingApiCreateApplicationResponses = {
+    /**
+     * The request has succeeded and a new resource has been created as a result.
+     */
+    201: CoachingApplicationDetail;
+};
+
+export type CoachingApiCreateApplicationResponse = CoachingApiCreateApplicationResponses[keyof CoachingApiCreateApplicationResponses];
+
+export type CoachingApiSearchApplicationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        q?: string;
+        tags?: string;
+        deadlineFrom?: string;
+        deadlineTo?: string;
+    };
+    url: '/v1/applications/search';
+};
+
+export type CoachingApiSearchApplicationsErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiSearchApplicationsError = CoachingApiSearchApplicationsErrors[keyof CoachingApiSearchApplicationsErrors];
+
+export type CoachingApiSearchApplicationsResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        applications: Array<CoachingApplicationDetail>;
+    };
+};
+
+export type CoachingApiSearchApplicationsResponse = CoachingApiSearchApplicationsResponses[keyof CoachingApiSearchApplicationsResponses];
+
+export type CoachingApiGetApplicationStatsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/applications/stats';
+};
+
+export type CoachingApiGetApplicationStatsErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiGetApplicationStatsError = CoachingApiGetApplicationStatsErrors[keyof CoachingApiGetApplicationStatsErrors];
+
+export type CoachingApiGetApplicationStatsResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: CoachingApplicationStats;
+};
+
+export type CoachingApiGetApplicationStatsResponse = CoachingApiGetApplicationStatsResponses[keyof CoachingApiGetApplicationStatsResponses];
+
+export type CoachingApiDeleteApplicationData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/applications/{id}';
+};
+
+export type CoachingApiDeleteApplicationErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiDeleteApplicationError = CoachingApiDeleteApplicationErrors[keyof CoachingApiDeleteApplicationErrors];
+
+export type CoachingApiDeleteApplicationResponses = {
+    /**
+     * There is no content to send for this request, but the headers may be useful.
+     */
+    204: void;
+};
+
+export type CoachingApiDeleteApplicationResponse = CoachingApiDeleteApplicationResponses[keyof CoachingApiDeleteApplicationResponses];
+
+export type CoachingApiUpdateApplicationData = {
+    body: CoachingUpdateApplicationRequest;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/applications/{id}';
+};
+
+export type CoachingApiUpdateApplicationErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiUpdateApplicationError = CoachingApiUpdateApplicationErrors[keyof CoachingApiUpdateApplicationErrors];
+
+export type CoachingApiUpdateApplicationResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: CoachingApplicationDetail;
+};
+
+export type CoachingApiUpdateApplicationResponse = CoachingApiUpdateApplicationResponses[keyof CoachingApiUpdateApplicationResponses];
+
+export type CoachingApiLinkAnalysisData = {
+    body: CoachingLinkAnalysisRequest;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/applications/{id}/link-analysis';
+};
+
+export type CoachingApiLinkAnalysisErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiLinkAnalysisError = CoachingApiLinkAnalysisErrors[keyof CoachingApiLinkAnalysisErrors];
+
+export type CoachingApiLinkAnalysisResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: CoachingApplicationDetail;
+};
+
+export type CoachingApiLinkAnalysisResponse = CoachingApiLinkAnalysisResponses[keyof CoachingApiLinkAnalysisResponses];
+
+export type CoachingApiUpdateApplicationStatusData = {
+    body: {
+        status?: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/v1/applications/{id}/status';
+};
+
+export type CoachingApiUpdateApplicationStatusErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CoachingApiUpdateApplicationStatusError = CoachingApiUpdateApplicationStatusErrors[keyof CoachingApiUpdateApplicationStatusErrors];
+
+export type CoachingApiUpdateApplicationStatusResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: CoachingApplicationDetail;
+};
+
+export type CoachingApiUpdateApplicationStatusResponse = CoachingApiUpdateApplicationStatusResponses[keyof CoachingApiUpdateApplicationStatusResponses];
 
 export type AuthApiLoginData = {
     body: AuthLoginRequest;

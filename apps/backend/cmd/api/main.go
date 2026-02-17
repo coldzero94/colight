@@ -243,8 +243,13 @@ func main() {
 
 		// Applications (dashboard + coaching page)
 		protected.GET("/applications", applicationCtrl.ListApplications)
+		protected.POST("/applications", applicationCtrl.CreateApplication)
+		protected.PATCH("/applications/:id", applicationCtrl.UpdateApplication)
+		protected.DELETE("/applications/:id", applicationCtrl.DeleteApplication)
 		protected.PATCH("/applications/:id/status", applicationCtrl.UpdateStatus)
 		protected.GET("/applications/stats", applicationCtrl.GetStats)
+		protected.POST("/applications/:id/link-analysis", applicationCtrl.LinkAnalysis)
+		protected.GET("/applications/search", applicationCtrl.SearchApplications)
 
 		// Question analysis (AI-powered question intent analysis)
 		if questionCtrl != nil {

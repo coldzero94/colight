@@ -39,8 +39,13 @@ func setupApplicationTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
 		c.Next()
 	})
 	v1.GET("/applications", appCtrl.ListApplications)
+	v1.POST("/applications", appCtrl.CreateApplication)
+	v1.PATCH("/applications/:id", appCtrl.UpdateApplication)
+	v1.DELETE("/applications/:id", appCtrl.DeleteApplication)
 	v1.PATCH("/applications/:id/status", appCtrl.UpdateStatus)
 	v1.GET("/applications/stats", appCtrl.GetStats)
+	v1.POST("/applications/:id/link-analysis", appCtrl.LinkAnalysis)
+	v1.GET("/applications/search", appCtrl.SearchApplications)
 
 	return router, client
 }
@@ -130,6 +135,187 @@ func TestApplicationController_ListApplications_Success(t *testing.T) {
 	assert.Equal(t, "네이버", resp.Applications[0].CompanyName)
 	assert.Equal(t, 1, resp.Applications[0].CoverLetterCount)
 	assert.NotNil(t, resp.Applications[0].Deadline)
+}
+
+// === Phase 8.2.5: CRUD Controller Tests ===
+
+func TestApplicationController_CreateApplication_Success(t *testing.T) {
+	router, client := setupApplicationTestRouter(t)
+	ctx := context.Background()
+
+	user := client.UserProfile.Create().
+		SetEmail("create-app@test.com").
+		SetAuthProvider("email").
+		SaveX(ctx)
+
+	body, _ := json.Marshal(map[string]interface{}{
+		"company_name": "카카오",
+		"position":     "백엔드 개발자",
+		"notes":        "지원 준비 중",
+		"tags":         []string{"관심"},
+	})
+	req := httptest.NewRequest(http.MethodPost, "/v1/applications", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Test-UserID", user.ID.String())
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusCreated, w.Code)
+
+	var resp service.ApplicationDetail
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+	assert.Equal(t, "카카오", resp.CompanyName)
+	assert.Equal(t, "백엔드 개발자", resp.Position)
+	assert.Equal(t, "preparing", resp.Status)
+	assert.Equal(t, []string{"관심"}, resp.Tags)
+}
+
+func TestApplicationController_CreateApplication_MissingCompanyName(t *testing.T) {
+	router, client := setupApplicationTestRouter(t)
+	ctx := context.Background()
+
+	user := client.UserProfile.Create().
+		SetEmail("create-app2@test.com").
+		SetAuthProvider("email").
+		SaveX(ctx)
+
+	body, _ := json.Marshal(map[string]interface{}{"position": "FE"})
+	req := httptest.NewRequest(http.MethodPost, "/v1/applications", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Test-UserID", user.ID.String())
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestApplicationController_UpdateApplication_Success(t *testing.T) {
+	router, client := setupApplicationTestRouter(t)
+	ctx := context.Background()
+
+	user := client.UserProfile.Create().
+		SetEmail("update-app@test.com").
+		SetAuthProvider("email").
+		SaveX(ctx)
+
+	app := client.Application.Create().
+		SetUserID(user.ID).
+		SetCompanyName("토스").
+		SetPosition("서버 개발자").
+		SaveX(ctx)
+
+	body, _ := json.Marshal(map[string]interface{}{
+		"position": "시니어 서버 개발자",
+		"notes":    "면접 준비",
+	})
+	req := httptest.NewRequest(http.MethodPatch, "/v1/applications/"+app.ID.String(), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Test-UserID", user.ID.String())
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var resp service.ApplicationDetail
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+	assert.Equal(t, "토스", resp.CompanyName)
+	assert.Equal(t, "시니어 서버 개발자", resp.Position)
+}
+
+func TestApplicationController_DeleteApplication_Success(t *testing.T) {
+	router, client := setupApplicationTestRouter(t)
+	ctx := context.Background()
+
+	user := client.UserProfile.Create().
+		SetEmail("delete-app@test.com").
+		SetAuthProvider("email").
+		SaveX(ctx)
+
+	app := client.Application.Create().
+		SetUserID(user.ID).
+		SetCompanyName("삼성").
+		SetPosition("BE").
+		SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodDelete, "/v1/applications/"+app.ID.String(), nil)
+	req.Header.Set("X-Test-UserID", user.ID.String())
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusNoContent, w.Code)
+}
+
+func TestApplicationController_LinkAnalysis_Success(t *testing.T) {
+	router, client := setupApplicationTestRouter(t)
+	ctx := context.Background()
+
+	user := client.UserProfile.Create().
+		SetEmail("link-app@test.com").
+		SetAuthProvider("email").
+		SaveX(ctx)
+
+	app := client.Application.Create().
+		SetUserID(user.ID).
+		SetCompanyName("삼성전자").
+		SaveX(ctx)
+
+	analysis := client.CompanyAnalysis.Create().
+		SetUserID(user.ID).
+		SetCompanyName("삼성전자").
+		SaveX(ctx)
+
+	body, _ := json.Marshal(map[string]string{"analysis_id": analysis.ID.String()})
+	req := httptest.NewRequest(http.MethodPost, "/v1/applications/"+app.ID.String()+"/link-analysis", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Test-UserID", user.ID.String())
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var resp service.ApplicationDetail
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+	assert.NotNil(t, resp.AnalysisID)
+	assert.Equal(t, analysis.ID.String(), *resp.AnalysisID)
+}
+
+func TestApplicationController_SearchApplications_Success(t *testing.T) {
+	router, client := setupApplicationTestRouter(t)
+	ctx := context.Background()
+
+	user := client.UserProfile.Create().
+		SetEmail("search-app@test.com").
+		SetAuthProvider("email").
+		SaveX(ctx)
+
+	client.Application.Create().
+		SetUserID(user.ID).
+		SetCompanyName("삼성전자").
+		SetPosition("백엔드").
+		SaveX(ctx)
+	client.Application.Create().
+		SetUserID(user.ID).
+		SetCompanyName("네이버").
+		SetPosition("프론트엔드").
+		SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/applications/search?q=삼성", nil)
+	req.Header.Set("X-Test-UserID", user.ID.String())
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var resp struct {
+		Applications []service.ApplicationDetail `json:"applications"`
+	}
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+	assert.Len(t, resp.Applications, 1)
+	assert.Equal(t, "삼성전자", resp.Applications[0].CompanyName)
 }
 
 func TestApplicationController_GetStats_Success(t *testing.T) {

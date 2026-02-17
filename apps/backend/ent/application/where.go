@@ -321,6 +321,16 @@ func PositionHasSuffix(v string) predicate.Application {
 	return predicate.Application(sql.FieldHasSuffix(FieldPosition, v))
 }
 
+// PositionIsNil applies the IsNil predicate on the "position" field.
+func PositionIsNil() predicate.Application {
+	return predicate.Application(sql.FieldIsNull(FieldPosition))
+}
+
+// PositionNotNil applies the NotNil predicate on the "position" field.
+func PositionNotNil() predicate.Application {
+	return predicate.Application(sql.FieldNotNull(FieldPosition))
+}
+
 // PositionEqualFold applies the EqualFold predicate on the "position" field.
 func PositionEqualFold(v string) predicate.Application {
 	return predicate.Application(sql.FieldEqualFold(FieldPosition, v))
@@ -599,6 +609,16 @@ func NotesEqualFold(v string) predicate.Application {
 // NotesContainsFold applies the ContainsFold predicate on the "notes" field.
 func NotesContainsFold(v string) predicate.Application {
 	return predicate.Application(sql.FieldContainsFold(FieldNotes, v))
+}
+
+// TagsIsNil applies the IsNil predicate on the "tags" field.
+func TagsIsNil() predicate.Application {
+	return predicate.Application(sql.FieldIsNull(FieldTags))
+}
+
+// TagsNotNil applies the NotNil predicate on the "tags" field.
+func TagsNotNil() predicate.Application {
+	return predicate.Application(sql.FieldNotNull(FieldTags))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

@@ -22,6 +22,7 @@ const mockStats: ApplicationStats = {
       deadline: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
       applied_at: null,
       notes: "",
+      tags: [],
       cover_letter_count: 0,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",

@@ -3,7 +3,8 @@ import { apiClient } from "@/lib/api-client";
 // === Types ===
 
 export interface QuestionAnalysisRequest {
-  application_id: string;
+  application_id?: string;
+  company_name?: string;
   question_text: string;
   char_limit: number;
 }
@@ -37,7 +38,8 @@ export interface QuestionAnalysisResult {
 }
 
 export interface GenerateDraftRequest {
-  application_id: string;
+  application_id?: string;
+  company_name?: string;
   experience_ids: string[];
   question_text: string;
   char_limit: number;
@@ -131,6 +133,14 @@ export interface CharCoachingResult {
 export interface CharCoachingRequest {
   cover_letter_id: string;
   content: string;
+}
+
+// === Advice Types ===
+
+export interface AdviceItem {
+  category: string; // metric, structure, detail, keyword
+  content: string;
+  priority: number; // 1=high, 2=medium, 3=low
 }
 
 // === API Functions ===

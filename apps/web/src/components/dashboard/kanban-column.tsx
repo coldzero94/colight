@@ -16,9 +16,11 @@ export interface ColumnConfig {
 interface KanbanColumnProps {
   config: ColumnConfig;
   applications: ApplicationDetail[];
+  onEdit?: (app: ApplicationDetail) => void;
+  onDelete?: (app: ApplicationDetail) => void;
 }
 
-export function KanbanColumn({ config, applications }: KanbanColumnProps) {
+export function KanbanColumn({ config, applications, onEdit, onDelete }: KanbanColumnProps) {
   const Icon = config.icon;
 
   return (
@@ -48,7 +50,7 @@ export function KanbanColumn({ config, applications }: KanbanColumnProps) {
             }`}
           >
             {applications.map((app, index) => (
-              <KanbanCard key={app.id} application={app} index={index} />
+              <KanbanCard key={app.id} application={app} index={index} onEdit={onEdit} onDelete={onDelete} />
             ))}
             {provided.placeholder}
 

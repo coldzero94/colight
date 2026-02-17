@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -14,6 +15,13 @@ import (
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 	"github.com/google/uuid"
 )
+
+// AdviceItem represents a single improvement suggestion for a draft.
+type AdviceItem struct {
+	Category string `json:"category"` // metric, structure, detail, keyword
+	Content  string `json:"content"`
+	Priority int    `json:"priority"` // 1=high, 2=medium, 3=low
+}
 
 // CoachingService handles draft coaching
 type CoachingService struct {
@@ -30,29 +38,66 @@ func NewCoachingService(entClient *ent.Client, aiProvider *ai.AIProvider) *Coach
 }
 
 // buildDraftRequest builds the LLM request for draft generation (shared by sync and streaming).
-// Returns the LLM request and the model name from the prompt template.
+// applicationID is optional — when nil, companyName is used directly (standalone coaching).
 func (s *CoachingService) buildDraftRequest(
 	ctx context.Context,
 	userID uuid.UUID,
-	applicationID uuid.UUID,
+	applicationID *uuid.UUID,
+	companyName string,
 	experienceIDs []uuid.UUID,
 	questionText string,
 	charLimit int,
 ) (ai.LLMRequest, string, error) {
-	// 1. Verify application ownership
-	app, err := s.entClient.Application.Query().
-		Where(application.IDEQ(applicationID)).
-		WithAnalysis().
-		Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return ai.LLMRequest{}, "", ErrApplicationNotFound
-		}
-		return ai.LLMRequest{}, "", err
-	}
+	// 1. Resolve company context
+	resolvedCompanyName := companyName
+	resolvedPosition := ""
+	talentKeywords := ""
+	valuesKeywords := ""
 
-	if app.UserID != userID {
-		return ai.LLMRequest{}, "", ErrApplicationForbidden
+	if applicationID != nil {
+		app, err := s.entClient.Application.Query().
+			Where(application.IDEQ(*applicationID)).
+			WithAnalysis().
+			Only(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return ai.LLMRequest{}, "", ErrApplicationNotFound
+			}
+			return ai.LLMRequest{}, "", err
+		}
+
+		if app.UserID != userID {
+			return ai.LLMRequest{}, "", ErrApplicationForbidden
+		}
+
+		resolvedCompanyName = app.CompanyName
+		resolvedPosition = app.Position
+
+		if app.Edges.Analysis != nil && app.Edges.Analysis.AnalysisResult != nil {
+			if coreValues, ok := app.Edges.Analysis.AnalysisResult["core_values"].([]any); ok {
+				var keywords []string
+				for _, v := range coreValues {
+					if vm, ok := v.(map[string]any); ok {
+						if keyword, ok := vm["keyword"].(string); ok {
+							keywords = append(keywords, keyword)
+						}
+					}
+				}
+				valuesKeywords = strings.Join(keywords, ", ")
+			}
+
+			if talentTraits, ok := app.Edges.Analysis.AnalysisResult["talent_traits"].([]any); ok {
+				var traits []string
+				for _, t := range talentTraits {
+					if tm, ok := t.(map[string]any); ok {
+						if trait, ok := tm["trait"].(string); ok {
+							traits = append(traits, trait)
+						}
+					}
+				}
+				talentKeywords = strings.Join(traits, ", ")
+			}
+		}
 	}
 
 	// 2. Load selected experiences
@@ -94,38 +139,9 @@ func (s *CoachingService) buildDraftRequest(
 `, i+1, exp.Title, exp.StarSituation, exp.StarTask, exp.StarAction, exp.StarResult)
 	}
 
-	// 5. Build company context
-	talentKeywords := ""
-	valuesKeywords := ""
-	if app.Edges.Analysis != nil && app.Edges.Analysis.AnalysisResult != nil {
-		if coreValues, ok := app.Edges.Analysis.AnalysisResult["core_values"].([]any); ok {
-			var keywords []string
-			for _, v := range coreValues {
-				if vm, ok := v.(map[string]any); ok {
-					if keyword, ok := vm["keyword"].(string); ok {
-						keywords = append(keywords, keyword)
-					}
-				}
-			}
-			valuesKeywords = strings.Join(keywords, ", ")
-		}
-
-		if talentTraits, ok := app.Edges.Analysis.AnalysisResult["talent_traits"].([]any); ok {
-			var traits []string
-			for _, t := range talentTraits {
-				if tm, ok := t.(map[string]any); ok {
-					if trait, ok := tm["trait"].(string); ok {
-						traits = append(traits, trait)
-					}
-				}
-			}
-			talentKeywords = strings.Join(traits, ", ")
-		}
-	}
-
-	// 6. Build user prompt
-	userPrompt := strings.ReplaceAll(prompt.UserPromptTemplate, "{{company_name}}", app.CompanyName)
-	userPrompt = strings.ReplaceAll(userPrompt, "{{position}}", app.Position)
+	// 5. Build user prompt
+	userPrompt := strings.ReplaceAll(prompt.UserPromptTemplate, "{{company_name}}", resolvedCompanyName)
+	userPrompt = strings.ReplaceAll(userPrompt, "{{position}}", resolvedPosition)
 	userPrompt = strings.ReplaceAll(userPrompt, "{{talent_keywords}}", talentKeywords)
 	userPrompt = strings.ReplaceAll(userPrompt, "{{values_keywords}}", valuesKeywords)
 	userPrompt = strings.ReplaceAll(userPrompt, "{{question_text}}", questionText)
@@ -141,16 +157,18 @@ func (s *CoachingService) buildDraftRequest(
 }
 
 // GenerateDraft generates a cover letter draft synchronously.
+// applicationID is optional — when nil, companyName is used directly.
 func (s *CoachingService) GenerateDraft(
 	ctx context.Context,
 	userID uuid.UUID,
-	applicationID uuid.UUID,
+	applicationID *uuid.UUID,
+	companyName string,
 	experienceIDs []uuid.UUID,
 	questionText string,
 	charLimit int,
 	analysisResult any,
 ) (string, error) {
-	llmReq, modelName, err := s.buildDraftRequest(ctx, userID, applicationID, experienceIDs, questionText, charLimit)
+	llmReq, modelName, err := s.buildDraftRequest(ctx, userID, applicationID, companyName, experienceIDs, questionText, charLimit)
 	if err != nil {
 		return "", err
 	}
@@ -165,18 +183,19 @@ func (s *CoachingService) GenerateDraft(
 
 // GenerateDraftStream generates a cover letter draft with streaming.
 // Calls onChunk for each text delta. Returns final LLMResponse with token usage.
-// Streaming always uses the heavy model (Claude) as it's the only streaming provider.
+// applicationID is optional — when nil, companyName is used directly.
 func (s *CoachingService) GenerateDraftStream(
 	ctx context.Context,
 	userID uuid.UUID,
-	applicationID uuid.UUID,
+	applicationID *uuid.UUID,
+	companyName string,
 	experienceIDs []uuid.UUID,
 	questionText string,
 	charLimit int,
 	analysisResult any,
 	onChunk ai.StreamCallback,
 ) (ai.LLMResponse, error) {
-	llmReq, _, err := s.buildDraftRequest(ctx, userID, applicationID, experienceIDs, questionText, charLimit)
+	llmReq, _, err := s.buildDraftRequest(ctx, userID, applicationID, companyName, experienceIDs, questionText, charLimit)
 	if err != nil {
 		return ai.LLMResponse{}, err
 	}
@@ -201,10 +220,11 @@ type DraftResult struct {
 }
 
 // SaveDraftResult creates cover_letter + version + coaching_session after streaming completes.
+// applicationID is optional — when nil, cover letter is created without application FK.
 func (s *CoachingService) SaveDraftResult(
 	ctx context.Context,
 	userID uuid.UUID,
-	applicationID uuid.UUID,
+	applicationID *uuid.UUID,
 	questionText string,
 	charLimit int,
 	content string,
@@ -212,13 +232,15 @@ func (s *CoachingService) SaveDraftResult(
 	outputTokens int,
 ) (*DraftResult, error) {
 	// 1. Create cover letter
-	cl, err := s.entClient.CoverLetter.Create().
+	clCreate := s.entClient.CoverLetter.Create().
 		SetUserID(userID).
-		SetApplicationID(applicationID).
 		SetQuestionText(questionText).
 		SetCharLimit(charLimit).
-		SetCurrentContent(content).
-		Save(ctx)
+		SetCurrentContent(content)
+	if applicationID != nil {
+		clCreate.SetApplicationID(*applicationID)
+	}
+	cl, err := clCreate.Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cover letter: %w", err)
 	}
@@ -294,6 +316,55 @@ func (s *CoachingService) RecordSession(
 	}
 
 	return session, nil
+}
+
+// GenerateAdvice generates improvement suggestions for a draft using the light model.
+func (s *CoachingService) GenerateAdvice(
+	ctx context.Context,
+	draft string,
+	questionText string,
+	experiencesSummary string,
+) ([]AdviceItem, error) {
+	if draft == "" {
+		return []AdviceItem{}, nil
+	}
+
+	// Load advice prompt template
+	prompt, err := s.entClient.PromptTemplate.Query().
+		Where(
+			prompttemplate.CategoryEQ("coaching"),
+			prompttemplate.SubCategoryEQ("advice"),
+			prompttemplate.IsActiveEQ(true),
+		).
+		First(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load advice prompt template: %w", err)
+	}
+
+	// Build user prompt
+	userPrompt := strings.ReplaceAll(prompt.UserPromptTemplate, "{{draft}}", draft)
+	userPrompt = strings.ReplaceAll(userPrompt, "{{question_text}}", questionText)
+	userPrompt = strings.ReplaceAll(userPrompt, "{{experiences_summary}}", experiencesSummary)
+
+	resp, err := s.aiProvider.CallByModelName(ctx, prompt.Model, ai.LLMRequest{
+		SystemPrompt: prompt.SystemPrompt,
+		UserPrompt:   userPrompt,
+		Temperature:  prompt.Temperature,
+		MaxTokens:    prompt.MaxTokens,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var items []AdviceItem
+	if err := json.Unmarshal([]byte(resp.Content), &items); err != nil {
+		// Try extracting from code fences or surrounding text
+		if err2 := ai.ExtractJSON(resp.Content, &items); err2 != nil {
+			return nil, fmt.Errorf("failed to parse advice JSON: %w", err2)
+		}
+	}
+
+	return items, nil
 }
 
 // GetSessions retrieves coaching sessions for a cover letter

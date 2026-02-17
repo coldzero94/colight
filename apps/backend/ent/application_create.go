@@ -71,6 +71,14 @@ func (_c *ApplicationCreate) SetPosition(v string) *ApplicationCreate {
 	return _c
 }
 
+// SetNillablePosition sets the "position" field if the given value is not nil.
+func (_c *ApplicationCreate) SetNillablePosition(v *string) *ApplicationCreate {
+	if v != nil {
+		_c.SetPosition(*v)
+	}
+	return _c
+}
+
 // SetJobURL sets the "job_url" field.
 func (_c *ApplicationCreate) SetJobURL(v string) *ApplicationCreate {
 	_c.mutation.SetJobURL(v)
@@ -138,6 +146,12 @@ func (_c *ApplicationCreate) SetNillableNotes(v *string) *ApplicationCreate {
 	if v != nil {
 		_c.SetNotes(*v)
 	}
+	return _c
+}
+
+// SetTags sets the "tags" field.
+func (_c *ApplicationCreate) SetTags(v []string) *ApplicationCreate {
+	_c.mutation.SetTags(v)
 	return _c
 }
 
@@ -281,9 +295,6 @@ func (_c *ApplicationCreate) check() error {
 			return &ValidationError{Name: "company_name", err: fmt.Errorf(`ent: validator failed for field "Application.company_name": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.Position(); !ok {
-		return &ValidationError{Name: "position", err: errors.New(`ent: missing required field "Application.position"`)}
-	}
 	if v, ok := _c.mutation.Position(); ok {
 		if err := application.PositionValidator(v); err != nil {
 			return &ValidationError{Name: "position", err: fmt.Errorf(`ent: validator failed for field "Application.position": %w`, err)}
@@ -370,6 +381,10 @@ func (_c *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Notes(); ok {
 		_spec.SetField(application.FieldNotes, field.TypeString, value)
 		_node.Notes = value
+	}
+	if value, ok := _c.mutation.Tags(); ok {
+		_spec.SetField(application.FieldTags, field.TypeJSON, value)
+		_node.Tags = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

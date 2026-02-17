@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
-import type { GenerateDraftRequest } from "@/lib/api/coaching";
+import type { GenerateDraftRequest, AdviceItem } from "@/lib/api/coaching";
 
 interface SSETextEvent {
   type: "text";
@@ -13,6 +13,7 @@ interface SSEDoneEvent {
   type: "done";
   cover_letter_id: string;
   session_id: string;
+  advice?: AdviceItem[];
 }
 
 interface SSEErrorEvent {
@@ -28,6 +29,7 @@ interface DraftStreamingState {
   error: string | null;
   coverLetterId: string | null;
   sessionId: string | null;
+  advice: AdviceItem[];
 }
 
 export function useDraftStreaming() {
@@ -37,6 +39,7 @@ export function useDraftStreaming() {
     error: null,
     coverLetterId: null,
     sessionId: null,
+    advice: [],
   });
   const abortRef = useRef<AbortController | null>(null);
 
@@ -60,6 +63,7 @@ export function useDraftStreaming() {
         error: null,
         coverLetterId: null,
         sessionId: null,
+        advice: [],
       });
 
       const baseURL =
@@ -144,6 +148,7 @@ export function useDraftStreaming() {
                   isStreaming: false,
                   coverLetterId: event.cover_letter_id,
                   sessionId: event.session_id,
+                  advice: event.advice ?? [],
                 }));
               } else if (event.type === "error") {
                 setState((prev) => ({

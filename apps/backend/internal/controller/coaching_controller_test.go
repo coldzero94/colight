@@ -329,6 +329,123 @@ func TestPostDraft_StreamError(t *testing.T) {
 	assert.Equal(t, "error", lastEvent.Data["type"])
 }
 
+// === Phase 8.4.2: SSE done event includes advice ===
+
+func ensureAdvicePromptCtrl(t *testing.T, client *ent.Client) {
+	t.Helper()
+	ctx := context.Background()
+
+	exists, _ := client.PromptTemplate.Query().
+		Where(
+			prompttemplate.CategoryEQ("coaching"),
+			prompttemplate.SubCategoryEQ("advice"),
+		).
+		Exist(ctx)
+
+	if !exists {
+		client.PromptTemplate.Create().
+			SetCategory("coaching").
+			SetSubCategory("advice").
+			SetName("Draft Advice").
+			SetSystemPrompt("Advice system prompt").
+			SetUserPromptTemplate("Draft: {{draft}}\nQuestion: {{question_text}}").
+			SetModel("gemini").
+			SetTemperature(0.3).
+			SetMaxTokens(1000).
+			SetVersion(1).
+			SetIsActive(true).
+			SaveX(ctx)
+	}
+}
+
+func TestPostDraft_DoneEventIncludesAdvice(t *testing.T) {
+	// Heavy mock (Claude) for streaming
+	heavyMock := &mockLLMForCoaching{
+		chunks: []string{"[상황]\n", "초안 내용"},
+		response: ai.LLMResponse{
+			Content:      "[상황]\n초안 내용",
+			InputTokens:  50,
+			OutputTokens: 100,
+		},
+	}
+	// Light mock (Gemini) for advice — returns JSON array
+	lightMock := &mockLLMForCoaching{
+		response: ai.LLMResponse{
+			Content: `[{"category":"metric","content":"수치를 추가하세요.","priority":1},{"category":"structure","content":"결과를 보강하세요.","priority":2}]`,
+		},
+	}
+
+	gin.SetMode(gin.TestMode)
+	client := testutil.NewTestClient(t)
+	provider := ai.NewAIProviderForTest(lightMock, heavyMock)
+	coachingService := service.NewCoachingService(client, provider)
+	coachingCtrl := NewCoachingController(coachingService)
+
+	router := gin.New()
+	v1 := router.Group("/v1")
+	v1.Use(func(c *gin.Context) {
+		if uid := c.GetHeader("X-Test-UserID"); uid != "" {
+			parsed, _ := uuid.Parse(uid)
+			c.Set("user_id", parsed)
+		}
+		c.Next()
+	})
+	v1.POST("/coaching/draft", coachingCtrl.PostDraft)
+
+	ctx := context.Background()
+	ensureCoachingPrompt(t, client)
+	ensureAdvicePromptCtrl(t, client)
+
+	user := client.UserProfile.Create().
+		SetEmail("advice-test@example.com").
+		SetPasswordHash("hash").
+		SetRole("user").
+		SaveX(ctx)
+
+	app := client.Application.Create().
+		SetUserID(user.ID).
+		SetCompanyName("회사").
+		SetPosition("개발자").
+		SetJobURL("https://example.com").
+		SaveX(ctx)
+
+	exp := client.Experience.Create().
+		SetUserID(user.ID).
+		SetTitle("경험").SetContent("내용").SetCategory("프로젝트").
+		SetStarSituation("S").SetStarTask("T").SetStarAction("A").SetStarResult("R").
+		SaveX(ctx)
+
+	w := draftRequest(router, map[string]any{
+		"application_id": app.ID.String(),
+		"experience_ids": []string{exp.ID.String()},
+		"question_text":  "팀 프로젝트 경험을 기술하세요",
+		"char_limit":     800,
+	}, user.ID)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	events := parseSSEEvents(w.Body.String())
+	require.GreaterOrEqual(t, len(events), 3) // text chunks + done
+
+	// Find the done event
+	doneEvent := events[len(events)-1]
+	assert.Equal(t, "done", doneEvent.Event)
+	assert.NotEmpty(t, doneEvent.Data["cover_letter_id"])
+	assert.NotEmpty(t, doneEvent.Data["session_id"])
+
+	// Verify advice is included in done event
+	adviceRaw, ok := doneEvent.Data["advice"]
+	require.True(t, ok, "done event should include 'advice' field")
+	adviceList, ok := adviceRaw.([]interface{})
+	require.True(t, ok, "advice should be an array")
+	assert.Len(t, adviceList, 2)
+
+	// Verify first advice item
+	first := adviceList[0].(map[string]interface{})
+	assert.Equal(t, "metric", first["category"])
+	assert.Contains(t, first["content"], "수치")
+}
+
 func TestGetSessions_Success(t *testing.T) {
 	mockAI := &mockLLMForCoaching{
 		response: ai.LLMResponse{Content: "[상황]\n초안"},

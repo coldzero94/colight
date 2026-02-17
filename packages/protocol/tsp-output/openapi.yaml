@@ -727,7 +727,7 @@ paths:
                   applications:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Coaching.ApplicationSummary'
+                      $ref: '#/components/schemas/Coaching.ApplicationDetail'
                 required:
                   - applications
         '400':
@@ -798,6 +798,652 @@ paths:
                   - error
       tags:
         - Coaching
+      security:
+        - BearerAuth: []
+    post:
+      operationId: CoachingAPI_createApplication
+      description: Create application manually
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coaching.ApplicationDetail'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Coaching
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Coaching.CreateApplicationRequest'
+      security:
+        - BearerAuth: []
+  /v1/applications/search:
+    get:
+      operationId: CoachingAPI_searchApplications
+      description: Search applications with filters
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: tags
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: deadlineFrom
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: deadlineTo
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  applications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Coaching.ApplicationDetail'
+                required:
+                  - applications
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Coaching
+      security:
+        - BearerAuth: []
+  /v1/applications/stats:
+    get:
+      operationId: CoachingAPI_getApplicationStats
+      description: Get application stats
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coaching.ApplicationStats'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Coaching
+      security:
+        - BearerAuth: []
+  /v1/applications/{id}:
+    patch:
+      operationId: CoachingAPI_updateApplication
+      description: Update application fields
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coaching.ApplicationDetail'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Coaching
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Coaching.UpdateApplicationRequest'
+      security:
+        - BearerAuth: []
+    delete:
+      operationId: CoachingAPI_deleteApplication
+      description: Delete application
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Coaching
+      security:
+        - BearerAuth: []
+  /v1/applications/{id}/link-analysis:
+    post:
+      operationId: CoachingAPI_linkAnalysis
+      description: Link company analysis to application
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coaching.ApplicationDetail'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Coaching
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Coaching.LinkAnalysisRequest'
+      security:
+        - BearerAuth: []
+  /v1/applications/{id}/status:
+    patch:
+      operationId: CoachingAPI_updateApplicationStatus
+      description: Update application status (drag-drop)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coaching.ApplicationDetail'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Coaching
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
       security:
         - BearerAuth: []
   /v1/auth/login:
@@ -3449,6 +4095,65 @@ components:
         created_at:
           type: string
           format: date-time
+    Coaching.ApplicationDetail:
+      type: object
+      required:
+        - id
+        - company_name
+        - position
+        - status
+        - notes
+        - tags
+        - cover_letter_count
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+        company_name:
+          type: string
+        position:
+          type: string
+        status:
+          type: string
+        deadline:
+          type: string
+        applied_at:
+          type: string
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        analysis_id:
+          type: string
+        cover_letter_count:
+          type: integer
+          format: int32
+        created_at:
+          type: string
+        updated_at:
+          type: string
+    Coaching.ApplicationStats:
+      type: object
+      required:
+        - total
+        - by_status
+        - upcoming_deadlines
+      properties:
+        total:
+          type: integer
+          format: int32
+        by_status:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+        upcoming_deadlines:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coaching.ApplicationDetail'
     Coaching.ApplicationSummary:
       type: object
       required:
@@ -3538,6 +4243,26 @@ components:
         created_at:
           type: string
           format: date-time
+    Coaching.CreateApplicationRequest:
+      type: object
+      required:
+        - company_name
+      properties:
+        company_name:
+          type: string
+        position:
+          type: string
+        job_url:
+          type: string
+        deadline:
+          type: string
+          format: date-time
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
     Coaching.DimensionFeedback:
       type: object
       required:
@@ -3591,12 +4316,13 @@ components:
     Coaching.GenerateDraftRequest:
       type: object
       required:
-        - application_id
         - experience_ids
         - question_text
         - char_limit
       properties:
         application_id:
+          type: string
+        company_name:
           type: string
         experience_ids:
           type: array
@@ -3609,14 +4335,22 @@ components:
           format: int32
         analysis_result:
           $ref: '#/components/schemas/Coaching.QuestionAnalysisResult'
+    Coaching.LinkAnalysisRequest:
+      type: object
+      required:
+        - analysis_id
+      properties:
+        analysis_id:
+          type: string
     Coaching.QuestionAnalysisRequest:
       type: object
       required:
-        - application_id
         - question_text
         - char_limit
       properties:
         application_id:
+          type: string
+        company_name:
           type: string
         question_text:
           type: string
@@ -3769,6 +4503,27 @@ components:
           type: string
         reason:
           type: string
+    Coaching.UpdateApplicationRequest:
+      type: object
+      properties:
+        company_name:
+          type: string
+        position:
+          type: string
+        job_url:
+          type: string
+        deadline:
+          type: string
+          format: date-time
+        applied_at:
+          type: string
+          format: date-time
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
     Coaching.WeaponRef:
       type: object
       required:

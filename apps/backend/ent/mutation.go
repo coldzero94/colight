@@ -870,6 +870,8 @@ type ApplicationMutation struct {
 	deadline                 *time.Time
 	applied_at               *time.Time
 	notes                    *string
+	tags                     *[]string
+	appendtags               []string
 	clearedFields            map[string]struct{}
 	user                     *uuid.UUID
 	cleareduser              bool
@@ -1165,9 +1167,22 @@ func (m *ApplicationMutation) OldPosition(ctx context.Context) (v string, err er
 	return oldValue.Position, nil
 }
 
+// ClearPosition clears the value of the "position" field.
+func (m *ApplicationMutation) ClearPosition() {
+	m.position = nil
+	m.clearedFields[application.FieldPosition] = struct{}{}
+}
+
+// PositionCleared returns if the "position" field was cleared in this mutation.
+func (m *ApplicationMutation) PositionCleared() bool {
+	_, ok := m.clearedFields[application.FieldPosition]
+	return ok
+}
+
 // ResetPosition resets all changes to the "position" field.
 func (m *ApplicationMutation) ResetPosition() {
 	m.position = nil
+	delete(m.clearedFields, application.FieldPosition)
 }
 
 // SetJobURL sets the "job_url" field.
@@ -1402,6 +1417,71 @@ func (m *ApplicationMutation) ResetNotes() {
 	delete(m.clearedFields, application.FieldNotes)
 }
 
+// SetTags sets the "tags" field.
+func (m *ApplicationMutation) SetTags(s []string) {
+	m.tags = &s
+	m.appendtags = nil
+}
+
+// Tags returns the value of the "tags" field in the mutation.
+func (m *ApplicationMutation) Tags() (r []string, exists bool) {
+	v := m.tags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTags returns the old "tags" field's value of the Application entity.
+// If the Application object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationMutation) OldTags(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTags is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTags requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTags: %w", err)
+	}
+	return oldValue.Tags, nil
+}
+
+// AppendTags adds s to the "tags" field.
+func (m *ApplicationMutation) AppendTags(s []string) {
+	m.appendtags = append(m.appendtags, s...)
+}
+
+// AppendedTags returns the list of values that were appended to the "tags" field in this mutation.
+func (m *ApplicationMutation) AppendedTags() ([]string, bool) {
+	if len(m.appendtags) == 0 {
+		return nil, false
+	}
+	return m.appendtags, true
+}
+
+// ClearTags clears the value of the "tags" field.
+func (m *ApplicationMutation) ClearTags() {
+	m.tags = nil
+	m.appendtags = nil
+	m.clearedFields[application.FieldTags] = struct{}{}
+}
+
+// TagsCleared returns if the "tags" field was cleared in this mutation.
+func (m *ApplicationMutation) TagsCleared() bool {
+	_, ok := m.clearedFields[application.FieldTags]
+	return ok
+}
+
+// ResetTags resets all changes to the "tags" field.
+func (m *ApplicationMutation) ResetTags() {
+	m.tags = nil
+	m.appendtags = nil
+	delete(m.clearedFields, application.FieldTags)
+}
+
 // ClearUser clears the "user" edge to the UserProfile entity.
 func (m *ApplicationMutation) ClearUser() {
 	m.cleareduser = true
@@ -1610,7 +1690,7 @@ func (m *ApplicationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApplicationMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, application.FieldCreatedAt)
 	}
@@ -1641,6 +1721,9 @@ func (m *ApplicationMutation) Fields() []string {
 	if m.notes != nil {
 		fields = append(fields, application.FieldNotes)
 	}
+	if m.tags != nil {
+		fields = append(fields, application.FieldTags)
+	}
 	return fields
 }
 
@@ -1669,6 +1752,8 @@ func (m *ApplicationMutation) Field(name string) (ent.Value, bool) {
 		return m.AppliedAt()
 	case application.FieldNotes:
 		return m.Notes()
+	case application.FieldTags:
+		return m.Tags()
 	}
 	return nil, false
 }
@@ -1698,6 +1783,8 @@ func (m *ApplicationMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldAppliedAt(ctx)
 	case application.FieldNotes:
 		return m.OldNotes(ctx)
+	case application.FieldTags:
+		return m.OldTags(ctx)
 	}
 	return nil, fmt.Errorf("unknown Application field %s", name)
 }
@@ -1777,6 +1864,13 @@ func (m *ApplicationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetNotes(v)
 		return nil
+	case application.FieldTags:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTags(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Application field %s", name)
 }
@@ -1807,6 +1901,9 @@ func (m *ApplicationMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *ApplicationMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(application.FieldPosition) {
+		fields = append(fields, application.FieldPosition)
+	}
 	if m.FieldCleared(application.FieldJobURL) {
 		fields = append(fields, application.FieldJobURL)
 	}
@@ -1818,6 +1915,9 @@ func (m *ApplicationMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(application.FieldNotes) {
 		fields = append(fields, application.FieldNotes)
+	}
+	if m.FieldCleared(application.FieldTags) {
+		fields = append(fields, application.FieldTags)
 	}
 	return fields
 }
@@ -1833,6 +1933,9 @@ func (m *ApplicationMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *ApplicationMutation) ClearField(name string) error {
 	switch name {
+	case application.FieldPosition:
+		m.ClearPosition()
+		return nil
 	case application.FieldJobURL:
 		m.ClearJobURL()
 		return nil
@@ -1844,6 +1947,9 @@ func (m *ApplicationMutation) ClearField(name string) error {
 		return nil
 	case application.FieldNotes:
 		m.ClearNotes()
+		return nil
+	case application.FieldTags:
+		m.ClearTags()
 		return nil
 	}
 	return fmt.Errorf("unknown Application nullable field %s", name)
@@ -1882,6 +1988,9 @@ func (m *ApplicationMutation) ResetField(name string) error {
 		return nil
 	case application.FieldNotes:
 		m.ResetNotes()
+		return nil
+	case application.FieldTags:
+		m.ResetTags()
 		return nil
 	}
 	return fmt.Errorf("unknown Application field %s", name)

@@ -36,6 +36,8 @@ const (
 	FieldAppliedAt = "applied_at"
 	// FieldNotes holds the string denoting the notes field in the database.
 	FieldNotes = "notes"
+	// FieldTags holds the string denoting the tags field in the database.
+	FieldTags = "tags"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeAnalysis holds the string denoting the analysis edge name in mutations.
@@ -89,6 +91,7 @@ var Columns = []string{
 	FieldDeadline,
 	FieldAppliedAt,
 	FieldNotes,
+	FieldTags,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "applications"

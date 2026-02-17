@@ -98,21 +98,7 @@ func init() {
 	// applicationDescPosition is the schema descriptor for position field.
 	applicationDescPosition := applicationFields[2].Descriptor()
 	// application.PositionValidator is a validator for the "position" field. It is called by the builders before save.
-	application.PositionValidator = func() func(string) error {
-		validators := applicationDescPosition.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(position string) error {
-			for _, fn := range fns {
-				if err := fn(position); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	application.PositionValidator = applicationDescPosition.Validators[0].(func(string) error)
 	// applicationDescID is the schema descriptor for id field.
 	applicationDescID := applicationMixinFields0[0].Descriptor()
 	// application.DefaultID holds the default value on creation for the id field.
