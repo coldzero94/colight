@@ -133,17 +133,36 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 		return analysis, nil
 	}
 
-	if _, err := s.entClient.CompanyAnalysisCache.Create().
-		SetCacheKey(cacheKey).
-		SetCacheType("company_analysis").
-		SetCompanyName(companyName).
-		SetData(dataMap).
-		SetExpiresAt(time.Now().AddDate(1, 0, 0)). // 365 days
-		SetViewCount(1).
-		Save(ctx); err != nil {
-		slog.Error("failed to save analysis to cache", "company", companyName, "error", err)
+	// Try to save to cache (upsert if key exists)
+	existing, err := s.entClient.CompanyAnalysisCache.Query().
+		Where(companyanalysiscache.CacheKeyEQ(cacheKey)).
+		First(ctx)
+
+	if err == nil {
+		// Update existing cache
+		if _, err := s.entClient.CompanyAnalysisCache.UpdateOneID(existing.ID).
+			SetData(dataMap).
+			SetExpiresAt(time.Now().AddDate(1, 0, 0)).
+			SetViewCount(existing.ViewCount + 1).
+			Save(ctx); err != nil {
+			slog.Error("failed to update analysis cache", "company", companyName, "error", err)
+		} else {
+			slog.Info("analysis_cache_updated", "company", companyName, "cache_key", cacheKey)
+		}
 	} else {
-		slog.Info("analysis_cached", "company", companyName, "cache_key", cacheKey)
+		// Create new cache
+		if _, err := s.entClient.CompanyAnalysisCache.Create().
+			SetCacheKey(cacheKey).
+			SetCacheType("company_analysis").
+			SetCompanyName(companyName).
+			SetData(dataMap).
+			SetExpiresAt(time.Now().AddDate(1, 0, 0)).
+			SetViewCount(1).
+			Save(ctx); err != nil {
+			slog.Error("failed to create analysis cache", "company", companyName, "error", err)
+		} else {
+			slog.Info("analysis_cached", "company", companyName, "cache_key", cacheKey)
+		}
 	}
 
 	analysis.Source = "ai_generated"
