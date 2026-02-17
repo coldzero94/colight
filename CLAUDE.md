@@ -65,6 +65,8 @@ moon run :build  # All builds
 | 3.1 | Company data API | Complete |
 | 3.2 | AI company analysis | Complete |
 | 3.3 | Analysis report UI | Complete |
+| 3.4 | Universal crawling pipeline | Complete |
+| 3.5 | Naver search company info | Complete |
 | 4 | Experience matching | Complete |
 | 5 | Question analysis | Complete |
 | 5.1 | Draft coaching | Complete |
