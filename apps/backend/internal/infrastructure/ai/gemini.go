@@ -24,7 +24,7 @@ func NewGeminiProvider(ctx context.Context, apiKey string) (*GeminiProvider, err
 
 	return &GeminiProvider{
 		client: client,
-		model:  "gemini-2.0-flash-exp",
+		model:  "gemini-2.0-flash",
 	}, nil
 }
 

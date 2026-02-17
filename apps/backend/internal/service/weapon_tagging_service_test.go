@@ -120,7 +120,7 @@ func TestTagExperience_Success(t *testing.T) {
 			}`,
 			InputTokens:  100,
 			OutputTokens: 50,
-			Model:        "gemini-2.0-flash-exp",
+			Model:        "gemini-2.0-flash",
 		},
 	}
 

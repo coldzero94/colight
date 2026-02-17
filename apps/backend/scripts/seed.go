@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 
@@ -21,6 +22,9 @@ func main() {
 	}
 
 	command := os.Args[1]
+
+	// Load .env file (optional - ignore if not found)
+	_ = godotenv.Load("../../.env")
 
 	// Load DATABASE_URL from environment
 	dbURL := os.Getenv("DATABASE_URL")

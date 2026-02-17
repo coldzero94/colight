@@ -14,7 +14,7 @@ func TestNewGeminiProvider_SetsModel(t *testing.T) {
 		t.Skip("Gemini client creation failed (expected in CI without network)")
 	}
 
-	assert.Equal(t, "gemini-2.0-flash-exp", provider.model)
+	assert.Equal(t, "gemini-2.0-flash", provider.model)
 	assert.NotNil(t, provider.client)
 }
 
