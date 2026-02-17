@@ -4,13 +4,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
-import { MatchingResults } from "@/components/analysis/matching-results";
 import { useAnalyzeCompany } from "@/hooks/use-company-analysis";
-import { useAutoMatching } from "@/hooks/use-auto-matching";
 import { crawlJobPosting } from "@/lib/api/crawl";
 import { fetchExperiences, type Experience } from "@/lib/api/experiences";
 import type { CompanyAnalysis } from "@/lib/api/analysis";
 import { isUsageLimitError, getUsageLimitInfo } from "@/lib/api/errors";
+import { matchExperiencesHeuristic, type HeuristicMatch } from "@/lib/utils/heuristic-matching";
 
 type AnalysisStep = "crawling" | "analyzing" | "loading_experiences" | "matching" | "completed";
 
@@ -24,15 +23,9 @@ export default function AnalysisResultPage() {
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [crawlError, setCrawlError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<AnalysisStep>(companyParam ? "analyzing" : "crawling");
+  const [matches, setMatches] = useState<HeuristicMatch[]>([]);
 
   const analyzeMutation = useAnalyzeCompany();
-
-  const { isMatching, matchingResult, triggerMatching } = useAutoMatching({
-    companyName,
-    hasMatching: false,
-    experienceCount: experiences.length,
-    enabled: !!analysis,
-  });
 
   // Step 1: Crawl job posting to extract company name
   useEffect(() => {
@@ -80,18 +73,21 @@ export default function AnalysisResultPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyName]);
 
-  // Step 3: Load experiences for matching
+  // Step 3: Load experiences and calculate heuristic matching
   useEffect(() => {
     if (!analysis) return;
 
-    setCurrentStep("loading_experiences");
     (async () => {
       try {
         const data = await fetchExperiences();
         setExperiences(data);
-        setCurrentStep("completed");
+
+        // Calculate heuristic matching (instant, no AI)
+        const matchResults = matchExperiencesHeuristic(data, analysis);
+        setMatches(matchResults);
       } catch {
-        // Non-critical: matching will show empty
+        // Non-critical: just show analysis without matching
+      } finally {
         setCurrentStep("completed");
       }
     })();
@@ -296,6 +292,37 @@ export default function AnalysisResultPage() {
         </section>
       )}
 
+      {matches.length > 0 && (
+        <section>
+          <h2 className="mb-4 text-xl font-semibold text-foreground">
+            내 경험 적합도 분석
+          </h2>
+          <p className="mb-4 text-sm text-muted-foreground">
+            키워드와 역량 무기 기반 자동 매칭 (상위 {Math.min(5, matches.length)}개)
+          </p>
+          <div className="space-y-4">
+            {matches.slice(0, 5).map((match) => {
+              const exp = experiences.find((e) => e.id === match.experience_id);
+              if (!exp) return null;
+              return (
+                <div key={match.experience_id} className="brand-surface-soft rounded-2xl p-6">
+                  <div className="mb-3 flex items-start justify-between">
+                    <h3 className="flex-1 text-lg font-semibold">{exp.title}</h3>
+                    <FitScoreBadge score={match.overall_fit} />
+                  </div>
+                  <div className="mb-3 grid grid-cols-3 gap-4 text-sm">
+                    <div><span className="text-muted-foreground">역량</span><div className="mt-1 font-medium">{match.weapon_score}점</div></div>
+                    <div><span className="text-muted-foreground">키워드</span><div className="mt-1 font-medium">{match.keyword_score}점</div></div>
+                    <div><span className="text-muted-foreground">유형</span><div className="mt-1 font-medium">{match.category_score}점</div></div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{match.reasoning}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
     </div>
   );
 }
@@ -356,4 +383,14 @@ function formatCacheAge(cachedAt: string): string {
   if (diffMins < 60) return `${diffMins}분 전`;
   if (diffHours < 24) return `${diffHours}시간 전`;
   return `${diffDays}일 전`;
+}
+
+function FitScoreBadge({ score }: { score: number }) {
+  const label = score >= 80 ? "최적" : score >= 60 ? "적합" : score >= 40 ? "보통" : "낮음";
+  const colorClass = score >= 80 ? "bg-green-500/20 text-green-300 border-green-500/30" : score >= 60 ? "bg-blue-500/20 text-blue-300 border-blue-500/30" : score >= 40 ? "bg-amber-500/20 text-amber-300 border-amber-500/30" : "bg-gray-500/20 text-gray-300 border-gray-500/30";
+  return (
+    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium ${colorClass}`}>
+      {label} {score}점
+    </span>
+  );
 }
