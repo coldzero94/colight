@@ -84,12 +84,12 @@ func TestNormalizeWithAI_Success(t *testing.T) {
 
 	result, err := svc.normalizeWithAI(context.Background(), rawPosting)
 	require.NoError(t, err)
-	assert.Equal(t, "테스트 회사", result.CompanyName)
-	assert.Equal(t, "백엔드 개발자", result.Position)
-	assert.Equal(t, "개발팀", result.Department)
-	assert.Equal(t, "정규직", result.JobType)
-	assert.Len(t, result.MainTasks, 2)
-	assert.Contains(t, result.RequiredSkills, "Go")
+	assert.Equal(t, "테스트 회사", result["company_name"].(string))
+	assert.Equal(t, "백엔드 개발자", result["position"].(string))
+	assert.Equal(t, "개발팀", result["department"].(string))
+	assert.Equal(t, "정규직", result["job_type"].(string))
+	assert.Len(t, result["main_tasks"].([]interface{}), 2)
+	assert.Contains(t, result["required_skills"].([]interface{}), "Go")
 }
 
 func TestNormalizeJobPosting_RequiredFieldsMissing(t *testing.T) {
@@ -118,8 +118,8 @@ func TestNormalizeJobPosting_RequiredFieldsMissing(t *testing.T) {
 	// Current implementation does NOT validate required fields —
 	// it just unmarshals whatever AI returns. Verify this behavior.
 	require.NoError(t, err)
-	assert.Equal(t, "", result.CompanyName)
-	assert.Equal(t, "", result.Position)
+	assert.Equal(t, "", result["company_name"].(string))
+	assert.Equal(t, "", result["position"].(string))
 }
 
 func TestNormalizeJobPosting_InvalidJSON(t *testing.T) {
@@ -264,10 +264,10 @@ func TestExtractJobPostingFromMarkdown_Success(t *testing.T) {
 
 	result, err := svc.extractJobPostingFromMarkdown(context.Background(), "https://example.com/job/1", markdown)
 	require.NoError(t, err)
-	assert.Equal(t, "네이버", result.CompanyName)
-	assert.Equal(t, "프론트엔드 개발자", result.Position)
-	assert.Len(t, result.MainTasks, 2)
-	assert.Contains(t, result.RequiredSkills, "React")
+	assert.Equal(t, "네이버", result["company_name"].(string))
+	assert.Equal(t, "프론트엔드 개발자", result["position"].(string))
+	assert.Len(t, result["main_tasks"].([]interface{}), 2)
+	assert.Contains(t, result["required_skills"].([]interface{}), "React")
 }
 
 func TestExtractJobPostingFromHTML_Success(t *testing.T) {
@@ -291,9 +291,9 @@ func TestExtractJobPostingFromHTML_Success(t *testing.T) {
 
 	result, err := svc.extractJobPostingFromHTML(context.Background(), "https://example.com/job/2", html)
 	require.NoError(t, err)
-	assert.Equal(t, "카카오", result.CompanyName)
-	assert.Equal(t, "서버 엔지니어", result.Position)
-	assert.Contains(t, result.RequiredSkills, "Java")
+	assert.Equal(t, "카카오", result["company_name"].(string))
+	assert.Equal(t, "서버 엔지니어", result["position"].(string))
+	assert.Contains(t, result["required_skills"].([]interface{}), "Java")
 }
 
 func TestCrawlJobPosting_UnknownDomain_UsesMarkdownPath(t *testing.T) {
@@ -324,8 +324,8 @@ func TestCrawlJobPosting_UnknownDomain_UsesMarkdownPath(t *testing.T) {
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://www.wanted.co.kr/wd/12345")
 	require.NoError(t, err)
-	assert.Equal(t, "라인", result.CompanyName)
-	assert.Equal(t, "데이터 엔지니어", result.Position)
+	assert.Equal(t, "라인", result["company_name"].(string))
+	assert.Equal(t, "데이터 엔지니어", result["position"].(string))
 	assert.Equal(t, 1, mockLLM.calls, "should call LLM once for markdown extraction")
 }
 
@@ -355,7 +355,7 @@ func TestCrawlJobPosting_JobKorea_StillUsesFastPath(t *testing.T) {
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://www.jobkorea.co.kr/Recruit/GI_Read/12345")
 	require.NoError(t, err)
-	assert.Equal(t, "테스트 회사", result.CompanyName)
+	assert.Equal(t, "테스트 회사", result["company_name"].(string))
 }
 
 func TestCrawlJobPosting_FallbackToHTML_WhenMarkdownTooShort(t *testing.T) {
@@ -378,7 +378,7 @@ func TestCrawlJobPosting_FallbackToHTML_WhenMarkdownTooShort(t *testing.T) {
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://example.com/job/1")
 	require.NoError(t, err)
-	assert.Equal(t, "Unknown", result.CompanyName)
+	assert.Equal(t, "Unknown", result["company_name"].(string))
 	// Should have used HTML fallback path since markdown was too short
 	assert.Equal(t, 1, mockLLM.calls)
 }
@@ -467,8 +467,8 @@ func TestCrawlJobPosting_SPADetection_HeadlessSuccess(t *testing.T) {
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://careers.lg.com/apply/detail?id=1001364")
 	require.NoError(t, err)
-	assert.Equal(t, "LG", result.CompanyName)
-	assert.Equal(t, "소프트웨어 엔지니어", result.Position)
+	assert.Equal(t, "LG", result["company_name"].(string))
+	assert.Equal(t, "소프트웨어 엔지니어", result["position"].(string))
 	assert.Equal(t, 1, mockHeadless.calls, "should attempt headless rendering")
 	assert.Equal(t, 1, mockLLM.calls, "should call LLM with rendered content")
 }
@@ -525,8 +525,8 @@ func TestCrawlJobPosting_SaraminCSSParser(t *testing.T) {
 
 	result, err := svc.normalizeWithAI(context.Background(), raw)
 	require.NoError(t, err)
-	assert.Equal(t, "사람인테스트", result.CompanyName)
-	assert.Contains(t, result.MainTasks, "API 개발")
+	assert.Equal(t, "사람인테스트", result["company_name"].(string))
+	assert.Contains(t, result["main_tasks"].([]interface{}), "API 개발")
 }
 
 func TestCrawlJobPosting_WantedNextData(t *testing.T) {
@@ -572,9 +572,9 @@ func TestCrawlJobPosting_WantedNextData(t *testing.T) {
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://www.wanted.co.kr/wd/292769")
 	require.NoError(t, err)
-	assert.Equal(t, "원티드테스트", result.CompanyName)
-	assert.Equal(t, "백엔드 개발자", result.Position)
-	assert.Contains(t, result.MainTasks, "서비스 개발")
+	assert.Equal(t, "원티드테스트", result["company_name"].(string))
+	assert.Equal(t, "백엔드 개발자", result["position"].(string))
+	assert.Contains(t, result["main_tasks"].([]interface{}), "서비스 개발")
 	// Should call LLM once (normalize only, not extract)
 	assert.Equal(t, 1, mockLLM.calls)
 }
@@ -621,9 +621,9 @@ func TestCrawlJobPosting_UniversalExtractorNormalize(t *testing.T) {
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://recruit.navercorp.com/rcrt/view.do?annoId=30004542")
 	require.NoError(t, err)
-	assert.Equal(t, "네이버", result.CompanyName)
-	assert.Len(t, result.MainTasks, 3)
-	assert.Contains(t, result.MainTasks, "React 기반 웹 서비스 개발")
+	assert.Equal(t, "네이버", result["company_name"].(string))
+	assert.Len(t, result["main_tasks"].([]interface{}), 3)
+	assert.Contains(t, result["main_tasks"].([]interface{}), "React 기반 웹 서비스 개발")
 	// Should use normalize path (tier 1.7), not extract path
 	assert.Equal(t, 1, mockLLM.calls)
 }
@@ -657,7 +657,7 @@ func TestCrawlJobPosting_UniversalFallsToLLM(t *testing.T) {
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://example.com/jobs/123")
 	require.NoError(t, err)
-	assert.Equal(t, "Unknown", result.CompanyName)
+	assert.Equal(t, "Unknown", result["company_name"].(string))
 	// Should fall through to Tier 2 LLM extraction
 	assert.Equal(t, 1, mockLLM.calls)
 }
@@ -712,12 +712,12 @@ func TestCrawlJobPosting_RichContentPreserved(t *testing.T) {
 	require.NoError(t, err)
 
 	// Should extract DETAILED content — 4 main tasks, 3 requirements, 3 preferred
-	assert.Len(t, result.MainTasks, 4)
-	assert.Len(t, result.Requirements, 3)
-	assert.Len(t, result.Preferred, 3)
-	assert.Contains(t, result.MainTasks, "데이터 파이프라인 구축 및 최적화")
-	assert.Contains(t, result.Requirements, "대규모 트래픽 처리 경험")
-	assert.Contains(t, result.Preferred, "오픈소스 기여 경험")
+	assert.Len(t, result["main_tasks"].([]interface{}), 4)
+	assert.Len(t, result["requirements"].([]interface{}), 3)
+	assert.Len(t, result["preferred"].([]interface{}), 3)
+	assert.Contains(t, result["main_tasks"].([]interface{}), "데이터 파이프라인 구축 및 최적화")
+	assert.Contains(t, result["requirements"].([]interface{}), "대규모 트래픽 처리 경험")
+	assert.Contains(t, result["preferred"].([]interface{}), "오픈소스 기여 경험")
 }
 
 func TestTruncateString(t *testing.T) {

@@ -50,10 +50,10 @@ func TestCrawlJobPosting_RealJobKorea(t *testing.T) {
 	}
 
 	require.NotNil(t, result)
-	assert.NotEmpty(t, result.CompanyName, "Should extract company name from real page")
-	assert.NotEmpty(t, result.Position, "Should extract position from real page")
+	assert.NotEmpty(t, result["company_name"].(string), "Should extract company name from real page")
+	assert.NotEmpty(t, result["position"].(string), "Should extract position from real page")
 
-	t.Logf("Successfully crawled: %s - %s", result.CompanyName, result.Position)
+	t.Logf("Successfully crawled: %s - %s", result["company_name"].(string), result["position"].(string))
 }
 
 func TestCrawlJobPosting_RealCatch(t *testing.T) {
@@ -94,9 +94,9 @@ func TestCrawlJobPosting_RealCatch(t *testing.T) {
 	}
 
 	require.NotNil(t, result)
-	assert.NotEmpty(t, result.CompanyName, "Should extract company name from Catch")
+	assert.NotEmpty(t, result["company_name"].(string), "Should extract company name from Catch")
 
-	t.Logf("Successfully crawled Catch: %s - %s", result.CompanyName, result.Position)
+	t.Logf("Successfully crawled Catch: %s - %s", result["company_name"].(string), result["position"].(string))
 }
 
 // TestCrawlJobPosting_RealSaramin tests the full CrawlJobPosting pipeline for Saramin.
@@ -139,8 +139,8 @@ func TestCrawlJobPosting_RealSaramin(t *testing.T) {
 	}
 
 	require.NotNil(t, result)
-	assert.NotEmpty(t, result.CompanyName, "Should extract company name from Saramin")
-	t.Logf("Successfully crawled Saramin: %s - %s", result.CompanyName, result.Position)
+	assert.NotEmpty(t, result["company_name"].(string), "Should extract company name from Saramin")
+	t.Logf("Successfully crawled Saramin: %s - %s", result["company_name"].(string), result["position"].(string))
 
 	// Verify the LLM was called (meaning AJAX fetch + markdown extraction worked)
 	assert.Greater(t, mockLLM.calls, 0, "LLM should have been called with extracted content")
@@ -334,8 +334,8 @@ func TestCrawlJobPosting_RealSPA_FullPipeline(t *testing.T) {
 	}
 
 	require.NotNil(t, result)
-	assert.NotEmpty(t, result.CompanyName)
-	t.Logf("Full SPA pipeline: %s - %s", result.CompanyName, result.Position)
+	assert.NotEmpty(t, result["company_name"].(string))
+	t.Logf("Full SPA pipeline: %s - %s", result["company_name"].(string), result["position"].(string))
 	assert.Greater(t, mockLLM.calls, 0, "LLM should have been called with headless-rendered content")
 }
 

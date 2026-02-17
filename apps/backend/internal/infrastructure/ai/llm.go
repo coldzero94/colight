@@ -42,6 +42,17 @@ func ExtractJSON(content string, target any) error {
 	return fmt.Errorf("no valid JSON found in response (len=%d): %.200s", len(content), content)
 }
 
+// ExtractJSONFlexible extracts JSON into a flexible map structure.
+// This preserves all fields from the LLM response without strict schema validation.
+// Use this when you want to preserve extra fields that aren't in your struct definition.
+func ExtractJSONFlexible(content string) (map[string]interface{}, error) {
+	var result map[string]interface{}
+	if err := ExtractJSON(content, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // extractLastCodeFence finds the last ```...``` block and returns its content.
 func extractLastCodeFence(content string) string {
 	// Find the last opening fence

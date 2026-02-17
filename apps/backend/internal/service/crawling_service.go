@@ -125,7 +125,7 @@ func NewCrawlingServiceForTest(aiProvider *ai.AIProvider, fetcher HTMLFetcher, h
 //   - Tier 1.5: Saramin relay → AJAX fetch for real content
 //   - Tier 2: Universal → readability + markdown → LLM extraction
 //   - Tier 3: Fallback → truncated raw HTML → LLM extraction
-func (s *CrawlingService) CrawlJobPosting(ctx context.Context, url string) (*crawler.JobPosting, error) {
+func (s *CrawlingService) CrawlJobPosting(ctx context.Context, url string) (map[string]interface{}, error) {
 	// 1. Fetch HTML
 	html, err := s.htmlFetcher.FetchHTML(url)
 	if err != nil {
@@ -210,7 +210,7 @@ func (s *CrawlingService) CrawlJobPosting(ctx context.Context, url string) (*cra
 }
 
 // extractJobPostingFromMarkdown extracts structured job posting data from clean markdown content
-func (s *CrawlingService) extractJobPostingFromMarkdown(ctx context.Context, sourceURL string, markdown string) (*crawler.JobPosting, error) {
+func (s *CrawlingService) extractJobPostingFromMarkdown(ctx context.Context, sourceURL string, markdown string) (map[string]interface{}, error) {
 	pt, err := s.loadCrawlingPrompt(ctx, "extract_markdown")
 	if err != nil {
 		return nil, err
@@ -239,16 +239,24 @@ func (s *CrawlingService) extractJobPostingFromMarkdown(ctx context.Context, sou
 
 	s.updatePromptStats(ctx, pt, time.Since(startTime))
 
-	var result crawler.JobPosting
-	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
+	result, err := ai.ExtractJSONFlexible(resp.Content)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
-	return &result, nil
+	// Validate required fields
+	if _, ok := result["company_name"]; !ok {
+		return nil, fmt.Errorf("missing required field: company_name")
+	}
+	if _, ok := result["position"]; !ok {
+		return nil, fmt.Errorf("missing required field: position")
+	}
+
+	return result, nil
 }
 
 // extractJobPostingFromHTML extracts structured job posting data from raw HTML (fallback)
-func (s *CrawlingService) extractJobPostingFromHTML(ctx context.Context, sourceURL string, html string) (*crawler.JobPosting, error) {
+func (s *CrawlingService) extractJobPostingFromHTML(ctx context.Context, sourceURL string, html string) (map[string]interface{}, error) {
 	pt, err := s.loadCrawlingPrompt(ctx, "extract_html")
 	if err != nil {
 		return nil, err
@@ -277,16 +285,24 @@ func (s *CrawlingService) extractJobPostingFromHTML(ctx context.Context, sourceU
 
 	s.updatePromptStats(ctx, pt, time.Since(startTime))
 
-	var result crawler.JobPosting
-	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
+	result, err := ai.ExtractJSONFlexible(resp.Content)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
-	return &result, nil
+	// Validate required fields
+	if _, ok := result["company_name"]; !ok {
+		return nil, fmt.Errorf("missing required field: company_name")
+	}
+	if _, ok := result["position"]; !ok {
+		return nil, fmt.Errorf("missing required field: position")
+	}
+
+	return result, nil
 }
 
 // normalizeWithAI uses LLM to normalize RawJobPosting into structured JobPosting
-func (s *CrawlingService) normalizeWithAI(ctx context.Context, raw *crawler.RawJobPosting) (*crawler.JobPosting, error) {
+func (s *CrawlingService) normalizeWithAI(ctx context.Context, raw *crawler.RawJobPosting) (map[string]interface{}, error) {
 	pt, err := s.loadCrawlingPrompt(ctx, "normalize")
 	if err != nil {
 		return nil, err
@@ -321,12 +337,20 @@ func (s *CrawlingService) normalizeWithAI(ctx context.Context, raw *crawler.RawJ
 
 	s.updatePromptStats(ctx, pt, time.Since(startTime))
 
-	var result crawler.JobPosting
-	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
+	result, err := ai.ExtractJSONFlexible(resp.Content)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
-	return &result, nil
+	// Validate required fields
+	if _, ok := result["company_name"]; !ok {
+		return nil, fmt.Errorf("missing required field: company_name")
+	}
+	if _, ok := result["position"]; !ok {
+		return nil, fmt.Errorf("missing required field: position")
+	}
+
+	return result, nil
 }
 
 // loadCrawlingPrompt loads a prompt template for crawling by sub_category.
