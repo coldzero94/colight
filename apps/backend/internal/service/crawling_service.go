@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
+	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -16,13 +19,18 @@ import (
 )
 
 const (
-	maxMarkdownLen = 6000
+	maxMarkdownLen = 12000 // increased for rich content preservation
 	maxHTMLLen     = 8000
 )
 
 // HTMLFetcher abstracts HTML fetching for testability
 type HTMLFetcher interface {
 	FetchHTML(url string) (string, error)
+}
+
+// HeadlessRenderer abstracts headless browser rendering for testability
+type HeadlessRenderer interface {
+	FetchRenderedHTML(ctx context.Context, targetURL string) (string, error)
 }
 
 // defaultHTMLFetcher implements HTMLFetcher using http.Client
@@ -58,20 +66,26 @@ func (f *defaultHTMLFetcher) FetchHTML(url string) (string, error) {
 
 // CrawlingService handles job posting crawling and parsing
 type CrawlingService struct {
-	entClient      *ent.Client
-	aiProvider     *ai.AIProvider
-	jobkoreaParser *crawler.JobKoreaParser
-	catchParser    *crawler.CatchParser
-	htmlFetcher    HTMLFetcher
+	entClient         *ent.Client
+	aiProvider        *ai.AIProvider
+	jobkoreaParser    *crawler.JobKoreaParser
+	catchParser       *crawler.CatchParser
+	saraminParser     *crawler.SaraminParser
+	wantedExtractor   *crawler.WantedExtractor
+	htmlFetcher       HTMLFetcher
+	headlessRenderer  HeadlessRenderer
 }
 
 // NewCrawlingService creates a new CrawlingService with default HTTP fetcher
 func NewCrawlingService(entClient *ent.Client, aiProvider *ai.AIProvider) *CrawlingService {
 	return &CrawlingService{
-		entClient:      entClient,
-		aiProvider:     aiProvider,
-		jobkoreaParser: crawler.NewJobKoreaParser(),
-		catchParser:    crawler.NewCatchParser(),
+		entClient:        entClient,
+		aiProvider:       aiProvider,
+		jobkoreaParser:   crawler.NewJobKoreaParser(),
+		catchParser:      crawler.NewCatchParser(),
+		saraminParser:    crawler.NewSaraminParser(),
+		wantedExtractor:  crawler.NewWantedExtractor(),
+		headlessRenderer: crawler.NewHeadlessFetcher(),
 		htmlFetcher: &defaultHTMLFetcher{
 			client: &http.Client{Timeout: 30 * time.Second},
 		},
@@ -81,16 +95,34 @@ func NewCrawlingService(entClient *ent.Client, aiProvider *ai.AIProvider) *Crawl
 // NewCrawlingServiceWithFetcher creates a new CrawlingService with a custom HTMLFetcher (for testing)
 func NewCrawlingServiceWithFetcher(entClient *ent.Client, aiProvider *ai.AIProvider, fetcher HTMLFetcher) *CrawlingService {
 	return &CrawlingService{
-		entClient:      entClient,
-		aiProvider:     aiProvider,
-		jobkoreaParser: crawler.NewJobKoreaParser(),
-		catchParser:    crawler.NewCatchParser(),
-		htmlFetcher:    fetcher,
+		entClient:        entClient,
+		aiProvider:       aiProvider,
+		jobkoreaParser:   crawler.NewJobKoreaParser(),
+		catchParser:      crawler.NewCatchParser(),
+		saraminParser:    crawler.NewSaraminParser(),
+		wantedExtractor:  crawler.NewWantedExtractor(),
+		headlessRenderer: crawler.NewHeadlessFetcher(),
+		htmlFetcher:      fetcher,
 	}
 }
 
-// CrawlJobPosting crawls and normalizes a job posting from URL using a 3-tier pipeline:
+// NewCrawlingServiceForTest creates a CrawlingService with all dependencies injectable (for testing)
+func NewCrawlingServiceForTest(aiProvider *ai.AIProvider, fetcher HTMLFetcher, headless HeadlessRenderer) *CrawlingService {
+	return &CrawlingService{
+		aiProvider:       aiProvider,
+		jobkoreaParser:   crawler.NewJobKoreaParser(),
+		catchParser:      crawler.NewCatchParser(),
+		saraminParser:    crawler.NewSaraminParser(),
+		wantedExtractor:  crawler.NewWantedExtractor(),
+		headlessRenderer: headless,
+		htmlFetcher:      fetcher,
+	}
+}
+
+// CrawlJobPosting crawls and normalizes a job posting from URL using a multi-tier pipeline:
+//   - SPA detection: If page is a JS shell → headless Chrome render → replace HTML
 //   - Tier 1: Known domains (jobkorea/catch) → CSS parser → normalizeWithAI
+//   - Tier 1.5: Saramin relay → AJAX fetch for real content
 //   - Tier 2: Universal → readability + markdown → LLM extraction
 //   - Tier 3: Fallback → truncated raw HTML → LLM extraction
 func (s *CrawlingService) CrawlJobPosting(ctx context.Context, url string) (*crawler.JobPosting, error) {
@@ -100,28 +132,80 @@ func (s *CrawlingService) CrawlJobPosting(ctx context.Context, url string) (*cra
 		return nil, fmt.Errorf("failed to fetch HTML: %w", err)
 	}
 
-	// Tier 1: Known domain CSS parsers (fast, no extra LLM cost for parsing)
+	// 2. Detect SPA pages — attempt headless browser rendering
+	if isSPAPage(html) {
+		slog.Info("crawl_spa_detected", "url", url)
+		renderedHTML, headlessErr := s.headlessRenderer.FetchRenderedHTML(ctx, url)
+		if headlessErr != nil {
+			slog.Warn("crawl_headless_failed", "url", url, "error", headlessErr)
+			return nil, fmt.Errorf("이 사이트는 JavaScript로 렌더링됩니다. 헤드리스 브라우저 렌더링도 실패했습니다: %w", headlessErr)
+		}
+		slog.Info("crawl_headless_success", "url", url, "html_len", len(renderedHTML))
+		html = renderedHTML // replace SPA shell with rendered content
+	}
+
+	// Tier 1: Known domain CSS parsers (fast, rich content via selectionToMarkdown)
 	if containsDomain(url, "jobkorea.co.kr") {
 		rawPosting, parseErr := s.jobkoreaParser.ParseHTML(url, html)
-		if parseErr == nil {
+		if parseErr == nil && rawPosting.CompanyName != "" {
+			// Fetch S3 description for rich content (new Next.js format)
+			if descURL := s.jobkoreaParser.DescriptionURL(html); descURL != "" {
+				if descHTML, fetchErr := s.htmlFetcher.FetchHTML(descURL); fetchErr == nil {
+					s.jobkoreaParser.ParseDescriptionHTML(rawPosting, descHTML)
+				}
+			}
+			slog.Info("crawl_tier1_jobkorea", "url", url, "has_main_tasks", rawPosting.MainTasks != "")
 			return s.normalizeWithAI(ctx, rawPosting)
 		}
-		// If CSS parse fails, fall through to Tier 2
 	} else if containsDomain(url, "catch.co.kr") {
 		rawPosting, parseErr := s.catchParser.ParseHTML(url, html)
 		if parseErr == nil {
+			slog.Info("crawl_tier1_catch", "url", url)
 			return s.normalizeWithAI(ctx, rawPosting)
 		}
-		// If CSS parse fails, fall through to Tier 2
 	}
 
-	// Tier 2: Readability + Markdown + LLM
+	// Tier 1.5: Saramin relay pages — AJAX fetch + CSS parser for rich content
+	if containsDomain(url, "saramin.co.kr") {
+		if ajaxHTML, ajaxErr := s.fetchSaraminAjax(url); ajaxErr == nil && len(ajaxHTML) > 1000 {
+			slog.Info("crawl_saramin_ajax", "url", url, "ajax_len", len(ajaxHTML))
+			if rawPosting, parseErr := s.saraminParser.ParseHTML(url, ajaxHTML); parseErr == nil && rawPosting.CompanyName != "" {
+				slog.Info("crawl_tier1.5_saramin_css", "url", url)
+				return s.normalizeWithAI(ctx, rawPosting)
+			}
+			html = ajaxHTML // CSS parser failed — use AJAX HTML for downstream tiers
+		}
+	}
+
+	// Tier 1.6: Wanted — extract from __NEXT_DATA__ JSON (no LLM for extraction)
+	if containsDomain(url, "wanted.co.kr") {
+		if rawPosting, err := s.wantedExtractor.ExtractFromNextData(html); err == nil && rawPosting != nil && rawPosting.CompanyName != "" {
+			slog.Info("crawl_tier1.6_wanted_nextdata", "url", url)
+			return s.normalizeWithAI(ctx, rawPosting)
+		}
+	}
+
+	// Tier 2: Readability + Markdown
 	markdown, _ := crawler.ScrapeToMarkdown(html, url)
 	if len(markdown) >= crawler.MinMarkdownLength {
-		return s.extractJobPostingFromMarkdown(ctx, url, markdown)
+		// Tier 1.7: Universal extraction — attempt to extract sections without LLM
+		mdExtracted := crawler.ExtractFromMarkdown(markdown)
+		htmlExtracted := crawler.ExtractFromHTML(html, url)
+		merged := crawler.MergeExtractions(mdExtracted, htmlExtracted)
+
+		if merged != nil && merged.IsEnoughForNormalize() {
+			slog.Info("crawl_tier1.7_universal", "url", url, "filled", merged.FilledFields)
+			return s.normalizeWithAI(ctx, &merged.Raw)
+		}
+
+		// Smart trimming for LLM — use section-based priority instead of blind truncation
+		trimmed := crawler.SmartTrimForLLM(markdown, merged, maxMarkdownLen)
+		slog.Info("crawl_tier2_markdown", "url", url, "original_len", len(markdown), "trimmed_len", len(trimmed))
+		return s.extractJobPostingFromMarkdown(ctx, url, trimmed)
 	}
 
 	// Tier 3: Raw HTML + LLM (last resort)
+	slog.Info("crawl_tier3_fallback", "url", url, "markdown_len", len(markdown))
 	return s.extractJobPostingFromHTML(ctx, url, html)
 }
 
@@ -260,6 +344,7 @@ func (s *CrawlingService) loadCrawlingPrompt(ctx context.Context, subCategory st
 		if err == nil {
 			return pt, nil
 		}
+		slog.Warn("crawling_prompt_fallback", "sub_category", subCategory, "error", err)
 	}
 	// Fallback defaults for tests or missing seed data
 	return crawlingDefaultPrompt(subCategory), nil
@@ -269,21 +354,21 @@ func (s *CrawlingService) loadCrawlingPrompt(ctx context.Context, subCategory st
 func crawlingDefaultPrompt(subCategory string) *ent.PromptTemplate {
 	defaults := map[string]*ent.PromptTemplate{
 		"extract_markdown": {
-			Model:       "gemini-2.0-flash",
+			Model:       "groq/compound",
 			SystemPrompt: "You are a Korean job posting data extractor. Extract structured information from the provided content. Always respond in valid JSON.",
 			UserPromptTemplate: "URL: {{source_url}}\n\n{{content}}\n\nExtract job posting fields as JSON.",
 			Temperature: 0.1,
 			MaxTokens:   2000,
 		},
 		"extract_html": {
-			Model:       "gemini-2.0-flash",
+			Model:       "groq/compound",
 			SystemPrompt: "You are a Korean job posting data extractor. Extract structured information from raw HTML. Always respond in valid JSON.",
 			UserPromptTemplate: "URL: {{source_url}}\n\n{{content}}\n\nExtract job posting fields as JSON.",
 			Temperature: 0.1,
 			MaxTokens:   2000,
 		},
 		"normalize": {
-			Model:       "gemini-2.0-flash",
+			Model:       "groq/compound",
 			SystemPrompt: "You are a job posting data extractor. Extract structured information from raw text.",
 			UserPromptTemplate: "Company: {{company_name}}\nPosition: {{position}}\nDepartment: {{department}}\nCareer: {{career}}\nLocation: {{location}}\nMain Tasks: {{main_tasks}}\nRequirements: {{requirements}}\nPreferred: {{preferred}}\nSkills: {{skills}}\n\nReturn structured JSON.",
 			Temperature: 0.2,
@@ -293,7 +378,7 @@ func crawlingDefaultPrompt(subCategory string) *ent.PromptTemplate {
 	if pt, ok := defaults[subCategory]; ok {
 		return pt
 	}
-	return &ent.PromptTemplate{Model: "gemini-2.0-flash", Temperature: 0.1, MaxTokens: 2000}
+	return &ent.PromptTemplate{Model: "groq/compound", Temperature: 0.1, MaxTokens: 2000}
 }
 
 // updatePromptStats updates usage count and avg latency for a prompt template
@@ -308,6 +393,48 @@ func (s *CrawlingService) updatePromptStats(ctx context.Context, pt *ent.PromptT
 		Exec(ctx)
 }
 
+// fetchSaraminAjax fetches real job content from Saramin's AJAX endpoint.
+// Saramin relay view pages load job details via XHR, so the initial HTML is a shell.
+// This method extracts rec_idx from the URL and calls the AJAX endpoint directly.
+func (s *CrawlingService) fetchSaraminAjax(sourceURL string) (string, error) {
+	parsed, err := url.Parse(sourceURL)
+	if err != nil {
+		return "", err
+	}
+	recIdx := parsed.Query().Get("rec_idx")
+	if recIdx == "" {
+		return "", fmt.Errorf("no rec_idx in Saramin URL")
+	}
+
+	ajaxURL := "https://www.saramin.co.kr/zf_user/jobs/relay/view-ajax?rec_idx=" + recIdx
+
+	req, err := http.NewRequest("GET", ajaxURL, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("X-Requested-With", "XMLHttpRequest")
+	req.Header.Set("Referer", sourceURL)
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("Saramin AJAX HTTP %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(body), nil
+}
+
 func containsDomain(url, domain string) bool {
 	return len(url) > 0 && len(domain) > 0 && (url[0:1] != "" && domain[0:1] != "") &&
 		(url == domain || strings.Contains(url, domain))
@@ -318,4 +445,16 @@ func truncateString(s string, maxLen int) string {
 		return s
 	}
 	return s[:maxLen]
+}
+
+// spaBodyPattern matches SPA shell pages where <body> contains only empty root divs and scripts.
+var spaBodyPattern = regexp.MustCompile(`(?is)<body[^>]*>\s*(<div\s+id="(root|app|__next|__nuxt)"[^>]*>\s*</div>\s*)+`)
+
+// isSPAPage detects JavaScript-rendered SPA pages that have no server-side content.
+// These pages return an HTML shell with an empty root div and JS bundles.
+func isSPAPage(html string) bool {
+	if len(html) > 5000 {
+		return false // real content pages are typically much larger
+	}
+	return spaBodyPattern.MatchString(html)
 }

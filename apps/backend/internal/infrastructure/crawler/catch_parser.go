@@ -34,10 +34,10 @@ func (p *CatchParser) ParseHTML(url, html string) (*RawJobPosting, error) {
 	result.Location = strings.TrimSpace(doc.Find(".location, .work-place").First().Text())
 	result.Deadline = strings.TrimSpace(doc.Find(".deadline, .dday").First().Text())
 
-	// Extract job details
-	result.MainTasks = strings.TrimSpace(doc.Find(".job-description, .main-tasks").First().Text())
-	result.Requirements = strings.TrimSpace(doc.Find(".requirements, .qualifications").First().Text())
-	result.Preferred = strings.TrimSpace(doc.Find(".preferred, .preferred-qualifications").First().Text())
+	// Extract job details (markdown preserves list structure)
+	result.MainTasks = selectionToMarkdown(doc.Find(".job-description, .main-tasks").First())
+	result.Requirements = selectionToMarkdown(doc.Find(".requirements, .qualifications").First())
+	result.Preferred = selectionToMarkdown(doc.Find(".preferred, .preferred-qualifications").First())
 
 	// Extract skills
 	result.Skills = []string{}

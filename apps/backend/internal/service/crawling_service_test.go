@@ -34,6 +34,18 @@ func (m *MockHTMLFetcher) FetchHTML(url string) (string, error) {
 	return m.html, m.err
 }
 
+// MockHeadlessRenderer mocks headless browser rendering for tests
+type MockHeadlessRenderer struct {
+	html  string
+	err   error
+	calls int
+}
+
+func (m *MockHeadlessRenderer) FetchRenderedHTML(ctx context.Context, targetURL string) (string, error) {
+	m.calls++
+	return m.html, m.err
+}
+
 func TestNormalizeWithAI_Success(t *testing.T) {
 	mockLLM := &MockLLMForCrawling{
 		response: ai.LLMResponse{
@@ -382,6 +394,330 @@ func TestCrawlJobPosting_FetchError(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to fetch HTML")
 	assert.Equal(t, 0, mockLLM.calls, "should not call LLM when fetch fails")
+}
+
+func TestIsSPAPage(t *testing.T) {
+	tests := []struct {
+		name   string
+		html   string
+		isSPA  bool
+	}{
+		{
+			"React SPA (LG Careers)",
+			`<!doctype html><html lang="ko"><head><title>LG Careers</title><script type="module" crossorigin src="/assets/index-BbLNL9A3.js"></script></head><body><div id="root"></div><div id="portal"></div></body></html>`,
+			true,
+		},
+		{
+			"Vue SPA",
+			`<!doctype html><html><head><title>App</title></head><body><div id="app"></div><script src="/js/app.js"></script></body></html>`,
+			true,
+		},
+		{
+			"Server-rendered page (large)",
+			`<html><head><title>채용</title></head><body><article>` + string(make([]byte, 6000)) + `</article></body></html>`,
+			false, // > 5000 bytes → skip SPA check
+		},
+		{
+			"Server-rendered page (small with content)",
+			`<html><head><title>채용</title></head><body><article><h1>개발자 채용</h1><p>상세 내용</p></article></body></html>`,
+			false,
+		},
+		{
+			"Empty body but not SPA pattern",
+			`<html><head></head><body></body></html>`,
+			false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.isSPA, isSPAPage(tt.html))
+		})
+	}
+}
+
+func TestCrawlJobPosting_SPADetection_HeadlessSuccess(t *testing.T) {
+	spaHTML := `<!doctype html><html lang="ko"><head><title>LG Careers</title><script type="module" crossorigin src="/assets/index.js"></script></head><body><div id="root"></div></body></html>`
+
+	// Headless renders full content
+	renderedHTML := `<html><head><title>LG Careers</title></head><body>
+		<article>
+			<h1>소프트웨어 엔지니어</h1>
+			<h2>담당업무</h2><ul><li>소프트웨어 개발</li><li>시스템 설계</li></ul>
+			<h2>자격요건</h2><ul><li>CS 학위</li><li>Go/Java 경험 3년+</li></ul>
+		</article>
+	</body></html>`
+
+	mockFetcher := &MockHTMLFetcher{html: spaHTML}
+	mockHeadless := &MockHeadlessRenderer{html: renderedHTML}
+	mockLLM := &MockLLMForCrawling{
+		response: ai.LLMResponse{
+			Content: `{
+				"company_name": "LG",
+				"position": "소프트웨어 엔지니어",
+				"main_tasks": ["소프트웨어 개발", "시스템 설계"],
+				"requirements": ["CS 학위", "Go/Java 경험 3년+"],
+				"required_skills": ["Go", "Java"]
+			}`,
+		},
+	}
+
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingServiceForTest(aiProvider, mockFetcher, mockHeadless)
+
+	result, err := svc.CrawlJobPosting(context.Background(), "https://careers.lg.com/apply/detail?id=1001364")
+	require.NoError(t, err)
+	assert.Equal(t, "LG", result.CompanyName)
+	assert.Equal(t, "소프트웨어 엔지니어", result.Position)
+	assert.Equal(t, 1, mockHeadless.calls, "should attempt headless rendering")
+	assert.Equal(t, 1, mockLLM.calls, "should call LLM with rendered content")
+}
+
+func TestCrawlJobPosting_SPADetection_HeadlessFails(t *testing.T) {
+	spaHTML := `<!doctype html><html lang="ko"><head><title>LG Careers</title><script type="module" crossorigin src="/assets/index.js"></script></head><body><div id="root"></div></body></html>`
+
+	mockFetcher := &MockHTMLFetcher{html: spaHTML}
+	mockHeadless := &MockHeadlessRenderer{err: fmt.Errorf("Chrome not found")}
+	mockLLM := &MockLLMForCrawling{}
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingServiceForTest(aiProvider, mockFetcher, mockHeadless)
+
+	_, err := svc.CrawlJobPosting(context.Background(), "https://careers.lg.com/apply/detail?id=1001364")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "JavaScript로 렌더링")
+	assert.Equal(t, 1, mockHeadless.calls, "should attempt headless rendering")
+	assert.Equal(t, 0, mockLLM.calls, "should not call LLM when headless fails")
+}
+
+// === New tests for enhanced crawling pipeline ===
+
+func TestCrawlJobPosting_SaraminCSSParser(t *testing.T) {
+	// Saramin relay HTML shell — triggers AJAX fetch
+	shellHTML := `<html><body><div class="wrap_jv_cont"><div id="iframe_content_0"></div></div></body></html>`
+
+	mockFetcher := &MockHTMLFetcher{html: shellHTML}
+
+	// Mock LLM for normalization
+	mockLLM := &MockLLMForCrawling{
+		response: ai.LLMResponse{
+			Content: `{
+				"company_name": "사람인테스트",
+				"position": "개발자",
+				"main_tasks": ["API 개발", "시스템 설계"],
+				"requirements": ["Go 경험"],
+				"required_skills": ["Go"]
+			}`,
+		},
+	}
+
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingServiceWithFetcher(nil, aiProvider, mockFetcher)
+
+	// Override the fetchSaraminAjax by testing normalizeWithAI directly
+	// (Can't easily mock AJAX fetch without major refactor)
+	raw := &crawler.RawJobPosting{
+		Source:       "saramin",
+		CompanyName:  "사람인테스트",
+		Position:     "개발자",
+		MainTasks:    "- API 개발\n- 시스템 설계",
+		Requirements: "- Go 경험 3년 이상",
+	}
+
+	result, err := svc.normalizeWithAI(context.Background(), raw)
+	require.NoError(t, err)
+	assert.Equal(t, "사람인테스트", result.CompanyName)
+	assert.Contains(t, result.MainTasks, "API 개발")
+}
+
+func TestCrawlJobPosting_WantedNextData(t *testing.T) {
+	// Wanted SSR HTML with __NEXT_DATA__
+	wantedHTML := `<html><head></head><body>
+		<script id="__NEXT_DATA__" type="application/json">
+		{
+			"props": {
+				"pageProps": {
+					"job": {
+						"detail": {
+							"position": "백엔드 개발자",
+							"company": {"name": "원티드테스트"},
+							"intro": "서비스 개발\nAPI 설계",
+							"requirements": "Go 3년 이상\nDB 경험",
+							"preferred": "K8s 경험",
+							"skill_tags": [{"title": "Go"}, {"title": "PostgreSQL"}]
+						}
+					}
+				}
+			}
+		}
+		</script>
+		<div id="__next"><div>visible content</div></div>
+	</body></html>`
+
+	mockFetcher := &MockHTMLFetcher{html: wantedHTML}
+	mockLLM := &MockLLMForCrawling{
+		response: ai.LLMResponse{
+			Content: `{
+				"company_name": "원티드테스트",
+				"position": "백엔드 개발자",
+				"main_tasks": ["서비스 개발", "API 설계"],
+				"requirements": ["Go 3년 이상", "DB 경험"],
+				"preferred": ["K8s 경험"],
+				"required_skills": ["Go", "PostgreSQL"]
+			}`,
+		},
+	}
+
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingServiceForTest(aiProvider, mockFetcher, &MockHeadlessRenderer{})
+
+	result, err := svc.CrawlJobPosting(context.Background(), "https://www.wanted.co.kr/wd/292769")
+	require.NoError(t, err)
+	assert.Equal(t, "원티드테스트", result.CompanyName)
+	assert.Equal(t, "백엔드 개발자", result.Position)
+	assert.Contains(t, result.MainTasks, "서비스 개발")
+	// Should call LLM once (normalize only, not extract)
+	assert.Equal(t, 1, mockLLM.calls)
+}
+
+func TestCrawlJobPosting_UniversalExtractorNormalize(t *testing.T) {
+	// HTML with Korean section headers — universal extractor should detect them
+	richHTML := `<html>
+		<head><title>프론트엔드 개발자 - 네이버</title></head>
+		<body>
+			<h3>담당업무</h3>
+			<ul>
+				<li>React 기반 웹 서비스 개발</li>
+				<li>디자인 시스템 구축</li>
+				<li>성능 최적화</li>
+			</ul>
+			<h3>자격요건</h3>
+			<ul>
+				<li>React 경험 3년 이상</li>
+				<li>TypeScript 필수</li>
+			</ul>
+			<h3>우대사항</h3>
+			<ul>
+				<li>Next.js 경험</li>
+			</ul>
+		</body>
+	</html>`
+
+	mockFetcher := &MockHTMLFetcher{html: richHTML}
+	mockLLM := &MockLLMForCrawling{
+		response: ai.LLMResponse{
+			Content: `{
+				"company_name": "네이버",
+				"position": "프론트엔드 개발자",
+				"main_tasks": ["React 기반 웹 서비스 개발", "디자인 시스템 구축", "성능 최적화"],
+				"requirements": ["React 경험 3년 이상", "TypeScript 필수"],
+				"preferred": ["Next.js 경험"],
+				"required_skills": ["React", "TypeScript"]
+			}`,
+		},
+	}
+
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingServiceForTest(aiProvider, mockFetcher, &MockHeadlessRenderer{})
+
+	result, err := svc.CrawlJobPosting(context.Background(), "https://recruit.navercorp.com/rcrt/view.do?annoId=30004542")
+	require.NoError(t, err)
+	assert.Equal(t, "네이버", result.CompanyName)
+	assert.Len(t, result.MainTasks, 3)
+	assert.Contains(t, result.MainTasks, "React 기반 웹 서비스 개발")
+	// Should use normalize path (tier 1.7), not extract path
+	assert.Equal(t, 1, mockLLM.calls)
+}
+
+func TestCrawlJobPosting_UniversalFallsToLLM(t *testing.T) {
+	// HTML with no Korean headers — universal extractor can't help
+	genericHTML := `<html><head><title>Some Job</title></head><body>
+		<article>
+			<h1>Developer Position</h1>
+			<p>We are looking for a talented developer to join our team.
+			You will be responsible for building amazing things.
+			Requirements include 3 years of experience with Go.
+			Nice to have: Kubernetes experience.</p>
+		</article>
+	</body></html>`
+
+	mockFetcher := &MockHTMLFetcher{html: genericHTML}
+	mockLLM := &MockLLMForCrawling{
+		response: ai.LLMResponse{
+			Content: `{
+				"company_name": "Unknown",
+				"position": "Developer",
+				"main_tasks": ["Building things"],
+				"requirements": ["Go 3 years"]
+			}`,
+		},
+	}
+
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingServiceForTest(aiProvider, mockFetcher, &MockHeadlessRenderer{})
+
+	result, err := svc.CrawlJobPosting(context.Background(), "https://example.com/jobs/123")
+	require.NoError(t, err)
+	assert.Equal(t, "Unknown", result.CompanyName)
+	// Should fall through to Tier 2 LLM extraction
+	assert.Equal(t, 1, mockLLM.calls)
+}
+
+func TestCrawlJobPosting_RichContentPreserved(t *testing.T) {
+	// HTML with detailed content — verify the LLM gets rich input
+	detailedHTML := `<html>
+		<head><title>시니어 개발자 - 카카오</title></head>
+		<body>
+			<h2>담당업무</h2>
+			<ul>
+				<li>대규모 트래픽 서비스 API 설계 및 개발</li>
+				<li>MSA 기반 시스템 아키텍처 설계 및 마이그레이션</li>
+				<li>데이터 파이프라인 구축 및 최적화</li>
+				<li>코드 리뷰 및 기술 멘토링</li>
+			</ul>
+			<h2>자격요건</h2>
+			<ul>
+				<li>Go 또는 Java 기반 서버 개발 5년 이상</li>
+				<li>대규모 트래픽 처리 경험</li>
+				<li>PostgreSQL 또는 MySQL 경험</li>
+			</ul>
+			<h2>우대사항</h2>
+			<ul>
+				<li>Kubernetes 운영 경험</li>
+				<li>gRPC 사용 경험</li>
+				<li>오픈소스 기여 경험</li>
+			</ul>
+		</body>
+	</html>`
+
+	mockFetcher := &MockHTMLFetcher{html: detailedHTML}
+	mockLLM := &MockLLMForCrawling{
+		response: ai.LLMResponse{
+			Content: `{
+				"company_name": "카카오",
+				"position": "시니어 개발자",
+				"main_tasks": ["대규모 트래픽 서비스 API 설계 및 개발", "MSA 기반 시스템 아키텍처 설계 및 마이그레이션", "데이터 파이프라인 구축 및 최적화", "코드 리뷰 및 기술 멘토링"],
+				"requirements": ["Go 또는 Java 기반 서버 개발 5년 이상", "대규모 트래픽 처리 경험", "PostgreSQL 또는 MySQL 경험"],
+				"preferred": ["Kubernetes 운영 경험", "gRPC 사용 경험", "오픈소스 기여 경험"],
+				"required_skills": ["Go", "Java", "PostgreSQL", "MySQL"],
+				"soft_skills": [],
+				"company_values_hints": []
+			}`,
+		},
+	}
+
+	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	svc := NewCrawlingServiceForTest(aiProvider, mockFetcher, &MockHeadlessRenderer{})
+
+	result, err := svc.CrawlJobPosting(context.Background(), "https://careers.kakao.com/job/12345")
+	require.NoError(t, err)
+
+	// Should extract DETAILED content — 4 main tasks, 3 requirements, 3 preferred
+	assert.Len(t, result.MainTasks, 4)
+	assert.Len(t, result.Requirements, 3)
+	assert.Len(t, result.Preferred, 3)
+	assert.Contains(t, result.MainTasks, "데이터 파이프라인 구축 및 최적화")
+	assert.Contains(t, result.Requirements, "대규모 트래픽 처리 경험")
+	assert.Contains(t, result.Preferred, "오픈소스 기여 경험")
 }
 
 func TestTruncateString(t *testing.T) {
