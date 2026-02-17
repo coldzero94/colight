@@ -55,44 +55,86 @@ export function HeroSection() {
 
         <div className="relative animate-fade-in lg:pl-8">
           <div className="landing-panel glass-strong rounded-3xl p-3 shadow-[0_24px_90px_rgba(0,0,0,0.45)]">
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/30">
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/35">
               <div className="flex items-center gap-2 border-b border-white/[0.08] px-4 py-3">
                 <div className="flex gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
                   <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
                   <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
                 </div>
-                <div className="ml-4 h-5 w-40 rounded bg-white/[0.05]" />
+                <div className="ml-3 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-muted-foreground">
+                  Colight Workspace
+                </div>
+                <div className="ml-auto rounded-full border border-cyan-400/25 bg-cyan-400/12 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-cyan-200">
+                  live preview
+                </div>
               </div>
               <div className="grid grid-cols-12">
                 <div className="col-span-4 border-r border-white/[0.08] p-4">
-                  <div className="space-y-3">
-                    <div className="h-3.5 w-16 rounded bg-primary/35" />
-                    <div className="h-3 w-24 rounded bg-white/[0.08]" />
-                    <div className="h-3 w-20 rounded bg-white/[0.08]" />
-                    <div className="h-3 w-14 rounded bg-white/[0.08]" />
+                  <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
+                    메뉴
+                  </p>
+                  <div className="space-y-2.5">
+                    <div className="rounded-lg border border-primary/35 bg-primary/12 px-2.5 py-2 text-xs text-primary">
+                      STAR 경험 목록
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-2 text-xs text-muted-foreground">
+                      기업 분석 리포트
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-2 text-xs text-muted-foreground">
+                      경험 매칭 보드
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-2 text-xs text-muted-foreground">
+                      코칭 히스토리
+                    </div>
                   </div>
                 </div>
                 <div className="col-span-8 p-4 sm:p-5">
                   <div className="mb-4 flex items-center justify-between">
-                    <div className="h-5 w-28 rounded bg-white/[0.09]" />
-                    <div className="h-6 w-24 rounded-full bg-cyan-400/25" />
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
+                        Live Dashboard
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">
+                        STAR 경험 목록
+                      </p>
+                    </div>
+                    <div className="rounded-full border border-emerald-400/30 bg-emerald-400/12 px-2.5 py-1 text-[10px] text-emerald-200">
+                      3개 추천 완료
+                    </div>
                   </div>
                   <div className="space-y-3">
-                    {[...Array(3)].map((_, i) => (
+                    {[
+                      {
+                        title: "교내 서비스 장애 대응 경험",
+                        note: "문제해결 / 팀워크 무기와 매칭률 92%",
+                        tags: ["S", "A", "R"],
+                      },
+                      {
+                        title: "인턴 기간 배치 배포 자동화",
+                        note: "직무적합성 키워드와 연결. STAR 구조 자동 정리 완료",
+                        tags: ["T", "A", "R"],
+                      },
+                    ].map((item, i) => (
                       <div
-                        key={i}
+                        key={item.title}
                         className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3 animate-float-y-soft"
-                        style={{ animationDelay: `${i * 0.4}s` }}
+                        style={{ animationDelay: `${i * 0.45}s` }}
                       >
-                        <div className="mb-2.5 h-2.5 w-20 rounded bg-white/[0.12]" />
-                        <div className="space-y-2">
-                          <div className="h-2 w-full rounded bg-white/[0.06]" />
-                          <div className="h-2 w-4/5 rounded bg-white/[0.06]" />
-                        </div>
-                        <div className="mt-3 flex gap-2">
-                          <div className="h-5 w-12 rounded-full bg-violet-400/25" />
-                          <div className="h-5 w-14 rounded-full bg-cyan-400/20" />
+                        <p className="text-xs font-medium text-foreground">{item.title}</p>
+                        <p className="mt-1.5 text-[11px] text-muted-foreground">{item.note}</p>
+                        <div className="mt-2.5 flex gap-1.5">
+                          {item.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full border border-violet-400/25 bg-violet-400/15 px-2 py-0.5 text-[10px] text-violet-200"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          <span className="rounded-full border border-cyan-400/25 bg-cyan-400/15 px-2 py-0.5 text-[10px] text-cyan-200">
+                            MATCH
+                          </span>
                         </div>
                       </div>
                     ))}

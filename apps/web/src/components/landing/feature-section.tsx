@@ -3,7 +3,6 @@ import { Building2, Target, PenTool, Mic, BarChart3, Zap } from "lucide-react";
 const features = [
   {
     icon: Building2,
-    number: "01",
     title: "기업 분석",
     description:
       "채용공고 URL만 입력하면 기업 재무, 뉴스, 인재상까지 자동 분석합니다.",
@@ -12,7 +11,6 @@ const features = [
   },
   {
     icon: Target,
-    number: "02",
     title: "경험 매칭",
     description:
       "등록한 경험과 채용 요건을 AI가 매칭하여 최적의 소재를 추천합니다.",
@@ -21,7 +19,6 @@ const features = [
   },
   {
     icon: PenTool,
-    number: "03",
     title: "AI 코칭",
     description:
       "STAR 구조 초안 생성부터 구체성·직무적합성·기업적합성·진정성 4점 첨삭까지.",
@@ -30,7 +27,6 @@ const features = [
   },
   {
     icon: Mic,
-    number: "04",
     title: "경험 인터뷰",
     description:
       "AI가 질문하고, 답변에서 STAR 구조를 자동으로 추출합니다.",
@@ -39,7 +35,6 @@ const features = [
   },
   {
     icon: BarChart3,
-    number: "05",
     title: "대시보드",
     description:
       "모든 지원 현황을 한눈에. 칸반 보드로 진행 상태를 관리합니다.",
@@ -48,7 +43,6 @@ const features = [
   },
   {
     icon: Zap,
-    number: "06",
     title: "실시간 피드백",
     description:
       "AI가 작성 중인 자소서를 실시간으로 분석하고 개선점을 제안합니다.",
@@ -95,13 +89,8 @@ export function FeatureSection() {
               }`}
               style={{ animationDelay: `${index * 80}ms` }}
             >
-              {/* Number */}
-              <span className="font-display text-xs font-medium text-muted-foreground/45">
-                {feature.number}
-              </span>
-
               {/* Icon */}
-              <div className={`mt-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-gradient-to-br ${feature.color}`}>
+              <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-gradient-to-br ${feature.color}`}>
                 <feature.icon className={`h-5 w-5 ${feature.iconColor}`} />
               </div>
 
@@ -111,11 +100,6 @@ export function FeatureSection() {
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {feature.description}
-              </p>
-
-              <div className="mt-5 h-px w-full bg-gradient-to-r from-white/0 via-white/20 to-white/0" />
-              <p className="mt-4 text-xs uppercase tracking-[0.2em] text-muted-foreground/60">
-                Precision AI Workflow
               </p>
 
               <div className={`absolute -inset-px -z-10 rounded-2xl bg-gradient-to-br ${feature.color} opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100`} />

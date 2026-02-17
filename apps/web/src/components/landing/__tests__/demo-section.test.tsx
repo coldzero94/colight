@@ -17,11 +17,11 @@ describe("DemoSection", () => {
 
   it("renders all 5 process steps", () => {
     render(<DemoSection />);
-    expect(screen.getByText("URL 입력")).toBeInTheDocument();
-    expect(screen.getByText("자동 분석")).toBeInTheDocument();
-    expect(screen.getByText("소재 매칭")).toBeInTheDocument();
-    expect(screen.getByText("초안 작성")).toBeInTheDocument();
-    expect(screen.getByText("AI 첨삭")).toBeInTheDocument();
+    expect(screen.getAllByText("URL 입력").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("자동 분석").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("소재 매칭").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("초안 작성").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("AI 첨삭").length).toBeGreaterThan(0);
   });
 
   it("renders step icons as svg elements", () => {

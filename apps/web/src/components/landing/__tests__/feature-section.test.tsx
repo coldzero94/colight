@@ -22,9 +22,13 @@ describe("FeatureSection", () => {
     expect(screen.getByText("Features")).toBeInTheDocument();
   });
 
-  it("renders all 6 feature cards with numbers", () => {
+  it("renders all 6 feature cards", () => {
     render(<FeatureSection />);
-    expect(screen.getByText("01")).toBeInTheDocument();
-    expect(screen.getByText("06")).toBeInTheDocument();
+    expect(screen.getByText("기업 분석")).toBeInTheDocument();
+    expect(screen.getByText("경험 매칭")).toBeInTheDocument();
+    expect(screen.getByText("AI 코칭")).toBeInTheDocument();
+    expect(screen.getByText("경험 인터뷰")).toBeInTheDocument();
+    expect(screen.getByText("대시보드")).toBeInTheDocument();
+    expect(screen.getByText("실시간 피드백")).toBeInTheDocument();
   });
 });
