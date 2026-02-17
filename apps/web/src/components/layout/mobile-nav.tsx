@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, Mic, Building2, PenTool, LayoutDashboard, Shield, Menu, X } from "lucide-react";
+import { ClipboardList, Mic, Building2, PenTool, LayoutDashboard, Shield, Menu, X, User } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { ColightLogo } from "@/components/common/colight-logo";
 
@@ -14,6 +14,7 @@ const menuItems = [
   { label: "기업 분석", href: "/analysis", icon: Building2 },
   { label: "자소서 코칭", href: "/coaching", icon: PenTool },
   { label: "대시보드", href: "/dashboard", icon: LayoutDashboard },
+  { label: "마이페이지", href: "/my-page", icon: User },
 ];
 
 const emptySubscribe = () => () => {};
