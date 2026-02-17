@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -284,6 +285,7 @@ func (s *InterviewService) loadInterviewPrompt(ctx context.Context, subCategory 
 		if err == nil {
 			return pt, nil
 		}
+		slog.Warn("interview_prompt_fallback", "sub_category", subCategory, "error", err)
 	}
 	return interviewDefaultPrompt(subCategory), nil
 }
@@ -291,14 +293,14 @@ func (s *InterviewService) loadInterviewPrompt(ctx context.Context, subCategory 
 func interviewDefaultPrompt(subCategory string) *ent.PromptTemplate {
 	defaults := map[string]*ent.PromptTemplate{
 		"generate_question": {
-			Model:              "gemini-2.0-flash",
+			Model:              "groq/compound",
 			SystemPrompt:       "당신은 취업 준비생의 경험을 발굴하는 친절한 AI 인터뷰어입니다.\n한국어로 대화하며, 자연스럽고 편안한 톤으로 질문합니다.\n한 번에 하나의 질문만 합니다. 질문은 간결하게 2-3문장 이내로 합니다.\n\n현재 인터뷰 단계: {{stage_name}}\n단계 지시사항: {{stage_instruction}}\n\n반드시 아래 JSON 형식으로만 응답하세요:\n{\"question\": \"질문 내용\"}",
 			UserPromptTemplate: "대화 기록:\n{{conversation_history}}\n\n위 대화를 바탕으로 다음 질문을 생성하세요.",
 			Temperature:        0.7,
 			MaxTokens:          300,
 		},
 		"extract_star": {
-			Model:              "gemini-2.0-flash",
+			Model:              "groq/compound",
 			SystemPrompt:       "당신은 인터뷰 대화에서 경험을 STAR 구조로 추출하는 전문가입니다.\n아래 대화를 분석하여 핵심 경험을 STAR 구조로 정리하세요.\n\n규칙:\n- 모든 필드를 한국어로 작성\n- title: 경험을 한 줄로 요약 (20자 이내)\n- category: project, work, activity, competition, education, volunteer, other\n- star_situation/star_task/star_action/star_result 필드 포함\n- keywords: 핵심 키워드 3-5개 배열\n\n반드시 JSON 형식으로만 응답하세요.",
 			UserPromptTemplate: "인터뷰 대화:\n{{conversation_history}}\n\n위 대화에서 STAR 구조를 추출하세요.",
 			Temperature:        0.3,
@@ -308,7 +310,7 @@ func interviewDefaultPrompt(subCategory string) *ent.PromptTemplate {
 	if pt, ok := defaults[subCategory]; ok {
 		return pt
 	}
-	return &ent.PromptTemplate{Model: "gemini-2.0-flash", Temperature: 0.3, MaxTokens: 500}
+	return &ent.PromptTemplate{Model: "groq/compound", Temperature: 0.3, MaxTokens: 500}
 }
 
 // updateInterviewPromptStats updates usage count and avg latency

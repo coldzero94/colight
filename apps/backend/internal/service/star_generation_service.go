@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -123,9 +124,10 @@ func (s *StarGenerationService) loadStarPrompt(ctx context.Context) (*ent.Prompt
 		if err == nil {
 			return pt, nil
 		}
+		slog.Warn("star_prompt_fallback", "error", err)
 	}
 	return &ent.PromptTemplate{
-		Model: "gemini-2.0-flash",
+		Model: "groq/compound",
 		SystemPrompt: "당신은 취업 준비생의 자유 형식 경험 텍스트를 STAR 기법으로 구조화하는 AI입니다.\n오직 JSON만 출력하세요.\n\n응답 형식:\n{\"star_situation\": \"상황\", \"star_task\": \"과제\", \"star_action\": \"행동\", \"star_result\": \"결과\"}\n\n규칙:\n- 원문의 핵심 내용을 보존하되 STAR 구조로 재배치\n- 각 필드는 2~4문장\n- 원문에 없는 내용을 지어내지 말 것\n- 한국어로 작성",
 		UserPromptTemplate: "제목: {{title}}\n\n내용:\n{{content}}\n\nJSON만 출력하세요.",
 		Temperature:        0.3,

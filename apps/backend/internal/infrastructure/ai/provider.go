@@ -80,8 +80,11 @@ func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req 
 		})
 
 	default:
-		// Check if it's a known Groq model alias (e.g. "llama-3.3-70b-versatile")
+		// Check if it's a known Groq model alias (e.g. "groq/compound", "llama-3.3-70b-versatile")
 		if _, ok := GroqModelAliases[modelName]; ok {
+			if p.groqLLM != nil {
+				return p.groqLLM.Call(ctx, req)
+			}
 			if p.groq == nil {
 				return LLMResponse{}, fmt.Errorf("Groq not available for model %s (missing GROQ_API_KEY)", modelName)
 			}

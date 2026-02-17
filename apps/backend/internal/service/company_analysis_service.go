@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"strings"
@@ -244,9 +245,10 @@ func (s *CompanyAnalysisService) loadAnalysisPrompt(ctx context.Context) (*ent.P
 		if err == nil {
 			return pt, nil
 		}
+		slog.Warn("analysis_prompt_fallback", "error", err)
 	}
 	return &ent.PromptTemplate{
-		Model:              "gemini-2.0-flash",
+		Model:              "groq/compound",
 		SystemPrompt:       "당신은 한국 기업을 분석하는 AI 전문가입니다. 기업의 핵심가치, 인재상, 최근 트렌드를 분석해주세요. JSON으로 응답하세요.",
 		UserPromptTemplate: "기업명: {{company_name}}\n\n기업 정보:\n{{company_context}}\n\n최근 뉴스:\n{{news_text}}\n\n위 정보를 기반으로 기업을 분석하세요.",
 		Temperature:        0.3,

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -279,9 +280,10 @@ func (s *MatchingService) loadMatchingPrompt(ctx context.Context) (*ent.PromptTe
 		if err == nil {
 			return pt, nil
 		}
+		slog.Warn("matching_prompt_fallback", "error", err)
 	}
 	return &ent.PromptTemplate{
-		Model:              "gemini-2.0-flash",
+		Model:              "groq/compound",
 		SystemPrompt:       "You are an experience-company matching analyst. Provide objective fit scores.",
 		UserPromptTemplate: "Experience:\n{{experience_text}}\n\nCompany Requirements:\n{{company_context}}\n\nReturn JSON with scores (0-100): overall_fit, job_relevance, talent_fit, uniqueness, reasoning, suggested_angle.",
 		Temperature:        0.2,
