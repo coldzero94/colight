@@ -23,6 +23,15 @@ const (
 	maxHTMLLen     = 8000
 )
 
+// getFieldNames returns all keys from a map for logging purposes
+func getFieldNames(m map[string]interface{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
 // HTMLFetcher abstracts HTML fetching for testability
 type HTMLFetcher interface {
 	FetchHTML(url string) (string, error)
@@ -244,13 +253,18 @@ func (s *CrawlingService) extractJobPostingFromMarkdown(ctx context.Context, sou
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
-	// Validate required fields
+	// Validate and fill required fields
 	if _, ok := result["company_name"]; !ok {
-		return nil, fmt.Errorf("missing required field: company_name")
+		slog.Warn("crawl_missing_field", "field", "company_name", "available_fields", getFieldNames(result))
+		result["company_name"] = ""
 	}
 	if _, ok := result["position"]; !ok {
-		return nil, fmt.Errorf("missing required field: position")
+		slog.Warn("crawl_missing_field", "field", "position", "available_fields", getFieldNames(result))
+		result["position"] = ""
 	}
+
+	// Log successful extraction with field count
+	slog.Info("crawl_extracted", "url", sourceURL, "field_count", len(result), "has_position", result["position"] != "")
 
 	return result, nil
 }
@@ -290,18 +304,24 @@ func (s *CrawlingService) extractJobPostingFromHTML(ctx context.Context, sourceU
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
-	// Validate required fields
+	// Validate and fill required fields
 	if _, ok := result["company_name"]; !ok {
-		return nil, fmt.Errorf("missing required field: company_name")
+		slog.Warn("crawl_missing_field", "field", "company_name", "available_fields", getFieldNames(result))
+		result["company_name"] = ""
 	}
 	if _, ok := result["position"]; !ok {
-		return nil, fmt.Errorf("missing required field: position")
+		slog.Warn("crawl_missing_field", "field", "position", "available_fields", getFieldNames(result))
+		result["position"] = ""
 	}
+
+	// Log successful extraction with field count
+	slog.Info("crawl_extracted", "url", sourceURL, "field_count", len(result), "has_position", result["position"] != "")
 
 	return result, nil
 }
 
-// normalizeWithAI uses LLM to normalize RawJobPosting into structured JobPosting
+// normalizeWithAI uses LLM to normalize RawJobPosting into structured JobPosting.
+// Note: This is a fallback for site-specific parsers when they extract partial data.
 func (s *CrawlingService) normalizeWithAI(ctx context.Context, raw *crawler.RawJobPosting) (map[string]interface{}, error) {
 	pt, err := s.loadCrawlingPrompt(ctx, "normalize")
 	if err != nil {
@@ -342,13 +362,18 @@ func (s *CrawlingService) normalizeWithAI(ctx context.Context, raw *crawler.RawJ
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
-	// Validate required fields
+	// Validate and fill required fields
 	if _, ok := result["company_name"]; !ok {
-		return nil, fmt.Errorf("missing required field: company_name")
+		slog.Warn("crawl_missing_field", "field", "company_name", "available_fields", getFieldNames(result))
+		result["company_name"] = ""
 	}
 	if _, ok := result["position"]; !ok {
-		return nil, fmt.Errorf("missing required field: position")
+		slog.Warn("crawl_missing_field", "field", "position", "available_fields", getFieldNames(result))
+		result["position"] = ""
 	}
+
+	// Log successful extraction with field count
+	slog.Info("crawl_extracted", "url", raw.SourceURL, "field_count", len(result), "has_position", result["position"] != "")
 
 	return result, nil
 }
