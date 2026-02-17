@@ -11,6 +11,8 @@ import {
   Sparkles,
   Radar,
   Target,
+  MousePointerClick,
+  ArrowRight,
 } from "lucide-react";
 
 interface StepMeta {
@@ -387,7 +389,6 @@ export function DemoSection() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const activeStep = steps[activeIndex];
-  const progress = ((activeIndex + 1) / steps.length) * 100;
 
   const handleStepChange = (nextIndex: number) => {
     const targetIndex = Math.max(0, Math.min(steps.length - 1, nextIndex));
@@ -415,92 +416,62 @@ export function DemoSection() {
           </p>
         </div>
 
-        <div className="mt-16 grid gap-8 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:items-start">
-          <div>
-            <div className="glass landing-panel rounded-3xl border border-white/12 p-3 shadow-[0_24px_90px_rgba(0,0,0,0.45)]">
-              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/35">
-                <div className="flex items-center gap-3 border-b border-white/[0.08] px-4 py-3">
-                  <div className="flex gap-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
-                    <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
-                    <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
-                  </div>
-                  <div className="h-5 flex-1 rounded bg-white/[0.05]" />
-                  <span className="rounded-full border border-cyan-400/25 bg-cyan-400/12 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-cyan-200">
-                    {activeStep.title}
+        <div className="mt-16">
+          <div className="glass landing-panel rounded-3xl border border-white/12 p-3 shadow-[0_24px_90px_rgba(0,0,0,0.45)]">
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/35">
+              <div className="flex items-center gap-3 border-b border-white/[0.08] px-4 py-3">
+                <div className="flex gap-1.5">
+                  <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                </div>
+                <div className="h-5 flex-1 rounded bg-white/[0.05]" />
+                <span className="rounded-full border border-cyan-400/25 bg-cyan-400/12 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-cyan-200">
+                  {activeStep.title}
+                </span>
+              </div>
+
+              <div className="border-b border-white/[0.08] px-4 py-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-cyan-200/90 animate-pulse-glow">
+                    <MousePointerClick className="h-3.5 w-3.5" />
+                    Click Tabs To Switch
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/80">
+                    단계 전환
+                    <ArrowRight className="h-3 w-3 animate-float-y-soft" />
                   </span>
                 </div>
-
-                <div className="border-b border-white/[0.08] px-4 py-3">
-                  <div className="flex flex-wrap gap-1.5">
-                    {steps.map((step, index) => (
-                      <button
-                        key={step.title}
-                        type="button"
-                        onClick={() => handleStepChange(index)}
-                        className={`rounded-full border px-2.5 py-1 text-[10px] transition-colors ${
+                <div className="flex flex-wrap gap-1.5">
+                  {steps.map((step, index) => (
+                    <button
+                      key={step.title}
+                      type="button"
+                      onClick={() => handleStepChange(index)}
+                      className={`group/tab relative inline-flex items-center gap-1.5 overflow-hidden rounded-full border px-2.5 py-1 text-[10px] transition-all ${
+                        index === activeIndex
+                          ? "border-primary/35 bg-primary/12 text-primary shadow-[0_0_18px_rgba(56,189,248,0.2)]"
+                          : "border-white/12 bg-white/[0.03] text-muted-foreground hover:-translate-y-0.5 hover:border-white/25 hover:text-foreground"
+                      }`}
+                    >
+                      <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 transition-opacity duration-300 group-hover/tab:opacity-100" />
+                      <span
+                        className={`relative h-1.5 w-1.5 rounded-full ${
                           index === activeIndex
-                            ? "border-primary/35 bg-primary/12 text-primary"
-                            : "border-white/12 bg-white/[0.03] text-muted-foreground hover:border-white/25 hover:text-foreground"
-                        }`}
-                      >
-                        {step.title}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div key={activeStep.key} className="animate-fade-in p-4 sm:p-5">
-                  {renderPanel(activeStep.key)}
+                            ? "bg-primary"
+                            : "bg-white/40"
+                        } ${index !== activeIndex && index === (activeIndex + 1) % steps.length ? "animate-pulse-glow" : ""}`}
+                      />
+                      <step.icon className="h-3.5 w-3.5" />
+                      {step.title}
+                    </button>
+                  ))}
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="relative pl-0 lg:pl-9">
-            <div className="pointer-events-none absolute left-2 top-2 hidden h-[calc(100%-0.5rem)] w-px bg-white/10 lg:block">
-              <span
-                className="absolute left-0 top-0 w-px rounded-full bg-gradient-to-b from-primary via-cyan-300 to-transparent transition-all duration-500"
-                style={{ height: `${Math.max(8, progress * 100)}%` }}
-              />
-            </div>
-
-            <div className="space-y-4">
-              {steps.map((step, index) => {
-                const isActive = index === activeIndex;
-                return (
-                  <button
-                    key={step.title}
-                    type="button"
-                    onClick={() => handleStepChange(index)}
-                    className={`w-full rounded-2xl border px-4 py-4 text-left transition-all duration-300 ${
-                      isActive
-                        ? "border-primary/35 bg-primary/10 shadow-[0_14px_34px_rgba(56,189,248,0.15)]"
-                        : "border-white/10 bg-white/[0.02] hover:border-white/20"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span
-                        className={`mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-xl border ${
-                          isActive
-                            ? "border-primary/35 bg-primary/15 text-primary"
-                            : "border-white/12 bg-white/[0.03] text-muted-foreground"
-                        }`}
-                      >
-                        <step.icon className="h-4 w-4" />
-                      </span>
-                      <div className="flex-1">
-                        <h3 className="text-base font-semibold text-foreground">
-                          {step.title}
-                        </h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {step.description}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+              <div key={activeStep.key} className="animate-fade-in p-4 sm:p-5">
+                {renderPanel(activeStep.key)}
+              </div>
             </div>
           </div>
         </div>
