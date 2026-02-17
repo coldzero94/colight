@@ -24,7 +24,7 @@ func NewAIProvider(ctx context.Context, cfg *config.Config) (*AIProvider, error)
 
 	// Gemini (optional)
 	if cfg.GeminiAPIKey != "" {
-		g, err := NewGeminiProvider(ctx, cfg.GeminiAPIKey)
+		g, err := NewGeminiProvider(ctx, cfg.GeminiAPIKey, "")
 		if err != nil {
 			slog.Warn("Gemini provider init failed, skipping", "error", err)
 		} else {
@@ -62,7 +62,7 @@ func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req 
 		}
 		return p.claude.Call(ctx, req)
 
-	case "gemini-2.0-flash", "gemini-flash", "gemini":
+	case "gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash", "gemini":
 		if p.gemini == nil {
 			return LLMResponse{}, fmt.Errorf("Gemini not available (missing GEMINI_API_KEY)")
 		}
@@ -92,6 +92,18 @@ func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req 
 				return p.groq.CallWithModel(ctx, modelName, req)
 			})
 		}
+
+		// Check if it's a known Gemini model alias (e.g. "gemini-2.5-pro", "gemini-lite")
+		if _, ok := GeminiModelAliases[modelName]; ok {
+			if p.gemini == nil {
+				return LLMResponse{}, fmt.Errorf("Gemini not available for model %s (missing GEMINI_API_KEY)", modelName)
+			}
+			if gp, ok := p.gemini.(*GeminiProvider); ok {
+				return gp.CallWithModel(ctx, modelName, req)
+			}
+			return p.gemini.Call(ctx, req)
+		}
+
 		return LLMResponse{}, fmt.Errorf("unknown model: %s", modelName)
 	}
 }

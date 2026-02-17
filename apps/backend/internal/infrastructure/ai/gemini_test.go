@@ -9,12 +9,12 @@ import (
 func TestNewGeminiProvider_SetsModel(t *testing.T) {
 	// NewGeminiProvider requires a real API key to create a client,
 	// but we can test with any key since it doesn't validate at creation time
-	provider, err := NewGeminiProvider(t.Context(), "test-api-key")
+	provider, err := NewGeminiProvider(t.Context(), "test-api-key", "")
 	if err != nil {
 		t.Skip("Gemini client creation failed (expected in CI without network)")
 	}
 
-	assert.Equal(t, "gemini-2.0-flash", provider.model)
+	assert.Equal(t, "gemini-2.5-flash", provider.model)
 	assert.NotNil(t, provider.client)
 }
 

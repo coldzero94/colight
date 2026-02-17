@@ -7,14 +7,48 @@ import (
 	"google.golang.org/genai"
 )
 
+// Supported Gemini model IDs
+const (
+	GeminiModel25Flash     = "gemini-2.5-flash"
+	GeminiModel25FlashLite = "gemini-2.5-flash-lite"
+	GeminiModel25Pro       = "gemini-2.5-pro"
+	GeminiModel20Flash     = "gemini-2.0-flash" // Deprecated: shutting down March 31, 2026
+)
+
+// GeminiModelAliases maps short names to full Gemini model IDs.
+var GeminiModelAliases = map[string]string{
+	// Full IDs (identity)
+	GeminiModel25Flash:     GeminiModel25Flash,
+	GeminiModel25FlashLite: GeminiModel25FlashLite,
+	GeminiModel25Pro:       GeminiModel25Pro,
+	GeminiModel20Flash:     GeminiModel20Flash,
+	// Short aliases
+	"gemini-flash": GeminiModel25Flash,
+	"gemini-2.5":   GeminiModel25Flash,
+	"gemini":       GeminiModel25Flash,
+	"gemini-lite":  GeminiModel25FlashLite,
+	"gemini-pro":   GeminiModel25Pro,
+	"gemini-2.0":   GeminiModel20Flash,
+}
+
+// ResolveGeminiModel returns the full model ID for a given alias.
+// Returns the input unchanged if no alias is found.
+func ResolveGeminiModel(name string) string {
+	if resolved, ok := GeminiModelAliases[name]; ok {
+		return resolved
+	}
+	return name
+}
+
 // GeminiProvider implements LLMProvider for Google Gemini (official SDK)
 type GeminiProvider struct {
 	client *genai.Client
 	model  string
 }
 
-// NewGeminiProvider creates a new Gemini provider using official google.golang.org/genai SDK
-func NewGeminiProvider(ctx context.Context, apiKey string) (*GeminiProvider, error) {
+// NewGeminiProvider creates a new Gemini provider using official google.golang.org/genai SDK.
+// If model is empty, defaults to gemini-2.5-flash.
+func NewGeminiProvider(ctx context.Context, apiKey, model string) (*GeminiProvider, error) {
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
 		APIKey: apiKey,
 	})
@@ -22,14 +56,28 @@ func NewGeminiProvider(ctx context.Context, apiKey string) (*GeminiProvider, err
 		return nil, fmt.Errorf("failed to create Gemini client: %w", err)
 	}
 
+	if model == "" {
+		model = GeminiModel25Flash
+	}
+
 	return &GeminiProvider{
 		client: client,
-		model:  "gemini-2.0-flash",
+		model:  ResolveGeminiModel(model),
 	}, nil
 }
 
-// Call sends a request to Gemini and returns the response
+// Call sends a request to Gemini using the default model and returns the response
 func (g *GeminiProvider) Call(ctx context.Context, req LLMRequest) (LLMResponse, error) {
+	return g.callInternal(ctx, g.model, req)
+}
+
+// CallWithModel sends a request to Gemini with a specific model override.
+// The model name can be a full ID or a short alias.
+func (g *GeminiProvider) CallWithModel(ctx context.Context, model string, req LLMRequest) (LLMResponse, error) {
+	return g.callInternal(ctx, ResolveGeminiModel(model), req)
+}
+
+func (g *GeminiProvider) callInternal(ctx context.Context, model string, req LLMRequest) (LLMResponse, error) {
 	// Build content array
 	var contents []*genai.Content
 
@@ -55,7 +103,7 @@ func (g *GeminiProvider) Call(ctx context.Context, req LLMRequest) (LLMResponse,
 	}
 
 	// Generate content using new SDK
-	resp, err := g.client.Models.GenerateContent(ctx, g.model, contents, opts)
+	resp, err := g.client.Models.GenerateContent(ctx, model, contents, opts)
 	if err != nil {
 		return LLMResponse{}, fmt.Errorf("Gemini API call failed: %w", err)
 	}
@@ -84,6 +132,6 @@ func (g *GeminiProvider) Call(ctx context.Context, req LLMRequest) (LLMResponse,
 		Content:      content,
 		InputTokens:  inputTokens,
 		OutputTokens: outputTokens,
-		Model:        g.model,
+		Model:        model,
 	}, nil
 }
