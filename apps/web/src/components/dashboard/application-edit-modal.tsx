@@ -17,6 +17,12 @@ import { useUpdateApplication } from "@/hooks/use-applications";
 import type { ApplicationDetail } from "@/lib/api/applications";
 import { toast } from "sonner";
 
+/** Convert datetime-local value ("2026-02-20T14:30") to RFC3339 for the API. */
+function toRFC3339(datetimeLocal: string): string | undefined {
+  if (!datetimeLocal) return undefined;
+  return new Date(datetimeLocal).toISOString();
+}
+
 interface ApplicationEditModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -28,10 +34,9 @@ export function ApplicationEditModal({
   onOpenChange,
   application,
 }: ApplicationEditModalProps) {
-  // Re-mount form when application changes via key prop on EditForm
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="border-white/[0.08] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>지원 현황 수정</DialogTitle>
           <DialogDescription>지원 정보를 수정합니다.</DialogDescription>
@@ -81,7 +86,7 @@ function EditForm({
         input: {
           company_name: companyName.trim(),
           position: position.trim(),
-          deadline: deadline || undefined,
+          deadline: toRFC3339(deadline),
           notes: notes.trim(),
           tags,
         },
@@ -123,6 +128,7 @@ function EditForm({
           type="datetime-local"
           value={deadline}
           onChange={(e) => setDeadline(e.target.value)}
+          className="dark-date-input"
         />
       </div>
       <div className="space-y-2">

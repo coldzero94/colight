@@ -92,6 +92,20 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
+
+  /* Dark mode native date/time picker — makes calendar icon and dropdown visible */
+  .dark-date-input {
+    color-scheme: dark;
+  }
+  .dark-date-input::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .dark-date-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
 }
 
 @layer utilities {

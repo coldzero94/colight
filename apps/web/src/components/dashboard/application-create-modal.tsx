@@ -16,6 +16,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCreateApplication } from "@/hooks/use-applications";
 import { toast } from "sonner";
 
+/** Convert datetime-local value ("2026-02-20T14:30") to RFC3339 for the API. */
+function toRFC3339(datetimeLocal: string): string | undefined {
+  if (!datetimeLocal) return undefined;
+  return new Date(datetimeLocal).toISOString();
+}
+
 interface ApplicationCreateModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -52,7 +58,7 @@ export function ApplicationCreateModal({
         company_name: companyName.trim(),
         position: position.trim() || undefined,
         job_url: jobUrl.trim() || undefined,
-        deadline: deadline || undefined,
+        deadline: toRFC3339(deadline),
         notes: notes.trim() || undefined,
         tags: tags.length > 0 ? tags : undefined,
       },
@@ -86,7 +92,7 @@ export function ApplicationCreateModal({
         onOpenChange(v);
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="border-white/[0.08] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>지원 현황 추가</DialogTitle>
           <DialogDescription>
@@ -132,6 +138,7 @@ export function ApplicationCreateModal({
               type="datetime-local"
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
+              className="dark-date-input"
             />
           </div>
           <div className="space-y-2">
