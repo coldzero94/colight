@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { DemoSection } from "../demo-section";
 
 describe("DemoSection", () => {
@@ -34,5 +35,18 @@ describe("DemoSection", () => {
     const { container } = render(<DemoSection />);
     const glass = container.querySelector(".glass");
     expect(glass).toBeInTheDocument();
+  });
+
+  it("changes panel content when clicking a step", async () => {
+    const user = userEvent.setup();
+    render(<DemoSection />);
+
+    expect(screen.getByText("채용공고 URL 붙여넣기")).toBeInTheDocument();
+
+    await user.click(screen.getAllByRole("button", { name: /AI 첨삭/ })[0]);
+    expect(screen.getByText("최종 첨삭 리포트")).toBeInTheDocument();
+
+    await user.click(screen.getAllByRole("button", { name: /소재 매칭/ })[0]);
+    expect(screen.getByText("STAR 경험 목록")).toBeInTheDocument();
   });
 });

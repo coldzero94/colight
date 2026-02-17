@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Link2,
@@ -8,297 +8,394 @@ import {
   GitCompare,
   FileEdit,
   CheckCircle,
-  Activity,
-  BarChart3,
+  Sparkles,
   Radar,
+  Target,
 } from "lucide-react";
 
-interface DemoStep {
+interface StepMeta {
+  key: "url" | "analysis" | "matching" | "draft" | "review";
   icon: LucideIcon;
   title: string;
   description: string;
-  stageLabel: string;
-  panelTitle: string;
-  statCards: Array<{
-    label: string;
-    value: string;
-    delta: string;
-    tone: "cyan" | "violet" | "emerald" | "amber";
-  }>;
-  chart: number[];
-  board: Array<{
-    status: string;
-    count: number;
-    accent: "cyan" | "violet" | "emerald" | "amber";
-  }>;
-  starList: Array<{
-    title: string;
-    score: number;
-    weapons: string[];
-  }>;
-  feed: Array<{
-    company: string;
-    note: string;
-    tags: string[];
-  }>;
 }
 
-const toneClass: Record<DemoStep["statCards"][number]["tone"], string> = {
-  cyan: "text-cyan-300 bg-cyan-500/15 border-cyan-400/25",
-  violet: "text-violet-300 bg-violet-500/15 border-violet-400/25",
-  emerald: "text-emerald-300 bg-emerald-500/15 border-emerald-400/25",
-  amber: "text-amber-300 bg-amber-500/15 border-amber-400/25",
-};
-
-const boardAccentClass: Record<DemoStep["board"][number]["accent"], string> = {
-  cyan: "bg-cyan-400/20 text-cyan-200 border-cyan-400/25",
-  violet: "bg-violet-400/20 text-violet-200 border-violet-400/25",
-  emerald: "bg-emerald-400/20 text-emerald-200 border-emerald-400/25",
-  amber: "bg-amber-400/20 text-amber-200 border-amber-400/25",
-};
-
-const steps: DemoStep[] = [
+const steps: StepMeta[] = [
   {
+    key: "url",
     icon: Link2,
     title: "URL 입력",
-    description: "채용공고 링크 붙여넣기",
-    stageLabel: "intake stage",
-    panelTitle: "채용공고 분석 대기열",
-    statCards: [
-      { label: "신규 공고", value: "12", delta: "+3", tone: "cyan" },
-      { label: "자동 인식률", value: "98%", delta: "+2.1%", tone: "emerald" },
-      { label: "처리 대기", value: "4", delta: "-1", tone: "amber" },
-    ],
-    chart: [42, 48, 56, 61, 68, 73, 80],
-    board: [
-      { status: "크롤링 대기", count: 4, accent: "amber" },
-      { status: "정보 수집중", count: 5, accent: "cyan" },
-      { status: "분석 준비 완료", count: 3, accent: "emerald" },
-    ],
-    starList: [
-      { title: "캡스톤 API 성능 개선", score: 81, weapons: ["문제해결", "성장"] },
-      { title: "교내 서비스 장애 대응", score: 77, weapons: ["위기극복", "팀워크"] },
-    ],
-    feed: [
-      {
-        company: "현대오토에버",
-        note: "백엔드 채용공고 등록. 직무 키워드 18개 추출 완료.",
-        tags: ["Java", "MSA"],
-      },
-      {
-        company: "토스",
-        note: "Data 직무 링크 수집. 기업 트렌드 데이터 연결 대기.",
-        tags: ["Data", "Fintech"],
-      },
-    ],
+    description: "채용공고 링크 입력",
   },
   {
+    key: "analysis",
     icon: Search,
     title: "자동 분석",
-    description: "기업 · 직무 정보 파악",
-    stageLabel: "analysis stage",
-    panelTitle: "기업 인사이트 분석 리포트",
-    statCards: [
-      { label: "핵심가치 추출", value: "27", delta: "+6", tone: "cyan" },
-      { label: "신뢰 점수", value: "91", delta: "+5", tone: "violet" },
-      { label: "최신 뉴스 반영", value: "8", delta: "+2", tone: "emerald" },
-    ],
-    chart: [36, 46, 58, 64, 70, 79, 88],
-    board: [
-      { status: "기업가치 맵핑", count: 6, accent: "violet" },
-      { status: "직무 키워드", count: 9, accent: "cyan" },
-      { status: "리스크 점검", count: 3, accent: "amber" },
-    ],
-    starList: [
-      { title: "데이터 파이프라인 최적화", score: 85, weapons: ["문제해결", "리더십"] },
-      { title: "신규 기능 A/B 실험", score: 79, weapons: ["도전", "소통"] },
-    ],
-    feed: [
-      {
-        company: "카카오모빌리티",
-        note: "인재상 키워드 업데이트. 고객집착/실행력 우선순위 상향.",
-        tags: ["인재상", "실행력"],
-      },
-      {
-        company: "우아한형제들",
-        note: "분석 출처 동기화 완료. 최근 전략 키워드 반영됨.",
-        tags: ["전략", "브랜드"],
-      },
-    ],
+    description: "기업 인사이트 추출",
   },
   {
+    key: "matching",
     icon: GitCompare,
     title: "소재 매칭",
-    description: "내 경험에서 최적 소재",
-    stageLabel: "matching stage",
-    panelTitle: "경험 매칭 스코어보드",
-    statCards: [
-      { label: "매칭 경험 수", value: "36", delta: "+8", tone: "violet" },
-      { label: "평균 적합도", value: "84%", delta: "+11%", tone: "cyan" },
-      { label: "중복 제거", value: "14", delta: "-5", tone: "emerald" },
-    ],
-    chart: [28, 42, 53, 67, 72, 84, 92],
-    board: [
-      { status: "상위 추천", count: 7, accent: "emerald" },
-      { status: "재가공 필요", count: 5, accent: "amber" },
-      { status: "보류", count: 2, accent: "violet" },
-    ],
-    starList: [
-      { title: "인턴 배포 자동화 구축", score: 92, weapons: ["문제해결", "성장"] },
-      { title: "프로젝트 커뮤니케이션 리드", score: 88, weapons: ["소통", "팀워크"] },
-    ],
-    feed: [
-      {
-        company: "네이버",
-        note: "팀 프로젝트 경험이 협업 역량에서 가장 높은 스코어를 기록.",
-        tags: ["협업", "문제해결"],
-      },
-      {
-        company: "라인",
-        note: "도전정신 무기 비중이 낮아 보완 경험 추가 추천 생성.",
-        tags: ["도전", "보완"],
-      },
-    ],
+    description: "STAR 경험 추천",
   },
   {
+    key: "draft",
     icon: FileEdit,
     title: "초안 작성",
-    description: "STAR 구조로 자동 생성",
-    stageLabel: "draft stage",
-    panelTitle: "문항별 STAR 초안 생성",
-    statCards: [
-      { label: "초안 생성", value: "18", delta: "+4", tone: "cyan" },
-      { label: "평균 완성도", value: "87%", delta: "+7%", tone: "emerald" },
-      { label: "문항 적합도", value: "A-", delta: "상승", tone: "violet" },
-    ],
-    chart: [38, 44, 57, 69, 76, 83, 90],
-    board: [
-      { status: "작성중", count: 6, accent: "cyan" },
-      { status: "검토 대기", count: 4, accent: "amber" },
-      { status: "완성", count: 8, accent: "emerald" },
-    ],
-    starList: [
-      { title: "운영 자동화로 장애율 감소", score: 90, weapons: ["문제해결", "위기극복"] },
-      { title: "학회 서비스 리뉴얼", score: 84, weapons: ["도전", "팀워크"] },
-    ],
-    feed: [
-      {
-        company: "쿠팡",
-        note: "문항 2번 초안 생성 완료. Action 단락에 수치 근거 추가됨.",
-        tags: ["STAR", "정량화"],
-      },
-      {
-        company: "당근",
-        note: "초안 길이 자동 최적화. 950자 -> 780자로 압축 적용.",
-        tags: ["압축", "가독성"],
-      },
-    ],
+    description: "문항별 구조화 작성",
   },
   {
+    key: "review",
     icon: CheckCircle,
     title: "AI 첨삭",
-    description: "4점 코칭으로 완성",
-    stageLabel: "coaching stage",
-    panelTitle: "실시간 첨삭 및 최종 점검",
-    statCards: [
-      { label: "코칭 완료", value: "42", delta: "+9", tone: "emerald" },
-      { label: "합격 예측 점수", value: "89", delta: "+12", tone: "cyan" },
-      { label: "개선 제안", value: "23", delta: "-4", tone: "violet" },
-    ],
-    chart: [51, 58, 66, 74, 82, 88, 94],
-    board: [
-      { status: "강점 강조", count: 11, accent: "emerald" },
-      { status: "표현 정제", count: 7, accent: "violet" },
-      { status: "리스크 문장", count: 3, accent: "amber" },
-    ],
-    starList: [
-      { title: "서비스 전환율 2배 개선", score: 94, weapons: ["문제해결", "리더십"] },
-      { title: "협업 프로세스 표준화", score: 89, weapons: ["소통", "팀워크"] },
-    ],
-    feed: [
-      {
-        company: "삼성전자",
-        note: "직무적합성 문단 개선 제안 반영. 설득력 점수 +13.",
-        tags: ["직무적합", "설득력"],
-      },
-      {
-        company: "SK하이닉스",
-        note: "최종 검토 완료. 제출 체크리스트 100% 달성.",
-        tags: ["최종점검", "완료"],
-      },
-    ],
+    description: "최종 개선 가이드",
   },
 ];
 
+function UrlInputPanel() {
+  return (
+    <div className="grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          URL 입력 센터
+        </p>
+        <p className="mt-1 text-sm font-semibold text-foreground">
+          채용공고 URL 붙여넣기
+        </p>
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center gap-2 rounded-lg border border-white/12 bg-black/30 px-3 py-2">
+            <span className="text-[10px] text-muted-foreground">https://</span>
+            <span className="text-xs text-foreground/90">www.jobkorea.co.kr/Recruit/...</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
+              분석 시작
+            </button>
+            <span className="rounded-full border border-cyan-400/25 bg-cyan-400/12 px-2 py-1 text-[10px] text-cyan-200">
+              예상 12초
+            </span>
+          </div>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {["잡코리아", "원티드", "사람인", "캐치"].map((site) => (
+            <span
+              key={site}
+              className="rounded-full border border-white/12 bg-white/[0.03] px-2 py-0.5 text-[10px] text-muted-foreground"
+            >
+              {site}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          최근 등록
+        </p>
+        <div className="mt-3 space-y-2">
+          {[
+            ["카카오모빌리티", "Backend Engineer", "수집 중"],
+            ["토스", "Data Analyst", "분석 대기"],
+            ["네이버", "Frontend", "완료"],
+          ].map(([company, role, state]) => (
+            <div
+              key={company}
+              className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2"
+            >
+              <p className="text-xs font-medium text-foreground">{company}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">{role}</p>
+              <p className="mt-1 text-[10px] text-cyan-200">{state}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AnalysisPanel() {
+  return (
+    <div className="grid gap-3 lg:grid-cols-[1fr_1fr]">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          기업 분석 리포트
+        </p>
+        <p className="mt-1 text-sm font-semibold text-foreground">카카오모빌리티</p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {["고객집착", "빠른실행", "협업문화", "도전정신"].map((keyword) => (
+            <span
+              key={keyword}
+              className="rounded-full border border-cyan-400/25 bg-cyan-400/12 px-2 py-0.5 text-[10px] text-cyan-200"
+            >
+              {keyword}
+            </span>
+          ))}
+        </div>
+        <div className="mt-3 space-y-2">
+          {[
+            ["핵심가치 추출", "27"],
+            ["직무 키워드", "18"],
+            ["최근 트렌드", "6"],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2">
+              <p className="text-[11px] text-muted-foreground">{label}</p>
+              <p className="mt-1 text-base font-semibold text-foreground">{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          인재상 적합도
+        </p>
+        <div className="mt-3 space-y-2.5">
+          {[
+            ["문제 해결 능력", 89],
+            ["협업/소통", 84],
+            ["실행력", 92],
+            ["성장 가능성", 86],
+          ].map(([name, score]) => (
+            <div key={name} className="space-y-1">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] text-muted-foreground">{name}</p>
+                <p className="text-[11px] text-cyan-200">{score}</p>
+              </div>
+              <div className="h-1.5 rounded-full bg-white/10">
+                <div
+                  className="h-1.5 rounded-full bg-gradient-to-r from-primary to-cyan-300"
+                  style={{ width: `${score}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MatchingPanel() {
+  return (
+    <div className="grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          STAR 경험 목록
+        </p>
+        <div className="mt-3 space-y-2">
+          {[
+            {
+              title: "인턴 배포 자동화 구축",
+              score: 92,
+              weapons: ["문제해결", "성장"],
+            },
+            {
+              title: "서비스 장애 대응 리드",
+              score: 88,
+              weapons: ["위기극복", "소통"],
+            },
+            {
+              title: "학회 플랫폼 리뉴얼",
+              score: 83,
+              weapons: ["도전", "팀워크"],
+            },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-medium text-foreground">{item.title}</p>
+                <span className="rounded-full border border-emerald-400/30 bg-emerald-400/12 px-2 py-0.5 text-[10px] text-emerald-200">
+                  {item.score}
+                </span>
+              </div>
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {item.weapons.map((weapon) => (
+                  <span
+                    key={weapon}
+                    className="rounded-full border border-violet-400/25 bg-violet-400/12 px-1.5 py-0.5 text-[10px] text-violet-200"
+                  >
+                    {weapon}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <p className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          <Radar className="h-3.5 w-3.5 text-cyan-300" />
+          무기 커버리지
+        </p>
+        <div className="mt-3 rounded-lg border border-white/10 bg-black/20 p-2.5">
+          <p className="text-[11px] text-muted-foreground">필수 역량 충족률</p>
+          <p className="mt-1 text-lg font-semibold text-foreground">84%</p>
+          <div className="mt-2 h-2 rounded-full bg-white/10">
+            <div className="h-2 w-[84%] rounded-full bg-gradient-to-r from-primary to-cyan-300" />
+          </div>
+        </div>
+        <div className="mt-3 space-y-2">
+          {[
+            ["강점", "문제해결, 팀워크"],
+            ["보완 필요", "소통/설득"],
+          ].map(([label, text]) => (
+            <div key={label} className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2">
+              <p className="text-[11px] text-muted-foreground">{label}</p>
+              <p className="mt-1 text-xs text-foreground">{text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DraftPanel() {
+  return (
+    <div className="grid gap-3 lg:grid-cols-[1fr_1fr]">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          문항 입력
+        </p>
+        <div className="mt-2 rounded-lg border border-white/10 bg-black/20 p-2.5">
+          <p className="text-xs text-foreground">
+            본인이 팀 프로젝트에서 문제를 해결한 경험을 구체적으로 작성해 주세요.
+          </p>
+        </div>
+
+        <p className="mt-3 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          STAR 초안
+        </p>
+        <div className="mt-2 space-y-2">
+          {[
+            ["S", "모바일 서비스 트래픽 급증으로 장애 발생"],
+            ["T", "30분 내 복구, 재발 방지 체계 수립"],
+            ["A", "로그 분석 자동화 + 핫픽스 배포 프로세스 구축"],
+            ["R", "복구 시간 48% 단축, 재발률 0건"],
+          ].map(([label, text]) => (
+            <div key={label} className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2">
+              <p className="text-[10px] text-cyan-200">{label}</p>
+              <p className="mt-1 text-[11px] text-foreground/90">{text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          초안 프리뷰
+        </p>
+        <div className="mt-2 rounded-lg border border-white/10 bg-black/20 p-3">
+          <p className="text-xs leading-relaxed text-foreground/90">
+            인턴 기간 중 서비스 장애 상황에서 로그 기반 원인 분석 자동화를 설계하고
+            배포 프로세스를 개선했습니다. 그 결과 복구 시간은 48% 단축되었고
+            이후 동일 장애의 재발은 발생하지 않았습니다...
+          </p>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          {[
+            ["글자수", "742 / 800"],
+            ["직무 적합", "A"],
+            ["구체성", "A-"],
+            ["기업 적합", "B+"],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2">
+              <p className="text-[10px] text-muted-foreground">{label}</p>
+              <p className="mt-1 text-xs font-medium text-foreground">{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReviewPanel() {
+  return (
+    <div className="grid gap-3 lg:grid-cols-[1fr_1fr]">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          최종 첨삭 리포트
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          {[
+            ["직무적합성", "91"],
+            ["구체성", "88"],
+            ["진정성", "86"],
+            ["기업적합", "84"],
+          ].map(([label, score]) => (
+            <div key={label} className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2">
+              <p className="text-[10px] text-muted-foreground">{label}</p>
+              <p className="mt-1 text-base font-semibold text-foreground">{score}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 rounded-lg border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-2">
+          <p className="text-[11px] text-emerald-200">합격 예측 점수 89</p>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <p className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          <Target className="h-3.5 w-3.5 text-primary" />
+          개선 제안
+        </p>
+        <div className="mt-3 space-y-2">
+          {[
+            "성과 수치를 문장 첫머리에 배치해 임팩트를 강화하세요.",
+            "기업 핵심가치(고객집착)와 경험 연결 문장을 1줄 추가하세요.",
+            "행동(Action) 파트의 의사결정 근거를 더 명확히 드러내세요.",
+          ].map((item) => (
+            <div key={item} className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2">
+              <p className="text-[11px] leading-relaxed text-foreground/90">{item}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-cyan-400/25 bg-cyan-400/10 px-2.5 py-2">
+          <Sparkles className="h-4 w-4 text-cyan-300" />
+          <p className="text-[11px] text-cyan-100">
+            클릭 한 번으로 개선 문장을 본문에 자동 반영할 수 있습니다.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function renderPanel(key: StepMeta["key"]) {
+  switch (key) {
+    case "url":
+      return <UrlInputPanel />;
+    case "analysis":
+      return <AnalysisPanel />;
+    case "matching":
+      return <MatchingPanel />;
+    case "draft":
+      return <DraftPanel />;
+    case "review":
+      return <ReviewPanel />;
+    default:
+      return null;
+  }
+}
+
 export function DemoSection() {
-  const sectionRef = useRef<HTMLElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    let rafId = 0;
-
-    const updateByScroll = () => {
-      if (!sectionRef.current) return;
-
-      const rect = sectionRef.current.getBoundingClientRect();
-      const viewport = window.innerHeight || 1;
-      const scrollRange = rect.height - viewport * 0.5;
-      const traveled = viewport * 0.32 - rect.top;
-      const nextProgress =
-        scrollRange <= 0
-          ? rect.top < viewport * 0.32
-            ? 1
-            : 0
-          : Math.max(0, Math.min(1, traveled / scrollRange));
-
-      setProgress((prev) => (Math.abs(prev - nextProgress) > 0.001 ? nextProgress : prev));
-
-      const nextIndex = Math.round(nextProgress * (steps.length - 1));
-      setActiveIndex((prev) => (prev !== nextIndex ? nextIndex : prev));
-    };
-
-    const onScroll = () => {
-      cancelAnimationFrame(rafId);
-      rafId = window.requestAnimationFrame(updateByScroll);
-    };
-
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, []);
 
   const activeStep = steps[activeIndex];
+  const progress = ((activeIndex + 1) / steps.length) * 100;
 
   const handleStepChange = (nextIndex: number) => {
-    if (!sectionRef.current) return;
-
     const targetIndex = Math.max(0, Math.min(steps.length - 1, nextIndex));
-    const nextProgress = targetIndex / (steps.length - 1);
     setActiveIndex(targetIndex);
-    setProgress(nextProgress);
-
-    const rect = sectionRef.current.getBoundingClientRect();
-    const sectionTop = window.scrollY + rect.top;
-    const viewport = window.innerHeight || 1;
-    const scrollRange = sectionRef.current.offsetHeight - viewport * 0.5;
-    const targetY =
-      sectionTop - viewport * 0.32 + Math.max(0, scrollRange) * nextProgress;
-
-    window.scrollTo({
-      top: targetY,
-      behavior: "smooth",
-    });
   };
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden py-28 lg:py-36">
+    <section className="relative overflow-hidden py-28 lg:py-36">
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute left-1/2 top-1/2 h-[460px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[140px]" />
         <div className="absolute left-[10%] top-[26%] h-28 w-28 rounded-full border border-white/10 animate-float-y-soft" />
@@ -318,8 +415,8 @@ export function DemoSection() {
           </p>
         </div>
 
-        <div className="mt-16 grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start">
-          <div className="lg:sticky lg:top-24">
+        <div className="mt-16 grid gap-8 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:items-start">
+          <div>
             <div className="glass landing-panel rounded-3xl border border-white/12 p-3 shadow-[0_24px_90px_rgba(0,0,0,0.45)]">
               <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/35">
                 <div className="flex items-center gap-3 border-b border-white/[0.08] px-4 py-3">
@@ -330,166 +427,31 @@ export function DemoSection() {
                   </div>
                   <div className="h-5 flex-1 rounded bg-white/[0.05]" />
                   <span className="rounded-full border border-cyan-400/25 bg-cyan-400/12 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-cyan-200">
-                    {activeStep.stageLabel}
+                    {activeStep.title}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-12">
-                  <div className="col-span-4 hidden border-r border-white/[0.08] p-4 sm:block">
-                    <div className="space-y-2">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
-                        Workspace
-                      </p>
-                      {steps.map((step, index) => (
-                        <button
-                          key={step.title}
-                          type="button"
-                          onClick={() => handleStepChange(index)}
-                          className={`w-full rounded-lg border px-2.5 py-2 text-left text-xs transition-colors ${
-                            index === activeIndex
-                              ? "border-primary/35 bg-primary/12 text-primary"
-                              : "border-white/10 bg-white/[0.03] text-muted-foreground hover:border-white/20 hover:text-foreground"
-                          }`}
-                        >
-                          {step.title}
-                        </button>
-                      ))}
-                    </div>
+                <div className="border-b border-white/[0.08] px-4 py-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    {steps.map((step, index) => (
+                      <button
+                        key={step.title}
+                        type="button"
+                        onClick={() => handleStepChange(index)}
+                        className={`rounded-full border px-2.5 py-1 text-[10px] transition-colors ${
+                          index === activeIndex
+                            ? "border-primary/35 bg-primary/12 text-primary"
+                            : "border-white/12 bg-white/[0.03] text-muted-foreground hover:border-white/25 hover:text-foreground"
+                        }`}
+                      >
+                        {step.title}
+                      </button>
+                    ))}
                   </div>
+                </div>
 
-                  <div className="col-span-12 p-4 sm:col-span-8 sm:p-5">
-                    <div key={activeStep.title} className="animate-fade-in space-y-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground/70">
-                            Live Dashboard
-                          </p>
-                          <h3 className="mt-1 text-sm font-semibold text-foreground">
-                            {activeStep.panelTitle}
-                          </h3>
-                        </div>
-                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/12 px-2.5 py-1 text-[10px] text-emerald-200">
-                          <Activity className="h-3 w-3" />
-                          LIVE
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                        {activeStep.statCards.map((card) => (
-                          <div
-                            key={card.label}
-                            className={`rounded-lg border px-2.5 py-2 ${toneClass[card.tone]}`}
-                          >
-                            <p className="text-[10px] text-muted-foreground/80">{card.label}</p>
-                            <p className="mt-1 text-base font-semibold leading-none">{card.value}</p>
-                            <p className="mt-1 text-[10px]">{card.delta}</p>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                        <div className="mb-2 flex items-center justify-between">
-                          <p className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                            <BarChart3 className="h-3.5 w-3.5 text-primary" />
-                            지원 적합도 추이
-                          </p>
-                          <span className="text-[10px] text-primary">7-day snapshot</span>
-                        </div>
-                        <div className="flex h-24 items-end gap-1.5">
-                          {activeStep.chart.map((value, index) => (
-                            <div
-                              key={`${activeStep.title}-chart-${index}`}
-                              className="group relative flex-1 rounded-t-md bg-gradient-to-t from-primary/40 to-cyan-300/70 transition-all"
-                              style={{
-                                height: `${Math.max(14, value)}%`,
-                                opacity: index <= activeIndex + 2 ? 1 : 0.45,
-                              }}
-                            >
-                              <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] text-muted-foreground/70 opacity-0 transition-opacity group-hover:opacity-100">
-                                {value}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                        {activeStep.board.map((item) => (
-                          <div
-                            key={item.status}
-                            className={`rounded-lg border px-2.5 py-2 ${boardAccentClass[item.accent]}`}
-                          >
-                            <p className="text-[10px]">{item.status}</p>
-                            <p className="mt-1 text-base font-semibold leading-none">{item.count}</p>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                        <div className="mb-2 flex items-center justify-between">
-                          <p className="text-[11px] text-muted-foreground">STAR 경험 목록</p>
-                          <span className="text-[10px] text-cyan-200">
-                            TOP MATCHED EXPERIENCES
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          {activeStep.starList.map((item) => (
-                            <div
-                              key={item.title}
-                              className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2"
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                <p className="text-xs font-medium text-foreground">{item.title}</p>
-                                <span className="rounded-full border border-cyan-400/30 bg-cyan-400/15 px-2 py-0.5 text-[10px] text-cyan-200">
-                                  {item.score}
-                                </span>
-                              </div>
-                              <div className="mt-1.5 flex flex-wrap gap-1">
-                                {item.weapons.map((weapon) => (
-                                  <span
-                                    key={weapon}
-                                    className="rounded-full border border-violet-400/25 bg-violet-400/12 px-1.5 py-0.5 text-[10px] text-violet-200"
-                                  >
-                                    {weapon}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        {activeStep.feed.map((item) => (
-                          <div
-                            key={`${activeStep.title}-${item.company}`}
-                            className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5"
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-xs font-medium text-foreground">{item.company}</p>
-                              <span className="inline-flex items-center gap-1 text-[10px] text-cyan-200">
-                                <Radar className="h-3 w-3" />
-                                synced
-                              </span>
-                            </div>
-                            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                              {item.note}
-                            </p>
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              {item.tags.map((tag) => (
-                                <span
-                                  key={tag}
-                                  className="rounded-full border border-white/12 bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-muted-foreground"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                <div key={activeStep.key} className="animate-fade-in p-4 sm:p-5">
+                  {renderPanel(activeStep.key)}
                 </div>
               </div>
             </div>
@@ -528,8 +490,12 @@ export function DemoSection() {
                         <step.icon className="h-4 w-4" />
                       </span>
                       <div className="flex-1">
-                        <h3 className="text-left text-base font-semibold text-foreground">{step.title}</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
+                        <h3 className="text-base font-semibold text-foreground">
+                          {step.title}
+                        </h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {step.description}
+                        </p>
                       </div>
                     </div>
                   </button>
