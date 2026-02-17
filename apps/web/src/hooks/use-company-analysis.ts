@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { analyzeCompany, getCompanyData } from "@/lib/api/analysis";
+import { analyzeCompany, getCompanyData, getRecentAnalyses } from "@/lib/api/analysis";
 
 export function useCompanyData(companyName: string | null) {
   return useQuery({
@@ -28,5 +28,13 @@ export function useCompanyAnalysis(companyName: string | null) {
     queryFn: () => analyzeCompany(companyName!),
     enabled: !!companyName,
     staleTime: 24 * 60 * 60 * 1000, // 24 hours (server has 365-day cache)
+  });
+}
+
+export function useRecentAnalyses(limit = 10) {
+  return useQuery({
+    queryKey: ["recent-analyses", limit],
+    queryFn: () => getRecentAnalyses(limit),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

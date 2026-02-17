@@ -318,6 +318,18 @@ export const zCompanyCompanyData = z.object({
     news: z.array(zCompanyNewsItem)
 });
 
+export const zCompanyRecentAnalysisItem = z.object({
+    id: z.string(),
+    company_name: z.string(),
+    job_url: z.optional(z.string()),
+    created_at: z.string()
+});
+
+export const zCompanyRecentAnalysesResponse = z.object({
+    analyses: z.array(zCompanyRecentAnalysisItem),
+    total: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
 export const zCompanyTalentTrait = z.object({
     trait: z.string(),
     description: z.string(),
@@ -606,6 +618,19 @@ export const zAdminApiUpdateUserRoleData = z.object({
 export const zAdminApiUpdateUserRoleResponse = z.object({
     data: zAdminAdminUserListItem
 });
+
+export const zCompanyApiGetRecentAnalysesData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        limit: z.optional(z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }))
+    }))
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zCompanyApiGetRecentAnalysesResponse = zCompanyRecentAnalysesResponse;
 
 export const zCompanyApiAnalyzeCompanyData = z.object({
     body: zCompanyAnalyzeCompanyRequest,

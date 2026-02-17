@@ -75,3 +75,23 @@ export async function getCompanyData(companyName: string): Promise<CompanyData> 
   });
   return data;
 }
+
+// Recent analysis history
+export interface RecentAnalysisItem {
+  id: string;
+  company_name: string;
+  job_url?: string;
+  created_at: string;
+}
+
+export interface RecentAnalysesResponse {
+  analyses: RecentAnalysisItem[];
+  total: number;
+}
+
+export async function getRecentAnalyses(limit = 10): Promise<RecentAnalysesResponse> {
+  const { data } = await apiClient.get<RecentAnalysesResponse>("/v1/analysis/recent", {
+    params: { limit },
+  });
+  return data;
+}

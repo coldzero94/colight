@@ -234,6 +234,7 @@ func main() {
 		// Company analysis (AI-powered talent profile analysis)
 		if companyAnalysisCtrl != nil {
 			protected.POST("/analyze-company", controller.UsageLimitMiddleware(usageService, "analysis"), companyAnalysisCtrl.AnalyzeCompany)
+			protected.GET("/analysis/recent", companyAnalysisCtrl.GetRecentAnalyses)
 		}
 
 		// Experience matching (AI-powered experience-company matching)

@@ -13,10 +13,12 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/coby/colight/apps/backend/ent"
+	"github.com/coby/colight/apps/backend/ent/companyanalysis"
 	"github.com/coby/colight/apps/backend/ent/companyanalysiscache"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
+	"github.com/google/uuid"
 )
 
 // CompanyAnalysisService analyzes companies using AI
@@ -195,6 +197,76 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 
 	slog.Info("analysis_new", "company", companyName, "cached_at", now)
 	return analysis, false, nil // fromCache = false (new AI analysis)
+}
+
+// SaveUserAnalysis saves/updates user's analysis record in company_analysis table.
+// Upserts: creates new if first time, updates if user already analyzed this company.
+func (s *CompanyAnalysisService) SaveUserAnalysis(
+	ctx context.Context,
+	userID uuid.UUID,
+	companyName string,
+	jobURL *string,
+	analysis *CompanyAnalysis,
+) (*ent.CompanyAnalysis, error) {
+	// Check if user already analyzed this company
+	existing, err := s.entClient.CompanyAnalysis.Query().
+		Where(
+			companyanalysis.UserIDEQ(userID),
+			companyanalysis.CompanyNameEQ(companyName),
+		).
+		First(ctx)
+
+	// Build analysis map for storage
+	analysisMap := map[string]interface{}{
+		"company_name":      analysis.CompanyName,
+		"core_values":       analysis.CoreValues,
+		"talent_traits":     analysis.TalentTraits,
+		"recent_trends":     analysis.RecentTrends,
+		"strategy_keywords": analysis.StrategyKeywords,
+		"avoid_expressions": analysis.AvoidExpressions,
+		"source":            analysis.Source,
+	}
+
+	// Update existing record
+	if err == nil {
+		update := s.entClient.CompanyAnalysis.UpdateOneID(existing.ID).
+			SetAnalysisResult(analysisMap)
+
+		if jobURL != nil {
+			update = update.SetJobURL(*jobURL)
+		}
+
+		return update.Save(ctx)
+	}
+
+	// Create new record
+	builder := s.entClient.CompanyAnalysis.Create().
+		SetUserID(userID).
+		SetCompanyName(companyName).
+		SetAnalysisResult(analysisMap)
+
+	if jobURL != nil {
+		builder = builder.SetJobURL(*jobURL)
+	}
+
+	return builder.Save(ctx)
+}
+
+// GetRecentAnalyses retrieves user's recent analysis history, ordered by created_at DESC.
+func (s *CompanyAnalysisService) GetRecentAnalyses(
+	ctx context.Context,
+	userID uuid.UUID,
+	limit int,
+) ([]*ent.CompanyAnalysis, error) {
+	if limit <= 0 || limit > 50 {
+		limit = 10
+	}
+
+	return s.entClient.CompanyAnalysis.Query().
+		Where(companyanalysis.UserIDEQ(userID)).
+		Order(ent.Desc(companyanalysis.FieldCreatedAt)).
+		Limit(limit).
+		All(ctx)
 }
 
 // analyzeWithAI uses prompt_templates to analyze company (model configurable via admin)

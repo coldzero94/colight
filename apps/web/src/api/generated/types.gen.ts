@@ -335,6 +335,18 @@ export type CompanyNewsItem = {
     source?: string;
 };
 
+export type CompanyRecentAnalysesResponse = {
+    analyses: Array<CompanyRecentAnalysisItem>;
+    total: number;
+};
+
+export type CompanyRecentAnalysisItem = {
+    id: string;
+    company_name: string;
+    job_url?: string;
+    created_at: string;
+};
+
 export type CompanyTalentTrait = {
     trait: string;
     description: string;
@@ -868,6 +880,65 @@ export type AdminApiUpdateUserRoleResponses = {
 };
 
 export type AdminApiUpdateUserRoleResponse = AdminApiUpdateUserRoleResponses[keyof AdminApiUpdateUserRoleResponses];
+
+export type CompanyApiGetRecentAnalysesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        limit?: number;
+    };
+    url: '/v1/analysis/recent';
+};
+
+export type CompanyApiGetRecentAnalysesErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type CompanyApiGetRecentAnalysesError = CompanyApiGetRecentAnalysesErrors[keyof CompanyApiGetRecentAnalysesErrors];
+
+export type CompanyApiGetRecentAnalysesResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: CompanyRecentAnalysesResponse;
+};
+
+export type CompanyApiGetRecentAnalysesResponse = CompanyApiGetRecentAnalysesResponses[keyof CompanyApiGetRecentAnalysesResponses];
 
 export type CompanyApiAnalyzeCompanyData = {
     body: CompanyAnalyzeCompanyRequest;

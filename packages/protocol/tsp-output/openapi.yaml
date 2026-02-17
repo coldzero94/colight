@@ -623,6 +623,95 @@ paths:
               $ref: '#/components/schemas/Admin.UpdateRoleRequest'
       security:
         - BearerAuth: []
+  /v1/analysis/recent:
+    get:
+      operationId: CompanyAPI_getRecentAnalyses
+      description: Get user's recent analysis history
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company.RecentAnalysesResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Company
+      security:
+        - BearerAuth: []
   /v1/analyze-company:
     post:
       operationId: CompanyAPI_analyzeCompany
@@ -4732,6 +4821,34 @@ components:
         pub_date:
           type: string
         source:
+          type: string
+    Company.RecentAnalysesResponse:
+      type: object
+      required:
+        - analyses
+        - total
+      properties:
+        analyses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Company.RecentAnalysisItem'
+        total:
+          type: integer
+          format: int32
+    Company.RecentAnalysisItem:
+      type: object
+      required:
+        - id
+        - company_name
+        - created_at
+      properties:
+        id:
+          type: string
+        company_name:
+          type: string
+        job_url:
+          type: string
+        created_at:
           type: string
     Company.TalentTrait:
       type: object

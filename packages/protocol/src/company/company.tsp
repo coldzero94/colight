@@ -55,6 +55,24 @@ model CompanyAnalysis {
   sourceNews?: NewsItem[];
 }
 
+model RecentAnalysisItem {
+  id: string;
+
+  @encodedName("application/json", "company_name")
+  companyName: string;
+
+  @encodedName("application/json", "job_url")
+  jobUrl?: string;
+
+  @encodedName("application/json", "created_at")
+  createdAt: string;
+}
+
+model RecentAnalysesResponse {
+  analyses: RecentAnalysisItem[];
+  total: int32;
+}
+
 model AnalyzeCompanyRequest {
   @encodedName("application/json", "company_name")
   companyName: string;
@@ -156,5 +174,13 @@ interface CompanyAPI {
   matchExperiences(@body body: MatchRequest): {
     @statusCode statusCode: 200;
     @body body: MatchResponse;
+  } | Colight.Common.ErrorResponse;
+
+  /** Get user's recent analysis history */
+  @get
+  @route("/v1/analysis/recent")
+  getRecentAnalyses(@query limit?: int32): {
+    @statusCode statusCode: 200;
+    @body body: RecentAnalysesResponse;
   } | Colight.Common.ErrorResponse;
 }
