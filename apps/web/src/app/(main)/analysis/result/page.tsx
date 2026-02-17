@@ -188,12 +188,13 @@ export default function AnalysisResultPage() {
         </div>
       </div>
 
-      <section>
-        <h2 className="mb-4 text-xl font-semibold text-foreground">
-          핵심가치 ({analysis.core_values.length})
-        </h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          {analysis.core_values.map((value, i) => (
+      {analysis.core_values && analysis.core_values.length > 0 && (
+        <section>
+          <h2 className="mb-4 text-xl font-semibold text-foreground">
+            핵심가치 ({analysis.core_values.length})
+          </h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {analysis.core_values.map((value, i) => (
             <div
               key={i}
               className="brand-surface-soft rounded-xl p-4"
@@ -201,13 +202,15 @@ export default function AnalysisResultPage() {
               <h3 className="font-medium text-foreground">{value.keyword}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{value.description}</p>
             </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
 
-      <section>
-        <h2 className="mb-4 text-xl font-semibold text-foreground">
-          인재상 ({analysis.talent_traits.length})
+      {analysis.talent_traits && analysis.talent_traits.length > 0 && (
+        <section>
+          <h2 className="mb-4 text-xl font-semibold text-foreground">
+            인재상 ({analysis.talent_traits.length})
         </h2>
         <div className="space-y-4">
           {analysis.talent_traits.map((trait, i) => (
@@ -223,11 +226,12 @@ export default function AnalysisResultPage() {
                 </p>
               )}
             </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {analysis.recent_trends.length > 0 && (
+      {analysis.recent_trends && analysis.recent_trends.length > 0 && (
         <section>
           <h2 className="mb-4 text-xl font-semibold text-foreground">
             최근 동향 ({analysis.recent_trends.length})
@@ -246,23 +250,25 @@ export default function AnalysisResultPage() {
         </section>
       )}
 
-      <section>
-        <h2 className="mb-4 text-xl font-semibold text-foreground">
-          자소서 전략 키워드
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          {analysis.strategy_keywords.map((keyword, i) => (
-            <span
-              key={i}
-              className="inline-flex items-center rounded-full border border-primary/30 bg-primary/12 px-3 py-1 text-sm font-medium text-primary"
-            >
-              {keyword}
-            </span>
-          ))}
-        </div>
-      </section>
+      {analysis.strategy_keywords && analysis.strategy_keywords.length > 0 && (
+        <section>
+          <h2 className="mb-4 text-xl font-semibold text-foreground">
+            자소서 전략 키워드
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {analysis.strategy_keywords.map((keyword, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center rounded-full border border-primary/30 bg-primary/12 px-3 py-1 text-sm font-medium text-primary"
+              >
+                {keyword}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {analysis.avoid_expressions.length > 0 && (
+      {analysis.avoid_expressions && analysis.avoid_expressions.length > 0 && (
         <section>
           <h2 className="mb-4 text-xl font-semibold text-foreground">
             피해야 할 표현
