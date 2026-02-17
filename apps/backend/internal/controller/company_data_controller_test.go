@@ -53,7 +53,7 @@ func TestGetCompanyData_EmptyName(t *testing.T) {
 func TestGetCompanyData_ReturnsJSON(t *testing.T) {
 	router := setupCompanyDataTestRouter(t)
 
-	// Uses real DART/Naver which may fail in CI, so just verify response shape
+	// Uses real Naver search which may fail in CI, so just verify response shape
 	req := httptest.NewRequest(http.MethodGet, "/v1/company-data?name=삼성전자", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -62,7 +62,7 @@ func TestGetCompanyData_ReturnsJSON(t *testing.T) {
 	if w.Code == http.StatusOK {
 		var resp map[string]any
 		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
-		assert.Contains(t, resp, "basic_info")
+		assert.Contains(t, resp, "company_context")
 		assert.Contains(t, resp, "news")
 	}
 }
@@ -79,8 +79,8 @@ func TestGetCompanyData_ResponseStructure(t *testing.T) {
 		var resp map[string]any
 		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 
-		// basic_info should exist in response
-		assert.Contains(t, resp, "basic_info")
+		// company_context should exist in response
+		assert.Contains(t, resp, "company_context")
 		assert.Contains(t, resp, "news")
 	}
 }

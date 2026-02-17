@@ -101,7 +101,7 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 		return nil, fmt.Errorf("AI provider not available for company analysis")
 	}
 
-	// Fetch company data (DART + News)
+	// Fetch company data (Naver search + News)
 	companyData, err := s.companyDataService.GetCompanyData(ctx, companyName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch company data: %w", err)
@@ -142,31 +142,38 @@ func (s *CompanyAnalysisService) analyzeWithClaude(ctx context.Context, companyN
 		newsText += fmt.Sprintf("- %s\n", article.Title)
 	}
 
-	prompt := fmt.Sprintf(`Analyze this Korean company and extract:
-1. Core values (3-5 items)
-2. Talent profile/traits (3-5 items)
-3. Recent trends from news
-4. Strategy keywords for cover letter
-5. Expressions to avoid
+	companyContext := data.CompanyContext
+	if companyContext == "" {
+		companyContext = "(기업 정보를 찾을 수 없습니다. 기업명과 뉴스만으로 분석해주세요.)"
+	}
 
-Company: %s
-Industry: %s
-CEO: %s
+	prompt := fmt.Sprintf(`다음 정보를 바탕으로 이 한국 기업을 분석해주세요.
 
-Recent News:
+기업명: %s
+
+--- 기업 정보 ---
 %s
 
-Return JSON with:
+--- 최근 뉴스 ---
+%s
+
+다음 항목을 추출하여 JSON으로 반환해주세요:
+1. 핵심 가치 (core_values): 3-5개
+2. 인재상 (talent_traits): 3-5개 — 기업이 원하는 인재 특성
+3. 최근 동향 (recent_trends): 뉴스 기반
+4. 자기소개서 전략 키워드 (strategy_keywords): 이 기업에 지원할 때 효과적인 키워드
+5. 피해야 할 표현 (avoid_expressions): 이 기업에 맞지 않는 표현
+
 {
   "core_values": [{"keyword": "", "description": ""}],
   "talent_traits": [{"trait": "", "description": "", "evidence": ""}],
   "recent_trends": [{"title": "", "summary": "", "relevance": ""}],
   "strategy_keywords": [],
   "avoid_expressions": []
-}`, companyName, data.BasicInfo.Industry, data.BasicInfo.CEO, newsText)
+}`, companyName, companyContext, newsText)
 
 	resp, err := s.aiProvider.CallByModelName(ctx, "claude-sonnet-4-5", ai.LLMRequest{
-		SystemPrompt: "You are a Korean company analyst. Analyze the company and provide insights for job seekers.",
+		SystemPrompt: "당신은 한국 기업 분석 전문가입니다. 기업 정보와 뉴스를 분석하여 취업 준비생에게 유용한 인사이트를 제공합니다. 반드시 한국어로 응답해주세요.",
 		UserPrompt:   prompt,
 		Temperature:  0.3,
 		MaxTokens:    3000,

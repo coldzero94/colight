@@ -15,10 +15,11 @@ func TestGetCompanyData_Unit(t *testing.T) {
 	// Unit test with mock company name
 	result, err := service.GetCompanyData(ctx, "테스트회사")
 
-	// Should not crash even if DART/Naver fail
+	// Should not crash even if Naver search fails
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.NotNil(t, result.BasicInfo)
+	// CompanyContext may be empty if search finds nothing — that's OK
+	assert.NotNil(t, result.News)
 }
 
 func TestGetCompanyData_RealCompany(t *testing.T) {
@@ -29,7 +30,6 @@ func TestGetCompanyData_RealCompany(t *testing.T) {
 	service := NewCompanyDataService()
 	ctx := context.Background()
 
-	// Test with real company (e.g., 삼성전자)
 	result, err := service.GetCompanyData(ctx, "삼성전자")
 
 	if err != nil {
@@ -38,7 +38,6 @@ func TestGetCompanyData_RealCompany(t *testing.T) {
 	}
 
 	assert.NotNil(t, result)
-	assert.NotEmpty(t, result.BasicInfo.CorpName)
-	t.Logf("Company: %s", result.BasicInfo.CorpName)
+	t.Logf("CompanyContext length: %d chars", len(result.CompanyContext))
 	t.Logf("News articles: %d", len(result.News))
 }

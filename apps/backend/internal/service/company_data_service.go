@@ -9,47 +9,38 @@ import (
 
 // CompanyDataService aggregates company information from multiple sources
 type CompanyDataService struct {
-	dartCrawler  *crawler.DartCrawler
-	newsCrawler  *crawler.NaverNewsCrawler
+	searchCrawler *crawler.NaverSearchCrawler
+	newsCrawler   *crawler.NaverNewsCrawler
 }
 
 // NewCompanyDataService creates a new company data service
 func NewCompanyDataService() *CompanyDataService {
 	return &CompanyDataService{
-		dartCrawler: crawler.NewDartCrawler(),
-		newsCrawler: crawler.NewNaverNewsCrawler(),
+		searchCrawler: crawler.NewNaverSearchCrawler(),
+		newsCrawler:   crawler.NewNaverNewsCrawler(),
 	}
 }
 
 // CompanyData represents aggregated company information
 type CompanyData struct {
-	BasicInfo *crawler.CompanyInfo      `json:"basic_info"`
-	News      []crawler.NewsArticle     `json:"news"`
+	CompanyContext string                `json:"company_context"`
+	News           []crawler.NewsArticle `json:"news"`
 }
 
 // GetCompanyData fetches and aggregates all company data
 func (s *CompanyDataService) GetCompanyData(ctx context.Context, companyName string) (*CompanyData, error) {
 	result := &CompanyData{}
 
-	// 1. Get company basic info from DART (may fail for non-listed companies)
-	dartInfo, err := s.dartCrawler.SearchCompany(companyName)
-	if err != nil {
-		// Non-listed company - gracefully handle
-		dartInfo = &crawler.CompanyInfo{
-			CorpName: companyName,
-		}
-	}
-	result.BasicInfo = dartInfo
+	// 1. Search Naver for company info (graceful: returns "" on failure)
+	companyContext, _ := s.searchCrawler.SearchCompanyInfo(companyName)
+	result.CompanyContext = companyContext
 
 	// 2. Get recent news from Naver
 	news, err := s.newsCrawler.SearchCompanyNews(companyName, 5)
 	if err != nil {
-		// News fetch failed - continue with empty news
 		news = []crawler.NewsArticle{}
 	}
 	result.News = news
-
-	// 3. Future: Add Google search for talent profile hints
 
 	return result, nil
 }
