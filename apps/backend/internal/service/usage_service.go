@@ -59,8 +59,8 @@ func (s *UsageService) CheckLimit(ctx context.Context, userID uuid.UUID, feature
 		return nil, err
 	}
 
-	// Paid users have no limits
-	if user.Plan != userprofile.PlanFree {
+	// Admin and paid users have no limits
+	if user.Role == userprofile.RoleAdmin || user.Role == userprofile.RoleSuperAdmin || user.Plan != userprofile.PlanFree {
 		return &UsageStatus{
 			Allowed:   true,
 			Used:      0,
@@ -140,6 +140,7 @@ func (s *UsageService) GetAllUsage(ctx context.Context, userID uuid.UUID) (map[s
 }
 
 // checkLimitForPlan is an internal helper that skips the user lookup.
+// Note: This function doesn't check admin role - use CheckLimit for full validation.
 func (s *UsageService) checkLimitForPlan(ctx context.Context, userID uuid.UUID, feature string, plan userprofile.Plan) (*UsageStatus, error) {
 	fl := FreeLimits[feature]
 

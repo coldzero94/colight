@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
@@ -10,8 +10,10 @@ import { useAutoMatching } from "@/hooks/use-auto-matching";
 import { crawlJobPosting } from "@/lib/api/crawl";
 import { fetchExperiences, type Experience } from "@/lib/api/experiences";
 import type { CompanyAnalysis } from "@/lib/api/analysis";
+import { isUsageLimitError, getUsageLimitInfo } from "@/lib/api/errors";
 
 export default function AnalysisResultPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const url = searchParams.get("url");
   const [companyName, setCompanyName] = useState<string | null>(null);
@@ -51,8 +53,14 @@ export default function AnalysisResultPage() {
       onSuccess: (data) => {
         setAnalysis(data);
       },
-      onError: () => {
-        toast.error("기업 분석에 실패했습니다.");
+      onError: (error) => {
+        if (isUsageLimitError(error)) {
+          const info = getUsageLimitInfo(error);
+          toast.error(info.message);
+          router.push("/pricing");
+        } else {
+          toast.error("기업 분석에 실패했습니다.");
+        }
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
