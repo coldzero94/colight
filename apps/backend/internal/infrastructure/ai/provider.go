@@ -15,6 +15,7 @@ type AIProvider struct {
 	claude  LLMProvider   // Claude Sonnet 4.5 (optional)
 	groq    *GroqProvider // Groq multi-model (optional)
 	groqLLM LLMProvider   // test override: routes "groq" calls to this instead of groq field
+	groqSem chan struct{} // semaphore to serialize Groq calls (avoid rate limit)
 }
 
 // NewAIProvider creates providers for all available API keys.
@@ -46,6 +47,9 @@ func NewAIProvider(ctx context.Context, cfg *config.Config) (*AIProvider, error)
 		return nil, fmt.Errorf("no AI provider available: set at least one of GEMINI_API_KEY, GROQ_API_KEY, or ANTHROPIC_API_KEY")
 	}
 
+	// Serialize Groq calls to avoid rate limit on free tier (1 concurrent call)
+	p.groqSem = make(chan struct{}, 1)
+
 	return p, nil
 }
 
@@ -71,7 +75,9 @@ func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req 
 		if p.groq == nil {
 			return LLMResponse{}, fmt.Errorf("Groq not available (missing GROQ_API_KEY)")
 		}
-		return p.groq.Call(ctx, req)
+		return p.callGroqSerialized(ctx, func() (LLMResponse, error) {
+			return p.groq.Call(ctx, req)
+		})
 
 	default:
 		// Check if it's a known Groq model alias (e.g. "llama-3.3-70b-versatile")
@@ -79,9 +85,26 @@ func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req 
 			if p.groq == nil {
 				return LLMResponse{}, fmt.Errorf("Groq not available for model %s (missing GROQ_API_KEY)", modelName)
 			}
-			return p.groq.CallWithModel(ctx, modelName, req)
+			return p.callGroqSerialized(ctx, func() (LLMResponse, error) {
+				return p.groq.CallWithModel(ctx, modelName, req)
+			})
 		}
 		return LLMResponse{}, fmt.Errorf("unknown model: %s", modelName)
+	}
+}
+
+// callGroqSerialized acquires the Groq semaphore before calling, ensuring
+// only one Groq API call runs at a time to avoid rate limit on free tier.
+func (p *AIProvider) callGroqSerialized(ctx context.Context, fn func() (LLMResponse, error)) (LLMResponse, error) {
+	if p.groqSem == nil {
+		return fn()
+	}
+	select {
+	case p.groqSem <- struct{}{}:
+		defer func() { <-p.groqSem }()
+		return fn()
+	case <-ctx.Done():
+		return LLMResponse{}, ctx.Err()
 	}
 }
 
