@@ -784,7 +784,7 @@ URL: {{source_url}}
 - required_skills[], soft_skills[], company_values_hints[]
 - deadline`,
 			OutputSchema: map[string]interface{}{},
-			Model:       "groq/compound",
+			Model:       "gemini-2.5-flash",
 			Temperature: 0.1,
 			MaxTokens:   2000,
 			Version:     1,
@@ -810,7 +810,7 @@ URL: {{source_url}}
 - required_skills[], soft_skills[], company_values_hints[]
 - deadline`,
 			OutputSchema: map[string]interface{}{},
-			Model:       "groq/compound",
+			Model:       "gemini-2.5-flash",
 			Temperature: 0.1,
 			MaxTokens:   2000,
 			Version:     1,
@@ -834,7 +834,7 @@ Skills: {{skills}}
 
 Return JSON with: company_name, position, department, job_type, experience_level, main_tasks[], requirements[], preferred[], required_skills[], soft_skills[], company_values_hints[], deadline`,
 			OutputSchema: map[string]interface{}{},
-			Model:       "groq/compound",
+			Model:       "gemini-2.5-flash",
 			Temperature: 0.2,
 			MaxTokens:   2000,
 			Version:     1,
