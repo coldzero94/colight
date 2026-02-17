@@ -296,39 +296,6 @@ export default function AnalysisResultPage() {
         </section>
       )}
 
-      <section>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">
-            내 경험 적합도 매칭
-          </h2>
-          {!isMatching && matchingResult && (
-            <button
-              className="text-sm text-primary hover:text-primary/80"
-              onClick={triggerMatching}
-            >
-              다시 매칭 →
-            </button>
-          )}
-        </div>
-
-        {isMatching ? (
-          <div className="flex flex-col items-center py-8">
-            <LoadingSpinner />
-            <p className="mt-4 text-sm text-muted-foreground">
-              경험 매칭 중입니다...
-            </p>
-          </div>
-        ) : matchingResult ? (
-          <MatchingResults
-            matches={matchingResult.matches}
-            experiences={experiences}
-          />
-        ) : experiences.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">
-            등록된 경험이 없습니다. 경험을 먼저 추가해주세요.
-          </p>
-        ) : null}
-      </section>
     </div>
   );
 }
