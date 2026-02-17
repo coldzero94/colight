@@ -26,6 +26,8 @@ export interface CompanyAnalysis {
   strategy_keywords: string[];
   avoid_expressions: string[];
   source: "talent_profiles" | "cache" | "ai_generated";
+  cached_at?: string;
+  view_count?: number;
 }
 
 // Analyze company

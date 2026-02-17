@@ -4634,6 +4634,11 @@ components:
             - talent_profiles
             - cache
             - ai_generated
+        cached_at:
+          type: string
+        view_count:
+          type: integer
+          format: int32
     Company.CompanyData:
       type: object
       required:

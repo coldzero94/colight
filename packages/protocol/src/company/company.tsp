@@ -44,6 +44,12 @@ model CompanyAnalysis {
   avoidExpressions: string[];
 
   source: "talent_profiles" | "cache" | "ai_generated";
+
+  @encodedName("application/json", "cached_at")
+  cachedAt?: string;
+
+  @encodedName("application/json", "view_count")
+  viewCount?: int32;
 }
 
 model AnalyzeCompanyRequest {

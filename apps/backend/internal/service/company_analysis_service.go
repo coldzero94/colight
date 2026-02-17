@@ -44,6 +44,8 @@ type CompanyAnalysis struct {
 	StrategyKeywords   []string                 `json:"strategy_keywords"`
 	AvoidExpressions   []string                 `json:"avoid_expressions"`
 	Source             string                   `json:"source"` // "talent_profiles", "cache", "ai_generated"
+	CachedAt           *string                  `json:"cached_at,omitempty"`
+	ViewCount          *int                     `json:"view_count,omitempty"`
 }
 
 type CoreValue struct {
@@ -87,9 +89,10 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 		First(ctx)
 
 	if err == nil {
-		// Cache hit - increment view_count and return cached data
+		// Cache hit - increment view_count and return cached data with metadata
+		newViewCount := cache.ViewCount + 1
 		_ = s.entClient.CompanyAnalysisCache.UpdateOneID(cache.ID).
-			SetViewCount(cache.ViewCount + 1).
+			SetViewCount(newViewCount).
 			Exec(ctx)
 
 		var analysis CompanyAnalysis
@@ -98,7 +101,13 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 		if err == nil {
 			if err := json.Unmarshal(dataJSON, &analysis); err == nil {
 				analysis.Source = "cache"
-				slog.Info("analysis_cache_hit", "company", companyName, "cache_key", cacheKey)
+
+				// Add cache metadata
+				cachedAt := cache.CreatedAt.Format(time.RFC3339)
+				analysis.CachedAt = &cachedAt
+				analysis.ViewCount = &newViewCount
+
+				slog.Info("analysis_cache_hit", "company", companyName, "view_count", newViewCount, "cached_at", cachedAt)
 				return &analysis, true, nil // fromCache = true
 			}
 		}
@@ -169,6 +178,14 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 	}
 
 	analysis.Source = "ai_generated"
+
+	// Add metadata for new analysis
+	now := time.Now().Format(time.RFC3339)
+	viewCount := 1
+	analysis.CachedAt = &now
+	analysis.ViewCount = &viewCount
+
+	slog.Info("analysis_new", "company", companyName, "cached_at", now)
 	return analysis, false, nil // fromCache = false (new AI analysis)
 }
 

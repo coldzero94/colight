@@ -175,9 +175,19 @@ export default function AnalysisResultPage() {
             <h1 className="mt-3 text-3xl font-bold font-display text-foreground">
               {analysis.company_name}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              분석 출처: {getSourceLabel(analysis.source)}
-            </p>
+            <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
+              <span>분석 출처: {getSourceLabel(analysis.source)}</span>
+              {analysis.view_count && analysis.view_count > 1 && (
+                <span className="text-muted-foreground/60">
+                  · 조회 {analysis.view_count}회
+                </span>
+              )}
+              {analysis.cached_at && (
+                <span className="text-muted-foreground/60">
+                  · {formatCacheAge(analysis.cached_at)}
+                </span>
+              )}
+            </div>
           </div>
           <button
             onClick={() => window.history.back()}
@@ -365,4 +375,18 @@ function StepIndicator({ active, completed }: { active: boolean; completed: bool
     return <div className="h-5 w-5 rounded-full border-2 border-primary bg-primary/20 animate-pulse" />;
   }
   return <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/20" />;
+}
+
+function formatCacheAge(cachedAt: string): string {
+  const cached = new Date(cachedAt);
+  const now = new Date();
+  const diffMs = now.getTime() - cached.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "방금 전";
+  if (diffMins < 60) return `${diffMins}분 전`;
+  if (diffHours < 24) return `${diffHours}시간 전`;
+  return `${diffDays}일 전`;
 }

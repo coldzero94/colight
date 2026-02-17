@@ -292,6 +292,8 @@ export type CompanyCompanyAnalysis = {
     strategy_keywords: Array<string>;
     avoid_expressions: Array<string>;
     source: 'talent_profiles' | 'cache' | 'ai_generated';
+    cached_at?: string;
+    view_count?: number;
 };
 
 export type CompanyCompanyData = {

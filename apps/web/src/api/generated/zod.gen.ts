@@ -341,7 +341,9 @@ export const zCompanyCompanyAnalysis = z.object({
         'talent_profiles',
         'cache',
         'ai_generated'
-    ])
+    ]),
+    cached_at: z.optional(z.string()),
+    view_count: z.optional(z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }))
 });
 
 export const zExperienceCreateExperienceRequest = z.object({
