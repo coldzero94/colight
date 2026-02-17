@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -147,7 +146,7 @@ func (s *WeaponTaggingService) TagExperience(ctx context.Context, experienceID u
 
 	// 8. Parse AI response
 	var aiResult aiWeaponResponse
-	if err := json.Unmarshal([]byte(aiResp.Content), &aiResult); err != nil {
+	if err := ai.ExtractJSON(aiResp.Content, &aiResult); err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 

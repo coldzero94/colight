@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/coby/colight/apps/backend/ent"
@@ -115,7 +116,7 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 
 	// Save to cache (365 days TTL)
 	analysisJSON, _ := json.Marshal(analysis)
-	var dataMap map[string]interface{}
+	var dataMap map[string]any
 	_ = json.Unmarshal(analysisJSON, &dataMap)
 
 	_, _ = s.entClient.CompanyAnalysisCache.Create().
@@ -134,13 +135,14 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 // analyzeWithClaude uses Claude to analyze company
 func (s *CompanyAnalysisService) analyzeWithClaude(ctx context.Context, companyName string, data *CompanyData) (*CompanyAnalysis, error) {
 	// Build prompt from company data
-	newsText := ""
+	var newsBuilder strings.Builder
 	for i, article := range data.News {
 		if i >= 5 {
 			break
 		}
-		newsText += fmt.Sprintf("- %s\n", article.Title)
+		fmt.Fprintf(&newsBuilder, "- %s\n", article.Title)
 	}
+	newsText := newsBuilder.String()
 
 	companyContext := data.CompanyContext
 	if companyContext == "" {
@@ -186,7 +188,7 @@ func (s *CompanyAnalysisService) analyzeWithClaude(ctx context.Context, companyN
 
 	// Parse AI response
 	var analysis CompanyAnalysis
-	if err := json.Unmarshal([]byte(resp.Content), &analysis); err != nil {
+	if err := ai.ExtractJSON(resp.Content, &analysis); err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 

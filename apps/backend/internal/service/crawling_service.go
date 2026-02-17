@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -159,7 +158,7 @@ URL: %s
 	}
 
 	var result crawler.JobPosting
-	if err := json.Unmarshal([]byte(resp.Content), &result); err != nil {
+	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
@@ -205,7 +204,7 @@ URL: %s
 	}
 
 	var result crawler.JobPosting
-	if err := json.Unmarshal([]byte(resp.Content), &result); err != nil {
+	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
@@ -255,7 +254,7 @@ Return JSON with these fields:
 	}
 
 	var result crawler.JobPosting
-	if err := json.Unmarshal([]byte(resp.Content), &result); err != nil {
+	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 

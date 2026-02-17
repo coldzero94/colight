@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -185,7 +184,7 @@ func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID,
 
 	// 7. Parse response
 	var result QuestionAnalysisResult
-	if err := json.Unmarshal([]byte(resp.Content), &result); err != nil {
+	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 

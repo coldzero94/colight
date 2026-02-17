@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/coby/colight/apps/backend/ent"
@@ -42,12 +42,7 @@ var stageInstruction = map[InterviewStage]string{
 }
 
 func validStage(s InterviewStage) bool {
-	for _, stage := range InterviewStages {
-		if stage == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(InterviewStages, s)
 }
 
 // ChatMessage represents a single message in the interview conversation.
@@ -165,7 +160,7 @@ func (s *InterviewService) GenerateQuestion(ctx context.Context, _ uuid.UUID, in
 	var aiResp struct {
 		Question string `json:"question"`
 	}
-	if err := json.Unmarshal([]byte(resp.Content), &aiResp); err != nil {
+	if err := ai.ExtractJSON(resp.Content, &aiResp); err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
@@ -263,7 +258,7 @@ func (s *InterviewService) ExtractSTAR(ctx context.Context, messages []ChatMessa
 	}
 
 	var result ExtractSTARResult
-	if err := json.Unmarshal([]byte(resp.Content), &result); err != nil {
+	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
 		return nil, fmt.Errorf("failed to parse STAR response: %w", err)
 	}
 

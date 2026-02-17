@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/coby/colight/apps/backend/ent"
@@ -124,7 +124,7 @@ Return JSON with scores (0-100):
 
 	// 5. Parse AI response
 	var aiResult aiMatchResponse
-	if err := json.Unmarshal([]byte(resp.Content), &aiResult); err != nil {
+	if err := ai.ExtractJSON(resp.Content, &aiResult); err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
@@ -152,19 +152,21 @@ Return JSON with scores (0-100):
 }
 
 func formatCoreValues(values []CoreValue) string {
-	result := ""
+	var b strings.Builder
 	for _, v := range values {
-		result += v.Keyword + ", "
+		b.WriteString(v.Keyword)
+		b.WriteString(", ")
 	}
-	return result
+	return b.String()
 }
 
 func formatTalentTraits(traits []TalentTrait) string {
-	result := ""
+	var b strings.Builder
 	for _, t := range traits {
-		result += t.Trait + ", "
+		b.WriteString(t.Trait)
+		b.WriteString(", ")
 	}
-	return result
+	return b.String()
 }
 // CalculateOverallFit computes the weighted average overall fit score
 // Weights: job_relevance 40%, talent_fit 35%, uniqueness 25%
