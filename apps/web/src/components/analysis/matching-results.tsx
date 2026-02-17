@@ -8,7 +8,8 @@ interface MatchingResultsProps {
 }
 
 export function MatchingResults({ matches, experiences }: MatchingResultsProps) {
-  if (!matches || matches.length === 0) {
+  // Backend guarantees matches is always an array (never null)
+  if (matches.length === 0) {
     return (
       <div className="brand-surface-soft rounded-2xl py-8 text-center text-muted-foreground">
         매칭 결과가 없습니다.

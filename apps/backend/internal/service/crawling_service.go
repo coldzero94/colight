@@ -32,6 +32,31 @@ func getFieldNames(m map[string]interface{}) []string {
 	return keys
 }
 
+// normalizeJobPostingFields ensures all expected fields exist with proper defaults.
+// This prevents null/undefined errors in the frontend.
+func normalizeJobPostingFields(result map[string]interface{}, sourceURL string) {
+	// Required string fields - default to empty string
+	stringFields := []string{"company_name", "position", "department", "job_type", "experience_level", "deadline"}
+	for _, field := range stringFields {
+		if _, ok := result[field]; !ok {
+			if field == "company_name" || field == "position" {
+				slog.Warn("crawl_missing_required_field", "field", field, "url", sourceURL)
+			}
+			result[field] = ""
+		}
+	}
+
+	// Array fields - default to empty array
+	arrayFields := []string{"main_tasks", "requirements", "preferred", "required_skills", "soft_skills", "company_values_hints"}
+	for _, field := range arrayFields {
+		if val, ok := result[field]; !ok || val == nil {
+			result[field] = []interface{}{}
+		}
+	}
+
+	slog.Info("crawl_normalized", "url", sourceURL, "field_count", len(result))
+}
+
 // HTMLFetcher abstracts HTML fetching for testability
 type HTMLFetcher interface {
 	FetchHTML(url string) (string, error)
@@ -253,18 +278,8 @@ func (s *CrawlingService) extractJobPostingFromMarkdown(ctx context.Context, sou
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
-	// Validate and fill required fields
-	if _, ok := result["company_name"]; !ok {
-		slog.Warn("crawl_missing_field", "field", "company_name", "available_fields", getFieldNames(result))
-		result["company_name"] = ""
-	}
-	if _, ok := result["position"]; !ok {
-		slog.Warn("crawl_missing_field", "field", "position", "available_fields", getFieldNames(result))
-		result["position"] = ""
-	}
-
-	// Log successful extraction with field count
-	slog.Info("crawl_extracted", "url", sourceURL, "field_count", len(result), "has_position", result["position"] != "")
+	// Ensure required fields and normalize arrays
+	normalizeJobPostingFields(result, sourceURL)
 
 	return result, nil
 }
@@ -304,18 +319,8 @@ func (s *CrawlingService) extractJobPostingFromHTML(ctx context.Context, sourceU
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
-	// Validate and fill required fields
-	if _, ok := result["company_name"]; !ok {
-		slog.Warn("crawl_missing_field", "field", "company_name", "available_fields", getFieldNames(result))
-		result["company_name"] = ""
-	}
-	if _, ok := result["position"]; !ok {
-		slog.Warn("crawl_missing_field", "field", "position", "available_fields", getFieldNames(result))
-		result["position"] = ""
-	}
-
-	// Log successful extraction with field count
-	slog.Info("crawl_extracted", "url", sourceURL, "field_count", len(result), "has_position", result["position"] != "")
+	// Ensure required fields and normalize arrays
+	normalizeJobPostingFields(result, sourceURL)
 
 	return result, nil
 }

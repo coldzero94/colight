@@ -188,7 +188,7 @@ export default function AnalysisResultPage() {
         </div>
       </div>
 
-      {analysis.core_values && analysis.core_values.length > 0 && (
+      {analysis.core_values.length > 0 && (
         <section>
           <h2 className="mb-4 text-xl font-semibold text-foreground">
             핵심가치 ({analysis.core_values.length})
@@ -207,7 +207,7 @@ export default function AnalysisResultPage() {
         </section>
       )}
 
-      {analysis.talent_traits && analysis.talent_traits.length > 0 && (
+      {analysis.talent_traits.length > 0 && (
         <section>
           <h2 className="mb-4 text-xl font-semibold text-foreground">
             인재상 ({analysis.talent_traits.length})
@@ -231,7 +231,7 @@ export default function AnalysisResultPage() {
         </section>
       )}
 
-      {analysis.recent_trends && analysis.recent_trends.length > 0 && (
+      {analysis.recent_trends.length > 0 && (
         <section>
           <h2 className="mb-4 text-xl font-semibold text-foreground">
             최근 동향 ({analysis.recent_trends.length})
@@ -250,7 +250,7 @@ export default function AnalysisResultPage() {
         </section>
       )}
 
-      {analysis.strategy_keywords && analysis.strategy_keywords.length > 0 && (
+      {analysis.strategy_keywords.length > 0 && (
         <section>
           <h2 className="mb-4 text-xl font-semibold text-foreground">
             자소서 전략 키워드
@@ -268,7 +268,7 @@ export default function AnalysisResultPage() {
         </section>
       )}
 
-      {analysis.avoid_expressions && analysis.avoid_expressions.length > 0 && (
+      {analysis.avoid_expressions.length > 0 && (
         <section>
           <h2 className="mb-4 text-xl font-semibold text-foreground">
             피해야 할 표현

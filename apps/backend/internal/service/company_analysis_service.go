@@ -225,10 +225,20 @@ func (s *CompanyAnalysisService) analyzeWithAI(ctx context.Context, companyName 
 			Exec(ctx)
 	}
 
-	// Parse AI response
-	var analysis CompanyAnalysis
-	if err := ai.ExtractJSON(resp.Content, &analysis); err != nil {
+	// Parse AI response (flexible map to preserve all fields)
+	resultMap, err := ai.ExtractJSONFlexible(resp.Content)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
+	}
+
+	// Normalize fields to prevent null errors
+	normalizeCompanyAnalysisFields(resultMap, companyName)
+
+	// Convert to struct for return (preserving extra fields in cache)
+	var analysis CompanyAnalysis
+	dataJSON, _ := json.Marshal(resultMap)
+	if err := json.Unmarshal(dataJSON, &analysis); err != nil {
+		return nil, fmt.Errorf("failed to convert to struct: %w", err)
 	}
 
 	analysis.CompanyName = companyName
@@ -297,4 +307,22 @@ func (s *CompanyAnalysisService) loadAnalysisPrompt(ctx context.Context) (*ent.P
 func (s *CompanyAnalysisService) generateCacheKey(source string) string {
 	hash := sha256.Sum256([]byte(source))
 	return "company_" + hex.EncodeToString(hash[:16])
+}
+
+// normalizeCompanyAnalysisFields ensures all expected fields exist with proper defaults.
+func normalizeCompanyAnalysisFields(result map[string]interface{}, companyName string) {
+	// Required string field
+	if _, ok := result["company_name"]; !ok {
+		result["company_name"] = companyName
+	}
+
+	// Array fields - default to empty array to prevent null errors in frontend
+	arrayFields := []string{"core_values", "talent_traits", "recent_trends", "strategy_keywords", "avoid_expressions"}
+	for _, field := range arrayFields {
+		if val, ok := result[field]; !ok || val == nil {
+			result[field] = []interface{}{}
+		}
+	}
+
+	slog.Info("analysis_normalized", "company", companyName, "field_count", len(result))
 }
