@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/experience"
@@ -344,8 +345,8 @@ func TestRetagExperience_SkipUserConfirmed(t *testing.T) {
 	}
 	assert.True(t, found, "User-confirmed weapon should be preserved")
 
-	// Result should still show AI suggestion (even though not saved due to user confirmation)
-	assert.Equal(t, "W02", result.PrimaryWeapon.Code)
+	// Result should show the preserved user-confirmed weapon (AI call skipped)
+	assert.Equal(t, "W01", result.PrimaryWeapon.Code)
 }
 
 func TestRetagExperience_DeleteOnlyAITags(t *testing.T) {
@@ -398,6 +399,10 @@ func TestRetagExperience_DeleteOnlyAITags(t *testing.T) {
 		SetUserConfirmed(false).
 		SetUserModified(true).
 		SaveX(ctx)
+
+	// Simulate content change by touching the experience after weapons were created
+	time.Sleep(10 * time.Millisecond)
+	client.Experience.UpdateOneID(exp.ID).SetContent("경험 내용이 수정됨").SaveX(ctx)
 
 	// Re-tag
 	_, err := svc.TagExperience(ctx, exp.ID, userID)

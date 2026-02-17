@@ -52,6 +52,11 @@ func main() {
 		weaponTaggingService = service.NewWeaponTaggingService(db, aiProvider)
 	}
 
+	var starGenerationService *service.StarGenerationService
+	if aiProvider != nil {
+		starGenerationService = service.NewStarGenerationService(db, aiProvider)
+	}
+
 	var crawlingService *service.CrawlingService
 	if aiProvider != nil {
 		crawlingService = service.NewCrawlingService(aiProvider)
@@ -108,6 +113,11 @@ func main() {
 	var weaponTaggingCtrl *controller.WeaponTaggingController
 	if weaponTaggingService != nil {
 		weaponTaggingCtrl = controller.NewWeaponTaggingController(weaponTaggingService)
+	}
+
+	var starGenCtrl *controller.StarGenerationController
+	if starGenerationService != nil {
+		starGenCtrl = controller.NewStarGenerationController(starGenerationService)
 	}
 
 	var crawlingCtrl *controller.CrawlingController
@@ -194,6 +204,11 @@ func main() {
 		// Weapon tagging (if AI provider is available)
 		if weaponTaggingCtrl != nil {
 			protected.POST("/experiences/:id/tag", weaponTaggingCtrl.Tag)
+		}
+
+		// AI STAR generation from free-form content
+		if starGenCtrl != nil {
+			protected.POST("/experiences/generate-star", starGenCtrl.GenerateSTAR)
 		}
 
 		// Job posting crawling (if AI provider is available)

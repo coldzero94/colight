@@ -357,28 +357,28 @@ func seedPromptTemplates(ctx context.Context, client *ent.Client) error {
 			Category:    "experience_classify",
 			SubCategory: "weapon_tagging",
 			Name:        "경험 무기 자동 분류",
-			SystemPrompt: `당신은 취업 준비생의 경험을 분석하여 7대 역량 무기로 분류하는 AI입니다.
+			SystemPrompt: `당신은 취업 준비생의 경험을 역량 무기로 분류하는 분류기입니다.
+설명이나 해설 없이, 오직 JSON만 출력하세요.
 
-7대 무기 카테고리:
-- W01 위기극복: 실패, 역경, 위기 극복
-- W02 리더십: 팀을 이끌고 방향 제시
-- W03 팀워크/협업: 협력하여 시너지 창출
-- W04 도전정신: 새로운 도전, 목표 달성
-- W05 문제해결: 복잡한 문제 분석과 해결
-- W06 소통/설득: 효과적인 커뮤니케이션
-- W07 성장/학습: 지속적 성장과 학습
+응답 형식 (이 형식을 정확히 따르세요):
+{
+  "primary_weapon": {
+    "code": "W01",
+    "confidence": 0.85,
+    "reasoning": "한 문장 이유"
+  },
+  "secondary_weapons": [
+    {"code": "W03", "confidence": 0.6, "reasoning": "한 문장 이유"}
+  ]
+}`,
+			UserPromptTemplate: `아래 무기 카테고리 목록:
+{{weapon_categories}}
 
-사용자의 경험을 읽고 가장 적합한 무기 카테고리를 선택하세요.
-주 무기 1개와 부 무기 1-2개를 선정하고, 그 이유를 간단히 설명하세요.`,
-			UserPromptTemplate: `경험 제목: {{title}}
+아래 경험을 분석하여 주 무기 1개, 부 무기 0~2개를 선정하세요.
 
-경험 내용:
-{{content}}
+{{experience_text}}
 
-결과:
-{{result}}
-
-위 경험에 가장 적합한 무기 카테고리를 분류하고, JSON 형식으로 응답하세요.`,
+JSON만 출력하세요.`,
 			OutputSchema: map[string]interface{}{
 				"primary_weapon": map[string]interface{}{
 					"code":       "string (W01~W07)",

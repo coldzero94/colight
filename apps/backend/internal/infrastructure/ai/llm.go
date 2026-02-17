@@ -13,26 +13,61 @@ type LLMProvider interface {
 }
 
 // ExtractJSON extracts a JSON object from an AI response that may contain
-// surrounding text (e.g. "I'll analyze... {json} ..."). Finds the first '{' and
-// last '}' and attempts to parse the substring as JSON.
+// surrounding text, markdown code fences, or double-brace wrapping.
+// Tries multiple strategies in order: direct parse, code fence extraction,
+// last code fence block, first-last brace extraction.
 func ExtractJSON(content string, target any) error {
-	// Try direct parse first
+	// 1. Try direct parse
 	if err := json.Unmarshal([]byte(content), target); err == nil {
 		return nil
 	}
 
-	// Find first '{' and last '}'
-	start := strings.Index(content, "{")
-	end := strings.LastIndex(content, "}")
-	if start == -1 || end == -1 || end <= start {
-		return fmt.Errorf("no JSON object found in response: %.100s", content)
+	// 2. Find the LAST ```json ... ``` block (models often put the real JSON last)
+	if jsonStr := extractLastCodeFence(content); jsonStr != "" {
+		if err := json.Unmarshal([]byte(jsonStr), target); err == nil {
+			return nil
+		}
 	}
 
-	jsonStr := content[start : end+1]
-	if err := json.Unmarshal([]byte(jsonStr), target); err != nil {
-		return fmt.Errorf("failed to parse extracted JSON: %w", err)
+	// 3. Find first '{' and last '}' and try to parse
+	start := strings.Index(content, "{")
+	end := strings.LastIndex(content, "}")
+	if start != -1 && end > start {
+		jsonStr := content[start : end+1]
+		if err := json.Unmarshal([]byte(jsonStr), target); err == nil {
+			return nil
+		}
 	}
-	return nil
+
+	return fmt.Errorf("no valid JSON found in response (len=%d): %.200s", len(content), content)
+}
+
+// extractLastCodeFence finds the last ```...``` block and returns its content.
+func extractLastCodeFence(content string) string {
+	// Find the last opening fence
+	lastOpen := strings.LastIndex(content, "```json")
+	if lastOpen == -1 {
+		lastOpen = strings.LastIndex(content, "```")
+	}
+	if lastOpen == -1 {
+		return ""
+	}
+
+	// Move past the opening fence line
+	afterFence := content[lastOpen:]
+	newline := strings.Index(afterFence, "\n")
+	if newline == -1 {
+		return ""
+	}
+	inner := afterFence[newline+1:]
+
+	// Find closing fence
+	closeFence := strings.Index(inner, "```")
+	if closeFence == -1 {
+		return ""
+	}
+
+	return strings.TrimSpace(inner[:closeFence])
 }
 
 // LLMRequest represents a request to the lightweight LLM
