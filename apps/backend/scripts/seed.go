@@ -726,10 +726,11 @@ priority: 1=높음, 2=중간, 3=낮음
 			Category:    "company_analysis",
 			SubCategory: "analyze",
 			Name:        "기업 AI 분석",
-			SystemPrompt: `당신은 한국 기업을 분석하는 AI 전문가입니다.
-기업의 핵심가치, 인재상, 최근 트렌드를 분석해주세요.
+			SystemPrompt: `You are a Korean company analysis expert. Analyze the company's core values, talent traits, and recent trends.
 
-응답 형식 (JSON):
+CRITICAL: Return ONLY a single JSON object. Do not include any explanatory text, markdown formatting, or additional commentary.
+
+JSON format:
 {
   "core_values": [{"keyword": "핵심가치", "description": "설명"}],
   "talent_traits": [{"trait": "인재상", "description": "설명"}],
@@ -738,10 +739,10 @@ priority: 1=높음, 2=중간, 3=낮음
   "avoid_expressions": ["피해야 할 표현"]
 }
 
-규칙:
-- 기업 정보와 뉴스를 종합하여 분석
-- 구체적이고 실용적인 키워드 도출
-- 한국어로 작성`,
+Rules:
+- Synthesize company info and news
+- Extract specific and practical keywords
+- Write all content in Korean (except JSON keys)`,
 			UserPromptTemplate: `기업명: {{company_name}}
 
 기업 정보:
