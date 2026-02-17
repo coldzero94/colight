@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/coby/colight/apps/backend/ent"
@@ -152,21 +151,19 @@ Return JSON with scores (0-100):
 }
 
 func formatCoreValues(values []CoreValue) string {
-	var b strings.Builder
+	result := ""
 	for _, v := range values {
-		b.WriteString(v.Keyword)
-		b.WriteString(", ")
+		result += v.Keyword + ", "
 	}
-	return b.String()
+	return result
 }
 
 func formatTalentTraits(traits []TalentTrait) string {
-	var b strings.Builder
+	result := ""
 	for _, t := range traits {
-		b.WriteString(t.Trait)
-		b.WriteString(", ")
+		result += t.Trait + ", "
 	}
-	return b.String()
+	return result
 }
 // CalculateOverallFit computes the weighted average overall fit score
 // Weights: job_relevance 40%, talent_fit 35%, uniqueness 25%

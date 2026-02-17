@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/coby/colight/apps/backend/ent"
@@ -42,7 +41,12 @@ var stageInstruction = map[InterviewStage]string{
 }
 
 func validStage(s InterviewStage) bool {
-	return slices.Contains(InterviewStages, s)
+	for _, stage := range InterviewStages {
+		if stage == s {
+			return true
+		}
+	}
+	return false
 }
 
 // ChatMessage represents a single message in the interview conversation.

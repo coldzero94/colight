@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/coby/colight/apps/backend/ent"
@@ -116,7 +115,7 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 
 	// Save to cache (365 days TTL)
 	analysisJSON, _ := json.Marshal(analysis)
-	var dataMap map[string]any
+	var dataMap map[string]interface{}
 	_ = json.Unmarshal(analysisJSON, &dataMap)
 
 	_, _ = s.entClient.CompanyAnalysisCache.Create().
@@ -135,14 +134,13 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 // analyzeWithClaude uses Claude to analyze company
 func (s *CompanyAnalysisService) analyzeWithClaude(ctx context.Context, companyName string, data *CompanyData) (*CompanyAnalysis, error) {
 	// Build prompt from company data
-	var newsBuilder strings.Builder
+	newsText := ""
 	for i, article := range data.News {
 		if i >= 5 {
 			break
 		}
-		fmt.Fprintf(&newsBuilder, "- %s\n", article.Title)
+		newsText += fmt.Sprintf("- %s\n", article.Title)
 	}
-	newsText := newsBuilder.String()
 
 	companyContext := data.CompanyContext
 	if companyContext == "" {
