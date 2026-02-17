@@ -1,7 +1,23 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { QuestionInputForm } from "../question-input-form";
+
+vi.mock("@/hooks/use-experiences", () => ({
+  useExperiences: () => ({ data: [], isLoading: false }),
+}));
+
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  };
+}
 
 describe("QuestionInputForm", () => {
   const mockCompanies = [
@@ -21,7 +37,7 @@ describe("QuestionInputForm", () => {
 
   it("renders company dropdown with analysis history", () => {
     const onSubmit = vi.fn();
-    render(<QuestionInputForm companies={mockCompanies} onSubmit={onSubmit} />);
+    render(<QuestionInputForm companies={mockCompanies} onSubmit={onSubmit} />, { wrapper: createWrapper() });
 
     // 기업 선택 드롭다운이 렌더링되는지 확인
     expect(screen.getByText("기업 선택")).toBeInTheDocument();
@@ -33,7 +49,7 @@ describe("QuestionInputForm", () => {
 
   it("shows empty state when no analysis history", () => {
     const onSubmit = vi.fn();
-    render(<QuestionInputForm companies={[]} onSubmit={onSubmit} />);
+    render(<QuestionInputForm companies={[]} onSubmit={onSubmit} />, { wrapper: createWrapper() });
 
     // 빈 상태 메시지 확인
     expect(
@@ -47,7 +63,7 @@ describe("QuestionInputForm", () => {
   it("displays validation error for short question text", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
-    render(<QuestionInputForm companies={mockCompanies} onSubmit={onSubmit} />);
+    render(<QuestionInputForm companies={mockCompanies} onSubmit={onSubmit} />, { wrapper: createWrapper() });
 
     // 기업 선택 (native select는 selectOptions 사용)
     const companySelect = screen.getByRole("combobox");
@@ -78,7 +94,7 @@ describe("QuestionInputForm", () => {
   it("shows loading spinner on form submit", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn((): Promise<void> => new Promise(() => {})); // 완료되지 않는 Promise
-    render(<QuestionInputForm companies={mockCompanies} onSubmit={onSubmit} />);
+    render(<QuestionInputForm companies={mockCompanies} onSubmit={onSubmit} />, { wrapper: createWrapper() });
 
     // 폼 입력
     const companySelect = screen.getByRole("combobox");
@@ -109,7 +125,7 @@ describe("QuestionInputForm", () => {
   it.skip("validates char_limit range (200-2000)", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
-    render(<QuestionInputForm companies={mockCompanies} onSubmit={onSubmit} />);
+    render(<QuestionInputForm companies={mockCompanies} onSubmit={onSubmit} />, { wrapper: createWrapper() });
 
     // 기업 선택
     const companySelect = screen.getByRole("combobox");

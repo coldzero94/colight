@@ -161,7 +161,7 @@ func TestAnalyzeQuestion_ReturnsStructuredResult(t *testing.T) {
 	ensureQuestionAnalysisPrompt(t, client)
 	ensureWeaponCategoriesForQuestion(t, client)
 
-	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "팀 프로젝트에서 어려움을 극복한 경험을 구체적으로 기술하세요.", 800)
+	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "팀 프로젝트에서 어려움을 극복한 경험을 구체적으로 기술하세요.", 800, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
@@ -209,7 +209,7 @@ func TestAnalyzeQuestion_RealIntentsAlwaysThree(t *testing.T) {
 	ensureQuestionAnalysisPrompt(t, client)
 	ensureWeaponCategoriesForQuestion(t, client)
 
-	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "문항", 800)
+	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "문항", 800, nil)
 	require.NoError(t, err)
 	assert.Len(t, result.RealIntents, 3, "real_intents should always have exactly 3 items")
 }
@@ -247,7 +247,7 @@ func TestAnalyzeQuestion_PrimaryWeaponExists(t *testing.T) {
 	ensureQuestionAnalysisPrompt(t, client)
 	ensureWeaponCategoriesForQuestion(t, client)
 
-	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "문항", 800)
+	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "문항", 800, nil)
 	require.NoError(t, err)
 	assert.NotEmpty(t, result.RequiredWeapons.Primary.WeaponID, "primary weapon must exist")
 	assert.NotEmpty(t, result.RequiredWeapons.Primary.WeaponName)
@@ -291,7 +291,7 @@ func TestAnalyzeQuestion_CharCountSumsCorrectly(t *testing.T) {
 	ensureQuestionAnalysisPrompt(t, client)
 	ensureWeaponCategoriesForQuestion(t, client)
 
-	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "문항", 800)
+	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "문항", 800, nil)
 	require.NoError(t, err)
 
 	// Calculate sum of char_count
@@ -339,7 +339,7 @@ func TestAnalyzeQuestion_CategoryMatching(t *testing.T) {
 	ensureQuestionAnalysisPrompt(t, client)
 	ensureWeaponCategoriesForQuestion(t, client)
 
-	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "문항", 800)
+	result, err := svc.AnalyzeQuestion(ctx, userID, &appID, "", "문항", 800, nil)
 	require.NoError(t, err)
 
 	// Verify weapon IDs match existing categories
@@ -720,7 +720,7 @@ func TestAnalyzeQuestion_NilApplicationID_UsesCompanyName(t *testing.T) {
 	ensureWeaponCategoriesForQuestion(t, client)
 
 	// Call with nil applicationID and a company name
-	result, err := svc.AnalyzeQuestion(ctx, user.ID, nil, "카카오", "팀 프로젝트 경험을 기술하세요.", 800)
+	result, err := svc.AnalyzeQuestion(ctx, user.ID, nil, "카카오", "팀 프로젝트 경험을 기술하세요.", 800, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.Len(t, result.RealIntents, 3)
@@ -767,7 +767,7 @@ func TestAnalyzeQuestion_NilApplicationID_EmptyCompanyName(t *testing.T) {
 	ensureWeaponCategoriesForQuestion(t, client)
 
 	// Call with nil applicationID and empty company name
-	result, err := svc.AnalyzeQuestion(ctx, user.ID, nil, "", "리더십을 발휘한 경험을 기술하세요.", 800)
+	result, err := svc.AnalyzeQuestion(ctx, user.ID, nil, "", "리더십을 발휘한 경험을 기술하세요.", 800, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.Equal(t, 1, mockAI.calls)

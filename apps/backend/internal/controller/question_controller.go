@@ -66,10 +66,11 @@ func (c *QuestionController) PostQuestionAnalysis(ctx *gin.Context) {
 	}
 
 	var req struct {
-		ApplicationID string `json:"application_id" binding:"omitempty,uuid"`
-		CompanyName   string `json:"company_name"`
-		QuestionText  string `json:"question_text" binding:"required,min=10,max=500"`
-		CharLimit     int    `json:"char_limit" binding:"required,min=200,max=2000"`
+		ApplicationID string   `json:"application_id" binding:"omitempty,uuid"`
+		CompanyName   string   `json:"company_name"`
+		QuestionText  string   `json:"question_text" binding:"required,min=10,max=500"`
+		CharLimit     int      `json:"char_limit" binding:"required,min=200,max=2000"`
+		ExperienceIDs []string `json:"experience_ids" binding:"omitempty,dive,uuid"`
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -92,6 +93,19 @@ func (c *QuestionController) PostQuestionAnalysis(ctx *gin.Context) {
 		appID = &parsed
 	}
 
+	// Parse optional experience IDs
+	var expIDs []uuid.UUID
+	for _, idStr := range req.ExperienceIDs {
+		parsed, err := uuid.Parse(idStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "유효하지 않은 experience_id입니다",
+			})
+			return
+		}
+		expIDs = append(expIDs, parsed)
+	}
+
 	// Call question analysis service
 	result, err := c.questionService.AnalyzeQuestion(
 		ctx.Request.Context(),
@@ -100,6 +114,7 @@ func (c *QuestionController) PostQuestionAnalysis(ctx *gin.Context) {
 		req.CompanyName,
 		req.QuestionText,
 		req.CharLimit,
+		expIDs,
 	)
 
 	if err != nil {

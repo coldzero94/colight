@@ -443,47 +443,71 @@ STAR 구조:
 			IsActive:    true,
 		},
 		{
-			Category:    "coaching_draft",
+			Category:    "coaching",
 			SubCategory: "question_analysis",
 			Name:        "자소서 문항 분석",
 			SystemPrompt: `당신은 자기소개서 문항을 분석하는 AI 코치입니다.
 
 분석 항목:
-1. 문항 유형 (지원동기, 장단점, 위기극복, 리더십, 팀워크, 목표달성, 성장과정)
+1. 문항의 표면적 질문과 숨겨진 의도 3가지
 2. 요구하는 핵심 역량 (7대 무기 중 primary 1개, secondary 1-2개)
-3. 평가 기준 (기업이 이 문항으로 보려는 것)
-4. 작성 가이드 (구조, 비중, 주의사항)
-5. 예시 개요 (좋은 답변의 골자)
+3. 작성 구조 (글자 배분, 섹션별 가이드)
+4. 핵심 키워드 및 피해야 할 표현
+5. 좋은 구조 예시
 
-기업 정보가 있다면 인재상과 직무 요구사항을 반영하세요.`,
-			UserPromptTemplate: `자소서 문항: {{question_text}}
+기업 정보가 있다면 인재상과 직무 요구사항을 반영하세요.
+지원자의 경험이 제공되면, 해당 경험을 어떻게 활용하면 좋을지 구체적으로 안내하세요.
 
+반드시 아래 JSON 형식으로만 응답하세요:
+{
+  "surface_question": "표면적 질문 요약",
+  "real_intents": [{"intent": "숨겨진 의도", "why": "이유"}],
+  "required_weapons": {
+    "primary": {"weapon_id": "W01", "weapon_name": "무기명", "reason": "이유"},
+    "secondary": [{"weapon_id": "W02", "weapon_name": "무기명", "reason": "이유"}]
+  },
+  "writing_structure": {
+    "total_chars": 800,
+    "sections": [{"name": "섹션명", "char_ratio": 0.3, "char_count": 240, "guide": "작성 가이드"}]
+  },
+  "key_keywords": ["키워드1", "키워드2"],
+  "avoid_list": ["피해야 할 표현"],
+  "good_structure_example": "좋은 구조 예시 텍스트"
+}`,
+			UserPromptTemplate: `기업명: {{company_name}}
+직무: {{position}}
+인재상 키워드: {{talent_keywords}}
+핵심가치: {{values_keywords}}
+
+무기 카테고리:
+{{weapon_categories}}
+
+자소서 문항: {{question_text}}
 글자 제한: {{char_limit}}자
 
-기업명: {{company_name}}
-직무: {{position}}
-기업 분석 정보:
-{{company_analysis}}
+지원자의 경험:
+{{experiences_context}}
 
 위 문항을 분석하고, JSON 형식으로 응답하세요.`,
 			OutputSchema: map[string]interface{}{
-				"question_type":     "string",
-				"primary_weapon":    "string (W01~W07)",
-				"secondary_weapons": []string{},
-				"evaluation_criteria": []map[string]interface{}{
-					{"criterion": "string", "weight": "number"},
+				"surface_question": "string",
+				"real_intents":     []map[string]interface{}{{"intent": "string", "why": "string"}},
+				"required_weapons": map[string]interface{}{
+					"primary":   map[string]interface{}{"weapon_id": "string", "weapon_name": "string", "reason": "string"},
+					"secondary": []map[string]interface{}{{"weapon_id": "string", "weapon_name": "string", "reason": "string"}},
 				},
-				"writing_guide": map[string]interface{}{
-					"structure": "string",
-					"ratios":    map[string]interface{}{},
-					"tips":      []string{},
+				"writing_structure": map[string]interface{}{
+					"total_chars": "number",
+					"sections":    []map[string]interface{}{{"name": "string", "char_ratio": "number", "char_count": "number", "guide": "string"}},
 				},
-				"example_outline": "string",
+				"key_keywords":          []string{},
+				"avoid_list":            []string{},
+				"good_structure_example": "string",
 			},
-			Model:       "groq/compound",
+			Model:       "gemini-2.0-flash",
 			Temperature: 0.3,
 			MaxTokens:   2000,
-			Version:     1,
+			Version:     2,
 			IsActive:    true,
 		},
 		{
@@ -536,6 +560,120 @@ STAR 구조:
 			Model:       "groq/compound",
 			Temperature: 0.3,
 			MaxTokens:   3000,
+			Version:     1,
+			IsActive:    true,
+		},
+		{
+			Category:    "coaching",
+			SubCategory: "draft",
+			Name:        "자소서 초안 생성",
+			SystemPrompt: `당신은 한국 대기업 자기소개서 작성을 돕는 AI 코칭 전문가입니다.
+
+작성 원칙:
+1. STAR 구조를 자연스럽게 녹여서 서술
+2. 경험의 구체적 수치, 이름, 기간을 활용
+3. 기업 인재상 키워드를 자연스럽게 반영
+4. 글자 제한을 정확히 준수
+5. 진정성 있고 자연스러운 문체
+
+응답은 자소서 초안 텍스트만 출력하세요. JSON이 아닌 순수 텍스트입니다.`,
+			UserPromptTemplate: `기업명: {{company_name}}
+직무: {{position}}
+기업 인재상 키워드: {{talent_keywords}}
+기업 핵심가치: {{values_keywords}}
+
+자소서 문항: {{question_text}}
+글자 제한: {{char_limit}}자
+
+선택된 경험:
+{{experiences}}
+
+위 경험을 바탕으로, 문항에 맞는 자소서 초안을 {{char_limit}}자 이내로 작성하세요.`,
+			OutputSchema:  map[string]interface{}{},
+			Model:         "claude-sonnet",
+			Temperature:   0.7,
+			MaxTokens:     3000,
+			Version:       1,
+			IsActive:      true,
+		},
+		{
+			Category:    "coaching",
+			SubCategory: "advice",
+			Name:        "자소서 초안 개선 조언",
+			SystemPrompt: `당신은 자기소개서 코칭 전문가입니다.
+생성된 초안을 분석하여 개선 포인트를 제시합니다.
+
+카테고리:
+- metric: 수치/데이터 보강이 필요한 부분
+- structure: 구조 개선이 필요한 부분
+- detail: 구체성 강화가 필요한 부분
+- keyword: 키워드 활용이 필요한 부분
+
+반드시 아래 JSON 배열 형식으로만 응답하세요:
+[
+  {"category": "metric", "content": "조언 내용", "priority": 1},
+  {"category": "structure", "content": "조언 내용", "priority": 2}
+]
+
+priority: 1=높음, 2=중간, 3=낮음
+3~5개의 조언을 제시하세요.`,
+			UserPromptTemplate: `자소서 문항: {{question_text}}
+
+생성된 초안:
+{{draft}}
+
+활용된 경험 요약:
+{{experiences_summary}}
+
+위 초안의 개선 포인트를 JSON 배열로 응답하세요.`,
+			OutputSchema:  map[string]interface{}{},
+			Model:         "gemini",
+			Temperature:   0.3,
+			MaxTokens:     1000,
+			Version:       1,
+			IsActive:      true,
+		},
+		{
+			Category:    "coaching",
+			SubCategory: "char_coaching",
+			Name:        "자소서 글자수 코칭",
+			SystemPrompt: `당신은 자기소개서 글자수 조절 전문가입니다.
+글자수가 초과되면 줄이는 제안을, 부족하면 늘리는 제안을 합니다.
+
+응답 형식 (JSON):
+{
+  "suggestions": [
+    {
+      "type": "trim|expand",
+      "original": "원문 문장",
+      "suggested": "수정 제안",
+      "char_diff": -15,
+      "reason": "수정 이유"
+    }
+  ],
+  "summary": "전체 코칭 요약"
+}
+
+규칙:
+- 핵심 내용은 유지하되 불필요한 표현 제거/추가
+- 구체적 문장 단위로 제안
+- char_diff는 예상 글자수 변화량`,
+			UserPromptTemplate: `자소서 내용:
+{{content}}
+
+현재 글자수: {{current_count}}자
+글자수 제한: {{char_limit}}자
+차이: {{diff}}자 (양수=초과, 음수=여유)
+상태: {{status}}
+
+글자수 조절을 위한 구체적 수정 제안을 JSON으로 응답하세요.`,
+			OutputSchema: map[string]interface{}{
+				"suggestions": []map[string]interface{}{},
+				"summary":     "string",
+			},
+			Model:       "groq/compound",
+			Temperature: 0.3,
+			MaxTokens:   2000,
 			Version:     1,
 			IsActive:    true,
 		},

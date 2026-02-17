@@ -11,6 +11,7 @@ export const questionAnalysisSchema = z.object({
     .number()
     .min(200, "최소 200자 이상이어야 합니다")
     .max(2000, "최대 2000자까지 가능합니다"),
+  experience_ids: z.array(z.string().uuid()).max(3).optional(),
 });
 
 // Schema for standalone coaching (no application required)
@@ -24,6 +25,7 @@ export const standaloneQuestionSchema = z.object({
     .number()
     .min(200, "최소 200자 이상이어야 합니다")
     .max(2000, "최대 2000자까지 가능합니다"),
+  experience_ids: z.array(z.string().uuid()).max(3).optional(),
 });
 
 export type QuestionAnalysisInput = z.infer<typeof questionAnalysisSchema>;

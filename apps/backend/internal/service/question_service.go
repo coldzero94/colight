@@ -87,7 +87,8 @@ func (s *QuestionService) ListApplications(ctx context.Context, userID uuid.UUID
 
 // AnalyzeQuestion analyzes a cover letter question using Claude.
 // applicationID is optional — when nil, companyName is used directly (standalone coaching).
-func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID, applicationID *uuid.UUID, companyName string, questionText string, charLimit int) (*QuestionAnalysisResult, error) {
+// experienceIDs is optional — when provided, selected experiences are included in prompt context.
+func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID, applicationID *uuid.UUID, companyName string, questionText string, charLimit int, experienceIDs []uuid.UUID) (*QuestionAnalysisResult, error) {
 	// 1. Resolve company context from application or direct input
 	resolvedCompanyName := companyName
 	resolvedPosition := ""
@@ -153,6 +154,32 @@ func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID,
 	}
 	weaponContext := strings.Join(weaponList, "\n")
 
+	// 2.5. Load selected experiences (optional)
+	experiencesContext := "없음"
+	if len(experienceIDs) > 0 {
+		experiences, err := s.entClient.Experience.Query().
+			Where(experience.IDIn(experienceIDs...)).
+			WithWeapons().
+			All(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load experiences: %w", err)
+		}
+		for _, exp := range experiences {
+			if exp.UserID != userID {
+				return nil, ErrExperienceForbidden
+			}
+		}
+		var parts []string
+		for i, exp := range experiences {
+			weaponCodes := make([]string, len(exp.Edges.Weapons))
+			for j, w := range exp.Edges.Weapons {
+				weaponCodes[j] = w.WeaponCode
+			}
+			parts = append(parts, fmt.Sprintf("경험 %d: %s\n- 무기: %s\n- 상황: %s", i+1, exp.Title, strings.Join(weaponCodes, ", "), exp.StarSituation))
+		}
+		experiencesContext = strings.Join(parts, "\n\n")
+	}
+
 	// 3. Load prompt template
 	prompt, err := s.entClient.PromptTemplate.Query().
 		Where(
@@ -173,6 +200,7 @@ func (s *QuestionService) AnalyzeQuestion(ctx context.Context, userID uuid.UUID,
 	userPrompt = strings.ReplaceAll(userPrompt, "{{weapon_categories}}", weaponContext)
 	userPrompt = strings.ReplaceAll(userPrompt, "{{question_text}}", questionText)
 	userPrompt = strings.ReplaceAll(userPrompt, "{{char_limit}}", fmt.Sprintf("%d", charLimit))
+	userPrompt = strings.ReplaceAll(userPrompt, "{{experiences_context}}", experiencesContext)
 
 	// 5. Call Claude
 	llmReq := ai.LLMRequest{

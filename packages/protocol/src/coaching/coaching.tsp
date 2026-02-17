@@ -46,6 +46,9 @@ model QuestionAnalysisRequest {
 
   @encodedName("application/json", "char_limit")
   charLimit: int32;
+
+  @encodedName("application/json", "experience_ids")
+  experienceIds?: string[];
 }
 
 model QuestionAnalysisResult {

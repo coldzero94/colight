@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Search } from "lucide-react";
 import { CharLimitInput } from "./char-limit-input";
+import { ExperiencePicker } from "./experience-picker";
 import {
   standaloneQuestionSchema,
   type StandaloneQuestionInput,
@@ -19,6 +20,7 @@ export function StandaloneQuestionForm({
   onSubmit,
 }: StandaloneQuestionFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedExpIds, setSelectedExpIds] = useState<string[]>([]);
 
   const {
     register,
@@ -43,6 +45,7 @@ export function StandaloneQuestionForm({
         company_name: data.company_name || undefined,
         question_text: data.question_text,
         char_limit: data.char_limit,
+        experience_ids: selectedExpIds.length > 0 ? selectedExpIds : undefined,
       });
     } finally {
       setIsSubmitting(false);
@@ -104,6 +107,13 @@ export function StandaloneQuestionForm({
         })}
         defaultValue={800}
         error={errors.char_limit?.message}
+      />
+
+      {/* 경험 선택 */}
+      <ExperiencePicker
+        selectedIds={selectedExpIds}
+        onSelectionChange={setSelectedExpIds}
+        maxSelect={3}
       />
 
       {/* 제출 버튼 */}

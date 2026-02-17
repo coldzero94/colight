@@ -4357,6 +4357,10 @@ components:
         char_limit:
           type: integer
           format: int32
+        experience_ids:
+          type: array
+          items:
+            type: string
     Coaching.QuestionAnalysisResult:
       type: object
       required:

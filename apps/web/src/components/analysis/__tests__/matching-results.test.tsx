@@ -72,7 +72,7 @@ describe("MatchingResults", () => {
       <MatchingResults matches={matches} experiences={experiences} />
     );
 
-    const badge = container.querySelector('[class*="bg-yellow"]');
+    const badge = container.querySelector('[class*="bg-amber"]');
     expect(badge).toBeInTheDocument();
   });
 

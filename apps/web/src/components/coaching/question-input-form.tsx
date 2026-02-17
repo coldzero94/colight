@@ -7,10 +7,12 @@ import Link from "next/link";
 import { Loader2, Search } from "lucide-react";
 import { CompanySelect } from "./company-select";
 import { CharLimitInput } from "./char-limit-input";
+import { ExperiencePicker } from "./experience-picker";
 import {
   questionAnalysisSchema,
   type QuestionAnalysisInput,
 } from "@/lib/validations/coaching";
+import type { QuestionAnalysisRequest } from "@/lib/api/coaching";
 
 interface Company {
   id: string;
@@ -21,7 +23,7 @@ interface Company {
 
 interface QuestionInputFormProps {
   companies: Company[];
-  onSubmit: (data: QuestionAnalysisInput) => Promise<void> | void;
+  onSubmit: (data: QuestionAnalysisRequest) => Promise<void> | void;
 }
 
 export function QuestionInputForm({
@@ -29,6 +31,7 @@ export function QuestionInputForm({
   onSubmit,
 }: QuestionInputFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedExpIds, setSelectedExpIds] = useState<string[]>([]);
 
   const {
     register,
@@ -51,7 +54,10 @@ export function QuestionInputForm({
   const handleFormSubmit = async (data: QuestionAnalysisInput) => {
     setIsSubmitting(true);
     try {
-      await onSubmit(data);
+      await onSubmit({
+        ...data,
+        experience_ids: selectedExpIds.length > 0 ? selectedExpIds : undefined,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -120,6 +126,13 @@ export function QuestionInputForm({
         })}
         defaultValue={800}
         error={errors.char_limit?.message}
+      />
+
+      {/* 경험 선택 */}
+      <ExperiencePicker
+        selectedIds={selectedExpIds}
+        onSelectionChange={setSelectedExpIds}
+        maxSelect={3}
       />
 
       {/* 제출 버튼 */}

@@ -185,6 +185,7 @@ export type CoachingQuestionAnalysisRequest = {
     company_name?: string;
     question_text: string;
     char_limit: number;
+    experience_ids?: Array<string>;
 };
 
 export type CoachingQuestionAnalysisResult = {

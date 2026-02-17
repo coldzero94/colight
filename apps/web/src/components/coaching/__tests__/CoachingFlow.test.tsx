@@ -5,7 +5,10 @@ import { CoachingFlow } from "../coaching-flow";
 
 vi.mock("@/lib/api/coaching", () => ({
   analyzeQuestion: vi.fn(),
-  recommendExperiences: vi.fn(),
+}));
+
+vi.mock("@/hooks/use-experiences", () => ({
+  useExperiences: () => ({ data: [], isLoading: false }),
 }));
 
 vi.mock("@/hooks/use-draft-streaming", () => ({

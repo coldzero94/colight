@@ -171,7 +171,8 @@ export const zCoachingQuestionAnalysisRequest = z.object({
     application_id: z.optional(z.string()),
     company_name: z.optional(z.string()),
     question_text: z.string(),
-    char_limit: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    char_limit: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    experience_ids: z.optional(z.array(z.string()))
 });
 
 export const zCoachingRealIntent = z.object({
