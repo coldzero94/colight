@@ -20,6 +20,7 @@ import (
 	"github.com/coby/colight/apps/backend/internal/infrastructure/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminController struct {
@@ -1380,4 +1381,69 @@ func (ctrl *AdminController) ListFeedbacks(c *gin.Context) {
 		"data":  items,
 		"total": total,
 	})
+}
+
+// CreateUser creates a new user (admin only).
+// POST /v1/admin/users
+func (ctrl *AdminController) CreateUser(c *gin.Context) {
+	var req struct {
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required,min=8"`
+		Nickname string `json:"nickname"`
+		Role     string `json:"role" binding:"required,oneof=user manager admin super_admin"`
+		Plan     string `json:"plan" binding:"oneof=free starter pro season"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{"message": "입력값이 올바르지 않습니다.", "code": "VALID_001"},
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	// Check if email already exists
+	exists, _ := ctrl.db.UserProfile.Query().
+		Where(userprofile.EmailEQ(req.Email)).
+		Exist(ctx)
+	if exists {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{"message": "이미 존재하는 이메일입니다.", "code": "AUTH_002"},
+		})
+		return
+	}
+
+	// Hash password
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 12)
+	if err != nil {
+		slog.Error("hash password failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "사용자 생성에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	// Create user
+	builder := ctrl.db.UserProfile.Create().
+		SetEmail(req.Email).
+		SetPasswordHash(string(hash)).
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.Role(req.Role))
+	if req.Nickname != "" {
+		builder = builder.SetNickname(req.Nickname)
+	}
+	if req.Plan != "" {
+		builder = builder.SetPlan(userprofile.Plan(req.Plan))
+	}
+
+	user, err := builder.Save(ctx)
+	if err != nil {
+		slog.Error("create user failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "사용자 생성에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, toUserInfo(user))
 }

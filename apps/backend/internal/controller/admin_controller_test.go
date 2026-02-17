@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -34,6 +35,7 @@ func setupAdminTestRouter(t *testing.T) *gin.Engine {
 	v1.GET("/users/:id", ctrl.GetUser)
 	v1.PUT("/users/:id/role", ctrl.UpdateUserRole)
 	v1.GET("/stats", ctrl.GetStats)
+	v1.POST("/users", ctrl.CreateUser)
 	v1.GET("/prompts", ctrl.ListPrompts)
 	v1.PUT("/prompts/:id", ctrl.UpdatePrompt)
 
@@ -1410,3 +1412,61 @@ func TestAdminController_ListDeletionQueue(t *testing.T) {
 	item := data[0].(map[string]any)
 	assert.Equal(t, "pending", item["status"])
 }
+
+// --- CreateUser ---
+
+func TestAdminController_CreateUser_Success(t *testing.T) {
+	r := setupAdminTestRouter(t)
+
+	body := `{"email":"newuser@test.com","password":"securePass123!","nickname":"NewUser","role":"user","plan":"free"}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/admin/users", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusCreated, w.Code)
+	resp := parseJSON(t, w)
+	assert.Equal(t, "newuser@test.com", resp["email"])
+	assert.Equal(t, "NewUser", resp["nickname"])
+	assert.Equal(t, "user", resp["role"])
+}
+
+func TestAdminController_CreateUser_InvalidEmail(t *testing.T) {
+	r := setupAdminTestRouter(t)
+
+	body := `{"email":"notanemail","password":"securePass123!","nickname":"Test","role":"user"}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/admin/users", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestAdminController_CreateUser_WeakPassword(t *testing.T) {
+	r := setupAdminTestRouter(t)
+
+	body := `{"email":"test@test.com","password":"weak","nickname":"Test","role":"user"}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/admin/users", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestAdminController_CreateUser_DuplicateEmail(t *testing.T) {
+	r := setupAdminTestRouter(t)
+
+	body := `{"email":"admin-ctrl@test.com","password":"securePass123!","nickname":"Dup","role":"user","plan":"free"}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/admin/users", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusConflict {
+		t.Logf("Response body: %s", w.Body.String())
+	}
+	assert.Equal(t, http.StatusConflict, w.Code)
+}
+
