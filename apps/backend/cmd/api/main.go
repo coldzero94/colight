@@ -112,6 +112,7 @@ func main() {
 	// Controllers
 	authCtrl := controller.NewAuthController(authService, cfg)
 	adminCtrl := controller.NewAdminController(db)
+	profileCtrl := controller.NewProfileController(db)
 	experienceCtrl := controller.NewExperienceController(experienceService)
 	usageCtrl := controller.NewUsageController(usageService)
 
@@ -197,6 +198,10 @@ func main() {
 	{
 		protected.GET("/auth/me", authCtrl.Me)
 		protected.POST("/auth/logout", authCtrl.Logout)
+
+		// Profile management
+		protected.PUT("/profile", profileCtrl.UpdateProfile)
+		protected.POST("/profile/password", profileCtrl.ChangePassword)
 
 		// Usage tracking
 		protected.GET("/usage", usageCtrl.GetUsage)
@@ -286,6 +291,7 @@ func main() {
 	admin.Use(middleware.RequireRole("admin"))
 	{
 		admin.GET("/users", adminCtrl.ListUsers)
+		admin.POST("/users", adminCtrl.CreateUser)
 		admin.GET("/users/:id", adminCtrl.GetUser)
 		admin.PUT("/users/:id/role", adminCtrl.UpdateUserRole)
 		admin.GET("/stats", adminCtrl.GetStats)

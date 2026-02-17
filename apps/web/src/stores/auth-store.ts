@@ -21,6 +21,7 @@ interface AuthState {
 
   setTokens: (access: string, refresh: string) => void;
   fetchUser: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   logout: () => void;
   refreshAccessToken: () => Promise<boolean>;
 }
@@ -45,6 +46,15 @@ export const useAuthStore = create<AuthState>()(
           set({ user: data, isLoading: false });
         } catch {
           set({ user: null, isLoading: false });
+        }
+      },
+
+      refreshUser: async () => {
+        try {
+          const { data } = await apiClient.get("/v1/auth/me");
+          set({ user: data });
+        } catch {
+          // Silent fail - user is already logged in
         }
       },
 
