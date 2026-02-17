@@ -12,6 +12,8 @@ import { fetchExperiences, type Experience } from "@/lib/api/experiences";
 import type { CompanyAnalysis } from "@/lib/api/analysis";
 import { isUsageLimitError, getUsageLimitInfo } from "@/lib/api/errors";
 
+type AnalysisStep = "crawling" | "analyzing" | "loading_experiences" | "matching" | "completed";
+
 export default function AnalysisResultPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,6 +22,7 @@ export default function AnalysisResultPage() {
   const [analysis, setAnalysis] = useState<CompanyAnalysis | null>(null);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [crawlError, setCrawlError] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<AnalysisStep>("crawling");
 
   const analyzeMutation = useAnalyzeCompany();
 
@@ -34,10 +37,12 @@ export default function AnalysisResultPage() {
   useEffect(() => {
     if (!url || companyName) return;
 
+    setCurrentStep("crawling");
     (async () => {
       try {
         const jobPosting = await crawlJobPosting(url);
         setCompanyName(jobPosting.company_name);
+        setCurrentStep("analyzing");
       } catch {
         setCrawlError("채용공고에서 회사명을 추출하지 못했습니다.");
         toast.error("크롤링에 실패했습니다. URL을 확인해주세요.");
@@ -49,9 +54,11 @@ export default function AnalysisResultPage() {
   useEffect(() => {
     if (!companyName || analysis || analyzeMutation.isPending) return;
 
+    setCurrentStep("analyzing");
     analyzeMutation.mutate(companyName, {
       onSuccess: (data) => {
         setAnalysis(data);
+        setCurrentStep("loading_experiences");
       },
       onError: (error) => {
         if (isUsageLimitError(error)) {
@@ -70,15 +77,31 @@ export default function AnalysisResultPage() {
   useEffect(() => {
     if (!analysis) return;
 
+    setCurrentStep("loading_experiences");
     (async () => {
       try {
         const data = await fetchExperiences();
         setExperiences(data);
+        setCurrentStep("completed");
       } catch {
         // Non-critical: matching will show empty
+        setCurrentStep("completed");
       }
     })();
   }, [analysis]);
+
+  // Prevent accidental page close during analysis
+  useEffect(() => {
+    if (currentStep === "completed") return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [currentStep]);
 
   if (crawlError) {
     return (
@@ -101,12 +124,33 @@ export default function AnalysisResultPage() {
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="brand-surface flex flex-col items-center justify-center rounded-2xl py-20">
           <LoadingSpinner />
-          <p className="mt-4 text-muted-foreground">
-            {!companyName
-              ? "채용공고를 분석하고 있습니다..."
-              : "AI가 기업을 분석하고 있습니다..."}
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground/60">약 10-15초 소요됩니다</p>
+          <div className="mt-6 space-y-3 text-center">
+            <p className="text-lg font-medium text-foreground">
+              {getStepMessage(currentStep)}
+            </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <StepIndicator active={currentStep === "crawling"} completed={currentStep !== "crawling"} />
+                <span className={currentStep === "crawling" ? "text-primary" : ""}>1. 크롤링</span>
+              </div>
+              <span className="text-muted-foreground/40">→</span>
+              <div className="flex items-center gap-1.5">
+                <StepIndicator active={currentStep === "analyzing"} completed={currentStep === "loading_experiences" || currentStep === "completed"} />
+                <span className={currentStep === "analyzing" ? "text-primary" : ""}>2. 기업 분석</span>
+              </div>
+              <span className="text-muted-foreground/40">→</span>
+              <div className="flex items-center gap-1.5">
+                <StepIndicator active={currentStep === "loading_experiences"} completed={currentStep === "completed"} />
+                <span className={currentStep === "loading_experiences" ? "text-primary" : ""}>3. 경험 로드</span>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground/60">평균 10-15초 소요</p>
+            <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2.5">
+              <p className="text-sm text-amber-200/90">
+                ⚠️ 잠시만 기다려주세요. 페이지를 벗어나지 마세요.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -277,4 +321,35 @@ function getSourceLabel(source: string): string {
     default:
       return source;
   }
+}
+
+function getStepMessage(step: AnalysisStep): string {
+  switch (step) {
+    case "crawling":
+      return "채용공고를 분석하고 있습니다...";
+    case "analyzing":
+      return "AI가 기업을 분석하고 있습니다...";
+    case "loading_experiences":
+      return "내 경험을 불러오고 있습니다...";
+    case "matching":
+      return "경험 매칭 중...";
+    case "completed":
+      return "완료!";
+  }
+}
+
+function StepIndicator({ active, completed }: { active: boolean; completed: boolean }) {
+  if (completed) {
+    return (
+      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-primary">
+        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+    );
+  }
+  if (active) {
+    return <div className="h-5 w-5 rounded-full border-2 border-primary bg-primary/20 animate-pulse" />;
+  }
+  return <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/20" />;
 }
