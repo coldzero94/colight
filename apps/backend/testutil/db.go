@@ -2,7 +2,9 @@ package testutil
 
 import (
 	"context"
+	"database/sql"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/coby/colight/apps/backend/ent"
@@ -38,27 +40,42 @@ func NewTestClient(t *testing.T) *ent.Client {
 	return client
 }
 
-// CleanAllTables truncates all tables. Call from TestMain before tests run.
-func CleanAllTables(client *ent.Client) {
+// allTables lists all Ent-managed tables.
+var allTables = []string{
+	"deletion_requests",
+	"admin_audit_logs",
+	"system_configs",
+	"feedbacks",
+	"usage_logs",
+	"experience_usages",
+	"experience_weapons",
+	"experience_tags",
+	"coaching_sessions",
+	"cover_letter_versions",
+	"cover_letters",
+	"company_analysis_caches",
+	"company_analyses",
+	"applications",
+	"experiences",
+	"question_patterns",
+	"prompt_templates",
+	"talent_profiles",
+	"user_profiles",
+	"weapon_categories",
+}
+
+// CleanAllTables truncates all tables atomically using TRUNCATE CASCADE.
+// This avoids FK ordering issues and race conditions in parallel tests.
+func CleanAllTables(_ *ent.Client) {
 	ctx := context.Background()
-	client.DeletionRequest.Delete().ExecX(ctx)
-	client.AdminAuditLog.Delete().ExecX(ctx)
-	client.SystemConfig.Delete().ExecX(ctx)
-	client.Feedback.Delete().ExecX(ctx)
-	client.UsageLog.Delete().ExecX(ctx)
-	client.ExperienceUsage.Delete().ExecX(ctx)
-	client.ExperienceWeapon.Delete().ExecX(ctx)
-	client.ExperienceTag.Delete().ExecX(ctx)
-	client.CoachingSession.Delete().ExecX(ctx)
-	client.CoverLetterVersion.Delete().ExecX(ctx)
-	client.CoverLetter.Delete().ExecX(ctx)
-	client.CompanyAnalysisCache.Delete().ExecX(ctx)
-	client.CompanyAnalysis.Delete().ExecX(ctx)
-	client.Application.Delete().ExecX(ctx)
-	client.Experience.Delete().ExecX(ctx)
-	client.QuestionPattern.Delete().ExecX(ctx)
-	client.PromptTemplate.Delete().ExecX(ctx)
-	client.TalentProfile.Delete().ExecX(ctx)
-	client.UserProfile.Delete().ExecX(ctx)
-	client.WeaponCategory.Delete().ExecX(ctx)
+	db, err := sql.Open("postgres", TestDSN())
+	if err != nil {
+		panic("CleanAllTables: " + err.Error())
+	}
+	defer db.Close()
+
+	query := "TRUNCATE TABLE " + strings.Join(allTables, ", ") + " CASCADE"
+	if _, err := db.ExecContext(ctx, query); err != nil {
+		panic("CleanAllTables: " + err.Error())
+	}
 }
