@@ -1,47 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { toast } from "sonner";
-import { apiClient } from "@/lib/api-client";
-import { useAuthStore } from "@/stores/auth-store";
-import { signupSchema, type SignupFormValues } from "@/lib/auth";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000";
 
 export default function SignupPage() {
-  const router = useRouter();
-  const { setTokens, fetchUser } = useAuthStore();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignupFormValues>({
-    resolver: zodResolver(signupSchema),
-  });
-
-  const onSubmit = async (values: SignupFormValues) => {
-    setIsSubmitting(true);
-    try {
-      const { data } = await apiClient.post("/v1/auth/signup", {
-        email: values.email,
-        password: values.password,
-        nickname: values.nickname || undefined,
-      });
-      setTokens(data.tokens.access_token, data.tokens.refresh_token);
-      await fetchUser();
-      router.replace("/experiences");
-    } catch (err: unknown) {
-      const error = err as { response?: { data?: { error?: { message?: string } } } };
-      const message =
-        error.response?.data?.error?.message || "회원가입에 실패했습니다.";
-      toast.error(message);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleNaverLogin = () => {
+    window.location.href = `${API_URL}/v1/auth/naver/login`;
   };
 
   return (
@@ -50,132 +15,19 @@ export default function SignupPage() {
         회원가입
       </h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-foreground/80 mb-1.5"
-          >
-            이메일
-          </label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            {...register("email")}
-            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.06] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
-            placeholder="example@email.com"
+      <button
+        type="button"
+        onClick={handleNaverLogin}
+        className="w-full flex items-center justify-center gap-2 bg-[#03C75A] hover:bg-[#02b351] text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-md shadow-[#03C75A]/20"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path
+            d="M13.5 10.5L6.2 3H3v14h3.5V9.5L13.8 17H17V3h-3.5v7.5z"
+            fill="currentColor"
           />
-          {errors.email && (
-            <p className="mt-1.5 text-sm text-destructive">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-foreground/80 mb-1.5"
-          >
-            비밀번호
-          </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="new-password"
-            {...register("password")}
-            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.06] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
-            placeholder="영문 + 숫자 조합, 8자 이상"
-          />
-          {errors.password && (
-            <p className="mt-1.5 text-sm text-destructive">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label
-            htmlFor="passwordConfirm"
-            className="block text-sm font-medium text-foreground/80 mb-1.5"
-          >
-            비밀번호 확인
-          </label>
-          <input
-            id="passwordConfirm"
-            type="password"
-            autoComplete="new-password"
-            {...register("passwordConfirm")}
-            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.06] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
-            placeholder="비밀번호를 다시 입력해주세요"
-          />
-          {errors.passwordConfirm && (
-            <p className="mt-1.5 text-sm text-destructive">
-              {errors.passwordConfirm.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label
-            htmlFor="nickname"
-            className="block text-sm font-medium text-foreground/80 mb-1.5"
-          >
-            닉네임 <span className="text-muted-foreground">(선택)</span>
-          </label>
-          <input
-            id="nickname"
-            type="text"
-            {...register("nickname")}
-            className="w-full px-3.5 py-2.5 border border-border bg-white/[0.06] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200"
-            placeholder="최대 50자"
-          />
-          {errors.nickname && (
-            <p className="mt-1.5 text-sm text-destructive">
-              {errors.nickname.message}
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-start gap-2.5">
-          <input
-            id="agreeToTerms"
-            type="checkbox"
-            {...register("agreeToTerms")}
-            className="mt-1 h-4 w-4 rounded border-border bg-white/[0.06] accent-primary"
-          />
-          <label htmlFor="agreeToTerms" className="text-sm text-muted-foreground">
-            <Link
-              href="/terms"
-              target="_blank"
-              className="text-primary hover:underline"
-            >
-              이용약관
-            </Link>
-            {" 및 "}
-            <Link
-              href="/privacy"
-              target="_blank"
-              className="text-primary hover:underline"
-            >
-              개인정보처리방침
-            </Link>
-            에 동의합니다.
-          </label>
-        </div>
-        {errors.agreeToTerms && (
-          <p className="text-sm text-destructive">
-            {errors.agreeToTerms.message}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-md shadow-primary/20"
-        >
-          {isSubmitting ? "가입 중..." : "회원가입"}
-        </button>
-      </form>
+        </svg>
+        Naver로 시작하기
+      </button>
 
       <p className="text-center text-sm text-muted-foreground">
         이미 계정이 있으신가요?{" "}
