@@ -58,7 +58,7 @@ export function Sidebar() {
           );
         })}
 
-        {user?.role === "admin" && (
+        {(user?.role === "admin" || user?.role === "super_admin") && (
           <>
             <div className="my-3 border-t border-sidebar-border" />
             <Link
@@ -89,8 +89,8 @@ export function Sidebar() {
             <p className="text-sm font-medium text-foreground truncate">
               {user?.nickname ?? "사용자"}
             </p>
-            {user?.role === "admin" && (
-              <span className="text-xs text-primary/80">admin</span>
+            {(user?.role === "admin" || user?.role === "super_admin") && (
+              <span className="text-xs text-primary/80">{user.role === "super_admin" ? "super admin" : "admin"}</span>
             )}
           </div>
         </div>

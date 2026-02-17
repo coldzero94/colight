@@ -88,7 +88,7 @@ export function MobileNav() {
                 );
               })}
 
-              {user?.role === "admin" && (
+              {(user?.role === "admin" || user?.role === "super_admin") && (
                 <>
                   <div className="my-3 border-t border-sidebar-border" />
                   <Link
