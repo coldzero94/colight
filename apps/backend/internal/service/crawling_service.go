@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"github.com/coby/colight/apps/backend/ent"
+	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/crawler"
 )
@@ -55,6 +58,7 @@ func (f *defaultHTMLFetcher) FetchHTML(url string) (string, error) {
 
 // CrawlingService handles job posting crawling and parsing
 type CrawlingService struct {
+	entClient      *ent.Client
 	aiProvider     *ai.AIProvider
 	jobkoreaParser *crawler.JobKoreaParser
 	catchParser    *crawler.CatchParser
@@ -62,8 +66,9 @@ type CrawlingService struct {
 }
 
 // NewCrawlingService creates a new CrawlingService with default HTTP fetcher
-func NewCrawlingService(aiProvider *ai.AIProvider) *CrawlingService {
+func NewCrawlingService(entClient *ent.Client, aiProvider *ai.AIProvider) *CrawlingService {
 	return &CrawlingService{
+		entClient:      entClient,
 		aiProvider:     aiProvider,
 		jobkoreaParser: crawler.NewJobKoreaParser(),
 		catchParser:    crawler.NewCatchParser(),
@@ -74,8 +79,9 @@ func NewCrawlingService(aiProvider *ai.AIProvider) *CrawlingService {
 }
 
 // NewCrawlingServiceWithFetcher creates a new CrawlingService with a custom HTMLFetcher (for testing)
-func NewCrawlingServiceWithFetcher(aiProvider *ai.AIProvider, fetcher HTMLFetcher) *CrawlingService {
+func NewCrawlingServiceWithFetcher(entClient *ent.Client, aiProvider *ai.AIProvider, fetcher HTMLFetcher) *CrawlingService {
 	return &CrawlingService{
+		entClient:      entClient,
 		aiProvider:     aiProvider,
 		jobkoreaParser: crawler.NewJobKoreaParser(),
 		catchParser:    crawler.NewCatchParser(),
@@ -121,41 +127,33 @@ func (s *CrawlingService) CrawlJobPosting(ctx context.Context, url string) (*cra
 
 // extractJobPostingFromMarkdown extracts structured job posting data from clean markdown content
 func (s *CrawlingService) extractJobPostingFromMarkdown(ctx context.Context, sourceURL string, markdown string) (*crawler.JobPosting, error) {
+	pt, err := s.loadCrawlingPrompt(ctx, "extract_markdown")
+	if err != nil {
+		return nil, err
+	}
+
 	content := truncateString(markdown, maxMarkdownLen)
+	userPrompt := pt.UserPromptTemplate
+	for k, v := range map[string]string{
+		"source_url": sourceURL,
+		"content":    content,
+	} {
+		userPrompt = strings.ReplaceAll(userPrompt, "{{"+k+"}}", v)
+	}
 
-	prompt := fmt.Sprintf(`다음은 채용공고 페이지에서 추출된 마크다운 콘텐츠입니다. 구조화된 JSON으로 변환해주세요.
-
-URL: %s
-
---- 콘텐츠 ---
-%s
---- 끝 ---
-
-다음 필드를 포함한 JSON을 반환하세요:
-- company_name: string (회사명)
-- position: string (포지션)
-- department: string (부서/팀)
-- job_type: string (고용형태: 정규직/계약직/인턴 등)
-- experience_level: string (경력 요건)
-- main_tasks: string[] (주요 업무)
-- requirements: string[] (자격요건)
-- preferred: string[] (우대사항)
-- required_skills: string[] (필수 기술 스택)
-- soft_skills: string[] (소프트 스킬)
-- company_values_hints: string[] (회사 가치/문화 힌트)
-- deadline: string (마감일, 없으면 빈 문자열)`, sourceURL, content)
-
-	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, "groq", ai.LLMRequest{
-		SystemPrompt: "You are a Korean job posting data extractor. Extract structured information from the provided content. Always respond in valid JSON.",
-		UserPrompt:   prompt,
-		Temperature:  0.1,
-		MaxTokens:    2000,
+	startTime := time.Now()
+	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, pt.Model, ai.LLMRequest{
+		SystemPrompt: pt.SystemPrompt,
+		UserPrompt:   userPrompt,
+		Temperature:  pt.Temperature,
+		MaxTokens:    pt.MaxTokens,
 		JSONMode:     true,
 	}, ai.DefaultRetryConfig())
-
 	if err != nil {
 		return nil, fmt.Errorf("AI extraction from markdown failed: %w", err)
 	}
+
+	s.updatePromptStats(ctx, pt, time.Since(startTime))
 
 	var result crawler.JobPosting
 	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
@@ -167,41 +165,33 @@ URL: %s
 
 // extractJobPostingFromHTML extracts structured job posting data from raw HTML (fallback)
 func (s *CrawlingService) extractJobPostingFromHTML(ctx context.Context, sourceURL string, html string) (*crawler.JobPosting, error) {
+	pt, err := s.loadCrawlingPrompt(ctx, "extract_html")
+	if err != nil {
+		return nil, err
+	}
+
 	content := truncateString(html, maxHTMLLen)
+	userPrompt := pt.UserPromptTemplate
+	for k, v := range map[string]string{
+		"source_url": sourceURL,
+		"content":    content,
+	} {
+		userPrompt = strings.ReplaceAll(userPrompt, "{{"+k+"}}", v)
+	}
 
-	prompt := fmt.Sprintf(`다음은 채용공고 페이지의 HTML입니다. 구조화된 JSON으로 변환해주세요.
-
-URL: %s
-
---- HTML ---
-%s
---- 끝 ---
-
-다음 필드를 포함한 JSON을 반환하세요:
-- company_name: string (회사명)
-- position: string (포지션)
-- department: string (부서/팀)
-- job_type: string (고용형태)
-- experience_level: string (경력 요건)
-- main_tasks: string[] (주요 업무)
-- requirements: string[] (자격요건)
-- preferred: string[] (우대사항)
-- required_skills: string[] (필수 기술 스택)
-- soft_skills: string[] (소프트 스킬)
-- company_values_hints: string[] (회사 가치/문화 힌트)
-- deadline: string (마감일, 없으면 빈 문자열)`, sourceURL, content)
-
-	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, "groq", ai.LLMRequest{
-		SystemPrompt: "You are a Korean job posting data extractor. Extract structured information from raw HTML. Always respond in valid JSON.",
-		UserPrompt:   prompt,
-		Temperature:  0.1,
-		MaxTokens:    2000,
+	startTime := time.Now()
+	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, pt.Model, ai.LLMRequest{
+		SystemPrompt: pt.SystemPrompt,
+		UserPrompt:   userPrompt,
+		Temperature:  pt.Temperature,
+		MaxTokens:    pt.MaxTokens,
 		JSONMode:     true,
 	}, ai.DefaultRetryConfig())
-
 	if err != nil {
 		return nil, fmt.Errorf("AI extraction from HTML failed: %w", err)
 	}
+
+	s.updatePromptStats(ctx, pt, time.Since(startTime))
 
 	var result crawler.JobPosting
 	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
@@ -213,45 +203,39 @@ URL: %s
 
 // normalizeWithAI uses LLM to normalize RawJobPosting into structured JobPosting
 func (s *CrawlingService) normalizeWithAI(ctx context.Context, raw *crawler.RawJobPosting) (*crawler.JobPosting, error) {
-	prompt := fmt.Sprintf(`Extract and structure this job posting data into JSON format.
-
-Company: %s
-Position: %s
-Department: %s
-Career: %s
-Location: %s
-Main Tasks: %s
-Requirements: %s
-Preferred: %s
-Skills: %v
-
-Return JSON with these fields:
-- company_name: string
-- position: string
-- department: string
-- job_type: string
-- experience_level: string
-- main_tasks: string[]
-- requirements: string[]
-- preferred: string[]
-- required_skills: string[]
-- soft_skills: string[]
-- company_values_hints: string[]
-- deadline: string`,
-		raw.CompanyName, raw.Position, raw.Department, raw.Career, raw.Location,
-		raw.MainTasks, raw.Requirements, raw.Preferred, raw.Skills)
-
-	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, "groq", ai.LLMRequest{
-		SystemPrompt: "You are a job posting data extractor. Extract structured information from raw text.",
-		UserPrompt:   prompt,
-		Temperature:  0.2,
-		MaxTokens:    2000,
-		JSONMode:     true,
-	}, ai.DefaultRetryConfig())
-
+	pt, err := s.loadCrawlingPrompt(ctx, "normalize")
 	if err != nil {
 		return nil, err
 	}
+
+	userPrompt := pt.UserPromptTemplate
+	for k, v := range map[string]string{
+		"company_name": raw.CompanyName,
+		"position":     raw.Position,
+		"department":   raw.Department,
+		"career":       raw.Career,
+		"location":     raw.Location,
+		"main_tasks":   raw.MainTasks,
+		"requirements": raw.Requirements,
+		"preferred":    raw.Preferred,
+		"skills":       fmt.Sprintf("%v", raw.Skills),
+	} {
+		userPrompt = strings.ReplaceAll(userPrompt, "{{"+k+"}}", v)
+	}
+
+	startTime := time.Now()
+	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, pt.Model, ai.LLMRequest{
+		SystemPrompt: pt.SystemPrompt,
+		UserPrompt:   userPrompt,
+		Temperature:  pt.Temperature,
+		MaxTokens:    pt.MaxTokens,
+		JSONMode:     true,
+	}, ai.DefaultRetryConfig())
+	if err != nil {
+		return nil, err
+	}
+
+	s.updatePromptStats(ctx, pt, time.Since(startTime))
 
 	var result crawler.JobPosting
 	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
@@ -259,6 +243,69 @@ Return JSON with these fields:
 	}
 
 	return &result, nil
+}
+
+// loadCrawlingPrompt loads a prompt template for crawling by sub_category.
+// Falls back to hardcoded defaults when DB is unavailable (e.g. tests).
+func (s *CrawlingService) loadCrawlingPrompt(ctx context.Context, subCategory string) (*ent.PromptTemplate, error) {
+	if s.entClient != nil {
+		pt, err := s.entClient.PromptTemplate.Query().
+			Where(
+				prompttemplate.CategoryEQ("crawling"),
+				prompttemplate.SubCategoryEQ(subCategory),
+				prompttemplate.IsActiveEQ(true),
+			).
+			Order(prompttemplate.ByVersion(sql.OrderDesc())).
+			First(ctx)
+		if err == nil {
+			return pt, nil
+		}
+	}
+	// Fallback defaults for tests or missing seed data
+	return crawlingDefaultPrompt(subCategory), nil
+}
+
+// crawlingDefaultPrompt returns hardcoded defaults for crawling prompts
+func crawlingDefaultPrompt(subCategory string) *ent.PromptTemplate {
+	defaults := map[string]*ent.PromptTemplate{
+		"extract_markdown": {
+			Model:       "gemini-2.0-flash",
+			SystemPrompt: "You are a Korean job posting data extractor. Extract structured information from the provided content. Always respond in valid JSON.",
+			UserPromptTemplate: "URL: {{source_url}}\n\n{{content}}\n\nExtract job posting fields as JSON.",
+			Temperature: 0.1,
+			MaxTokens:   2000,
+		},
+		"extract_html": {
+			Model:       "gemini-2.0-flash",
+			SystemPrompt: "You are a Korean job posting data extractor. Extract structured information from raw HTML. Always respond in valid JSON.",
+			UserPromptTemplate: "URL: {{source_url}}\n\n{{content}}\n\nExtract job posting fields as JSON.",
+			Temperature: 0.1,
+			MaxTokens:   2000,
+		},
+		"normalize": {
+			Model:       "gemini-2.0-flash",
+			SystemPrompt: "You are a job posting data extractor. Extract structured information from raw text.",
+			UserPromptTemplate: "Company: {{company_name}}\nPosition: {{position}}\nDepartment: {{department}}\nCareer: {{career}}\nLocation: {{location}}\nMain Tasks: {{main_tasks}}\nRequirements: {{requirements}}\nPreferred: {{preferred}}\nSkills: {{skills}}\n\nReturn structured JSON.",
+			Temperature: 0.2,
+			MaxTokens:   2000,
+		},
+	}
+	if pt, ok := defaults[subCategory]; ok {
+		return pt
+	}
+	return &ent.PromptTemplate{Model: "gemini-2.0-flash", Temperature: 0.1, MaxTokens: 2000}
+}
+
+// updatePromptStats updates usage count and avg latency for a prompt template
+func (s *CrawlingService) updatePromptStats(ctx context.Context, pt *ent.PromptTemplate, latency time.Duration) {
+	if s.entClient == nil || pt.ID.String() == "00000000-0000-0000-0000-000000000000" {
+		return
+	}
+	latencyMs := int(latency.Milliseconds())
+	_ = s.entClient.PromptTemplate.UpdateOneID(pt.ID).
+		SetUsageCount(pt.UsageCount + 1).
+		SetAvgLatencyMs((pt.AvgLatencyMs*pt.UsageCount + latencyMs) / (pt.UsageCount + 1)).
+		Exec(ctx)
 }
 
 func containsDomain(url, domain string) bool {

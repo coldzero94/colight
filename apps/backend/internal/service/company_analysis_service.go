@@ -8,8 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"strings"
+
+	"entgo.io/ent/dialect/sql"
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/companyanalysiscache"
+	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 )
@@ -97,7 +101,7 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 	}
 
 	// 3. Cache miss - generate new analysis with AI
-	if s.aiProvider == nil || s.aiProvider.Claude() == nil {
+	if s.aiProvider == nil {
 		return nil, fmt.Errorf("AI provider not available for company analysis")
 	}
 
@@ -107,8 +111,8 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 		return nil, fmt.Errorf("failed to fetch company data: %w", err)
 	}
 
-	// Generate analysis with Claude
-	analysis, err := s.analyzeWithClaude(ctx, companyName, companyData)
+	// Generate analysis with AI (model from prompt_templates)
+	analysis, err := s.analyzeWithAI(ctx, companyName, companyData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to analyze with AI: %w", err)
 	}
@@ -131,9 +135,15 @@ func (s *CompanyAnalysisService) AnalyzeCompany(ctx context.Context, companyName
 	return analysis, nil
 }
 
-// analyzeWithClaude uses Claude to analyze company
-func (s *CompanyAnalysisService) analyzeWithClaude(ctx context.Context, companyName string, data *CompanyData) (*CompanyAnalysis, error) {
-	// Build prompt from company data
+// analyzeWithAI uses prompt_templates to analyze company (model configurable via admin)
+func (s *CompanyAnalysisService) analyzeWithAI(ctx context.Context, companyName string, data *CompanyData) (*CompanyAnalysis, error) {
+	// Load prompt template from DB, fall back to defaults
+	pt, err := s.loadAnalysisPrompt(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build context variables
 	newsText := ""
 	for i, article := range data.News {
 		if i >= 5 {
@@ -147,41 +157,35 @@ func (s *CompanyAnalysisService) analyzeWithClaude(ctx context.Context, companyN
 		companyContext = "(기업 정보를 찾을 수 없습니다. 기업명과 뉴스만으로 분석해주세요.)"
 	}
 
-	prompt := fmt.Sprintf(`다음 정보를 바탕으로 이 한국 기업을 분석해주세요.
+	// Substitute variables in user prompt template
+	userPrompt := pt.UserPromptTemplate
+	for k, v := range map[string]string{
+		"company_name":    companyName,
+		"company_context": companyContext,
+		"news_text":       newsText,
+	} {
+		userPrompt = strings.ReplaceAll(userPrompt, "{{"+k+"}}", v)
+	}
 
-기업명: %s
-
---- 기업 정보 ---
-%s
-
---- 최근 뉴스 ---
-%s
-
-다음 항목을 추출하여 JSON으로 반환해주세요:
-1. 핵심 가치 (core_values): 3-5개
-2. 인재상 (talent_traits): 3-5개 — 기업이 원하는 인재 특성
-3. 최근 동향 (recent_trends): 뉴스 기반
-4. 자기소개서 전략 키워드 (strategy_keywords): 이 기업에 지원할 때 효과적인 키워드
-5. 피해야 할 표현 (avoid_expressions): 이 기업에 맞지 않는 표현
-
-{
-  "core_values": [{"keyword": "", "description": ""}],
-  "talent_traits": [{"trait": "", "description": "", "evidence": ""}],
-  "recent_trends": [{"title": "", "summary": "", "relevance": ""}],
-  "strategy_keywords": [],
-  "avoid_expressions": []
-}`, companyName, companyContext, newsText)
-
-	resp, err := s.aiProvider.CallByModelName(ctx, "claude-sonnet-4-5", ai.LLMRequest{
-		SystemPrompt: "당신은 한국 기업 분석 전문가입니다. 기업 정보와 뉴스를 분석하여 취업 준비생에게 유용한 인사이트를 제공합니다. 반드시 한국어로 응답해주세요.",
-		UserPrompt:   prompt,
-		Temperature:  0.3,
-		MaxTokens:    3000,
+	startTime := time.Now()
+	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, pt.Model, ai.LLMRequest{
+		SystemPrompt: pt.SystemPrompt,
+		UserPrompt:   userPrompt,
+		Temperature:  pt.Temperature,
+		MaxTokens:    pt.MaxTokens,
 		JSONMode:     true,
-	})
-
+	}, ai.DefaultRetryConfig())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", pt.Model, err)
+	}
+
+	// Update usage stats
+	if pt.ID.String() != "00000000-0000-0000-0000-000000000000" {
+		latencyMs := int(time.Since(startTime).Milliseconds())
+		_ = s.entClient.PromptTemplate.UpdateOneID(pt.ID).
+			SetUsageCount(pt.UsageCount + 1).
+			SetAvgLatencyMs((pt.AvgLatencyMs*pt.UsageCount + latencyMs) / (pt.UsageCount + 1)).
+			Exec(ctx)
 	}
 
 	// Parse AI response
@@ -223,6 +227,31 @@ func (s *CompanyAnalysisService) buildAnalysisFromTalentProfile(tp *ent.TalentPr
 	}
 
 	return analysis
+}
+
+// loadAnalysisPrompt loads the company analysis prompt template from DB.
+// Falls back to hardcoded defaults when template is not seeded.
+func (s *CompanyAnalysisService) loadAnalysisPrompt(ctx context.Context) (*ent.PromptTemplate, error) {
+	if s.entClient != nil {
+		pt, err := s.entClient.PromptTemplate.Query().
+			Where(
+				prompttemplate.CategoryEQ("company_analysis"),
+				prompttemplate.SubCategoryEQ("analyze"),
+				prompttemplate.IsActiveEQ(true),
+			).
+			Order(prompttemplate.ByVersion(sql.OrderDesc())).
+			First(ctx)
+		if err == nil {
+			return pt, nil
+		}
+	}
+	return &ent.PromptTemplate{
+		Model:              "gemini-2.0-flash",
+		SystemPrompt:       "당신은 한국 기업을 분석하는 AI 전문가입니다. 기업의 핵심가치, 인재상, 최근 트렌드를 분석해주세요. JSON으로 응답하세요.",
+		UserPromptTemplate: "기업명: {{company_name}}\n\n기업 정보:\n{{company_context}}\n\n최근 뉴스:\n{{news_text}}\n\n위 정보를 기반으로 기업을 분석하세요.",
+		Temperature:        0.3,
+		MaxTokens:          2000,
+	}, nil
 }
 
 // generateCacheKey creates a unique cache key for company

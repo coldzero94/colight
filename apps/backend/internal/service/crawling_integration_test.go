@@ -36,7 +36,7 @@ func TestCrawlJobPosting_RealJobKorea(t *testing.T) {
 	}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	service := NewCrawlingService(aiProvider)
+	service := NewCrawlingService(nil, aiProvider)
 
 	testURL := "https://www.jobkorea.co.kr/Recruit/GI_Read/45942867"
 
@@ -80,7 +80,7 @@ func TestCrawlJobPosting_RealCatch(t *testing.T) {
 	}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	service := NewCrawlingService(aiProvider)
+	service := NewCrawlingService(nil, aiProvider)
 
 	testURL := "https://www.catch.co.kr/NCS/RecruitInfoDetail/321177"
 
@@ -104,7 +104,7 @@ func TestCrawlJobPosting_Manual(t *testing.T) {
 
 	mockLLM := &MockLLMForCrawling{}
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	svc := NewCrawlingService(aiProvider)
+	svc := NewCrawlingService(nil, aiProvider)
 
 	urls := []string{
 		"https://www.jobkorea.co.kr/Recruit/GI_Read/45942867",

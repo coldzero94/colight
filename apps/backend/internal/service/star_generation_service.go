@@ -3,9 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
+	"strings"
+	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/coby/colight/apps/backend/ent"
+	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 )
 
@@ -43,45 +46,42 @@ func (s *StarGenerationService) GenerateSTAR(ctx context.Context, req StarGenera
 		return nil, fmt.Errorf("content too short (minimum 30 characters)")
 	}
 
-	systemPrompt := `당신은 취업 준비생의 자유 형식 경험 텍스트를 STAR 기법으로 구조화하는 AI입니다.
-오직 JSON만 출력하세요. 설명이나 해설 없이 JSON만 반환하세요.
-
-응답 형식:
-{
-  "star_situation": "상황 설명 (배경, 맥락, 시기, 조직)",
-  "star_task": "과제/목표 설명 (해결해야 할 문제, 기대 성과)",
-  "star_action": "구체적 행동 (전략, 실행한 것, 수치 포함)",
-  "star_result": "결과 (정량적 성과, 질적 변화, 배운 점)"
-}
-
-규칙:
-- 원문의 핵심 내용을 보존하되 STAR 구조로 재배치
-- 각 필드는 2~4문장으로 구성
-- 원문에 없는 내용을 지어내지 말 것
-- 한국어로 작성`
-
-	userPrompt := req.Content
-	if req.Title != "" {
-		userPrompt = fmt.Sprintf("제목: %s\n\n내용:\n%s", req.Title, req.Content)
+	pt, err := s.loadStarPrompt(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load prompt template: %w", err)
 	}
 
-	aiResp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, "groq/compound", ai.LLMRequest{
-		SystemPrompt: systemPrompt,
-		UserPrompt:   userPrompt + "\n\nJSON만 출력하세요.",
-		Temperature:  0.3,
-		MaxTokens:    1500,
+	userPrompt := pt.UserPromptTemplate
+	for k, v := range map[string]string{
+		"title":   req.Title,
+		"content": req.Content,
+	} {
+		userPrompt = strings.ReplaceAll(userPrompt, "{{"+k+"}}", v)
+	}
+
+	startTime := time.Now()
+	aiResp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, pt.Model, ai.LLMRequest{
+		SystemPrompt: pt.SystemPrompt,
+		UserPrompt:   userPrompt,
+		Temperature:  pt.Temperature,
+		MaxTokens:    pt.MaxTokens,
 		JSONMode:     true,
 	}, ai.DefaultRetryConfig())
 	if err != nil {
 		return nil, fmt.Errorf("AI STAR generation failed: %w", err)
 	}
 
-	log.Printf("[star-gen] raw AI response (model=%s): %s", aiResp.Model, aiResp.Content)
+	if s.entClient != nil && pt.ID.String() != "00000000-0000-0000-0000-000000000000" {
+		latencyMs := int(time.Since(startTime).Milliseconds())
+		_ = s.entClient.PromptTemplate.UpdateOneID(pt.ID).
+			SetUsageCount(pt.UsageCount + 1).
+			SetAvgLatencyMs((pt.AvgLatencyMs*pt.UsageCount + latencyMs) / (pt.UsageCount + 1)).
+			Exec(ctx)
+	}
 
 	// Try standard format
 	var result StarGenerationResult
 	if err := ai.ExtractJSON(aiResp.Content, &result); err != nil {
-		log.Printf("[star-gen] ExtractJSON failed: %v", err)
 		return nil, fmt.Errorf("failed to parse AI response: %w", err)
 	}
 
@@ -106,4 +106,29 @@ func (s *StarGenerationService) GenerateSTAR(ctx context.Context, req StarGenera
 	}
 
 	return &result, nil
+}
+
+// loadStarPrompt loads the STAR generation prompt template from DB.
+// Falls back to hardcoded defaults when DB is unavailable.
+func (s *StarGenerationService) loadStarPrompt(ctx context.Context) (*ent.PromptTemplate, error) {
+	if s.entClient != nil {
+		pt, err := s.entClient.PromptTemplate.Query().
+			Where(
+				prompttemplate.CategoryEQ("star_generation"),
+				prompttemplate.SubCategoryEQ("generate"),
+				prompttemplate.IsActiveEQ(true),
+			).
+			Order(prompttemplate.ByVersion(sql.OrderDesc())).
+			First(ctx)
+		if err == nil {
+			return pt, nil
+		}
+	}
+	return &ent.PromptTemplate{
+		Model: "gemini-2.0-flash",
+		SystemPrompt: "당신은 취업 준비생의 자유 형식 경험 텍스트를 STAR 기법으로 구조화하는 AI입니다.\n오직 JSON만 출력하세요.\n\n응답 형식:\n{\"star_situation\": \"상황\", \"star_task\": \"과제\", \"star_action\": \"행동\", \"star_result\": \"결과\"}\n\n규칙:\n- 원문의 핵심 내용을 보존하되 STAR 구조로 재배치\n- 각 필드는 2~4문장\n- 원문에 없는 내용을 지어내지 말 것\n- 한국어로 작성",
+		UserPromptTemplate: "제목: {{title}}\n\n내용:\n{{content}}\n\nJSON만 출력하세요.",
+		Temperature:        0.3,
+		MaxTokens:          1500,
+	}, nil
 }

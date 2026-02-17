@@ -55,7 +55,7 @@ func TestNormalizeWithAI_Success(t *testing.T) {
 	}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	svc := NewCrawlingService(aiProvider)
+	svc := NewCrawlingService(nil, aiProvider)
 
 	rawPosting := &crawler.RawJobPosting{
 		Source:       "jobkorea",
@@ -94,7 +94,7 @@ func TestNormalizeJobPosting_RequiredFieldsMissing(t *testing.T) {
 	}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	svc := NewCrawlingService(aiProvider)
+	svc := NewCrawlingService(nil, aiProvider)
 
 	rawPosting := &crawler.RawJobPosting{
 		Source:    "unknown",
@@ -119,7 +119,7 @@ func TestNormalizeJobPosting_InvalidJSON(t *testing.T) {
 	}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	svc := NewCrawlingService(aiProvider)
+	svc := NewCrawlingService(nil, aiProvider)
 
 	rawPosting := &crawler.RawJobPosting{
 		Source:      "jobkorea",
@@ -139,7 +139,7 @@ func TestNormalizeJobPosting_AICallFailure(t *testing.T) {
 	}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	svc := NewCrawlingService(aiProvider)
+	svc := NewCrawlingService(nil, aiProvider)
 
 	rawPosting := &crawler.RawJobPosting{
 		Source:      "jobkorea",
@@ -188,7 +188,7 @@ func TestCrawlJobPosting_DomainRouting(t *testing.T) {
 	}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	svc := NewCrawlingService(aiProvider)
+	svc := NewCrawlingService(nil, aiProvider)
 
 	// We can't test full CrawlJobPosting without HTTP calls,
 	// but we can verify the normalization output structure
@@ -234,7 +234,7 @@ func TestExtractJobPostingFromMarkdown_Success(t *testing.T) {
 	}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	svc := NewCrawlingService(aiProvider)
+	svc := NewCrawlingService(nil, aiProvider)
 
 	markdown := `# 프론트엔드 개발자 채용
 
@@ -273,7 +273,7 @@ func TestExtractJobPostingFromHTML_Success(t *testing.T) {
 	}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	svc := NewCrawlingService(aiProvider)
+	svc := NewCrawlingService(nil, aiProvider)
 
 	html := `<html><body><div>서버 엔지니어 채용</div></body></html>`
 
@@ -308,7 +308,7 @@ func TestCrawlJobPosting_UnknownDomain_UsesMarkdownPath(t *testing.T) {
 	}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	svc := NewCrawlingServiceWithFetcher(aiProvider, mockFetcher)
+	svc := NewCrawlingServiceWithFetcher(nil, aiProvider, mockFetcher)
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://www.wanted.co.kr/wd/12345")
 	require.NoError(t, err)
@@ -339,7 +339,7 @@ func TestCrawlJobPosting_JobKorea_StillUsesFastPath(t *testing.T) {
 	}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	svc := NewCrawlingServiceWithFetcher(aiProvider, mockFetcher)
+	svc := NewCrawlingServiceWithFetcher(nil, aiProvider, mockFetcher)
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://www.jobkorea.co.kr/Recruit/GI_Read/12345")
 	require.NoError(t, err)
@@ -362,7 +362,7 @@ func TestCrawlJobPosting_FallbackToHTML_WhenMarkdownTooShort(t *testing.T) {
 	}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	svc := NewCrawlingServiceWithFetcher(aiProvider, mockFetcher)
+	svc := NewCrawlingServiceWithFetcher(nil, aiProvider, mockFetcher)
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://example.com/job/1")
 	require.NoError(t, err)
@@ -376,7 +376,7 @@ func TestCrawlJobPosting_FetchError(t *testing.T) {
 	mockLLM := &MockLLMForCrawling{}
 
 	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
-	svc := NewCrawlingServiceWithFetcher(aiProvider, mockFetcher)
+	svc := NewCrawlingServiceWithFetcher(nil, aiProvider, mockFetcher)
 
 	_, err := svc.CrawlJobPosting(context.Background(), "https://example.com/job/1")
 	require.Error(t, err)

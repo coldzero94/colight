@@ -3,10 +3,13 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/experience"
+	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 	"github.com/google/uuid"
 )
@@ -92,34 +95,33 @@ func (s *MatchingService) MatchExperience(ctx context.Context, userID uuid.UUID,
 핵심가치: %v
 인재상: %v`, companyAnalysis.CompanyName, formatCoreValues(companyAnalysis.CoreValues), formatTalentTraits(companyAnalysis.TalentTraits))
 
-	// 4. Call AI for matching
-	prompt := fmt.Sprintf(`Match this experience against the company requirements and rate fit scores.
+	// 4. Call AI for matching (load prompt from DB)
+	pt, ptErr := s.loadMatchingPrompt(ctx)
+	if ptErr != nil {
+		return nil, fmt.Errorf("failed to load matching prompt: %w", ptErr)
+	}
 
-Experience:
-%s
+	userPrompt := pt.UserPromptTemplate
+	for k, v := range map[string]string{
+		"experience_text":  experienceText,
+		"company_context":  companyContext,
+	} {
+		userPrompt = strings.ReplaceAll(userPrompt, "{{"+k+"}}", v)
+	}
 
-Company Requirements:
-%s
-
-Return JSON with scores (0-100):
-- overall_fit: weighted average (job_relevance*0.4 + talent_fit*0.35 + uniqueness*0.25)
-- job_relevance: how relevant is this experience to the job
-- talent_fit: how well does this match the talent profile
-- uniqueness: differentiation factor
-- reasoning: brief explanation
-- suggested_angle: how to position this experience`, experienceText, companyContext)
-
-	resp, err := s.aiProvider.CallByModelName(ctx, "groq", ai.LLMRequest{
-		SystemPrompt: "You are an experience-company matching analyst. Provide objective fit scores.",
-		UserPrompt:   prompt,
-		Temperature:  0.2,
-		MaxTokens:    1000,
+	startTime := time.Now()
+	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, pt.Model, ai.LLMRequest{
+		SystemPrompt: pt.SystemPrompt,
+		UserPrompt:   userPrompt,
+		Temperature:  pt.Temperature,
+		MaxTokens:    pt.MaxTokens,
 		JSONMode:     true,
-	})
-
+	}, ai.DefaultRetryConfig())
 	if err != nil {
 		return nil, fmt.Errorf("AI matching failed: %w", err)
 	}
+
+	s.updateMatchingPromptStats(ctx, pt, time.Since(startTime))
 
 	// 5. Parse AI response
 	var aiResult aiMatchResponse
@@ -260,4 +262,41 @@ func (s *MatchingService) CheckMatchingOutdated(ctx context.Context, userID uuid
 // GetClient returns the Ent client
 func (s *MatchingService) GetClient() *ent.Client {
 	return s.entClient
+}
+
+// loadMatchingPrompt loads the matching prompt template from DB.
+// Falls back to hardcoded defaults when template is not seeded.
+func (s *MatchingService) loadMatchingPrompt(ctx context.Context) (*ent.PromptTemplate, error) {
+	if s.entClient != nil {
+		pt, err := s.entClient.PromptTemplate.Query().
+			Where(
+				prompttemplate.CategoryEQ("matching"),
+				prompttemplate.SubCategoryEQ("match_experience"),
+				prompttemplate.IsActiveEQ(true),
+			).
+			Order(prompttemplate.ByVersion(sql.OrderDesc())).
+			First(ctx)
+		if err == nil {
+			return pt, nil
+		}
+	}
+	return &ent.PromptTemplate{
+		Model:              "gemini-2.0-flash",
+		SystemPrompt:       "You are an experience-company matching analyst. Provide objective fit scores.",
+		UserPromptTemplate: "Experience:\n{{experience_text}}\n\nCompany Requirements:\n{{company_context}}\n\nReturn JSON with scores (0-100): overall_fit, job_relevance, talent_fit, uniqueness, reasoning, suggested_angle.",
+		Temperature:        0.2,
+		MaxTokens:          1000,
+	}, nil
+}
+
+// updateMatchingPromptStats updates usage count and avg latency
+func (s *MatchingService) updateMatchingPromptStats(ctx context.Context, pt *ent.PromptTemplate, latency time.Duration) {
+	if s.entClient == nil || pt.ID.String() == "00000000-0000-0000-0000-000000000000" {
+		return
+	}
+	latencyMs := int(latency.Milliseconds())
+	_ = s.entClient.PromptTemplate.UpdateOneID(pt.ID).
+		SetUsageCount(pt.UsageCount + 1).
+		SetAvgLatencyMs((pt.AvgLatencyMs*pt.UsageCount + latencyMs) / (pt.UsageCount + 1)).
+		Exec(ctx)
 }

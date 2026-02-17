@@ -64,7 +64,7 @@ func main() {
 
 	var crawlingService *service.CrawlingService
 	if aiProvider != nil {
-		crawlingService = service.NewCrawlingService(aiProvider)
+		crawlingService = service.NewCrawlingService(db, aiProvider)
 	}
 
 	companyDataService := service.NewCompanyDataService()

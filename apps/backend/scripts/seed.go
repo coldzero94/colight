@@ -330,14 +330,22 @@ func seedWeaponCategories(ctx context.Context, client *ent.Client) error {
 func seedPromptTemplates(ctx context.Context, client *ent.Client) error {
 	log.Println("Seeding prompt templates...")
 
-	// Check if already seeded
-	count, err := client.PromptTemplate.Query().Count(ctx)
+	// Delete question_patterns first (FK references prompt_templates)
+	deletedQP, err := client.QuestionPattern.Delete().Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to count prompt templates: %w", err)
+		return fmt.Errorf("failed to delete question patterns (FK cleanup): %w", err)
 	}
-	if count > 0 {
-		log.Printf("⚠️  Prompt templates already exist (%d rows), skipping", count)
-		return nil
+	if deletedQP > 0 {
+		log.Printf("🗑️  Deleted %d question patterns (FK cleanup)", deletedQP)
+	}
+
+	// Delete existing prompt templates and re-seed
+	deleted, err := client.PromptTemplate.Delete().Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to delete existing prompt templates: %w", err)
+	}
+	if deleted > 0 {
+		log.Printf("🗑️  Deleted %d existing prompt templates", deleted)
 	}
 
 	templates := []struct {
@@ -392,7 +400,7 @@ JSON만 출력하세요.`,
 					},
 				},
 			},
-			Model:       "gemini-2.0-flash",
+			Model:       "groq/compound",
 			Temperature: 0.3,
 			MaxTokens:   1000,
 			Version:     1,
@@ -424,7 +432,7 @@ STAR 구조:
 				"phase":         "string (situation | task | action | result | complete)",
 				"completeness":  "number (0~1)",
 			},
-			Model:       "gemini-2.0-flash",
+			Model:       "groq/compound",
 			Temperature: 0.5,
 			MaxTokens:   500,
 			Version:     1,
@@ -468,7 +476,7 @@ STAR 구조:
 				},
 				"example_outline": "string",
 			},
-			Model:       "claude-sonnet-4-5",
+			Model:       "groq/compound",
 			Temperature: 0.3,
 			MaxTokens:   2000,
 			Version:     1,
@@ -521,7 +529,7 @@ STAR 구조:
 				"per_dimension_feedback":  []map[string]interface{}{},
 				"specific_suggestions":    []map[string]interface{}{},
 			},
-			Model:       "claude-sonnet-4-5",
+			Model:       "groq/compound",
 			Temperature: 0.3,
 			MaxTokens:   3000,
 			Version:     1,
@@ -565,9 +573,258 @@ STAR 구조:
 				"weapon_score": "number (0~100)",
 				"tips":         []string{},
 			},
-			Model:       "claude-sonnet-4-5",
+			Model:       "groq/compound",
 			Temperature: 0.4,
 			MaxTokens:   2500,
+			Version:     1,
+			IsActive:    true,
+		},
+		// === Company Analysis ===
+		{
+			Category:    "company_analysis",
+			SubCategory: "analyze",
+			Name:        "기업 AI 분석",
+			SystemPrompt: `당신은 한국 기업을 분석하는 AI 전문가입니다.
+기업의 핵심가치, 인재상, 최근 트렌드를 분석해주세요.
+
+응답 형식 (JSON):
+{
+  "core_values": [{"keyword": "핵심가치", "description": "설명"}],
+  "talent_traits": [{"trait": "인재상", "description": "설명"}],
+  "recent_trends": [{"title": "트렌드", "summary": "요약"}],
+  "strategy_keywords": ["키워드1", "키워드2"],
+  "avoid_expressions": ["피해야 할 표현"]
+}
+
+규칙:
+- 기업 정보와 뉴스를 종합하여 분석
+- 구체적이고 실용적인 키워드 도출
+- 한국어로 작성`,
+			UserPromptTemplate: `기업명: {{company_name}}
+
+기업 정보:
+{{company_context}}
+
+최근 뉴스:
+{{news_text}}
+
+위 정보를 기반으로 기업을 분석하고 JSON으로 응답하세요.`,
+			OutputSchema: map[string]interface{}{
+				"core_values":      []map[string]interface{}{},
+				"talent_traits":    []map[string]interface{}{},
+				"recent_trends":    []map[string]interface{}{},
+				"strategy_keywords": []string{},
+				"avoid_expressions": []string{},
+			},
+			Model:       "groq/compound",
+			Temperature: 0.3,
+			MaxTokens:   2000,
+			Version:     1,
+			IsActive:    true,
+		},
+		// === Crawling: Extract from Markdown ===
+		{
+			Category:    "crawling",
+			SubCategory: "extract_markdown",
+			Name:        "마크다운 채용공고 추출",
+			SystemPrompt: "You are a Korean job posting data extractor. Extract structured information from the provided content. Always respond in valid JSON.",
+			UserPromptTemplate: `다음은 채용공고 페이지에서 추출된 마크다운 콘텐츠입니다.
+
+URL: {{source_url}}
+
+--- 콘텐츠 ---
+{{content}}
+--- 끝 ---
+
+다음 필드를 포함한 JSON을 반환하세요:
+- company_name, position, department, job_type, experience_level
+- main_tasks[], requirements[], preferred[]
+- required_skills[], soft_skills[], company_values_hints[]
+- deadline`,
+			OutputSchema: map[string]interface{}{},
+			Model:       "groq/compound",
+			Temperature: 0.1,
+			MaxTokens:   2000,
+			Version:     1,
+			IsActive:    true,
+		},
+		// === Crawling: Extract from HTML ===
+		{
+			Category:    "crawling",
+			SubCategory: "extract_html",
+			Name:        "HTML 채용공고 추출",
+			SystemPrompt: "You are a Korean job posting data extractor. Extract structured information from raw HTML. Always respond in valid JSON.",
+			UserPromptTemplate: `다음은 채용공고 페이지의 HTML입니다.
+
+URL: {{source_url}}
+
+--- HTML ---
+{{content}}
+--- 끝 ---
+
+다음 필드를 포함한 JSON을 반환하세요:
+- company_name, position, department, job_type, experience_level
+- main_tasks[], requirements[], preferred[]
+- required_skills[], soft_skills[], company_values_hints[]
+- deadline`,
+			OutputSchema: map[string]interface{}{},
+			Model:       "groq/compound",
+			Temperature: 0.1,
+			MaxTokens:   2000,
+			Version:     1,
+			IsActive:    true,
+		},
+		// === Crawling: Normalize ===
+		{
+			Category:    "crawling",
+			SubCategory: "normalize",
+			Name:        "채용공고 정규화",
+			SystemPrompt: "You are a job posting data extractor. Extract structured information from raw text. Always respond in valid JSON.",
+			UserPromptTemplate: `Company: {{company_name}}
+Position: {{position}}
+Department: {{department}}
+Career: {{career}}
+Location: {{location}}
+Main Tasks: {{main_tasks}}
+Requirements: {{requirements}}
+Preferred: {{preferred}}
+Skills: {{skills}}
+
+Return JSON with: company_name, position, department, job_type, experience_level, main_tasks[], requirements[], preferred[], required_skills[], soft_skills[], company_values_hints[], deadline`,
+			OutputSchema: map[string]interface{}{},
+			Model:       "groq/compound",
+			Temperature: 0.2,
+			MaxTokens:   2000,
+			Version:     1,
+			IsActive:    true,
+		},
+		// === Interview: Generate Question ===
+		{
+			Category:    "interview",
+			SubCategory: "generate_question",
+			Name:        "인터뷰 질문 생성",
+			SystemPrompt: `당신은 취업 준비생의 경험을 발굴하는 친절한 AI 인터뷰어입니다.
+한국어로 대화하며, 자연스럽고 편안한 톤으로 질문합니다.
+한 번에 하나의 질문만 합니다. 질문은 간결하게 2-3문장 이내로 합니다.
+
+현재 인터뷰 단계: {{stage_name}}
+단계 지시사항: {{stage_instruction}}
+
+반드시 아래 JSON 형식으로만 응답하세요:
+{"question": "질문 내용"}`,
+			UserPromptTemplate: `대화 기록:
+{{conversation_history}}
+
+위 대화를 바탕으로 다음 질문을 생성하세요.`,
+			OutputSchema: map[string]interface{}{
+				"question": "string",
+			},
+			Model:       "groq/compound",
+			Temperature: 0.7,
+			MaxTokens:   300,
+			Version:     1,
+			IsActive:    true,
+		},
+		// === Interview: Extract STAR ===
+		{
+			Category:    "interview",
+			SubCategory: "extract_star",
+			Name:        "인터뷰 STAR 추출",
+			SystemPrompt: `당신은 인터뷰 대화에서 경험을 STAR 구조로 추출하는 전문가입니다.
+아래 대화를 분석하여 핵심 경험을 STAR 구조로 정리하세요.
+
+규칙:
+- 모든 필드를 한국어로 작성
+- title: 경험을 한 줄로 요약 (20자 이내)
+- category: project, work, activity, competition, education, volunteer, other
+- content: 경험의 전체적인 설명 (2-3문장)
+- result: 최종 결과 요약 (1-2문장)
+- star_situation/star_task/star_action/star_result 필드 포함
+- keywords: 핵심 키워드 3-5개 배열
+
+반드시 JSON 형식으로만 응답하세요.`,
+			UserPromptTemplate: `인터뷰 대화:
+{{conversation_history}}
+
+위 대화에서 STAR 구조를 추출하세요.`,
+			OutputSchema: map[string]interface{}{
+				"title": "string", "category": "string",
+				"star_situation": "string", "star_task": "string",
+				"star_action": "string", "star_result": "string",
+				"keywords": []string{},
+			},
+			Model:       "groq/compound",
+			Temperature: 0.3,
+			MaxTokens:   800,
+			Version:     1,
+			IsActive:    true,
+		},
+		// === Matching ===
+		{
+			Category:    "matching",
+			SubCategory: "match_experience",
+			Name:        "경험-기업 매칭 분석",
+			SystemPrompt: "You are an experience-company matching analyst. Provide objective fit scores. Always respond in valid JSON.",
+			UserPromptTemplate: `Match this experience against the company requirements and rate fit scores.
+
+Experience:
+{{experience_text}}
+
+Company Requirements:
+{{company_context}}
+
+Return JSON with scores (0-100):
+- overall_fit: weighted average (job_relevance*0.4 + talent_fit*0.35 + uniqueness*0.25)
+- job_relevance: how relevant is this experience to the job
+- talent_fit: how well does this match the talent profile
+- uniqueness: differentiation factor
+- reasoning: brief explanation
+- suggested_angle: how to position this experience`,
+			OutputSchema: map[string]interface{}{
+				"overall_fit": "number", "job_relevance": "number",
+				"talent_fit": "number", "uniqueness": "number",
+				"reasoning": "string", "suggested_angle": "string",
+			},
+			Model:       "groq/compound",
+			Temperature: 0.2,
+			MaxTokens:   1000,
+			Version:     1,
+			IsActive:    true,
+		},
+		// === STAR Generation ===
+		{
+			Category:    "star_generation",
+			SubCategory: "generate",
+			Name:        "STAR 자동 생성",
+			SystemPrompt: `당신은 취업 준비생의 자유 형식 경험 텍스트를 STAR 기법으로 구조화하는 AI입니다.
+오직 JSON만 출력하세요. 설명이나 해설 없이 JSON만 반환하세요.
+
+응답 형식:
+{
+  "star_situation": "상황 설명 (배경, 맥락, 시기, 조직)",
+  "star_task": "과제/목표 설명 (해결해야 할 문제, 기대 성과)",
+  "star_action": "구체적 행동 (전략, 실행한 것, 수치 포함)",
+  "star_result": "결과 (정량적 성과, 질적 변화, 배운 점)"
+}
+
+규칙:
+- 원문의 핵심 내용을 보존하되 STAR 구조로 재배치
+- 각 필드는 2~4문장으로 구성
+- 원문에 없는 내용을 지어내지 말 것
+- 한국어로 작성`,
+			UserPromptTemplate: `제목: {{title}}
+
+내용:
+{{content}}
+
+JSON만 출력하세요.`,
+			OutputSchema: map[string]interface{}{
+				"star_situation": "string", "star_task": "string",
+				"star_action": "string", "star_result": "string",
+			},
+			Model:       "groq/compound",
+			Temperature: 0.3,
+			MaxTokens:   1500,
 			Version:     1,
 			IsActive:    true,
 		},
@@ -595,7 +852,7 @@ STAR 구조:
 	if _, err := client.PromptTemplate.CreateBulk(bulk...).Save(ctx); err != nil {
 		return fmt.Errorf("failed to insert prompt templates: %w", err)
 	}
-	log.Println("✓ Inserted 5 prompt templates")
+	log.Printf("✓ Inserted %d prompt templates", len(templates))
 
 	return nil
 }
@@ -604,14 +861,13 @@ STAR 구조:
 func seedQuestionPatterns(ctx context.Context, client *ent.Client) error {
 	log.Println("Seeding question patterns...")
 
-	// Check if already seeded
-	count, err := client.QuestionPattern.Query().Count(ctx)
+	// Delete existing question patterns and re-seed
+	deletedQP, err := client.QuestionPattern.Delete().Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to count question patterns: %w", err)
+		return fmt.Errorf("failed to delete existing question patterns: %w", err)
 	}
-	if count > 0 {
-		log.Printf("⚠️  Question patterns already exist (%d rows), skipping", count)
-		return nil
+	if deletedQP > 0 {
+		log.Printf("🗑️  Deleted %d existing question patterns", deletedQP)
 	}
 
 	// Get coaching prompt template ID for linking (sub_category = "weapon_enhance")

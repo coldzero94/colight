@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/coby/colight/apps/backend/ent"
+	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 	"github.com/google/uuid"
 )
@@ -113,20 +116,15 @@ func NewInterviewService(aiProvider *ai.AIProvider, db *ent.Client, weaponTaggin
 	return &InterviewService{aiProvider: aiProvider, db: db, weaponTaggingService: weaponTaggingService}
 }
 
-const interviewSystemPrompt = `당신은 취업 준비생의 경험을 발굴하는 친절한 AI 인터뷰어입니다.
-한국어로 대화하며, 자연스럽고 편안한 톤으로 질문합니다.
-한 번에 하나의 질문만 합니다. 질문은 간결하게 2-3문장 이내로 합니다.
-
-현재 인터뷰 단계: {{stage_name}}
-단계 지시사항: {{stage_instruction}}
-
-반드시 아래 JSON 형식으로만 응답하세요:
-{"question": "질문 내용"}`
-
 // GenerateQuestion produces the next AI interviewer question.
 func (s *InterviewService) GenerateQuestion(ctx context.Context, _ uuid.UUID, input GenerateQuestionInput) (*GenerateQuestionResult, error) {
 	if !validStage(input.Stage) {
 		return nil, ErrInvalidInterviewStage
+	}
+
+	pt, err := s.loadInterviewPrompt(ctx, "generate_question")
+	if err != nil {
+		return nil, fmt.Errorf("failed to load prompt template: %w", err)
 	}
 
 	// Build conversation history
@@ -140,25 +138,30 @@ func (s *InterviewService) GenerateQuestion(ctx context.Context, _ uuid.UUID, in
 	}
 	history := strings.Join(historyLines, "\n")
 
-	// Build prompt
-	systemPrompt := strings.ReplaceAll(interviewSystemPrompt, "{{stage_name}}", stageKorean[input.Stage])
+	// Build prompt from template
+	systemPrompt := strings.ReplaceAll(pt.SystemPrompt, "{{stage_name}}", stageKorean[input.Stage])
 	systemPrompt = strings.ReplaceAll(systemPrompt, "{{stage_instruction}}", stageInstruction[input.Stage])
 
-	userPrompt := "새 인터뷰를 시작합니다."
+	userPrompt := pt.UserPromptTemplate
 	if len(input.Messages) > 0 {
-		userPrompt = fmt.Sprintf("대화 기록:\n%s\n\n위 대화를 바탕으로 다음 질문을 생성하세요.", history)
+		userPrompt = strings.ReplaceAll(userPrompt, "{{conversation_history}}", history)
+	} else {
+		userPrompt = strings.ReplaceAll(userPrompt, "{{conversation_history}}", "(새 인터뷰 시작)")
 	}
 
-	resp, err := s.aiProvider.CallByModelName(ctx, "groq", ai.LLMRequest{
+	startTime := time.Now()
+	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, pt.Model, ai.LLMRequest{
 		SystemPrompt: systemPrompt,
 		UserPrompt:   userPrompt,
-		Temperature:  0.7,
-		MaxTokens:    300,
+		Temperature:  pt.Temperature,
+		MaxTokens:    pt.MaxTokens,
 		JSONMode:     true,
-	})
+	}, ai.DefaultRetryConfig())
 	if err != nil {
 		return nil, fmt.Errorf("AI call failed: %w", err)
 	}
+
+	s.updateInterviewPromptStats(ctx, pt, time.Since(startTime))
 
 	// Parse response
 	var aiResp struct {
@@ -220,26 +223,13 @@ func stageIndex(s InterviewStage) int {
 	return 0
 }
 
-const extractSTARPrompt = `당신은 인터뷰 대화에서 경험을 STAR 구조로 추출하는 전문가입니다.
-아래 대화를 분석하여 핵심 경험을 STAR 구조로 정리하세요.
-
-규칙:
-- 모든 필드를 한국어로 작성
-- title: 경험을 한 줄로 요약 (20자 이내)
-- category: 다음 중 하나 — project, work, activity, competition, education, volunteer, other
-- content: 경험의 전체적인 설명 (2-3문장)
-- result: 최종 결과 요약 (1-2문장)
-- star_situation: 상황 설명
-- star_task: 해결해야 할 과제/목표
-- star_action: 실제 취한 행동
-- star_result: 행동의 결과와 배운 점
-- keywords: 핵심 키워드 3-5개 배열
-
-반드시 아래 JSON 형식으로만 응답하세요:
-{"title":"","category":"","content":"","result":"","star_situation":"","star_task":"","star_action":"","star_result":"","keywords":[]}`
-
 // ExtractSTAR extracts STAR-structured experience from interview messages.
 func (s *InterviewService) ExtractSTAR(ctx context.Context, messages []ChatMessage) (*ExtractSTARResult, error) {
+	pt, err := s.loadInterviewPrompt(ctx, "extract_star")
+	if err != nil {
+		return nil, fmt.Errorf("failed to load prompt template: %w", err)
+	}
+
 	var historyLines []string
 	for _, msg := range messages {
 		prefix := "사용자"
@@ -250,16 +240,21 @@ func (s *InterviewService) ExtractSTAR(ctx context.Context, messages []ChatMessa
 	}
 	history := strings.Join(historyLines, "\n")
 
-	resp, err := s.aiProvider.CallByModelName(ctx, "groq", ai.LLMRequest{
-		SystemPrompt: extractSTARPrompt,
-		UserPrompt:   fmt.Sprintf("인터뷰 대화:\n%s\n\n위 대화에서 STAR 구조를 추출하세요.", history),
-		Temperature:  0.3,
-		MaxTokens:    800,
+	userPrompt := strings.ReplaceAll(pt.UserPromptTemplate, "{{conversation_history}}", history)
+
+	startTime := time.Now()
+	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, pt.Model, ai.LLMRequest{
+		SystemPrompt: pt.SystemPrompt,
+		UserPrompt:   userPrompt,
+		Temperature:  pt.Temperature,
+		MaxTokens:    pt.MaxTokens,
 		JSONMode:     true,
-	})
+	}, ai.DefaultRetryConfig())
 	if err != nil {
 		return nil, fmt.Errorf("AI call failed: %w", err)
 	}
+
+	s.updateInterviewPromptStats(ctx, pt, time.Since(startTime))
 
 	var result ExtractSTARResult
 	if err := ai.ExtractJSON(resp.Content, &result); err != nil {
@@ -272,6 +267,60 @@ func (s *InterviewService) ExtractSTAR(ctx context.Context, messages []ChatMessa
 	}
 
 	return &result, nil
+}
+
+// loadInterviewPrompt loads a prompt template for interview by sub_category.
+// Falls back to hardcoded defaults when DB is unavailable.
+func (s *InterviewService) loadInterviewPrompt(ctx context.Context, subCategory string) (*ent.PromptTemplate, error) {
+	if s.db != nil {
+		pt, err := s.db.PromptTemplate.Query().
+			Where(
+				prompttemplate.CategoryEQ("interview"),
+				prompttemplate.SubCategoryEQ(subCategory),
+				prompttemplate.IsActiveEQ(true),
+			).
+			Order(prompttemplate.ByVersion(sql.OrderDesc())).
+			First(ctx)
+		if err == nil {
+			return pt, nil
+		}
+	}
+	return interviewDefaultPrompt(subCategory), nil
+}
+
+func interviewDefaultPrompt(subCategory string) *ent.PromptTemplate {
+	defaults := map[string]*ent.PromptTemplate{
+		"generate_question": {
+			Model:              "gemini-2.0-flash",
+			SystemPrompt:       "당신은 취업 준비생의 경험을 발굴하는 친절한 AI 인터뷰어입니다.\n한국어로 대화하며, 자연스럽고 편안한 톤으로 질문합니다.\n한 번에 하나의 질문만 합니다. 질문은 간결하게 2-3문장 이내로 합니다.\n\n현재 인터뷰 단계: {{stage_name}}\n단계 지시사항: {{stage_instruction}}\n\n반드시 아래 JSON 형식으로만 응답하세요:\n{\"question\": \"질문 내용\"}",
+			UserPromptTemplate: "대화 기록:\n{{conversation_history}}\n\n위 대화를 바탕으로 다음 질문을 생성하세요.",
+			Temperature:        0.7,
+			MaxTokens:          300,
+		},
+		"extract_star": {
+			Model:              "gemini-2.0-flash",
+			SystemPrompt:       "당신은 인터뷰 대화에서 경험을 STAR 구조로 추출하는 전문가입니다.\n아래 대화를 분석하여 핵심 경험을 STAR 구조로 정리하세요.\n\n규칙:\n- 모든 필드를 한국어로 작성\n- title: 경험을 한 줄로 요약 (20자 이내)\n- category: project, work, activity, competition, education, volunteer, other\n- star_situation/star_task/star_action/star_result 필드 포함\n- keywords: 핵심 키워드 3-5개 배열\n\n반드시 JSON 형식으로만 응답하세요.",
+			UserPromptTemplate: "인터뷰 대화:\n{{conversation_history}}\n\n위 대화에서 STAR 구조를 추출하세요.",
+			Temperature:        0.3,
+			MaxTokens:          800,
+		},
+	}
+	if pt, ok := defaults[subCategory]; ok {
+		return pt
+	}
+	return &ent.PromptTemplate{Model: "gemini-2.0-flash", Temperature: 0.3, MaxTokens: 500}
+}
+
+// updateInterviewPromptStats updates usage count and avg latency
+func (s *InterviewService) updateInterviewPromptStats(ctx context.Context, pt *ent.PromptTemplate, latency time.Duration) {
+	if s.db == nil || pt.ID.String() == "00000000-0000-0000-0000-000000000000" {
+		return
+	}
+	latencyMs := int(latency.Milliseconds())
+	_ = s.db.PromptTemplate.UpdateOneID(pt.ID).
+		SetUsageCount(pt.UsageCount + 1).
+		SetAvgLatencyMs((pt.AvgLatencyMs*pt.UsageCount + latencyMs) / (pt.UsageCount + 1)).
+		Exec(ctx)
 }
 
 // SaveExperience persists the STAR-extracted experience to the database.
