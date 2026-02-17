@@ -104,7 +104,7 @@ export function SocialImageTemplate() {
         <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
           <div
             style={{
-              display: "inline-flex",
+              display: "flex",
               alignItems: "center",
               borderRadius: "999px",
               border: "1px solid rgba(123,164,255,0.5)",
