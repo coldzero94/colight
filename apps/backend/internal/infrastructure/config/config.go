@@ -6,6 +6,10 @@ import (
 )
 
 type Config struct {
+	// Environment
+	AppEnv   string // "development", "staging", "production"
+	LogLevel string // "debug", "info", "warn", "error"
+
 	// Server
 	APIPort string
 
@@ -34,6 +38,8 @@ type Config struct {
 
 func Load() *Config {
 	return &Config{
+		AppEnv:             getEnv("APP_ENV", "development"),
+		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		APIPort:            getPort(),
 		DatabaseURL:        mustGetEnv("DATABASE_URL"),
 		NaverClientID:      getEnv("NAVER_CLIENT_ID", ""),

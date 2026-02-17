@@ -3,6 +3,7 @@ package ai
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"math/rand"
 	"strings"
@@ -26,6 +27,7 @@ func DefaultRetryConfig() RetryConfig {
 // CallWithRetry calls an AI provider with exponential backoff retry logic
 func CallWithRetry(ctx context.Context, provider LLMProvider, req LLMRequest, config RetryConfig) (LLMResponse, error) {
 	var lastErr error
+	start := time.Now()
 
 	for attempt := 0; attempt <= config.MaxRetries; attempt++ {
 		if attempt > 0 {
@@ -33,6 +35,8 @@ func CallWithRetry(ctx context.Context, provider LLMProvider, req LLMRequest, co
 			delay := time.Duration(math.Pow(2, float64(attempt-1))) * config.BaseDelay
 			jitter := time.Duration(rand.Int63n(int64(delay / 2)))
 			sleepDuration := delay + jitter
+
+			slog.Warn("ai_retry", "attempt", attempt, "max_retries", config.MaxRetries, "delay", sleepDuration.String(), "error", lastErr.Error())
 
 			select {
 			case <-time.After(sleepDuration):
@@ -43,6 +47,7 @@ func CallWithRetry(ctx context.Context, provider LLMProvider, req LLMRequest, co
 
 		resp, err := provider.Call(ctx, req)
 		if err == nil {
+			slog.Info("ai_call", "model", resp.Model, "duration", time.Since(start).String(), "input_tokens", resp.InputTokens, "output_tokens", resp.OutputTokens)
 			return resp, nil
 		}
 
@@ -54,12 +59,14 @@ func CallWithRetry(ctx context.Context, provider LLMProvider, req LLMRequest, co
 		}
 	}
 
+	slog.Error("ai_call_failed", "attempts", config.MaxRetries+1, "duration", time.Since(start).String(), "error", lastErr.Error())
 	return LLMResponse{}, fmt.Errorf("AI call failed after %d attempts: %w", config.MaxRetries+1, lastErr)
 }
 
 // CallByModelNameWithRetry calls AIProvider.CallByModelName with exponential backoff retry logic
 func CallByModelNameWithRetry(ctx context.Context, provider *AIProvider, modelName string, req LLMRequest, config RetryConfig) (LLMResponse, error) {
 	var lastErr error
+	start := time.Now()
 
 	for attempt := 0; attempt <= config.MaxRetries; attempt++ {
 		if attempt > 0 {
@@ -67,6 +74,8 @@ func CallByModelNameWithRetry(ctx context.Context, provider *AIProvider, modelNa
 			delay := time.Duration(math.Pow(2, float64(attempt-1))) * config.BaseDelay
 			jitter := time.Duration(rand.Int63n(int64(delay / 2)))
 			sleepDuration := delay + jitter
+
+			slog.Warn("ai_retry", "model", modelName, "attempt", attempt, "max_retries", config.MaxRetries, "delay", sleepDuration.String(), "error", lastErr.Error())
 
 			select {
 			case <-time.After(sleepDuration):
@@ -77,6 +86,7 @@ func CallByModelNameWithRetry(ctx context.Context, provider *AIProvider, modelNa
 
 		resp, err := provider.CallByModelName(ctx, modelName, req)
 		if err == nil {
+			slog.Info("ai_call", "model", resp.Model, "duration", time.Since(start).String(), "input_tokens", resp.InputTokens, "output_tokens", resp.OutputTokens)
 			return resp, nil
 		}
 
@@ -88,6 +98,7 @@ func CallByModelNameWithRetry(ctx context.Context, provider *AIProvider, modelNa
 		}
 	}
 
+	slog.Error("ai_call_failed", "model", modelName, "attempts", config.MaxRetries+1, "duration", time.Since(start).String(), "error", lastErr.Error())
 	return LLMResponse{}, fmt.Errorf("AI call failed after %d attempts: %w", config.MaxRetries+1, lastErr)
 }
 

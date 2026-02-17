@@ -9,6 +9,7 @@ import (
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/config"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/database"
+	"github.com/coby/colight/apps/backend/internal/infrastructure/logger"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/middleware"
 	"github.com/coby/colight/apps/backend/internal/service"
 	"github.com/gin-gonic/gin"
@@ -20,6 +21,10 @@ func main() {
 	_ = godotenv.Load("../../.env")
 
 	cfg := config.Load()
+
+	// Initialize structured logger and set as default
+	appLogger := logger.New(cfg.AppEnv, cfg.LogLevel)
+	slog.SetDefault(appLogger)
 
 	db, err := database.NewClient(cfg.DatabaseURL)
 	if err != nil {
@@ -167,7 +172,9 @@ func main() {
 	applicationCtrl := controller.NewApplicationController(applicationService)
 
 	// Router
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.Use(middleware.RequestLogger(appLogger))
 	r.Use(middleware.CORSMiddleware(cfg.FrontendURL))
 
 	r.GET("/health", func(c *gin.Context) {
