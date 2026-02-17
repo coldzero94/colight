@@ -289,12 +289,17 @@ func (ctrl *AdminController) ListPrompts(c *gin.Context) {
 			"name":                 p.Name,
 			"system_prompt":        p.SystemPrompt,
 			"user_prompt_template": p.UserPromptTemplate,
-			"model_name":          p.Model,
+			"model_name":           p.Model,
 			"temperature":          p.Temperature,
 			"max_tokens":           p.MaxTokens,
 			"version":              p.Version,
 			"is_active":            p.IsActive,
 			"usage_count":          p.UsageCount,
+			"avg_latency_ms":       p.AvgLatencyMs,
+			"avg_quality_score":    p.AvgQualityScore,
+			"output_schema":        p.OutputSchema,
+			"created_at":           p.CreatedAt,
+			"updated_at":           p.UpdatedAt,
 		})
 	}
 
@@ -487,12 +492,17 @@ func (ctrl *AdminController) UpdatePrompt(c *gin.Context) {
 		"name":                 prompt.Name,
 		"system_prompt":        prompt.SystemPrompt,
 		"user_prompt_template": prompt.UserPromptTemplate,
-		"model_name":          prompt.Model,
+		"model_name":           prompt.Model,
 		"temperature":          prompt.Temperature,
 		"max_tokens":           prompt.MaxTokens,
 		"version":              prompt.Version,
 		"is_active":            prompt.IsActive,
 		"usage_count":          prompt.UsageCount,
+		"avg_latency_ms":       prompt.AvgLatencyMs,
+		"avg_quality_score":    prompt.AvgQualityScore,
+		"output_schema":        prompt.OutputSchema,
+		"created_at":           prompt.CreatedAt,
+		"updated_at":           prompt.UpdatedAt,
 	})
 }
 
