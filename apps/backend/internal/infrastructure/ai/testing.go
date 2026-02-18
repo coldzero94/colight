@@ -6,8 +6,9 @@ import "context"
 // light handles gemini/groq routes.
 func NewAIProviderForTest(light LLMProvider) *AIProvider {
 	return &AIProvider{
-		gemini:  light,
-		groqLLM: light,
+		gemini:    light,
+		groqLLM:   light,
+		throttler: NewModelThrottler(),
 	}
 }
 

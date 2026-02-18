@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent"
 	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
+	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 	"github.com/coby/colight/apps/backend/testutil"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -1468,5 +1470,221 @@ func TestAdminController_CreateUser_DuplicateEmail(t *testing.T) {
 		t.Logf("Response body: %s", w.Body.String())
 	}
 	assert.Equal(t, http.StatusConflict, w.Code)
+}
+
+// --- Model Stats ---
+
+func setupModelStatsTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
+	t.Helper()
+	gin.SetMode(gin.TestMode)
+	db := testutil.NewTestClient(t)
+	testutil.CleanAllTables(db)
+	ctrl := NewAdminController(db, nil)
+
+	r := gin.New()
+	r.GET("/v1/admin/models/stats", ctrl.GetModelStats)
+	r.GET("/v1/admin/models/available", ctrl.ListAvailableModels)
+	r.GET("/v1/admin/models/rate-limit-hits", ctrl.GetRateLimitHits)
+
+	return r, db
+}
+
+func TestAdminController_GetModelStats_Empty(t *testing.T) {
+	r, _ := setupModelStatsTestRouter(t)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/models/stats?days=30", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	data := resp["data"].([]any)
+	assert.Empty(t, data)
+	assert.NotNil(t, resp["feature_models"])
+	assert.NotNil(t, resp["model_quotas"])
+}
+
+func TestAdminController_GetModelStats_WithData(t *testing.T) {
+	r, db := setupModelStatsTestRouter(t)
+	ctx := t.Context()
+
+	user := db.UserProfile.Create().
+		SetEmail("model-stat-user@test.com").
+		SetAuthProvider(userprofile.AuthProviderEmail).
+		SetRole(userprofile.RoleUser).
+		SaveX(ctx)
+
+	// Create usage logs for different models
+	cost1 := 10.0
+	latency1 := 1200
+	db.UsageLog.Create().
+		SetUserID(user.ID).
+		SetFeature("draft").
+		SetProvider("gemini").
+		SetModel("gemini-2.0-flash").
+		SetInputTokens(500).
+		SetOutputTokens(200).
+		SetTotalTokens(700).
+		SetEstimatedCostKrw(cost1).
+		SetLatencyMs(latency1).
+		SetStatus("success").
+		SaveX(ctx)
+
+	cost2 := 5.0
+	latency2 := 800
+	db.UsageLog.Create().
+		SetUserID(user.ID).
+		SetFeature("analysis").
+		SetProvider("gemini").
+		SetModel("gemini-2.0-flash").
+		SetInputTokens(300).
+		SetOutputTokens(100).
+		SetTotalTokens(400).
+		SetEstimatedCostKrw(cost2).
+		SetLatencyMs(latency2).
+		SetStatus("success").
+		SaveX(ctx)
+
+	db.UsageLog.Create().
+		SetUserID(user.ID).
+		SetFeature("coaching").
+		SetProvider("groq").
+		SetModel("llama-3.3-70b-versatile").
+		SetInputTokens(600).
+		SetOutputTokens(0).
+		SetTotalTokens(600).
+		SetStatus("error").
+		SetErrorMessage("rate limit").
+		SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/models/stats?days=30", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	data := resp["data"].([]any)
+	assert.Len(t, data, 2) // gemini-2.0-flash and llama-3.3-70b-versatile
+
+	// Find each model in the results
+	for _, item := range data {
+		m := item.(map[string]any)
+		switch m["model"] {
+		case "gemini-2.0-flash":
+			assert.Equal(t, float64(2), m["call_count"])
+			assert.Equal(t, float64(2), m["success_count"])
+			assert.Equal(t, float64(0), m["error_count"])
+			assert.Equal(t, float64(1100), m["total_tokens"])
+			assert.InDelta(t, 15.0, m["total_cost_krw"], 0.01)
+			assert.Equal(t, "gemini", m["provider"])
+		case "llama-3.3-70b-versatile":
+			assert.Equal(t, float64(1), m["call_count"])
+			assert.Equal(t, float64(0), m["success_count"])
+			assert.Equal(t, float64(1), m["error_count"])
+			assert.Equal(t, "groq", m["provider"])
+		}
+	}
+}
+
+func TestAdminController_GetModelStats_FeatureModels(t *testing.T) {
+	r, db := setupModelStatsTestRouter(t)
+	ctx := t.Context()
+
+	// Create active prompt templates
+	db.PromptTemplate.Create().
+		SetCategory("coaching").
+		SetSubCategory("draft").
+		SetName("Draft Prompt").
+		SetSystemPrompt("sys").
+		SetUserPromptTemplate("usr").
+		SetModel("gemini-2.0-flash").
+		SetIsActive(true).
+		SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/models/stats?days=7", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	featureModels := resp["feature_models"].(map[string]any)
+	assert.Equal(t, "gemini-2.0-flash", featureModels["coaching/draft"])
+}
+
+func TestAdminController_ListAvailableModels(t *testing.T) {
+	r, _ := setupModelStatsTestRouter(t)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/models/available", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	data := resp["data"].([]any)
+	assert.Greater(t, len(data), 10) // We have 16+ models
+
+	// Verify each model has required fields
+	for _, item := range data {
+		m := item.(map[string]any)
+		assert.NotEmpty(t, m["id"])
+		assert.NotEmpty(t, m["provider"])
+		provider := m["provider"].(string)
+		assert.True(t, provider == "gemini" || provider == "groq",
+			"provider should be gemini or groq, got: %s", provider)
+	}
+}
+
+func TestAdminController_GetRateLimitHits_NoProvider(t *testing.T) {
+	// Controller with nil aiProvider
+	r, _ := setupModelStatsTestRouter(t)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/models/rate-limit-hits?hours=24", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	data := resp["data"].([]any)
+	assert.Empty(t, data)
+	assert.Equal(t, float64(24), resp["hours"])
+}
+
+func TestAdminController_GetRateLimitHits_WithHits(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db := testutil.NewTestClient(t)
+
+	// Create AIProvider with real throttler
+	mock := &ai.MockStreamingProvider{}
+	aiProvider := ai.NewAIProviderForTest(mock)
+
+	// Record some quota hits
+	aiProvider.Throttler().RecordQuotaHit("gemini-3-pro", fmt.Errorf("429 rate limit"))
+	aiProvider.Throttler().RecordQuotaHit("gemini-3-pro", fmt.Errorf("429 rate limit again"))
+	aiProvider.Throttler().RecordQuotaHit("llama-3.3-70b-versatile", fmt.Errorf("quota exceeded"))
+
+	ctrl := NewAdminController(db, aiProvider)
+	r := gin.New()
+	r.GET("/v1/admin/models/rate-limit-hits", ctrl.GetRateLimitHits)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/models/rate-limit-hits?hours=1", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	data := resp["data"].([]any)
+	require.Len(t, data, 2) // 2 distinct models
+
+	for _, item := range data {
+		h := item.(map[string]any)
+		switch h["model"] {
+		case "gemini-3-pro":
+			assert.Equal(t, float64(2), h["hit_count"])
+			assert.Equal(t, "gemini", h["provider"])
+		case "llama-3.3-70b-versatile":
+			assert.Equal(t, float64(1), h["hit_count"])
+			assert.Equal(t, "groq", h["provider"])
+		}
+	}
 }
 
