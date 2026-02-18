@@ -314,13 +314,19 @@ func (s *CompanyAnalysisService) analyzeWithAI(ctx context.Context, companyName 
 	}
 	slog.Info("ai_model_used", "feature", "company_analysis", "configured", pt.Model, "actual", modelUsed)
 
-	// Update usage stats
+	// Update usage stats and auto-switch model on fallback
 	if pt.ID.String() != "00000000-0000-0000-0000-000000000000" {
 		latencyMs := int(time.Since(startTime).Milliseconds())
-		_ = s.entClient.PromptTemplate.UpdateOneID(pt.ID).
+		update := s.entClient.PromptTemplate.UpdateOneID(pt.ID).
 			SetUsageCount(pt.UsageCount + 1).
-			SetAvgLatencyMs((pt.AvgLatencyMs*pt.UsageCount + latencyMs) / (pt.UsageCount + 1)).
-			Exec(ctx)
+			SetAvgLatencyMs((pt.AvgLatencyMs*pt.UsageCount + latencyMs) / (pt.UsageCount + 1))
+
+		// Auto-update model in DB when fallback used a different model
+		if modelUsed != "" && modelUsed != pt.Model {
+			slog.Warn("ai_model_auto_switch", "feature", "company_analysis", "from", pt.Model, "to", modelUsed)
+			update = update.SetModel(modelUsed)
+		}
+		_ = update.Exec(ctx)
 	}
 
 	// Parse AI response (flexible map to preserve all fields)

@@ -111,7 +111,7 @@ func main() {
 
 	// Controllers
 	authCtrl := controller.NewAuthController(authService, cfg)
-	adminCtrl := controller.NewAdminController(db)
+	adminCtrl := controller.NewAdminController(db, aiProvider)
 	profileCtrl := controller.NewProfileController(db)
 	experienceCtrl := controller.NewExperienceController(experienceService)
 	usageCtrl := controller.NewUsageController(usageService)
@@ -302,6 +302,8 @@ func main() {
 		admin.PUT("/users/:id/role", adminCtrl.UpdateUserRole)
 		admin.GET("/stats", adminCtrl.GetStats)
 		admin.GET("/models/stats", adminCtrl.GetModelStats)
+		admin.GET("/models/available", adminCtrl.ListAvailableModels)
+		admin.GET("/models/rate-limit-hits", adminCtrl.GetRateLimitHits)
 		admin.GET("/prompts", adminCtrl.ListPrompts)
 		admin.PUT("/prompts/:id", adminCtrl.UpdatePrompt)
 		admin.GET("/usage/summary", adminCtrl.GetUsageSummary)

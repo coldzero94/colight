@@ -35,7 +35,7 @@ func setupQuestionTestRouter(t *testing.T, mockAI *mockLLMForQuestion) (*gin.Eng
 	gin.SetMode(gin.TestMode)
 
 	client := testutil.NewTestClient(t)
-	questionService := service.NewQuestionService(client, ai.NewAIProviderForTest(mockAI, mockAI))
+	questionService := service.NewQuestionService(client, ai.NewAIProviderForTest(mockAI))
 	questionCtrl := NewQuestionController(questionService)
 
 	router := gin.New()
@@ -85,7 +85,7 @@ func ensureTestPrompt(t *testing.T, client *ent.Client) {
 			SetName("Test Question Analysis").
 			SetSystemPrompt("Test system").
 			SetUserPromptTemplate("Test {{question_text}}").
-			SetModel("claude-sonnet-4.5").
+			SetModel("groq/compound").
 			SetTemperature(0.3).
 			SetMaxTokens(3000).
 			SetVersion(1).

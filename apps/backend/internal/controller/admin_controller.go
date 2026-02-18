@@ -16,6 +16,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/systemconfig"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
+	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/crypto"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/middleware"
 	"github.com/gin-gonic/gin"
@@ -24,11 +25,12 @@ import (
 )
 
 type AdminController struct {
-	db *ent.Client
+	db         *ent.Client
+	aiProvider *ai.AIProvider
 }
 
-func NewAdminController(db *ent.Client) *AdminController {
-	return &AdminController{db: db}
+func NewAdminController(db *ent.Client, aiProvider *ai.AIProvider) *AdminController {
+	return &AdminController{db: db, aiProvider: aiProvider}
 }
 
 // ListUsers returns paginated user list with optional role/search filter.
@@ -459,6 +461,15 @@ func (ctrl *AdminController) UpdatePrompt(c *gin.Context) {
 		update = update.SetUserPromptTemplate(*req.UserPromptTemplate)
 	}
 	if req.ModelName != nil {
+		if !ai.IsSelectableModel(*req.ModelName) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": gin.H{
+					"message": "지원하지 않는 모델입니다. GET /v1/admin/models/available에서 사용 가능한 모델을 확인해주세요.",
+					"code":    "VALID_001",
+				},
+			})
+			return
+		}
 		update = update.SetModel(*req.ModelName)
 	}
 	if req.Temperature != nil {
@@ -1523,12 +1534,16 @@ func (ctrl *AdminController) GetModelStats(c *gin.Context) {
 		}
 	}
 
-	// Calculate averages
+	// Calculate averages and add limit info
 	items := make([]map[string]any, 0, len(modelMap))
 	for _, ms := range modelMap {
 		if ms.CallCount > 0 {
 			ms.AvgLatency /= float64(ms.CallCount)
 		}
+
+		// Get rate limits for this model
+		limits := ai.GetModelLimits(ms.Model)
+
 		items = append(items, map[string]any{
 			"model":          ms.Model,
 			"provider":       ms.Provider,
@@ -1543,6 +1558,12 @@ func (ctrl *AdminController) GetModelStats(c *gin.Context) {
 			"avg_cost_krw":   ms.TotalCost / float64(ms.CallCount),
 			"avg_latency_ms": ms.AvgLatency,
 			"last_used":      ms.LastUsed,
+			// Rate limit info
+			"rpm":         limits.RPM,
+			"tpm":         limits.TPM,
+			"rpd":         limits.RPD,
+			"context_size": limits.Context,
+			"note":        limits.Note,
 		})
 	}
 
@@ -1556,59 +1577,95 @@ func (ctrl *AdminController) GetModelStats(c *gin.Context) {
 		featureModels[pt.Category+"/"+pt.SubCategory] = pt.Model
 	}
 
-	// Estimate Gemini quotas (today's usage)
-	geminiQuotas := estimateGeminiQuotas(logs)
+	// Estimate quotas (today's usage) for all providers
+	quotas := estimateModelQuotas(logs)
 
 	c.JSON(http.StatusOK, gin.H{
 		"data":           items,
 		"days":           days,
 		"feature_models": featureModels,
-		"gemini_quotas":  geminiQuotas,
+		"model_quotas":   quotas,
 	})
 }
 
-// estimateGeminiQuotas estimates remaining Gemini quota based on today's usage.
-// Quotas reset at midnight Pacific Time.
-func estimateGeminiQuotas(logs []*ent.UsageLog) []map[string]any {
-	quotaLimits := map[string]int{
-		"gemini-3-pro":          1500,
-		"gemini-2.5-pro":        1500,
-		"gemini-2.0-flash":      1500,
-		"gemini-2.0-flash-lite": 1500,
-		"gemini-2.5-flash":      20,
-		"gemini-2.5-flash-lite": 20,
-		"gemini-3-flash":        20,
-	}
+// estimateModelQuotas estimates remaining RPD quota for all models with daily limits.
+// Gemini quotas reset at midnight Pacific Time, Groq at midnight UTC.
+func estimateModelQuotas(logs []*ent.UsageLog) []map[string]any {
+	// Use centralized model limits
+	selectableModels := ai.GetSelectableModels()
 
-	// Get today in Pacific Time
+	// Get today boundaries
 	loc, _ := time.LoadLocation("America/Los_Angeles")
 	nowPT := time.Now().In(loc)
-	startOfDay := time.Date(nowPT.Year(), nowPT.Month(), nowPT.Day(), 0, 0, 0, 0, loc)
+	geminiStartOfDay := time.Date(nowPT.Year(), nowPT.Month(), nowPT.Day(), 0, 0, 0, 0, loc)
+	nowUTC := time.Now().UTC()
+	groqStartOfDay := time.Date(nowUTC.Year(), nowUTC.Month(), nowUTC.Day(), 0, 0, 0, 0, time.UTC)
 
-	// Count usage per model
-	modelUsage := make(map[string]int)
+	// Count usage per model (today only)
+	geminiUsage := make(map[string]int)
+	groqUsage := make(map[string]int)
 	for _, l := range logs {
-		if l.Model != nil && l.CreatedAt.After(startOfDay) {
-			modelUsage[*l.Model]++
+		if l.Model == nil {
+			continue
+		}
+		if l.CreatedAt.After(geminiStartOfDay) {
+			geminiUsage[*l.Model]++
+		}
+		if l.CreatedAt.After(groqStartOfDay) {
+			groqUsage[*l.Model]++
 		}
 	}
 
-	// Build quota status
 	result := []map[string]any{}
-	for model, limit := range quotaLimits {
-		used := modelUsage[model]
-		remaining := limit - used
+	for _, m := range selectableModels {
+		if m.RPD == 0 {
+			continue // Skip models without daily limits
+		}
+		used := 0
+		if m.Provider == "gemini" {
+			used = geminiUsage[m.ID]
+		} else if m.Provider == "groq" {
+			used = groqUsage[m.ID]
+		}
+		remaining := m.RPD - used
 		if remaining < 0 {
 			remaining = 0
 		}
 		result = append(result, map[string]any{
-			"model":      model,
-			"limit":      limit,
+			"model":      m.ID,
+			"provider":   m.Provider,
+			"limit":      m.RPD,
 			"used":       used,
 			"remaining":  remaining,
-			"percentage": float64(used) / float64(limit) * 100,
+			"percentage": float64(used) / float64(m.RPD) * 100,
+			"rpm":        m.RPM,
+			"tpm":        m.TPM,
 		})
 	}
 
 	return result
+}
+
+// ListAvailableModels returns all models that can be assigned to prompt templates.
+// GET /v1/admin/models/available
+func (ctrl *AdminController) ListAvailableModels(c *gin.Context) {
+	models := ai.GetSelectableModels()
+	c.JSON(http.StatusOK, gin.H{"data": models})
+}
+
+// GetRateLimitHits returns recent rate limit hit events for monitoring.
+// GET /v1/admin/models/rate-limit-hits?hours=24
+func (ctrl *AdminController) GetRateLimitHits(c *gin.Context) {
+	hours, _ := strconv.Atoi(c.DefaultQuery("hours", "24"))
+	if hours <= 0 {
+		hours = 24
+	}
+
+	if ctrl.aiProvider == nil || ctrl.aiProvider.Throttler() == nil {
+		c.JSON(http.StatusOK, gin.H{"data": []any{}, "hours": hours})
+		return
+	}
+
+	summary := ctrl.aiProvider.Throttler().GetQuotaHitSummary(time.Duration(hours) * time.Hour)
+	c.JSON(http.StatusOK, gin.H{"data": summary, "hours": hours})
 }

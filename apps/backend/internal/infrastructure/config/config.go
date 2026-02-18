@@ -31,9 +31,8 @@ type Config struct {
 
 	// AI
 	GeminiAPIKey string
-	GroqAPIKey       string
-	AnthropicAPIKey  string
-	OpenAIAPIKey     string // embeddings only
+	GroqAPIKey   string
+	OpenAIAPIKey string // embeddings only
 }
 
 func Load() *Config {
@@ -49,10 +48,9 @@ func Load() *Config {
 		JWTAccessTokenTTL:  parseDuration("JWT_ACCESS_TOKEN_TTL", 1*time.Hour),
 		JWTRefreshTokenTTL: parseDuration("JWT_REFRESH_TOKEN_TTL", 168*time.Hour),
 		FrontendURL:        getEnv("FRONTEND_URL", "http://localhost:4000"),
-		GeminiAPIKey:       getEnv("GEMINI_API_KEY", ""),
-		GroqAPIKey:         getEnv("GROQ_API_KEY", ""),
-		AnthropicAPIKey:    getEnv("ANTHROPIC_API_KEY", ""),
-		OpenAIAPIKey:       getEnv("OPENAI_API_KEY", ""),
+		GeminiAPIKey: getEnv("GEMINI_API_KEY", ""),
+		GroqAPIKey:   getEnv("GROQ_API_KEY", ""),
+		OpenAIAPIKey: getEnv("OPENAI_API_KEY", ""),
 	}
 }
 

@@ -48,7 +48,7 @@ func setupCoachingTestRouter(t *testing.T, mockAI *mockLLMForCoaching) (*gin.Eng
 	gin.SetMode(gin.TestMode)
 
 	client := testutil.NewTestClient(t)
-	coachingService := service.NewCoachingService(client, ai.NewAIProviderForTest(mockAI, mockAI))
+	coachingService := service.NewCoachingService(client, ai.NewAIProviderForTest(mockAI))
 	coachingCtrl := NewCoachingController(coachingService)
 
 	router := gin.New()
@@ -99,7 +99,7 @@ func ensureCoachingPrompt(t *testing.T, client *ent.Client) {
 			SetName("Test Draft").
 			SetSystemPrompt("Test system").
 			SetUserPromptTemplate("Test {{question_text}}").
-			SetModel("claude-sonnet-4.5").
+			SetModel("groq/compound").
 			SetTemperature(0.7).
 			SetMaxTokens(3000).
 			SetVersion(1).
@@ -359,25 +359,18 @@ func ensureAdvicePromptCtrl(t *testing.T, client *ent.Client) {
 }
 
 func TestPostDraft_DoneEventIncludesAdvice(t *testing.T) {
-	// Heavy mock (Claude) for streaming
-	heavyMock := &mockLLMForCoaching{
-		chunks: []string{"[상황]\n", "초안 내용"},
+	// Single mock handles both draft generation and advice
+	mockAI := &mockLLMForCoaching{
 		response: ai.LLMResponse{
-			Content:      "[상황]\n초안 내용",
+			Content:      `[{"category":"metric","content":"수치를 추가하세요.","priority":1},{"category":"structure","content":"결과를 보강하세요.","priority":2}]`,
 			InputTokens:  50,
 			OutputTokens: 100,
-		},
-	}
-	// Light mock (Gemini) for advice — returns JSON array
-	lightMock := &mockLLMForCoaching{
-		response: ai.LLMResponse{
-			Content: `[{"category":"metric","content":"수치를 추가하세요.","priority":1},{"category":"structure","content":"결과를 보강하세요.","priority":2}]`,
 		},
 	}
 
 	gin.SetMode(gin.TestMode)
 	client := testutil.NewTestClient(t)
-	provider := ai.NewAIProviderForTest(lightMock, heavyMock)
+	provider := ai.NewAIProviderForTest(mockAI)
 	coachingService := service.NewCoachingService(client, provider)
 	coachingCtrl := NewCoachingController(coachingService)
 

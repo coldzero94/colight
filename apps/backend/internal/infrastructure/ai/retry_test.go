@@ -98,6 +98,84 @@ func TestCallWithRetry_ContextCancelled(t *testing.T) {
 	assert.True(t, provider.calls <= 2)
 }
 
+func TestCallWithModelFallback_SuccessFirstModel(t *testing.T) {
+	mock := &mockLLMProvider{
+		responses: []LLMResponse{{Content: "ok", Model: "gemini-3-pro"}},
+	}
+	provider := NewAIProviderForTest(mock)
+
+	resp, modelUsed, err := CallWithModelFallback(context.Background(), provider, LLMRequest{UserPrompt: "test"}, FallbackConfig{
+		Models:     []string{"gemini-3-pro", "gemini-2.5-pro"},
+		MaxRetries: 0,
+		BaseDelay:  time.Millisecond,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "ok", resp.Content)
+	assert.Equal(t, "gemini-3-pro", modelUsed)
+}
+
+func TestCallWithModelFallback_FallsBackOnQuotaError(t *testing.T) {
+	mock := &mockLLMProvider{
+		errors:    []error{errors.New("429 rate limit"), nil},
+		responses: []LLMResponse{{}, {Content: "fallback ok", Model: "gemini-2.5-pro"}},
+	}
+	provider := NewAIProviderForTest(mock)
+
+	resp, modelUsed, err := CallWithModelFallback(context.Background(), provider, LLMRequest{UserPrompt: "test"}, FallbackConfig{
+		Models:     []string{"gemini-3-pro", "gemini-2.5-pro"},
+		MaxRetries: 0,
+		BaseDelay:  time.Millisecond,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "fallback ok", resp.Content)
+	assert.Equal(t, "gemini-2.5-pro", modelUsed)
+}
+
+func TestCallWithModelFallback_NonRetryableStopsImmediately(t *testing.T) {
+	mock := &mockLLMProvider{
+		errors: []error{errors.New("invalid api key")},
+	}
+	provider := NewAIProviderForTest(mock)
+
+	_, _, err := CallWithModelFallback(context.Background(), provider, LLMRequest{UserPrompt: "test"}, FallbackConfig{
+		Models:     []string{"gemini-3-pro", "gemini-2.5-pro"},
+		MaxRetries: 0,
+		BaseDelay:  time.Millisecond,
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "non-retryable")
+	assert.Equal(t, 1, mock.calls) // Only 1 call, no fallback
+}
+
+func TestCallWithModelFallback_AllModelsExhausted(t *testing.T) {
+	mock := &mockLLMProvider{
+		errors: []error{
+			errors.New("429 rate limit"),
+			errors.New("429 rate limit"),
+			errors.New("quota exceeded"),
+		},
+	}
+	provider := NewAIProviderForTest(mock)
+
+	_, _, err := CallWithModelFallback(context.Background(), provider, LLMRequest{UserPrompt: "test"}, FallbackConfig{
+		Models:     []string{"gemini-3-pro", "gemini-2.5-pro", "gemini-2.0-flash"},
+		MaxRetries: 0,
+		BaseDelay:  time.Millisecond,
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "all models failed")
+	assert.Equal(t, 3, mock.calls)
+}
+
+func TestCallWithModelFallback_EmptyModels(t *testing.T) {
+	provider := NewAIProviderForTest(&mockLLMProvider{})
+	_, _, err := CallWithModelFallback(context.Background(), provider, LLMRequest{}, FallbackConfig{
+		Models: []string{},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "no models")
+}
+
 func TestIsRetryableError(t *testing.T) {
 	tests := []struct {
 		name      string

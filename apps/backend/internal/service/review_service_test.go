@@ -29,7 +29,7 @@ func (m *MockLLMForReview) Call(ctx context.Context, req ai.LLMRequest) (ai.LLMR
 }
 
 func newTestAIProviderForReview(mockAI *MockLLMForReview) *ai.AIProvider {
-	return ai.NewAIProviderForTest(mockAI, mockAI)
+	return ai.NewAIProviderForTest(mockAI)
 }
 
 const validReviewJSON = `{
@@ -141,7 +141,7 @@ func ensureReviewPrompt(t *testing.T, client *ent.Client) {
 {{company_context}}
 
 위 자소서를 평가하고 JSON으로 응답하세요.`).
-			SetModel("claude-sonnet-4.5").
+			SetModel("groq/compound").
 			SetTemperature(0.3).
 			SetMaxTokens(3000).
 			SetVersion(1).

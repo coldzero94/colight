@@ -45,7 +45,7 @@ func setupReviewTestRouter(t *testing.T, mockAI *mockLLMForReview) (*gin.Engine,
 	gin.SetMode(gin.TestMode)
 
 	client := testutil.NewTestClient(t)
-	reviewService := service.NewReviewService(client, ai.NewAIProviderForTest(mockAI, mockAI))
+	reviewService := service.NewReviewService(client, ai.NewAIProviderForTest(mockAI))
 	reviewCtrl := NewReviewController(reviewService)
 
 	router := gin.New()
@@ -80,7 +80,7 @@ func ensureReviewPromptCtrl(t *testing.T, client *ent.Client) {
 			SetName("Test Review").
 			SetSystemPrompt("Review system prompt").
 			SetUserPromptTemplate("Review {{content}} {{question_text}} {{char_limit}} {{company_context}}").
-			SetModel("claude-sonnet-4.5").
+			SetModel("groq/compound").
 			SetTemperature(0.3).
 			SetMaxTokens(3000).
 			SetVersion(1).

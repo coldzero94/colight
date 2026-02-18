@@ -590,7 +590,7 @@ STAR 구조:
 
 위 경험을 바탕으로, 문항에 맞는 자소서 초안을 {{char_limit}}자 이내로 작성하세요.`,
 			OutputSchema:  map[string]interface{}{},
-			Model:         "claude-sonnet",
+			Model:         "gemini-2.5-pro",
 			Temperature:   0.7,
 			MaxTokens:     3000,
 			Version:       1,

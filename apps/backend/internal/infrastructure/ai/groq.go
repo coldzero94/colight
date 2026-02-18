@@ -11,30 +11,44 @@ import (
 
 // Supported Groq model IDs
 const (
-	GroqModelLlama33_70B = "llama-3.3-70b-versatile"
-	GroqModelLlama4Scout = "meta-llama/llama-4-scout-17b-16e-instruct"
-	GroqModelQwen3_32B   = "qwen/qwen3-32b"
-	GroqModelGPTOSS120B  = "openai/gpt-oss-120b"
-	GroqModelKimiK2      = "moonshotai/kimi-k2-instruct"
-	GroqModelCompound    = "groq/compound"
+	GroqModelLlama33_70B    = "llama-3.3-70b-versatile"
+	GroqModelLlama31_8B     = "llama-3.1-8b-instant"
+	GroqModelLlama4Scout    = "meta-llama/llama-4-scout-17b-16e-instruct"
+	GroqModelLlama4Maverick = "meta-llama/llama-4-maverick-17b-128e-instruct"
+	GroqModelQwen3_32B      = "qwen/qwen3-32b"
+	GroqModelGPTOSS120B     = "openai/gpt-oss-120b"
+	GroqModelGPTOSS20B      = "openai/gpt-oss-20b"
+	GroqModelKimiK2         = "moonshotai/kimi-k2-instruct"
+	GroqModelCompound       = "groq/compound"
+	GroqModelCompoundMini   = "groq/compound-mini"
 )
 
 // GroqModelAliases maps short names to full Groq model IDs.
 var GroqModelAliases = map[string]string{
 	// Full IDs (identity)
-	GroqModelLlama33_70B: GroqModelLlama33_70B,
-	GroqModelLlama4Scout: GroqModelLlama4Scout,
-	GroqModelQwen3_32B:   GroqModelQwen3_32B,
-	GroqModelGPTOSS120B:  GroqModelGPTOSS120B,
-	GroqModelKimiK2:      GroqModelKimiK2,
-	GroqModelCompound:    GroqModelCompound,
+	GroqModelLlama33_70B:    GroqModelLlama33_70B,
+	GroqModelLlama31_8B:     GroqModelLlama31_8B,
+	GroqModelLlama4Scout:    GroqModelLlama4Scout,
+	GroqModelLlama4Maverick: GroqModelLlama4Maverick,
+	GroqModelQwen3_32B:      GroqModelQwen3_32B,
+	GroqModelGPTOSS120B:     GroqModelGPTOSS120B,
+	GroqModelGPTOSS20B:      GroqModelGPTOSS20B,
+	GroqModelKimiK2:         GroqModelKimiK2,
+	GroqModelCompound:       GroqModelCompound,
+	GroqModelCompoundMini:   GroqModelCompoundMini,
 	// Short aliases
-	"llama-3.3":    GroqModelLlama33_70B,
-	"llama-4-scout": GroqModelLlama4Scout,
-	"qwen3":        GroqModelQwen3_32B,
-	"gpt-oss-120b": GroqModelGPTOSS120B,
-	"kimi-k2":      GroqModelKimiK2,
-	"compound":     GroqModelCompound,
+	"llama-3.3":      GroqModelLlama33_70B,
+	"llama-3.3-70b":  GroqModelLlama33_70B,
+	"llama-3.1":      GroqModelLlama31_8B,
+	"llama-4-scout":  GroqModelLlama4Scout,
+	"llama-4-maverick": GroqModelLlama4Maverick,
+	"qwen3":          GroqModelQwen3_32B,
+	"qwen3-32b":      GroqModelQwen3_32B,
+	"gpt-oss-120b":   GroqModelGPTOSS120B,
+	"gpt-oss-20b":    GroqModelGPTOSS20B,
+	"kimi-k2":        GroqModelKimiK2,
+	"compound":       GroqModelCompound,
+	"compound-mini":  GroqModelCompoundMini,
 }
 
 // ResolveGroqModel returns the full model ID for a given alias.

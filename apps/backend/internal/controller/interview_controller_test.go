@@ -23,7 +23,7 @@ func setupInterviewTestRouter(t *testing.T, mockResp string) *gin.Engine {
 		Response: ai.LLMResponse{Content: mockResp},
 	}
 
-	interviewSvc := service.NewInterviewService(ai.NewAIProviderForTest(mockAI, nil), nil, nil)
+	interviewSvc := service.NewInterviewService(ai.NewAIProviderForTest(mockAI), nil, nil)
 	interviewCtrl := NewInterviewController(interviewSvc)
 
 	router := gin.New()

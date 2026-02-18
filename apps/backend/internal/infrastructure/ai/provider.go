@@ -11,8 +11,7 @@ import (
 // AIProvider routes AI calls to the correct provider based on model name.
 // Each provider is initialized independently based on API key availability.
 type AIProvider struct {
-	gemini    LLMProvider      // Gemini Flash (optional)
-	claude    LLMProvider      // Claude Sonnet 4.5 (optional)
+	gemini    LLMProvider      // Gemini (optional)
 	groq      *GroqProvider    // Groq multi-model (optional)
 	groqLLM   LLMProvider      // test override: routes "groq" calls to this instead of groq field
 	groqSem   chan struct{}    // semaphore to serialize Groq calls (avoid rate limit)
@@ -38,14 +37,9 @@ func NewAIProvider(ctx context.Context, cfg *config.Config) (*AIProvider, error)
 		p.groq = NewGroqProvider(cfg.GroqAPIKey, "")
 	}
 
-	// Claude (optional)
-	if cfg.AnthropicAPIKey != "" {
-		p.claude = NewClaudeProvider(cfg.AnthropicAPIKey)
-	}
-
 	// At least one provider must be available
-	if p.gemini == nil && p.groq == nil && p.claude == nil {
-		return nil, fmt.Errorf("no AI provider available: set at least one of GEMINI_API_KEY, GROQ_API_KEY, or ANTHROPIC_API_KEY")
+	if p.gemini == nil && p.groq == nil {
+		return nil, fmt.Errorf("no AI provider available: set at least one of GEMINI_API_KEY or GROQ_API_KEY")
 	}
 
 	// Serialize Groq calls to avoid rate limit on free tier (1 concurrent call)
@@ -66,15 +60,13 @@ func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req 
 		}
 	}
 	switch modelName {
-	case "claude-sonnet-4-5", "claude-sonnet-4.5", "claude":
-		if p.claude == nil {
-			return LLMResponse{}, fmt.Errorf("Claude not available (missing ANTHROPIC_API_KEY)")
-		}
-		return p.claude.Call(ctx, req)
-
-	case "gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash", "gemini":
+	case "gemini-3-pro", "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite",
+		"gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-flash", "gemini":
 		if p.gemini == nil {
 			return LLMResponse{}, fmt.Errorf("Gemini not available (missing GEMINI_API_KEY)")
+		}
+		if gp, ok := p.gemini.(*GeminiProvider); ok {
+			return gp.CallWithModel(ctx, modelName, req)
 		}
 		return p.gemini.Call(ctx, req)
 
@@ -103,7 +95,7 @@ func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req 
 			})
 		}
 
-		// Check if it's a known Gemini model alias (e.g. "gemini-2.5-pro", "gemini-lite")
+		// Check if it's a known Gemini model alias (e.g. "gemini-lite")
 		if _, ok := GeminiModelAliases[modelName]; ok {
 			if p.gemini == nil {
 				return LLMResponse{}, fmt.Errorf("Gemini not available for model %s (missing GEMINI_API_KEY)", modelName)
@@ -133,23 +125,14 @@ func (p *AIProvider) callGroqSerialized(ctx context.Context, fn func() (LLMRespo
 	}
 }
 
-// Claude returns the Claude provider. Returns nil if not configured.
-func (p *AIProvider) Claude() LLMProvider {
-	return p.claude
-}
-
 // Groq returns the Groq provider. Returns nil if not configured.
 func (p *AIProvider) Groq() *GroqProvider {
 	return p.groq
 }
 
-// ClaudeStreaming returns the Claude provider as StreamingLLMProvider.
-// Returns nil if Claude is not configured or doesn't support streaming.
-func (p *AIProvider) ClaudeStreaming() StreamingLLMProvider {
-	if sp, ok := p.claude.(StreamingLLMProvider); ok {
-		return sp
-	}
-	return nil
+// Throttler returns the model throttler for monitoring quota hits.
+func (p *AIProvider) Throttler() *ModelThrottler {
+	return p.throttler
 }
 
 // Close closes all AI clients.

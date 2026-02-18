@@ -36,7 +36,7 @@ func TestCrawlJobPosting_RealJobKorea(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	service := NewCrawlingService(nil, aiProvider)
 
 	testURL := "https://www.jobkorea.co.kr/Recruit/GI_Read/45942867"
@@ -80,7 +80,7 @@ func TestCrawlJobPosting_RealCatch(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	service := NewCrawlingService(nil, aiProvider)
 
 	testURL := "https://www.catch.co.kr/NCS/RecruitInfoDetail/321177"
@@ -125,7 +125,7 @@ func TestCrawlJobPosting_RealSaramin(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	service := NewCrawlingService(nil, aiProvider)
 
 	testURL := "https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=49845147"
@@ -321,7 +321,7 @@ func TestCrawlJobPosting_RealSPA_FullPipeline(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	service := NewCrawlingService(nil, aiProvider)
 
 	testURL := "https://careers.lg.com/apply/detail?id=1001364"

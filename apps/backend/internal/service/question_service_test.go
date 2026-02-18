@@ -28,7 +28,7 @@ func (m *MockLLMForQuestion) Call(ctx context.Context, req ai.LLMRequest) (ai.LL
 }
 
 func newTestAIProviderForQuestion(mockAI *MockLLMForQuestion) *ai.AIProvider {
-	return ai.NewAIProviderForTest(mockAI, mockAI)
+	return ai.NewAIProviderForTest(mockAI)
 }
 
 func createTestUserAndApplication(t *testing.T, client *ent.Client) (uuid.UUID, uuid.UUID) {
@@ -78,7 +78,7 @@ func ensureQuestionAnalysisPrompt(t *testing.T, client *ent.Client) {
 글자수 제한: {{char_limit}}자
 
 위 문항을 분석하여 JSON 형식으로 응답하세요.`).
-			SetModel("claude-sonnet-4.5").
+			SetModel("groq/compound").
 			SetTemperature(0.3).
 			SetMaxTokens(3000).
 			SetVersion(1).
@@ -149,7 +149,7 @@ func TestAnalyzeQuestion_ReturnsStructuredResult(t *testing.T) {
 			}`,
 			InputTokens:  500,
 			OutputTokens: 400,
-			Model:        "claude-sonnet-4.5",
+			Model:        "groq/compound",
 		},
 	}
 

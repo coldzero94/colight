@@ -11,7 +11,7 @@ import (
 )
 
 func newTestInterviewService(mockAI *MockLLMProvider) *InterviewService {
-	return NewInterviewService(ai.NewAIProviderForTest(mockAI, nil), nil, nil)
+	return NewInterviewService(ai.NewAIProviderForTest(mockAI), nil, nil)
 }
 
 func TestGenerateQuestion_WarmupStage(t *testing.T) {

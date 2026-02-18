@@ -48,20 +48,7 @@ func setupMatchingTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
 		},
 	}
 
-	// Mock LLM for company analysis (heavy model)
-	mockHeavyLLM := &mockLLMForMatch{
-		response: ai.LLMResponse{
-			Content: `{
-				"company_name": "테스트",
-				"core_values": [],
-				"talent_traits": [],
-				"strategy_keywords": [],
-				"avoid_expressions": []
-			}`,
-		},
-	}
-
-	aiProvider := ai.NewAIProviderForTest(mockMatchLLM, mockHeavyLLM)
+	aiProvider := ai.NewAIProviderForTest(mockMatchLLM)
 	companyDataSvc := service.NewCompanyDataService()
 	analysisService := service.NewCompanyAnalysisService(client, aiProvider, companyDataSvc)
 	matchingService := service.NewMatchingService(client, aiProvider)

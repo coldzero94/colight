@@ -274,7 +274,7 @@ func (s *CrawlingService) extractJobPostingFromMarkdown(ctx context.Context, sou
 		return nil, fmt.Errorf("AI extraction from markdown failed: %w", err)
 	}
 
-	s.updatePromptStats(ctx, pt, time.Since(startTime))
+	s.updatePromptStats(ctx, pt, time.Since(startTime), modelUsed)
 
 	result, err := ai.ExtractJSONFlexible(resp.Content)
 	if err != nil {
@@ -318,7 +318,7 @@ func (s *CrawlingService) extractJobPostingFromHTML(ctx context.Context, sourceU
 		return nil, fmt.Errorf("AI extraction from HTML failed: %w", err)
 	}
 
-	s.updatePromptStats(ctx, pt, time.Since(startTime))
+	s.updatePromptStats(ctx, pt, time.Since(startTime), modelUsed)
 
 	result, err := ai.ExtractJSONFlexible(resp.Content)
 	if err != nil {
@@ -369,7 +369,7 @@ func (s *CrawlingService) normalizeWithAI(ctx context.Context, raw *crawler.RawJ
 		return nil, err
 	}
 
-	s.updatePromptStats(ctx, pt, time.Since(startTime))
+	s.updatePromptStats(ctx, pt, time.Since(startTime), modelUsed)
 
 	result, err := ai.ExtractJSONFlexible(resp.Content)
 	if err != nil {
@@ -445,15 +445,21 @@ func crawlingDefaultPrompt(subCategory string) *ent.PromptTemplate {
 }
 
 // updatePromptStats updates usage count and avg latency for a prompt template
-func (s *CrawlingService) updatePromptStats(ctx context.Context, pt *ent.PromptTemplate, latency time.Duration) {
+func (s *CrawlingService) updatePromptStats(ctx context.Context, pt *ent.PromptTemplate, latency time.Duration, modelUsed string) {
 	if s.entClient == nil || pt.ID.String() == "00000000-0000-0000-0000-000000000000" {
 		return
 	}
 	latencyMs := int(latency.Milliseconds())
-	_ = s.entClient.PromptTemplate.UpdateOneID(pt.ID).
+	update := s.entClient.PromptTemplate.UpdateOneID(pt.ID).
 		SetUsageCount(pt.UsageCount + 1).
-		SetAvgLatencyMs((pt.AvgLatencyMs*pt.UsageCount + latencyMs) / (pt.UsageCount + 1)).
-		Exec(ctx)
+		SetAvgLatencyMs((pt.AvgLatencyMs*pt.UsageCount + latencyMs) / (pt.UsageCount + 1))
+
+	// Auto-update model in DB when fallback used a different model
+	if modelUsed != "" && modelUsed != pt.Model {
+		slog.Warn("ai_model_auto_switch", "feature", "crawling", "from", pt.Model, "to", modelUsed)
+		update = update.SetModel(modelUsed)
+	}
+	_ = update.Exec(ctx)
 }
 
 // fetchSaraminAjax fetches real job content from Saramin's AJAX endpoint.

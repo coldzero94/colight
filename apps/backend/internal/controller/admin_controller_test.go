@@ -27,7 +27,7 @@ func setupAdminTestRouter(t *testing.T) *gin.Engine {
 	// Clean all tables so tests that assert exact counts start fresh
 	testutil.CleanAllTables(db)
 
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	v1 := r.Group("/v1/admin")
@@ -127,7 +127,7 @@ func TestAdminController_ListUsers_Pagination(t *testing.T) {
 func TestAdminController_GetUser_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.GET("/v1/admin/users/:id", ctrl.GetUser)
@@ -151,7 +151,7 @@ func TestAdminController_GetUser_Success(t *testing.T) {
 func TestAdminController_GetUser_NotFound(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.GET("/v1/admin/users/:id", ctrl.GetUser)
@@ -166,7 +166,7 @@ func TestAdminController_GetUser_NotFound(t *testing.T) {
 func TestAdminController_GetUser_InvalidID(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.GET("/v1/admin/users/:id", ctrl.GetUser)
@@ -235,7 +235,7 @@ func setupRoleValidationRouter(t *testing.T) (*gin.Engine, *ent.Client) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
 	testutil.CleanAllTables(db)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	// Simulate auth middleware: set user_id + role from headers
@@ -400,7 +400,7 @@ func TestAdminController_ListPrompts_Empty(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
 	testutil.CleanAllTables(db)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.GET("/v1/admin/prompts", ctrl.ListPrompts)
@@ -419,7 +419,7 @@ func TestAdminController_ListPrompts_WithData(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
 	testutil.CleanAllTables(db)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	// Create test prompt
 	db.PromptTemplate.Create().
@@ -428,7 +428,7 @@ func TestAdminController_ListPrompts_WithData(t *testing.T) {
 		SetName("Draft Prompt").
 		SetSystemPrompt("System prompt").
 		SetUserPromptTemplate("User {{variable}}").
-		SetModel("claude-sonnet-4-5").
+		SetModel("groq/compound").
 		SaveX(t.Context())
 
 	r := gin.New()
@@ -451,12 +451,12 @@ func TestAdminController_ListPrompts_FilterByCategory(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
 	testutil.CleanAllTables(db)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	db.PromptTemplate.Create().
 		SetCategory("coaching").SetSubCategory("draft").
 		SetName("P1").SetSystemPrompt("sys").SetUserPromptTemplate("usr").
-		SetModel("claude-sonnet-4-5").SaveX(t.Context())
+		SetModel("groq/compound").SaveX(t.Context())
 	db.PromptTemplate.Create().
 		SetCategory("analysis").SetSubCategory("company").
 		SetName("P2").SetSystemPrompt("sys").SetUserPromptTemplate("usr").
@@ -479,12 +479,12 @@ func TestAdminController_ListPrompts_FilterByCategory(t *testing.T) {
 func TestAdminController_UpdatePrompt_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	prompt := db.PromptTemplate.Create().
 		SetCategory("coaching").SetSubCategory("draft").
 		SetName("P1").SetSystemPrompt("old system").SetUserPromptTemplate("old user").
-		SetModel("claude-sonnet-4-5").SaveX(t.Context())
+		SetModel("groq/compound").SaveX(t.Context())
 
 	r := gin.New()
 	r.PUT("/v1/admin/prompts/:id", ctrl.UpdatePrompt)
@@ -507,7 +507,7 @@ func TestAdminController_UpdatePrompt_Success(t *testing.T) {
 func TestAdminController_UpdatePrompt_NotFound(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.PUT("/v1/admin/prompts/:id", ctrl.UpdatePrompt)
@@ -526,7 +526,7 @@ func setupConfigTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
 	testutil.CleanAllTables(db)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.Use(func(c *gin.Context) {
@@ -556,7 +556,7 @@ func TestAdminController_ListConfigs_ByCategory(t *testing.T) {
 		SaveX(ctx)
 
 	db.SystemConfig.Create().
-		SetConfigKey("anthropic_api_key").
+		SetConfigKey("gemini_api_key").
 		SetConfigValue("encrypted-value").
 		SetCategory("api_key").
 		SetIsSecret(true).
@@ -564,7 +564,7 @@ func TestAdminController_ListConfigs_ByCategory(t *testing.T) {
 		SaveX(ctx)
 	db.SystemConfig.Create().
 		SetConfigKey("heavy_model").
-		SetConfigValue("claude-sonnet-4-5").
+		SetConfigValue("groq/compound").
 		SetCategory("model").
 		SaveX(ctx)
 
@@ -579,7 +579,7 @@ func TestAdminController_ListConfigs_ByCategory(t *testing.T) {
 	data := resp["data"].([]any)
 	assert.Len(t, data, 1)
 	item := data[0].(map[string]any)
-	assert.Equal(t, "anthropic_api_key", item["config_key"])
+	assert.Equal(t, "gemini_api_key", item["config_key"])
 	// Secret values should be masked
 	assert.NotEqual(t, "encrypted-value", item["config_value"])
 }
@@ -596,7 +596,7 @@ func TestAdminController_UpdateConfig_Success(t *testing.T) {
 
 	db.SystemConfig.Create().
 		SetConfigKey("heavy_model").
-		SetConfigValue("claude-sonnet-4-5").
+		SetConfigValue("groq/compound").
 		SetCategory("model").
 		SaveX(ctx)
 
@@ -635,7 +635,7 @@ func setupAdminUsageTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
 	testutil.CleanAllTables(db)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.Use(func(c *gin.Context) {
@@ -676,8 +676,8 @@ func TestAdminController_GetUsageSummary(t *testing.T) {
 	db.UsageLog.Create().
 		SetUserID(user.ID).
 		SetFeature("draft").
-		SetProvider("anthropic").
-		SetModel("claude-sonnet-4-5").
+		SetProvider("groq").
+		SetModel("groq/compound").
 		SetInputTokens(500).
 		SetOutputTokens(200).
 		SetTotalTokens(700).
@@ -700,8 +700,8 @@ func TestAdminController_GetUsageSummary(t *testing.T) {
 	db.UsageLog.Create().
 		SetUserID(user.ID).
 		SetFeature("draft").
-		SetProvider("anthropic").
-		SetModel("claude-sonnet-4-5").
+		SetProvider("groq").
+		SetModel("groq/compound").
 		SetInputTokens(600).
 		SetOutputTokens(0).
 		SetTotalTokens(600).
@@ -743,8 +743,8 @@ func TestAdminController_GetUsageDaily(t *testing.T) {
 	db.UsageLog.Create().
 		SetUserID(user.ID).
 		SetFeature("draft").
-		SetProvider("anthropic").
-		SetModel("claude-sonnet-4-5").
+		SetProvider("groq").
+		SetModel("groq/compound").
 		SetInputTokens(500).
 		SetOutputTokens(200).
 		SetTotalTokens(700).
@@ -770,7 +770,7 @@ func setupSuspendTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
 	testutil.CleanAllTables(db)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.Use(func(c *gin.Context) {
@@ -891,7 +891,7 @@ func setupAuditTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
 	testutil.CleanAllTables(db)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.Use(func(c *gin.Context) {
@@ -933,7 +933,7 @@ func TestAdminController_ListAuditLogs(t *testing.T) {
 		SetAction("config_update").
 		SetTargetType("config").
 		SetTargetID("heavy_model").
-		SetOldValue("claude-sonnet-4-5").
+		SetOldValue("groq/compound").
 		SetNewValue("gpt-4o").
 		SaveX(ctx)
 
@@ -987,7 +987,7 @@ func TestAdminController_ListAuditLogs_FilterByAction(t *testing.T) {
 func TestAdminController_HealthCheck(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.GET("/v1/admin/health", ctrl.HealthCheck)
@@ -1007,7 +1007,7 @@ func TestAdminController_ListFeedbacks(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
 	testutil.CleanAllTables(db)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.GET("/v1/admin/feedbacks", ctrl.ListFeedbacks)
@@ -1056,7 +1056,7 @@ func TestAdminController_GetUsageCosts(t *testing.T) {
 
 	db.UsageLog.Create().
 		SetUserID(user.ID).SetFeature("draft").
-		SetProvider("anthropic").SetModel("claude-sonnet-4-5").
+		SetProvider("groq").SetModel("groq/compound").
 		SetInputTokens(500).SetOutputTokens(200).SetTotalTokens(700).
 		SetEstimatedCostKrw(14.0).SetStatus("success").SaveX(ctx)
 	db.UsageLog.Create().
@@ -1066,7 +1066,7 @@ func TestAdminController_GetUsageCosts(t *testing.T) {
 		SetEstimatedCostKrw(2.0).SetStatus("success").SaveX(ctx)
 	db.UsageLog.Create().
 		SetUserID(user.ID).SetFeature("review").
-		SetProvider("anthropic").SetModel("claude-sonnet-4-5").
+		SetProvider("groq").SetModel("groq/compound").
 		SetInputTokens(600).SetOutputTokens(300).SetTotalTokens(900).
 		SetEstimatedCostKrw(18.0).SetStatus("success").SaveX(ctx)
 
@@ -1080,7 +1080,7 @@ func TestAdminController_GetUsageCosts(t *testing.T) {
 	resp := parseJSON(t, w)
 	data := resp["data"].([]any)
 	assert.NotEmpty(t, data)
-	// Should have 2 providers: anthropic and gemini
+	// Should have 2 providers: groq and gemini
 	assert.Len(t, data, 2)
 }
 
@@ -1110,7 +1110,7 @@ func TestAdminController_GetUsageTopUsers(t *testing.T) {
 	// user1: 1000 tokens
 	db.UsageLog.Create().
 		SetUserID(user1.ID).SetFeature("draft").
-		SetProvider("anthropic").SetModel("claude-sonnet-4-5").
+		SetProvider("groq").SetModel("groq/compound").
 		SetInputTokens(600).SetOutputTokens(400).SetTotalTokens(1000).
 		SetEstimatedCostKrw(20.0).SetStatus("success").SaveX(ctx)
 	// user2: 500 tokens
@@ -1204,7 +1204,7 @@ func TestAdminController_UpdateFeedbackStatus(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
 	testutil.CleanAllTables(db)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.Use(func(c *gin.Context) {
@@ -1297,7 +1297,7 @@ func setupDeletionTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestClient(t)
 	testutil.CleanAllTables(db)
-	ctrl := NewAdminController(db)
+	ctrl := NewAdminController(db, nil)
 
 	r := gin.New()
 	r.Use(func(c *gin.Context) {

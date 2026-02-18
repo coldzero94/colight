@@ -3,11 +3,10 @@ package ai
 import "context"
 
 // NewAIProviderForTest creates an AIProvider with injected mocks for testing.
-// light handles gemini/groq routes, heavy handles claude routes.
-func NewAIProviderForTest(light, heavy LLMProvider) *AIProvider {
+// light handles gemini/groq routes.
+func NewAIProviderForTest(light LLMProvider) *AIProvider {
 	return &AIProvider{
 		gemini:  light,
-		claude:  heavy,
 		groqLLM: light,
 	}
 }

@@ -31,7 +31,7 @@ func setupWeaponTaggingTestRouter(t *testing.T, mockAI *MockLLMProviderCtrl) (*g
 	t.Helper()
 	client := testutil.NewTestClient(t)
 
-	weaponSvc := service.NewWeaponTaggingService(client, ai.NewAIProviderForTest(mockAI, mockAI))
+	weaponSvc := service.NewWeaponTaggingService(client, ai.NewAIProviderForTest(mockAI))
 	weaponCtrl := NewWeaponTaggingController(weaponSvc)
 
 	router := gin.New()

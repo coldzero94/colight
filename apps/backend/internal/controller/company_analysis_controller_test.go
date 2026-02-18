@@ -38,7 +38,7 @@ func setupAnalysisTestRouter(t *testing.T) *gin.Engine {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mock, mock)
+	aiProvider := ai.NewAIProviderForTest(mock)
 	companyDataSvc := service.NewCompanyDataService()
 	analysisService := service.NewCompanyAnalysisService(client, aiProvider, companyDataSvc)
 	ctrl := NewCompanyAnalysisController(analysisService)

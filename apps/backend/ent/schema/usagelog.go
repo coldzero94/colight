@@ -34,7 +34,7 @@ func (UsageLog) Fields() []ent.Field {
 			MaxLen(20).
 			Optional().
 			Nillable().
-			Comment("AI provider: anthropic, gemini, groq"),
+			Comment("AI provider: gemini, groq"),
 		field.String("model").
 			MaxLen(100).
 			Optional().

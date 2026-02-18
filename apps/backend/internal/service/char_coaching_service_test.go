@@ -113,7 +113,7 @@ func ensureCharCoachingPrompt(t *testing.T, client *ent.Client) {
 상태: {{status}}
 
 위 자소서의 글자수를 조절하는 제안을 JSON으로 응답하세요.`).
-			SetModel("claude-sonnet-4.5").
+			SetModel("groq/compound").
 			SetTemperature(0.3).
 			SetMaxTokens(3000).
 			SetVersion(1).

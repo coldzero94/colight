@@ -42,7 +42,7 @@ func (m *MockLLMForCoaching) Stream(ctx context.Context, req ai.LLMRequest, onCh
 }
 
 func newTestAIProviderForCoaching(mockAI *MockLLMForCoaching) *ai.AIProvider {
-	return ai.NewAIProviderForTest(mockAI, mockAI)
+	return ai.NewAIProviderForTest(mockAI)
 }
 
 func createTestCoachingData(t *testing.T, client *ent.Client) (uuid.UUID, uuid.UUID, []uuid.UUID) {
@@ -114,7 +114,7 @@ func ensureCoachingPrompt(t *testing.T, client *ent.Client) {
 경험: {{experiences}}
 
 STAR 구조로 작성하세요.`).
-			SetModel("claude-sonnet-4.5").
+			SetModel("groq/compound").
 			SetTemperature(0.7).
 			SetMaxTokens(3000).
 			SetVersion(1).

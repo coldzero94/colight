@@ -44,7 +44,7 @@ func TestAIProvider_CallByModelName_GroqRoute(t *testing.T) {
 	mock := &MockStreamingProvider{
 		Response: LLMResponse{Content: "test"},
 	}
-	provider := NewAIProviderForTest(mock, nil)
+	provider := NewAIProviderForTest(mock)
 
 	resp, err := provider.CallByModelName(context.Background(), "groq", LLMRequest{
 		UserPrompt: "hello",
@@ -53,20 +53,24 @@ func TestAIProvider_CallByModelName_GroqRoute(t *testing.T) {
 	assert.Equal(t, "test", resp.Content)
 }
 
-func TestAIProvider_CallByModelName_ClaudeMissing(t *testing.T) {
-	mock := &MockStreamingProvider{}
-	provider := NewAIProviderForTest(mock, nil)
+func TestAIProvider_CallByModelName_GroqCompoundRoute(t *testing.T) {
+	mock := &MockStreamingProvider{
+		Response: LLMResponse{Content: "compound-response"},
+	}
+	provider := NewAIProviderForTest(mock)
 
-	_, err := provider.CallByModelName(context.Background(), "claude-sonnet-4-5", LLMRequest{})
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Claude not available")
+	resp, err := provider.CallByModelName(context.Background(), "groq/compound", LLMRequest{
+		UserPrompt: "hello",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "compound-response", resp.Content)
 }
 
 func TestAIProvider_CallByModelName_GeminiRoute(t *testing.T) {
 	mock := &MockStreamingProvider{
 		Response: LLMResponse{Content: "gemini-response"},
 	}
-	provider := NewAIProviderForTest(mock, nil)
+	provider := NewAIProviderForTest(mock)
 
 	resp, err := provider.CallByModelName(context.Background(), "gemini-2.0-flash", LLMRequest{
 		UserPrompt: "hello",

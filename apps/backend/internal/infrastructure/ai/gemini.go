@@ -10,26 +10,28 @@ import (
 // Supported Gemini model IDs
 const (
 	GeminiModel3Pro        = "gemini-3-pro"
+	GeminiModel25Pro       = "gemini-2.5-pro"
 	GeminiModel25Flash     = "gemini-2.5-flash"
 	GeminiModel25FlashLite = "gemini-2.5-flash-lite"
-	GeminiModel25Pro       = "gemini-2.5-pro"
-	GeminiModel20Flash     = "gemini-2.0-flash" // Deprecated: shutting down March 31, 2026
+	GeminiModel20Flash     = "gemini-2.0-flash"      // Deprecated: shutting down March 31, 2026
+	GeminiModel20FlashLite = "gemini-2.0-flash-lite"  // Deprecated: shutting down March 31, 2026
 )
 
 // GeminiModelAliases maps short names to full Gemini model IDs.
 var GeminiModelAliases = map[string]string{
 	// Full IDs (identity)
 	GeminiModel3Pro:        GeminiModel3Pro,
+	GeminiModel25Pro:       GeminiModel25Pro,
 	GeminiModel25Flash:     GeminiModel25Flash,
 	GeminiModel25FlashLite: GeminiModel25FlashLite,
-	GeminiModel25Pro:       GeminiModel25Pro,
 	GeminiModel20Flash:     GeminiModel20Flash,
+	GeminiModel20FlashLite: GeminiModel20FlashLite,
 	// Short aliases
+	"gemini":       GeminiModel3Pro, // Default to latest
+	"gemini-pro":   GeminiModel3Pro, // Default to latest Pro
 	"gemini-flash": GeminiModel25Flash,
 	"gemini-2.5":   GeminiModel25Flash,
-	"gemini":       GeminiModel3Pro, // Default to latest
 	"gemini-lite":  GeminiModel25FlashLite,
-	"gemini-pro":   GeminiModel3Pro, // Default to latest Pro
 	"gemini-2.0":   GeminiModel20Flash,
 }
 

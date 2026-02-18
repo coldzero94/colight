@@ -222,7 +222,11 @@ func CallWithModelFallback(
 				return LLMResponse{}, "", fmt.Errorf("non-retryable error on %s: %w", modelName, err)
 			}
 
-			slog.Warn("ai_fallback_quota", "model", modelName, "attempt", attempt+1, "error", err.Error())
+			// Record quota hit for admin monitoring
+		if provider.throttler != nil {
+			provider.throttler.RecordQuotaHit(modelName, err)
+		}
+		slog.Warn("ai_fallback_quota", "model", modelName, "attempt", attempt+1, "error", err.Error())
 		}
 
 		// Exhausted retries for this model, try next

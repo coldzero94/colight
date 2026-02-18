@@ -181,8 +181,8 @@ func (s *CoachingService) GenerateDraft(
 	return resp.Content, nil
 }
 
-// GenerateDraftStream generates a cover letter draft with streaming.
-// Calls onChunk for each text delta. Returns final LLMResponse with token usage.
+// GenerateDraftStream generates a cover letter draft with simulated streaming.
+// Calls onChunk with the full response. Returns final LLMResponse with token usage.
 // applicationID is optional — when nil, companyName is used directly.
 func (s *CoachingService) GenerateDraftStream(
 	ctx context.Context,
@@ -195,20 +195,18 @@ func (s *CoachingService) GenerateDraftStream(
 	analysisResult any,
 	onChunk ai.StreamCallback,
 ) (ai.LLMResponse, error) {
-	llmReq, _, err := s.buildDraftRequest(ctx, userID, applicationID, companyName, experienceIDs, questionText, charLimit)
+	llmReq, modelName, err := s.buildDraftRequest(ctx, userID, applicationID, companyName, experienceIDs, questionText, charLimit)
 	if err != nil {
 		return ai.LLMResponse{}, err
 	}
 
-	streaming := s.aiProvider.ClaudeStreaming()
-	if streaming == nil {
-		return ai.LLMResponse{}, fmt.Errorf("streaming provider not available")
+	resp, err := s.aiProvider.CallByModelName(ctx, modelName, llmReq)
+	if err != nil {
+		return ai.LLMResponse{}, fmt.Errorf("AI call failed: %w", err)
 	}
 
-	resp, err := streaming.Stream(ctx, llmReq, onChunk)
-	if err != nil {
-		return ai.LLMResponse{}, fmt.Errorf("AI streaming failed: %w", err)
-	}
+	// Send full response as a single chunk for SSE compatibility
+	onChunk(resp.Content)
 
 	return resp, nil
 }

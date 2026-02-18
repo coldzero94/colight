@@ -30,7 +30,7 @@ func setupCrawlingTestRouter(t *testing.T, mockLLM ai.LLMProvider) *gin.Engine {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	crawlingSvc := service.NewCrawlingService(nil, aiProvider)
 	crawlingCtrl := NewCrawlingController(crawlingSvc)
 

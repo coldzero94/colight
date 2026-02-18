@@ -66,7 +66,7 @@ func TestAnalyzeCompany_CacheTier(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mock, mock)
+	aiProvider := ai.NewAIProviderForTest(mock)
 	companyDataSvc := NewCompanyDataService()
 	svc := NewCompanyAnalysisService(client, aiProvider, companyDataSvc)
 
@@ -99,7 +99,7 @@ func TestAnalyzeCompany_AITier(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mock, mock)
+	aiProvider := ai.NewAIProviderForTest(mock)
 	companyDataSvc := NewCompanyDataService()
 	svc := NewCompanyAnalysisService(client, aiProvider, companyDataSvc)
 
@@ -132,7 +132,7 @@ func TestAnalyzeCompany_AIFailure(t *testing.T) {
 		err: assert.AnError,
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mock, mock)
+	aiProvider := ai.NewAIProviderForTest(mock)
 	companyDataSvc := NewCompanyDataService()
 	svc := NewCompanyAnalysisService(client, aiProvider, companyDataSvc)
 

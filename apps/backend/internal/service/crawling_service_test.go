@@ -66,7 +66,7 @@ func TestNormalizeWithAI_Success(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingService(nil, aiProvider)
 
 	rawPosting := &crawler.RawJobPosting{
@@ -105,7 +105,7 @@ func TestNormalizeJobPosting_RequiredFieldsMissing(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingService(nil, aiProvider)
 
 	rawPosting := &crawler.RawJobPosting{
@@ -130,7 +130,7 @@ func TestNormalizeJobPosting_InvalidJSON(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingService(nil, aiProvider)
 
 	rawPosting := &crawler.RawJobPosting{
@@ -150,7 +150,7 @@ func TestNormalizeJobPosting_AICallFailure(t *testing.T) {
 		err: fmt.Errorf("rate limit exceeded"),
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingService(nil, aiProvider)
 
 	rawPosting := &crawler.RawJobPosting{
@@ -199,7 +199,7 @@ func TestCrawlJobPosting_DomainRouting(t *testing.T) {
 		response: ai.LLMResponse{Content: normalizedJSON},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingService(nil, aiProvider)
 
 	// We can't test full CrawlJobPosting without HTTP calls,
@@ -245,7 +245,7 @@ func TestExtractJobPostingFromMarkdown_Success(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingService(nil, aiProvider)
 
 	markdown := `# 프론트엔드 개발자 채용
@@ -284,7 +284,7 @@ func TestExtractJobPostingFromHTML_Success(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingService(nil, aiProvider)
 
 	html := `<html><body><div>서버 엔지니어 채용</div></body></html>`
@@ -319,7 +319,7 @@ func TestCrawlJobPosting_UnknownDomain_UsesMarkdownPath(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingServiceWithFetcher(nil, aiProvider, mockFetcher)
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://www.wanted.co.kr/wd/12345")
@@ -350,7 +350,7 @@ func TestCrawlJobPosting_JobKorea_StillUsesFastPath(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingServiceWithFetcher(nil, aiProvider, mockFetcher)
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://www.jobkorea.co.kr/Recruit/GI_Read/12345")
@@ -373,7 +373,7 @@ func TestCrawlJobPosting_FallbackToHTML_WhenMarkdownTooShort(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingServiceWithFetcher(nil, aiProvider, mockFetcher)
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://example.com/job/1")
@@ -387,7 +387,7 @@ func TestCrawlJobPosting_FetchError(t *testing.T) {
 	mockFetcher := &MockHTMLFetcher{err: fmt.Errorf("connection refused")}
 	mockLLM := &MockLLMForCrawling{}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingServiceWithFetcher(nil, aiProvider, mockFetcher)
 
 	_, err := svc.CrawlJobPosting(context.Background(), "https://example.com/job/1")
@@ -462,7 +462,7 @@ func TestCrawlJobPosting_SPADetection_HeadlessSuccess(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingServiceForTest(aiProvider, mockFetcher, mockHeadless)
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://careers.lg.com/apply/detail?id=1001364")
@@ -479,7 +479,7 @@ func TestCrawlJobPosting_SPADetection_HeadlessFails(t *testing.T) {
 	mockFetcher := &MockHTMLFetcher{html: spaHTML}
 	mockHeadless := &MockHeadlessRenderer{err: fmt.Errorf("Chrome not found")}
 	mockLLM := &MockLLMForCrawling{}
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingServiceForTest(aiProvider, mockFetcher, mockHeadless)
 
 	_, err := svc.CrawlJobPosting(context.Background(), "https://careers.lg.com/apply/detail?id=1001364")
@@ -510,7 +510,7 @@ func TestCrawlJobPosting_SaraminCSSParser(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingServiceWithFetcher(nil, aiProvider, mockFetcher)
 
 	// Override the fetchSaraminAjax by testing normalizeWithAI directly
@@ -567,7 +567,7 @@ func TestCrawlJobPosting_WantedNextData(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingServiceForTest(aiProvider, mockFetcher, &MockHeadlessRenderer{})
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://www.wanted.co.kr/wd/292769")
@@ -616,7 +616,7 @@ func TestCrawlJobPosting_UniversalExtractorNormalize(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingServiceForTest(aiProvider, mockFetcher, &MockHeadlessRenderer{})
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://recruit.navercorp.com/rcrt/view.do?annoId=30004542")
@@ -652,7 +652,7 @@ func TestCrawlJobPosting_UniversalFallsToLLM(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingServiceForTest(aiProvider, mockFetcher, &MockHeadlessRenderer{})
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://example.com/jobs/123")
@@ -705,7 +705,7 @@ func TestCrawlJobPosting_RichContentPreserved(t *testing.T) {
 		},
 	}
 
-	aiProvider := ai.NewAIProviderForTest(mockLLM, nil)
+	aiProvider := ai.NewAIProviderForTest(mockLLM)
 	svc := NewCrawlingServiceForTest(aiProvider, mockFetcher, &MockHeadlessRenderer{})
 
 	result, err := svc.CrawlJobPosting(context.Background(), "https://careers.kakao.com/job/12345")
