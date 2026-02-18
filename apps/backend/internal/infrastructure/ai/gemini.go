@@ -9,6 +9,7 @@ import (
 
 // Supported Gemini model IDs
 const (
+	GeminiModel3Pro        = "gemini-3-pro"
 	GeminiModel25Flash     = "gemini-2.5-flash"
 	GeminiModel25FlashLite = "gemini-2.5-flash-lite"
 	GeminiModel25Pro       = "gemini-2.5-pro"
@@ -18,6 +19,7 @@ const (
 // GeminiModelAliases maps short names to full Gemini model IDs.
 var GeminiModelAliases = map[string]string{
 	// Full IDs (identity)
+	GeminiModel3Pro:        GeminiModel3Pro,
 	GeminiModel25Flash:     GeminiModel25Flash,
 	GeminiModel25FlashLite: GeminiModel25FlashLite,
 	GeminiModel25Pro:       GeminiModel25Pro,
@@ -25,9 +27,9 @@ var GeminiModelAliases = map[string]string{
 	// Short aliases
 	"gemini-flash": GeminiModel25Flash,
 	"gemini-2.5":   GeminiModel25Flash,
-	"gemini":       GeminiModel25Flash,
+	"gemini":       GeminiModel3Pro, // Default to latest
 	"gemini-lite":  GeminiModel25FlashLite,
-	"gemini-pro":   GeminiModel25Pro,
+	"gemini-pro":   GeminiModel3Pro, // Default to latest Pro
 	"gemini-2.0":   GeminiModel20Flash,
 }
 

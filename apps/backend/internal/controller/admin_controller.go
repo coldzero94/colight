@@ -1571,11 +1571,13 @@ func (ctrl *AdminController) GetModelStats(c *gin.Context) {
 // Quotas reset at midnight Pacific Time.
 func estimateGeminiQuotas(logs []*ent.UsageLog) []map[string]any {
 	quotaLimits := map[string]int{
+		"gemini-3-pro":          1500,
 		"gemini-2.5-pro":        1500,
 		"gemini-2.0-flash":      1500,
 		"gemini-2.0-flash-lite": 1500,
 		"gemini-2.5-flash":      20,
 		"gemini-2.5-flash-lite": 20,
+		"gemini-3-flash":        20,
 	}
 
 	// Get today in Pacific Time

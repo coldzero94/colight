@@ -11,11 +11,12 @@ import (
 // AIProvider routes AI calls to the correct provider based on model name.
 // Each provider is initialized independently based on API key availability.
 type AIProvider struct {
-	gemini  LLMProvider   // Gemini Flash (optional)
-	claude  LLMProvider   // Claude Sonnet 4.5 (optional)
-	groq    *GroqProvider // Groq multi-model (optional)
-	groqLLM LLMProvider   // test override: routes "groq" calls to this instead of groq field
-	groqSem chan struct{} // semaphore to serialize Groq calls (avoid rate limit)
+	gemini    LLMProvider      // Gemini Flash (optional)
+	claude    LLMProvider      // Claude Sonnet 4.5 (optional)
+	groq      *GroqProvider    // Groq multi-model (optional)
+	groqLLM   LLMProvider      // test override: routes "groq" calls to this instead of groq field
+	groqSem   chan struct{}    // semaphore to serialize Groq calls (avoid rate limit)
+	throttler *ModelThrottler  // RPM throttler for all models
 }
 
 // NewAIProvider creates providers for all available API keys.
@@ -50,11 +51,20 @@ func NewAIProvider(ctx context.Context, cfg *config.Config) (*AIProvider, error)
 	// Serialize Groq calls to avoid rate limit on free tier (1 concurrent call)
 	p.groqSem = make(chan struct{}, 1)
 
+	// Initialize RPM throttler for all models
+	p.throttler = NewModelThrottler()
+
 	return p, nil
 }
 
 // CallByModelName routes to the correct provider based on model name from prompt templates.
 func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req LLMRequest) (LLMResponse, error) {
+	// Enforce RPM throttling before calling (skip if throttler not initialized, e.g., in tests)
+	if p.throttler != nil {
+		if err := p.throttler.Wait(ctx, modelName); err != nil {
+			return LLMResponse{}, fmt.Errorf("throttle wait failed: %w", err)
+		}
+	}
 	switch modelName {
 	case "claude-sonnet-4-5", "claude-sonnet-4.5", "claude":
 		if p.claude == nil {

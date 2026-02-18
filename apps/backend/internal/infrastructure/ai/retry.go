@@ -153,12 +153,13 @@ type FallbackConfig struct {
 }
 
 // DefaultFallbackConfig returns the default model fallback chain.
-// Tier 1: Gemini models (high quality, 1,500 RPD each)
+// Tier 1: Premium Gemini models (high quality, 1,500 RPD each)
 // Tier 2: Groq models (very high limit, cheap)
 func DefaultFallbackConfig() FallbackConfig {
 	return FallbackConfig{
 		Models: []string{
-			"gemini-2.5-pro",        // Tier 1: Best quality (1,500 RPD)
+			"gemini-3-pro",          // Tier 1: Latest (1,500 RPD, unlimited TPM)
+			"gemini-2.5-pro",        // Tier 1: Stable (1,500 RPD, unlimited TPM)
 			"gemini-2.0-flash",      // Tier 1 Spare 1 (1,500 RPD, deprecated Mar 31)
 			"gemini-2.0-flash-lite", // Tier 1 Spare 2 (1,500 RPD, deprecated Mar 31)
 			"llama-4-scout",         // Tier 2: Groq primary (128K context)
