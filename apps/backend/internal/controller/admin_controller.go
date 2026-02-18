@@ -1447,3 +1447,166 @@ func (ctrl *AdminController) CreateUser(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, toUserInfo(user))
 }
+
+// GetModelStats returns model-level statistics with quota estimates
+// GET /v1/admin/models/stats?days=30
+func (ctrl *AdminController) GetModelStats(c *gin.Context) {
+	days, _ := strconv.Atoi(c.DefaultQuery("days", "30"))
+	if days <= 0 {
+		days = 30
+	}
+
+	ctx := c.Request.Context()
+	since := time.Now().AddDate(0, 0, -days)
+
+	logs, err := ctrl.db.UsageLog.Query().
+		Where(usagelog.CreatedAtGTE(since)).
+		All(ctx)
+	if err != nil {
+		slog.Error("get model stats failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "모델 통계 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	// Aggregate by model
+	type modelStats struct {
+		Model        string
+		Provider     string
+		CallCount    int
+		SuccessCount int
+		ErrorCount   int
+		TotalTokens  int
+		InputTokens  int
+		OutputTokens int
+		TotalCost    float64
+		AvgLatency   float64
+		LastUsed     time.Time
+	}
+
+	modelMap := make(map[string]*modelStats)
+	for _, l := range logs {
+		model := "unknown"
+		if l.Model != nil {
+			model = *l.Model
+		}
+		provider := "unknown"
+		if l.Provider != nil {
+			provider = *l.Provider
+		}
+
+		if _, ok := modelMap[model]; !ok {
+			modelMap[model] = &modelStats{
+				Model:    model,
+				Provider: provider,
+			}
+		}
+		ms := modelMap[model]
+		ms.CallCount++
+		if l.Status == "success" {
+			ms.SuccessCount++
+		} else {
+			ms.ErrorCount++
+		}
+		ms.TotalTokens += l.TotalTokens
+		ms.InputTokens += l.InputTokens
+		ms.OutputTokens += l.OutputTokens
+		if l.EstimatedCostKrw != nil {
+			ms.TotalCost += *l.EstimatedCostKrw
+		}
+		if l.LatencyMs != nil {
+			ms.AvgLatency += float64(*l.LatencyMs)
+		}
+		if l.CreatedAt.After(ms.LastUsed) {
+			ms.LastUsed = l.CreatedAt
+		}
+	}
+
+	// Calculate averages
+	items := make([]map[string]any, 0, len(modelMap))
+	for _, ms := range modelMap {
+		if ms.CallCount > 0 {
+			ms.AvgLatency /= float64(ms.CallCount)
+		}
+		items = append(items, map[string]any{
+			"model":          ms.Model,
+			"provider":       ms.Provider,
+			"call_count":     ms.CallCount,
+			"success_count":  ms.SuccessCount,
+			"error_count":    ms.ErrorCount,
+			"error_rate":     float64(ms.ErrorCount) / float64(ms.CallCount) * 100,
+			"total_tokens":   ms.TotalTokens,
+			"input_tokens":   ms.InputTokens,
+			"output_tokens":  ms.OutputTokens,
+			"total_cost_krw": ms.TotalCost,
+			"avg_cost_krw":   ms.TotalCost / float64(ms.CallCount),
+			"avg_latency_ms": ms.AvgLatency,
+			"last_used":      ms.LastUsed,
+		})
+	}
+
+	// Get configured models from prompt templates
+	prompts, _ := ctrl.db.PromptTemplate.Query().
+		Where(prompttemplate.IsActiveEQ(true)).
+		All(ctx)
+
+	featureModels := make(map[string]string)
+	for _, pt := range prompts {
+		featureModels[pt.Category+"/"+pt.SubCategory] = pt.Model
+	}
+
+	// Estimate Gemini quotas (today's usage)
+	geminiQuotas := estimateGeminiQuotas(logs)
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":           items,
+		"days":           days,
+		"feature_models": featureModels,
+		"gemini_quotas":  geminiQuotas,
+	})
+}
+
+// estimateGeminiQuotas estimates remaining Gemini quota based on today's usage.
+// Quotas reset at midnight Pacific Time.
+func estimateGeminiQuotas(logs []*ent.UsageLog) []map[string]any {
+	quotaLimits := map[string]int{
+		"gemini-2.5-pro":        1500,
+		"gemini-2.0-flash":      1500,
+		"gemini-2.0-flash-lite": 1500,
+		"gemini-2.5-flash":      20,
+		"gemini-2.5-flash-lite": 20,
+	}
+
+	// Get today in Pacific Time
+	loc, _ := time.LoadLocation("America/Los_Angeles")
+	nowPT := time.Now().In(loc)
+	startOfDay := time.Date(nowPT.Year(), nowPT.Month(), nowPT.Day(), 0, 0, 0, 0, loc)
+
+	// Count usage per model
+	modelUsage := make(map[string]int)
+	for _, l := range logs {
+		if l.Model != nil && l.CreatedAt.After(startOfDay) {
+			modelUsage[*l.Model]++
+		}
+	}
+
+	// Build quota status
+	result := []map[string]any{}
+	for model, limit := range quotaLimits {
+		used := modelUsage[model]
+		remaining := limit - used
+		if remaining < 0 {
+			remaining = 0
+		}
+		result = append(result, map[string]any{
+			"model":      model,
+			"limit":      limit,
+			"used":       used,
+			"remaining":  remaining,
+			"percentage": float64(used) / float64(limit) * 100,
+		})
+	}
+
+	return result
+}

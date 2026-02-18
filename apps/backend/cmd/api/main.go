@@ -301,6 +301,7 @@ func main() {
 		admin.GET("/users/:id", adminCtrl.GetUser)
 		admin.PUT("/users/:id/role", adminCtrl.UpdateUserRole)
 		admin.GET("/stats", adminCtrl.GetStats)
+		admin.GET("/models/stats", adminCtrl.GetModelStats)
 		admin.GET("/prompts", adminCtrl.ListPrompts)
 		admin.PUT("/prompts/:id", adminCtrl.UpdatePrompt)
 		admin.GET("/usage/summary", adminCtrl.GetUsageSummary)
