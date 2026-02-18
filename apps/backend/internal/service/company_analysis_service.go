@@ -302,16 +302,17 @@ func (s *CompanyAnalysisService) analyzeWithAI(ctx context.Context, companyName 
 	}
 
 	startTime := time.Now()
-	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, pt.Model, ai.LLMRequest{
+	resp, modelUsed, err := ai.CallWithModelFallback(ctx, s.aiProvider, ai.LLMRequest{
 		SystemPrompt: pt.SystemPrompt,
 		UserPrompt:   userPrompt,
 		Temperature:  pt.Temperature,
 		MaxTokens:    pt.MaxTokens,
 		JSONMode:     true,
-	}, ai.DefaultRetryConfig())
+	}, ai.DefaultFallbackConfig())
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", pt.Model, err)
 	}
+	slog.Info("ai_model_used", "feature", "company_analysis", "configured", pt.Model, "actual", modelUsed)
 
 	// Update usage stats
 	if pt.ID.String() != "00000000-0000-0000-0000-000000000000" {

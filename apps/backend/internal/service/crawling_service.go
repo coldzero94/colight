@@ -260,13 +260,16 @@ func (s *CrawlingService) extractJobPostingFromMarkdown(ctx context.Context, sou
 	}
 
 	startTime := time.Now()
-	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, pt.Model, ai.LLMRequest{
+	resp, modelUsed, err := ai.CallWithModelFallback(ctx, s.aiProvider, ai.LLMRequest{
 		SystemPrompt: pt.SystemPrompt,
 		UserPrompt:   userPrompt,
 		Temperature:  pt.Temperature,
 		MaxTokens:    pt.MaxTokens,
 		JSONMode:     true,
-	}, ai.DefaultRetryConfig())
+	}, ai.DefaultFallbackConfig())
+	if err == nil {
+		slog.Info("ai_model_used", "feature", "crawling", "configured", pt.Model, "actual", modelUsed)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("AI extraction from markdown failed: %w", err)
 	}
@@ -301,13 +304,16 @@ func (s *CrawlingService) extractJobPostingFromHTML(ctx context.Context, sourceU
 	}
 
 	startTime := time.Now()
-	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, pt.Model, ai.LLMRequest{
+	resp, modelUsed, err := ai.CallWithModelFallback(ctx, s.aiProvider, ai.LLMRequest{
 		SystemPrompt: pt.SystemPrompt,
 		UserPrompt:   userPrompt,
 		Temperature:  pt.Temperature,
 		MaxTokens:    pt.MaxTokens,
 		JSONMode:     true,
-	}, ai.DefaultRetryConfig())
+	}, ai.DefaultFallbackConfig())
+	if err == nil {
+		slog.Info("ai_model_used", "feature", "crawling", "configured", pt.Model, "actual", modelUsed)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("AI extraction from HTML failed: %w", err)
 	}
@@ -349,13 +355,16 @@ func (s *CrawlingService) normalizeWithAI(ctx context.Context, raw *crawler.RawJ
 	}
 
 	startTime := time.Now()
-	resp, err := ai.CallByModelNameWithRetry(ctx, s.aiProvider, pt.Model, ai.LLMRequest{
+	resp, modelUsed, err := ai.CallWithModelFallback(ctx, s.aiProvider, ai.LLMRequest{
 		SystemPrompt: pt.SystemPrompt,
 		UserPrompt:   userPrompt,
 		Temperature:  pt.Temperature,
 		MaxTokens:    pt.MaxTokens,
 		JSONMode:     true,
-	}, ai.DefaultRetryConfig())
+	}, ai.DefaultFallbackConfig())
+	if err == nil {
+		slog.Info("ai_model_used", "feature", "crawling", "configured", pt.Model, "actual", modelUsed)
+	}
 	if err != nil {
 		return nil, err
 	}
