@@ -102,6 +102,120 @@ model UpdatePromptRequest {
   isActive?: boolean;
 }
 
+// ─── Phase 1.7 Models ───
+
+model UserStatsSummary {
+  @encodedName("application/json", "total_users")
+  totalUsers: int32;
+
+  @encodedName("application/json", "new_users_today")
+  newUsersToday: int32;
+
+  @encodedName("application/json", "active_users_today")
+  activeUsersToday: int32;
+}
+
+model AIMetricsToday {
+  calls: int32;
+
+  @encodedName("application/json", "calls_delta_pct")
+  callsDeltaPct: float32;
+
+  @encodedName("application/json", "error_rate")
+  errorRate: float32;
+
+  @encodedName("application/json", "error_rate_delta")
+  errorRateDelta: float32;
+
+  @encodedName("application/json", "cost_krw")
+  costKrw: float32;
+}
+
+model DailyMetric {
+  date: string;
+  calls: int32;
+
+  @encodedName("application/json", "error_count")
+  errorCount: int32;
+
+  @encodedName("application/json", "cost_krw")
+  costKrw: float32;
+}
+
+model QuotaAlert {
+  @encodedName("application/json", "model")
+  modelName: string;
+
+  provider: string;
+
+  @encodedName("application/json", "used_pct")
+  usedPct: float32;
+
+  remaining: int32;
+}
+
+model AIErrorItem {
+  id: string;
+
+  @encodedName("application/json", "error_type")
+  errorType: "rate_limit" | "timeout" | "provider_error" | "invalid_request" | "context_exceeded";
+
+  @encodedName("application/json", "error_message")
+  errorMessage: string;
+
+  @encodedName("application/json", "model")
+  modelName?: string;
+
+  provider?: string;
+  feature: string;
+
+  @encodedName("application/json", "user_id")
+  userId: string;
+
+  @encodedName("application/json", "input_tokens")
+  inputTokens: int32;
+
+  @encodedName("application/json", "output_tokens")
+  outputTokens: int32;
+
+  @encodedName("application/json", "created_at")
+  createdAt: utcDateTime;
+}
+
+model FeedbackPreview {
+  id: string;
+  category: "bug" | "improvement" | "other";
+
+  @encodedName("application/json", "content_preview")
+  contentPreview: string;
+
+  @encodedName("application/json", "created_at")
+  createdAt: utcDateTime;
+}
+
+model DashboardData {
+  @encodedName("application/json", "user_stats")
+  userStats: UserStatsSummary;
+
+  @encodedName("application/json", "ai_metrics_today")
+  aiMetricsToday: AIMetricsToday;
+
+  @encodedName("application/json", "daily_metrics")
+  dailyMetrics: DailyMetric[];
+
+  @encodedName("application/json", "quota_alerts")
+  quotaAlerts: QuotaAlert[];
+
+  @encodedName("application/json", "recent_errors")
+  recentErrors: AIErrorItem[];
+
+  @encodedName("application/json", "recent_feedbacks")
+  recentFeedbacks: FeedbackPreview[];
+
+  @encodedName("application/json", "pending_feedback_count")
+  pendingFeedbackCount: int32;
+}
+
 // ─── Admin Interface ───
 
 @route("/v1/admin")
@@ -159,5 +273,28 @@ interface AdminAPI {
   updatePrompt(@path id: string, @body body: UpdatePromptRequest): {
     @statusCode statusCode: 200;
     @body body: { data: PromptTemplateDetail };
+  } | Colight.Common.ErrorResponse;
+
+  /** Get aggregated dashboard data */
+  @get
+  @route("/dashboard")
+  getDashboard(): {
+    @statusCode statusCode: 200;
+    @body body: { data: DashboardData };
+  } | Colight.Common.ErrorResponse;
+
+  /** List AI errors with filters */
+  @get
+  @route("/usage/errors")
+  listErrors(
+    @query error_type?: "rate_limit" | "timeout" | "provider_error" | "invalid_request" | "context_exceeded",
+    @query provider?: string,
+    @query feature?: string,
+    @query days?: int32 = 7,
+    @query limit?: int32 = 20,
+    @query offset?: int32 = 0,
+  ): {
+    @statusCode statusCode: 200;
+    @body body: { data: AIErrorItem[]; count: int32 };
   } | Colight.Common.ErrorResponse;
 }

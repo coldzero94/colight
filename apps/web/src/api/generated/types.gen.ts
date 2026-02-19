@@ -4,6 +4,27 @@ export type ClientOptions = {
     baseURL: 'https://colight-api.koyeb.app' | 'http://localhost:9000' | (string & {});
 };
 
+export type AdminAiErrorItem = {
+    id: string;
+    error_type: 'rate_limit' | 'timeout' | 'provider_error' | 'invalid_request' | 'context_exceeded';
+    error_message: string;
+    model?: string;
+    provider?: string;
+    feature: string;
+    user_id: string;
+    input_tokens: number;
+    output_tokens: number;
+    created_at: string;
+};
+
+export type AdminAiMetricsToday = {
+    calls: number;
+    calls_delta_pct: number;
+    error_rate: number;
+    error_rate_delta: number;
+    cost_krw: number;
+};
+
 export type AdminAdminUserListItem = {
     id: string;
     email?: string;
@@ -12,6 +33,30 @@ export type AdminAdminUserListItem = {
     auth_provider: 'email' | 'naver';
     experience_count: number;
     last_login_at?: string;
+    created_at: string;
+};
+
+export type AdminDailyMetric = {
+    date: string;
+    calls: number;
+    error_count: number;
+    cost_krw: number;
+};
+
+export type AdminDashboardData = {
+    user_stats: AdminUserStatsSummary;
+    ai_metrics_today: AdminAiMetricsToday;
+    daily_metrics: Array<AdminDailyMetric>;
+    quota_alerts: Array<AdminQuotaAlert>;
+    recent_errors: Array<AdminAiErrorItem>;
+    recent_feedbacks: Array<AdminFeedbackPreview>;
+    pending_feedback_count: number;
+};
+
+export type AdminFeedbackPreview = {
+    id: string;
+    category: 'bug' | 'improvement' | 'other';
+    content_preview: string;
     created_at: string;
 };
 
@@ -28,6 +73,13 @@ export type AdminPromptTemplateDetail = {
     version: number;
     is_active: boolean;
     usage_count: number;
+};
+
+export type AdminQuotaAlert = {
+    model: string;
+    provider: string;
+    used_pct: number;
+    remaining: number;
 };
 
 export type AdminSystemStats = {
@@ -50,6 +102,12 @@ export type AdminUpdatePromptRequest = {
 
 export type AdminUpdateRoleRequest = {
     role: 'user' | 'admin';
+};
+
+export type AdminUserStatsSummary = {
+    total_users: number;
+    new_users_today: number;
+    active_users_today: number;
 };
 
 export type AuthAuthResponse = {
@@ -513,6 +571,65 @@ export type HealthCheckResponses = {
 
 export type HealthCheckResponse = HealthCheckResponses[keyof HealthCheckResponses];
 
+export type AdminApiGetDashboardData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/admin/dashboard';
+};
+
+export type AdminApiGetDashboardErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type AdminApiGetDashboardError = AdminApiGetDashboardErrors[keyof AdminApiGetDashboardErrors];
+
+export type AdminApiGetDashboardResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        data: AdminDashboardData;
+    };
+};
+
+export type AdminApiGetDashboardResponse = AdminApiGetDashboardResponses[keyof AdminApiGetDashboardResponses];
+
 export type AdminApiListPromptsData = {
     body?: never;
     path?: never;
@@ -693,6 +810,73 @@ export type AdminApiGetStatsResponses = {
 };
 
 export type AdminApiGetStatsResponse = AdminApiGetStatsResponses[keyof AdminApiGetStatsResponses];
+
+export type AdminApiListErrorsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        error_type?: 'rate_limit' | 'timeout' | 'provider_error' | 'invalid_request' | 'context_exceeded';
+        provider?: string;
+        feature?: string;
+        days?: number;
+        limit?: number;
+        offset?: number;
+    };
+    url: '/v1/admin/usage/errors';
+};
+
+export type AdminApiListErrorsErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is unauthorized.
+     */
+    401: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Access is forbidden.
+     */
+    403: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The server cannot find the requested resource.
+     */
+    404: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * The request conflicts with the current state of the server.
+     */
+    409: {
+        error: CommonErrorDetail;
+    };
+    /**
+     * Server error
+     */
+    500: {
+        error: CommonErrorDetail;
+    };
+};
+
+export type AdminApiListErrorsError = AdminApiListErrorsErrors[keyof AdminApiListErrorsErrors];
+
+export type AdminApiListErrorsResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: {
+        data: Array<AdminAiErrorItem>;
+        count: number;
+    };
+};
+
+export type AdminApiListErrorsResponse = AdminApiListErrorsResponses[keyof AdminApiListErrorsResponses];
 
 export type AdminApiListUsersData = {
     body?: never;

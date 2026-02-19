@@ -93,4 +93,9 @@ describe("AdminSidebar", () => {
     const promptsLink = screen.getByText("프롬프트 관리").closest("a");
     expect(promptsLink?.className).toContain("brand-chip");
   });
+
+  it("does not show 모델 통계 menu item (merged into 사용량 모니터링)", () => {
+    render(<AdminSidebar />);
+    expect(screen.queryByText("모델 통계")).not.toBeInTheDocument();
+  });
 });

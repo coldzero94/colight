@@ -2,6 +2,33 @@
 
 import * as z from 'zod';
 
+export const zAdminAiErrorItem = z.object({
+    id: z.string(),
+    error_type: z.enum([
+        'rate_limit',
+        'timeout',
+        'provider_error',
+        'invalid_request',
+        'context_exceeded'
+    ]),
+    error_message: z.string(),
+    model: z.optional(z.string()),
+    provider: z.optional(z.string()),
+    feature: z.string(),
+    user_id: z.string(),
+    input_tokens: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    output_tokens: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    created_at: z.iso.datetime()
+});
+
+export const zAdminAiMetricsToday = z.object({
+    calls: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    calls_delta_pct: z.number(),
+    error_rate: z.number(),
+    error_rate_delta: z.number(),
+    cost_krw: z.number()
+});
+
 export const zAdminAdminUserListItem = z.object({
     id: z.string(),
     email: z.optional(z.string()),
@@ -10,6 +37,24 @@ export const zAdminAdminUserListItem = z.object({
     auth_provider: z.enum(['email', 'naver']),
     experience_count: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
     last_login_at: z.optional(z.iso.datetime()),
+    created_at: z.iso.datetime()
+});
+
+export const zAdminDailyMetric = z.object({
+    date: z.string(),
+    calls: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    error_count: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    cost_krw: z.number()
+});
+
+export const zAdminFeedbackPreview = z.object({
+    id: z.string(),
+    category: z.enum([
+        'bug',
+        'improvement',
+        'other'
+    ]),
+    content_preview: z.string(),
     created_at: z.iso.datetime()
 });
 
@@ -26,6 +71,13 @@ export const zAdminPromptTemplateDetail = z.object({
     version: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
     is_active: z.boolean(),
     usage_count: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
+export const zAdminQuotaAlert = z.object({
+    model: z.string(),
+    provider: z.string(),
+    used_pct: z.number(),
+    remaining: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
 });
 
 export const zAdminSystemStats = z.object({
@@ -48,6 +100,22 @@ export const zAdminUpdatePromptRequest = z.object({
 
 export const zAdminUpdateRoleRequest = z.object({
     role: z.enum(['user', 'admin'])
+});
+
+export const zAdminUserStatsSummary = z.object({
+    total_users: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    new_users_today: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    active_users_today: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
+export const zAdminDashboardData = z.object({
+    user_stats: zAdminUserStatsSummary,
+    ai_metrics_today: zAdminAiMetricsToday,
+    daily_metrics: z.array(zAdminDailyMetric),
+    quota_alerts: z.array(zAdminQuotaAlert),
+    recent_errors: z.array(zAdminAiErrorItem),
+    recent_feedbacks: z.array(zAdminFeedbackPreview),
+    pending_feedback_count: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
 });
 
 export const zAuthAuthTokens = z.object({
@@ -527,6 +595,19 @@ export const zHealthCheckResponse = z.object({
     status: z.string()
 });
 
+export const zAdminApiGetDashboardData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zAdminApiGetDashboardResponse = z.object({
+    data: zAdminDashboardData
+});
+
 export const zAdminApiListPromptsData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -568,6 +649,33 @@ export const zAdminApiGetStatsData = z.object({
  */
 export const zAdminApiGetStatsResponse = z.object({
     data: zAdminSystemStats
+});
+
+export const zAdminApiListErrorsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        error_type: z.optional(z.enum([
+            'rate_limit',
+            'timeout',
+            'provider_error',
+            'invalid_request',
+            'context_exceeded'
+        ])),
+        provider: z.optional(z.string()),
+        feature: z.optional(z.string()),
+        days: z.optional(z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })).default(7),
+        limit: z.optional(z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })).default(20),
+        offset: z.optional(z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })).default(0)
+    }))
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zAdminApiListErrorsResponse = z.object({
+    data: z.array(zAdminAiErrorItem),
+    count: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
 });
 
 export const zAdminApiListUsersData = z.object({

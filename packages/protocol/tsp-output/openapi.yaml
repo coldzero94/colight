@@ -29,6 +29,93 @@ paths:
                   - status
       tags:
         - System
+  /v1/admin/dashboard:
+    get:
+      operationId: AdminAPI_getDashboard
+      description: Get aggregated dashboard data
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Admin.DashboardData'
+                required:
+                  - data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
   /v1/admin/prompts:
     get:
       operationId: AdminAPI_listPrompts
@@ -239,6 +326,147 @@ paths:
                     $ref: '#/components/schemas/Admin.SystemStats'
                 required:
                   - data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/Common.ErrorDetail'
+                required:
+                  - error
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+  /v1/admin/usage/errors:
+    get:
+      operationId: AdminAPI_listErrors
+      description: List AI errors with filters
+      parameters:
+        - name: error_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - rate_limit
+              - timeout
+              - provider_error
+              - invalid_request
+              - context_exceeded
+          explode: false
+        - name: provider
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: feature
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 7
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+          explode: false
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Admin.AIErrorItem'
+                  count:
+                    type: integer
+                    format: int32
+                required:
+                  - data
+                  - count
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -3973,6 +4201,71 @@ paths:
         - BearerAuth: []
 components:
   schemas:
+    Admin.AIErrorItem:
+      type: object
+      required:
+        - id
+        - error_type
+        - error_message
+        - feature
+        - user_id
+        - input_tokens
+        - output_tokens
+        - created_at
+      properties:
+        id:
+          type: string
+        error_type:
+          type: string
+          enum:
+            - rate_limit
+            - timeout
+            - provider_error
+            - invalid_request
+            - context_exceeded
+        error_message:
+          type: string
+        model:
+          type: string
+        provider:
+          type: string
+        feature:
+          type: string
+        user_id:
+          type: string
+        input_tokens:
+          type: integer
+          format: int32
+        output_tokens:
+          type: integer
+          format: int32
+        created_at:
+          type: string
+          format: date-time
+    Admin.AIMetricsToday:
+      type: object
+      required:
+        - calls
+        - calls_delta_pct
+        - error_rate
+        - error_rate_delta
+        - cost_krw
+      properties:
+        calls:
+          type: integer
+          format: int32
+        calls_delta_pct:
+          type: number
+          format: float
+        error_rate:
+          type: number
+          format: float
+        error_rate_delta:
+          type: number
+          format: float
+        cost_krw:
+          type: number
+          format: float
     Admin.AdminUserListItem:
       type: object
       required:
@@ -4004,6 +4297,80 @@ components:
         last_login_at:
           type: string
           format: date-time
+        created_at:
+          type: string
+          format: date-time
+    Admin.DailyMetric:
+      type: object
+      required:
+        - date
+        - calls
+        - error_count
+        - cost_krw
+      properties:
+        date:
+          type: string
+        calls:
+          type: integer
+          format: int32
+        error_count:
+          type: integer
+          format: int32
+        cost_krw:
+          type: number
+          format: float
+    Admin.DashboardData:
+      type: object
+      required:
+        - user_stats
+        - ai_metrics_today
+        - daily_metrics
+        - quota_alerts
+        - recent_errors
+        - recent_feedbacks
+        - pending_feedback_count
+      properties:
+        user_stats:
+          $ref: '#/components/schemas/Admin.UserStatsSummary'
+        ai_metrics_today:
+          $ref: '#/components/schemas/Admin.AIMetricsToday'
+        daily_metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Admin.DailyMetric'
+        quota_alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Admin.QuotaAlert'
+        recent_errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Admin.AIErrorItem'
+        recent_feedbacks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Admin.FeedbackPreview'
+        pending_feedback_count:
+          type: integer
+          format: int32
+    Admin.FeedbackPreview:
+      type: object
+      required:
+        - id
+        - category
+        - content_preview
+        - created_at
+      properties:
+        id:
+          type: string
+        category:
+          type: string
+          enum:
+            - bug
+            - improvement
+            - other
+        content_preview:
+          type: string
         created_at:
           type: string
           format: date-time
@@ -4049,6 +4416,24 @@ components:
         is_active:
           type: boolean
         usage_count:
+          type: integer
+          format: int32
+    Admin.QuotaAlert:
+      type: object
+      required:
+        - model
+        - provider
+        - used_pct
+        - remaining
+      properties:
+        model:
+          type: string
+        provider:
+          type: string
+        used_pct:
+          type: number
+          format: float
+        remaining:
           type: integer
           format: int32
     Admin.SystemStats:
@@ -4108,6 +4493,22 @@ components:
           enum:
             - user
             - admin
+    Admin.UserStatsSummary:
+      type: object
+      required:
+        - total_users
+        - new_users_today
+        - active_users_today
+      properties:
+        total_users:
+          type: integer
+          format: int32
+        new_users_today:
+          type: integer
+          format: int32
+        active_users_today:
+          type: integer
+          format: int32
     Auth.AuthResponse:
       type: object
       required:
