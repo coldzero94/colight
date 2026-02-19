@@ -79,7 +79,7 @@ moon run :build  # All builds
 | 8 | Dashboard kanban | Complete |
 | 8.1 | Version management | Complete |
 | 1.6 | Admin system expansion | Complete |
-| 1.7 | Admin observability dashboard | Pending |
+| 1.7 | Admin observability dashboard | Complete |
 | 9 | Payment integration | Pending |
 | 10 | Growth features | Pending |
 

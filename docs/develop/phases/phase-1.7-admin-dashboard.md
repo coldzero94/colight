@@ -17,13 +17,13 @@
 
 | Step | 이름 | 상태 |
 | ---- | ---- | ---- |
-| 1.7.1 | DB 스키마 보강 (ai_call_errors + quota_hit_events) | ⬜ 대기 |
-| 1.7.2 | AI 에러 분류 & 영속화 | ⬜ 대기 |
-| 1.7.3 | 대시보드 통합 API (`GET /v1/admin/dashboard`) | ⬜ 대기 |
-| 1.7.4 | 에러 목록 API (`GET /v1/admin/usage/errors`) | ⬜ 대기 |
-| 1.7.5 | TypeSpec 업데이트 | ⬜ 대기 |
-| 1.7.6 | 사용량 + 모델 페이지 통합 (`/admin/usage` 탭 구조) | ⬜ 대기 |
-| 1.7.7 | 대시보드 페이지 리빌드 | ⬜ 대기 |
+| 1.7.1 | DB 스키마 보강 (ai_call_errors + quota_hit_events) | ✅ 완료 |
+| 1.7.2 | AI 에러 분류 & 영속화 | ✅ 완료 |
+| 1.7.3 | 대시보드 통합 API (`GET /v1/admin/dashboard`) | ✅ 완료 |
+| 1.7.4 | 에러 목록 API (`GET /v1/admin/usage/errors`) | ✅ 완료 |
+| 1.7.5 | TypeSpec 업데이트 | ✅ 완료 |
+| 1.7.6 | 사용량 + 모델 페이지 통합 (`/admin/usage` 탭 구조) | ✅ 완료 |
+| 1.7.7 | 대시보드 페이지 리빌드 | ✅ 완료 |
 
 ---
 
