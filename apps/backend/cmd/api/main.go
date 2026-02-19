@@ -11,6 +11,7 @@ import (
 	"github.com/coby/colight/apps/backend/internal/infrastructure/database"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/logger"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/middleware"
+	"github.com/coby/colight/apps/backend/internal/infrastructure/scheduler"
 	"github.com/coby/colight/apps/backend/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -37,6 +38,30 @@ func main() {
 
 	// AI Provider
 	ctx := context.Background()
+
+	// pgxpool for River job queue (separate from Ent client)
+	pool, err := database.NewPool(ctx, cfg.DatabaseURL)
+	if err != nil {
+		slog.Error("failed to create pgx pool", "error", err)
+		os.Exit(1)
+	}
+	defer pool.Close()
+
+	// River job scheduler (migrations applied automatically on startup)
+	riverClient, err := scheduler.New(ctx, pool, db)
+	if err != nil {
+		slog.Error("failed to initialise scheduler", "error", err)
+		os.Exit(1)
+	}
+	if err := riverClient.Start(ctx); err != nil {
+		slog.Error("failed to start scheduler", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		if err := riverClient.Stop(ctx); err != nil {
+			slog.Warn("scheduler stop error", "error", err)
+		}
+	}()
 	aiProvider, err := ai.NewAIProvider(ctx, cfg)
 	if err != nil {
 		slog.Warn("failed to initialize AI provider", "error", err)

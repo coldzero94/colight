@@ -230,6 +230,22 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleCancelDeletion = async () => {
+    if (!selectedUser) return;
+    if (!confirm("진행 중인 삭제 요청을 취소하시겠습니까?")) return;
+    setActionLoading(true);
+    try {
+      await apiClient.delete(
+        `/v1/admin/users/${selectedUser.id}/delete-request`
+      );
+      toast.success("삭제 요청이 취소되었습니다.");
+    } catch {
+      toast.error("취소 실패: 진행 중인 삭제 요청이 없거나 오류가 발생했습니다.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const openDetail = (user: AdminUser) => {
     setSelectedUser(user);
     setPlanValue(user.plan ?? "free");
@@ -634,6 +650,13 @@ export default function AdminUsersPage() {
                     className="w-full px-3 py-1.5 text-sm bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 disabled:opacity-50"
                   >
                     삭제 요청 생성 (30일 후)
+                  </button>
+                  <button
+                    onClick={handleCancelDeletion}
+                    disabled={actionLoading}
+                    className="w-full px-3 py-1.5 text-sm border border-border rounded-lg text-muted-foreground hover:bg-white/[0.04] disabled:opacity-50"
+                  >
+                    삭제 요청 취소
                   </button>
                 </div>
               )}
