@@ -14,6 +14,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/systemconfig"
+	"github.com/coby/colight/apps/backend/ent/aicallerror"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
@@ -1668,4 +1669,243 @@ func (ctrl *AdminController) GetRateLimitHits(c *gin.Context) {
 
 	summary := ctrl.aiProvider.Throttler().GetQuotaHitSummary(time.Duration(hours) * time.Hour)
 	c.JSON(http.StatusOK, gin.H{"data": summary, "hours": hours})
+}
+
+// GetDashboard returns a single aggregated response for the admin dashboard.
+// GET /v1/admin/dashboard
+func (ctrl *AdminController) GetDashboard(c *gin.Context) {
+	ctx := c.Request.Context()
+	today := time.Now().Truncate(24 * time.Hour)
+	yesterday := today.AddDate(0, 0, -1)
+	sevenDaysAgo := today.AddDate(0, 0, -7)
+
+	// ── User stats ──
+	totalUsers, _ := ctrl.db.UserProfile.Query().Count(ctx)
+	newUsersToday, _ := ctrl.db.UserProfile.Query().
+		Where(userprofile.CreatedAtGTE(today)).Count(ctx)
+	activeToday, _ := ctrl.db.UserProfile.Query().
+		Where(userprofile.LastLoginAtGTE(today)).Count(ctx)
+
+	// ── AI metrics today & yesterday ──
+	todayLogs, _ := ctrl.db.UsageLog.Query().
+		Where(usagelog.CreatedAtGTE(today)).All(ctx)
+	yesterdayLogs, _ := ctrl.db.UsageLog.Query().
+		Where(usagelog.CreatedAtGTE(yesterday), usagelog.CreatedAtLT(today)).All(ctx)
+
+	callsToday := len(todayLogs)
+	callsYesterday := len(yesterdayLogs)
+	var errorsToday, errorsYesterday int
+	var costToday float64
+	for _, l := range todayLogs {
+		if l.Status == "error" {
+			errorsToday++
+		}
+		if l.EstimatedCostKrw != nil {
+			costToday += *l.EstimatedCostKrw
+		}
+	}
+	for _, l := range yesterdayLogs {
+		if l.Status == "error" {
+			errorsYesterday++
+		}
+	}
+	var callsDeltaPct, errorRateToday, errorRateDelta float64
+	if callsYesterday > 0 {
+		callsDeltaPct = float64(callsToday-callsYesterday) / float64(callsYesterday) * 100
+	}
+	if callsToday > 0 {
+		errorRateToday = float64(errorsToday) / float64(callsToday) * 100
+	}
+	var errorRateYesterday float64
+	if callsYesterday > 0 {
+		errorRateYesterday = float64(errorsYesterday) / float64(callsYesterday) * 100
+	}
+	errorRateDelta = errorRateToday - errorRateYesterday
+
+	// ── Daily metrics (last 7 days) ──
+	allLogs7, _ := ctrl.db.UsageLog.Query().
+		Where(usagelog.CreatedAtGTE(sevenDaysAgo)).All(ctx)
+	dailyMap := map[string]map[string]any{}
+	for i := 0; i < 7; i++ {
+		d := today.AddDate(0, 0, -i).Format("2006-01-02")
+		dailyMap[d] = map[string]any{"date": d, "calls": 0, "error_count": 0, "cost_krw": float64(0)}
+	}
+	for _, l := range allLogs7 {
+		d := l.CreatedAt.Format("2006-01-02")
+		if _, ok := dailyMap[d]; !ok {
+			continue
+		}
+		dailyMap[d]["calls"] = dailyMap[d]["calls"].(int) + 1
+		if l.Status == "error" {
+			dailyMap[d]["error_count"] = dailyMap[d]["error_count"].(int) + 1
+		}
+		if l.EstimatedCostKrw != nil {
+			dailyMap[d]["cost_krw"] = dailyMap[d]["cost_krw"].(float64) + *l.EstimatedCostKrw
+		}
+	}
+	dailyMetrics := make([]map[string]any, 0, 7)
+	for i := 6; i >= 0; i-- {
+		d := today.AddDate(0, 0, -i).Format("2006-01-02")
+		dailyMetrics = append(dailyMetrics, dailyMap[d])
+	}
+
+	// ── Quota alerts (models > 80% RPD) ──
+	quotaAlerts := []map[string]any{}
+	// Quota alerts use model stats from the throttler — populated when models
+	// approach 80% of their daily request quota (RPD).
+	if ctrl.aiProvider != nil && ctrl.aiProvider.Throttler() != nil {
+		for _, qs := range ctrl.aiProvider.Throttler().GetQuotaHitSummary(24 * time.Hour) {
+			_ = qs // future: compute percentage from hit_count / RPD limit
+		}
+	}
+
+	// ── Recent errors (last 5 from ai_call_errors) ──
+	recentErrRecords, _ := ctrl.db.AICallError.Query().
+		WithUsageLog().
+		Order(ent.Desc("created_at")).
+		Limit(5).
+		All(ctx)
+	recentErrors := make([]map[string]any, 0, len(recentErrRecords))
+	for _, er := range recentErrRecords {
+		item := map[string]any{
+			"id":            er.ID,
+			"error_type":    string(er.ErrorType),
+			"error_message": er.ErrorMessage,
+			"created_at":    er.CreatedAt,
+		}
+		if er.Edges.UsageLog != nil {
+			ul := er.Edges.UsageLog
+			item["feature"] = ul.Feature
+			item["user_id"] = ul.UserID
+			item["input_tokens"] = ul.InputTokens
+			item["output_tokens"] = ul.OutputTokens
+			if ul.Model != nil {
+				item["model"] = *ul.Model
+			}
+			if ul.Provider != nil {
+				item["provider"] = *ul.Provider
+			}
+		}
+		recentErrors = append(recentErrors, item)
+	}
+
+	// ── Recent pending feedbacks (last 3) ──
+	pendingFeedbackCount, _ := ctrl.db.Feedback.Query().
+		Where(feedback.AdminStatusEQ(feedback.AdminStatusPending)).Count(ctx)
+	recentFeedbackRecords, _ := ctrl.db.Feedback.Query().
+		Where(feedback.AdminStatusEQ(feedback.AdminStatusPending)).
+		Order(ent.Desc("created_at")).
+		Limit(3).
+		All(ctx)
+	recentFeedbacks := make([]map[string]any, 0, len(recentFeedbackRecords))
+	for _, f := range recentFeedbackRecords {
+		preview := f.Content
+		if len(preview) > 100 {
+			preview = preview[:100]
+		}
+		recentFeedbacks = append(recentFeedbacks, map[string]any{
+			"id":              f.ID,
+			"category":        string(f.Category),
+			"content_preview": preview,
+			"created_at":      f.CreatedAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": map[string]any{
+		"user_stats": map[string]any{
+			"total_users":        totalUsers,
+			"new_users_today":    newUsersToday,
+			"active_users_today": activeToday,
+		},
+		"ai_metrics_today": map[string]any{
+			"calls":            callsToday,
+			"calls_delta_pct":  callsDeltaPct,
+			"error_rate":       errorRateToday,
+			"error_rate_delta": errorRateDelta,
+			"cost_krw":         costToday,
+		},
+		"daily_metrics":          dailyMetrics,
+		"quota_alerts":           quotaAlerts,
+		"recent_errors":          recentErrors,
+		"recent_feedbacks":       recentFeedbacks,
+		"pending_feedback_count": pendingFeedbackCount,
+	}})
+}
+
+// ListErrors returns paginated AI call errors from ai_call_errors table.
+// GET /v1/admin/usage/errors?error_type=&provider=&feature=&days=7&limit=20&offset=0
+func (ctrl *AdminController) ListErrors(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	days, _ := strconv.Atoi(c.DefaultQuery("days", "7"))
+	if days <= 0 {
+		days = 7
+	}
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if limit <= 0 || limit > 100 {
+		limit = 20
+	}
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	if offset < 0 {
+		offset = 0
+	}
+
+	since := time.Now().AddDate(0, 0, -days)
+
+	q := ctrl.db.AICallError.Query().
+		WithUsageLog().
+		Where(aicallerror.CreatedAtGTE(since)).
+		Order(ent.Desc("created_at"))
+
+	if et := c.Query("error_type"); et != "" {
+		q = q.Where(aicallerror.ErrorTypeEQ(aicallerror.ErrorType(et)))
+	}
+
+	total, _ := q.Count(ctx)
+
+	records, err := q.Limit(limit).Offset(offset).All(ctx)
+	if err != nil {
+		slog.Error("ListErrors failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"message": "에러 목록 조회에 실패했습니다.", "code": "SYS_001"},
+		})
+		return
+	}
+
+	items := make([]map[string]any, 0, len(records))
+	for _, er := range records {
+		item := map[string]any{
+			"id":            er.ID,
+			"error_type":    string(er.ErrorType),
+			"error_message": er.ErrorMessage,
+			"created_at":    er.CreatedAt,
+		}
+		if er.Edges.UsageLog != nil {
+			ul := er.Edges.UsageLog
+			item["feature"] = ul.Feature
+			item["user_id"] = ul.UserID
+			item["input_tokens"] = ul.InputTokens
+			item["output_tokens"] = ul.OutputTokens
+			if ul.Model != nil {
+				item["model"] = *ul.Model
+			}
+			if ul.Provider != nil {
+				item["provider"] = *ul.Provider
+			}
+		}
+		// Filter by provider/feature after join (simpler than SQL join predicate in Ent)
+		if prov := c.Query("provider"); prov != "" {
+			if item["provider"] != prov {
+				continue
+			}
+		}
+		if feat := c.Query("feature"); feat != "" {
+			if item["feature"] != feat {
+				continue
+			}
+		}
+		items = append(items, item)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": items, "count": total})
 }

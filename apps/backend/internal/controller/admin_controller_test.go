@@ -1686,3 +1686,162 @@ func TestAdminController_GetRateLimitHits_WithHits(t *testing.T) {
 	}
 }
 
+
+// ─── Phase 1.7.3: Dashboard API ───
+
+func setupDashboardTestRouter(t *testing.T) (*gin.Engine, *ent.Client) {
+	t.Helper()
+	gin.SetMode(gin.TestMode)
+	db := testutil.NewTestClient(t)
+	testutil.CleanAllTables(db)
+	ctrl := NewAdminController(db, nil)
+	r := gin.New()
+	v1 := r.Group("/v1/admin")
+	v1.GET("/dashboard", ctrl.GetDashboard)
+	v1.GET("/usage/errors", ctrl.ListErrors)
+	return r, db
+}
+
+func TestGetDashboard_Returns200(t *testing.T) {
+	r, _ := setupDashboardTestRouter(t)
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/dashboard", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	data := resp["data"].(map[string]any)
+	assert.Contains(t, data, "user_stats")
+	assert.Contains(t, data, "ai_metrics_today")
+	assert.Contains(t, data, "daily_metrics")
+	assert.Contains(t, data, "quota_alerts")
+	assert.Contains(t, data, "recent_errors")
+	assert.Contains(t, data, "recent_feedbacks")
+	assert.Contains(t, data, "pending_feedback_count")
+}
+
+func TestGetDashboard_UserStats(t *testing.T) {
+	r, db := setupDashboardTestRouter(t)
+	ctx := context.Background()
+
+	db.UserProfile.Create().
+		SetEmail("u1@test.com").SetNickname("U1").
+		SetAuthProvider(userprofile.AuthProviderEmail).SaveX(ctx)
+	db.UserProfile.Create().
+		SetEmail("u2@test.com").SetNickname("U2").
+		SetAuthProvider(userprofile.AuthProviderEmail).SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/dashboard", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	resp := parseJSON(t, w)
+	data := resp["data"].(map[string]any)
+	stats := data["user_stats"].(map[string]any)
+	assert.Equal(t, float64(2), stats["total_users"])
+}
+
+func TestGetDashboard_RecentErrors_Limit5(t *testing.T) {
+	r, db := setupDashboardTestRouter(t)
+	ctx := context.Background()
+
+	user := db.UserProfile.Create().
+		SetEmail("err-user@test.com").SetNickname("ErrUser").
+		SetAuthProvider(userprofile.AuthProviderEmail).SaveX(ctx)
+
+	// Create 6 error usage logs
+	for i := 0; i < 6; i++ {
+		ul := db.UsageLog.Create().
+			SetUserID(user.ID).SetFeature("draft").SetStatus("error").SaveX(ctx)
+		db.AICallError.Create().
+			SetUsageLogID(ul.ID).
+			SetErrorType("rate_limit").
+			SetErrorMessage(fmt.Sprintf("error %d", i)).
+			SaveX(ctx)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/dashboard", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	resp := parseJSON(t, w)
+	data := resp["data"].(map[string]any)
+	errors := data["recent_errors"].([]any)
+	assert.LessOrEqual(t, len(errors), 5)
+}
+
+func TestGetDashboard_EmptyState(t *testing.T) {
+	r, _ := setupDashboardTestRouter(t)
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/dashboard", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	resp := parseJSON(t, w)
+	data := resp["data"].(map[string]any)
+	// Empty arrays, not null
+	assert.IsType(t, []any{}, data["recent_errors"])
+	assert.IsType(t, []any{}, data["recent_feedbacks"])
+	assert.IsType(t, []any{}, data["quota_alerts"])
+}
+
+// ─── Phase 1.7.4: Error List API ───
+
+func TestListErrors_Returns200(t *testing.T) {
+	r, _ := setupDashboardTestRouter(t)
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/usage/errors", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	resp := parseJSON(t, w)
+	assert.Contains(t, resp, "data")
+	assert.Contains(t, resp, "count")
+}
+
+func TestListErrors_FilterByErrorType(t *testing.T) {
+	r, db := setupDashboardTestRouter(t)
+	ctx := context.Background()
+
+	user := db.UserProfile.Create().
+		SetEmail("filter-test@test.com").SetNickname("FT").
+		SetAuthProvider(userprofile.AuthProviderEmail).SaveX(ctx)
+
+	ulRL := db.UsageLog.Create().SetUserID(user.ID).SetFeature("draft").SetStatus("error").SaveX(ctx)
+	db.AICallError.Create().SetUsageLogID(ulRL.ID).SetErrorType("rate_limit").SetErrorMessage("429").SaveX(ctx)
+
+	ulTO := db.UsageLog.Create().SetUserID(user.ID).SetFeature("analysis").SetStatus("error").SaveX(ctx)
+	db.AICallError.Create().SetUsageLogID(ulTO.ID).SetErrorType("timeout").SetErrorMessage("deadline").SaveX(ctx)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/usage/errors?error_type=rate_limit", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	resp := parseJSON(t, w)
+	data := resp["data"].([]any)
+	assert.Equal(t, 1, len(data))
+	assert.Equal(t, "rate_limit", data[0].(map[string]any)["error_type"])
+}
+
+func TestListErrors_Pagination(t *testing.T) {
+	r, db := setupDashboardTestRouter(t)
+	ctx := context.Background()
+
+	user := db.UserProfile.Create().
+		SetEmail("page-test@test.com").SetNickname("PT").
+		SetAuthProvider(userprofile.AuthProviderEmail).SaveX(ctx)
+
+	for i := 0; i < 5; i++ {
+		ul := db.UsageLog.Create().SetUserID(user.ID).SetFeature("draft").SetStatus("error").SaveX(ctx)
+		db.AICallError.Create().SetUsageLogID(ul.ID).SetErrorType("timeout").SetErrorMessage("to").SaveX(ctx)
+	}
+
+	// limit=2
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/usage/errors?limit=2", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	resp := parseJSON(t, w)
+	data := resp["data"].([]any)
+	assert.Equal(t, 2, len(data))
+	assert.Equal(t, float64(5), resp["count"])
+}

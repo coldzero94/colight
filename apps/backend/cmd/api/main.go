@@ -326,6 +326,8 @@ func main() {
 		admin.GET("/users/:id", adminCtrl.GetUser)
 		admin.PUT("/users/:id/role", adminCtrl.UpdateUserRole)
 		admin.GET("/stats", adminCtrl.GetStats)
+		admin.GET("/dashboard", adminCtrl.GetDashboard)
+		admin.GET("/usage/errors", adminCtrl.ListErrors)
 		admin.GET("/models/stats", adminCtrl.GetModelStats)
 		admin.GET("/models/available", adminCtrl.ListAvailableModels)
 		admin.GET("/models/rate-limit-hits", adminCtrl.GetRateLimitHits)
