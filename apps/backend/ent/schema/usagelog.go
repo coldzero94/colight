@@ -61,10 +61,6 @@ func (UsageLog) Fields() []ent.Field {
 			MaxLen(20).
 			Default("success").
 			Comment("Call status: success, error"),
-		field.Text("error_message").
-			Optional().
-			Nillable().
-			Comment("Error message if status=error"),
 	}
 }
 
@@ -76,6 +72,7 @@ func (UsageLog) Edges() []ent.Edge {
 			Required().
 			Field("user_id").
 			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("error_detail", AICallError.Type).Unique(),
 	}
 }
 

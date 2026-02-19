@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/coby/colight/apps/backend/ent/adminauditlog"
+	"github.com/coby/colight/apps/backend/ent/aicallerror"
 	"github.com/coby/colight/apps/backend/ent/application"
 	"github.com/coby/colight/apps/backend/ent/coachingsession"
 	"github.com/coby/colight/apps/backend/ent/companyanalysis"
@@ -20,6 +21,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
+	"github.com/coby/colight/apps/backend/ent/quotahitevent"
 	"github.com/coby/colight/apps/backend/ent/schema"
 	"github.com/coby/colight/apps/backend/ent/systemconfig"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
@@ -33,6 +35,19 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	aicallerrorMixin := schema.AICallError{}.Mixin()
+	aicallerrorMixinFields0 := aicallerrorMixin[0].Fields()
+	_ = aicallerrorMixinFields0
+	aicallerrorFields := schema.AICallError{}.Fields()
+	_ = aicallerrorFields
+	// aicallerrorDescCreatedAt is the schema descriptor for created_at field.
+	aicallerrorDescCreatedAt := aicallerrorMixinFields0[1].Descriptor()
+	// aicallerror.DefaultCreatedAt holds the default value on creation for the created_at field.
+	aicallerror.DefaultCreatedAt = aicallerrorDescCreatedAt.Default.(func() time.Time)
+	// aicallerrorDescID is the schema descriptor for id field.
+	aicallerrorDescID := aicallerrorMixinFields0[0].Descriptor()
+	// aicallerror.DefaultID holds the default value on creation for the id field.
+	aicallerror.DefaultID = aicallerrorDescID.Default.(func() uuid.UUID)
 	adminauditlogMixin := schema.AdminAuditLog{}.Mixin()
 	adminauditlogMixinFields0 := adminauditlogMixin[0].Fields()
 	_ = adminauditlogMixinFields0
@@ -676,6 +691,31 @@ func init() {
 	questionpatternDescID := questionpatternMixinFields0[0].Descriptor()
 	// questionpattern.DefaultID holds the default value on creation for the id field.
 	questionpattern.DefaultID = questionpatternDescID.Default.(func() uuid.UUID)
+	quotahiteventMixin := schema.QuotaHitEvent{}.Mixin()
+	quotahiteventMixinFields0 := quotahiteventMixin[0].Fields()
+	_ = quotahiteventMixinFields0
+	quotahiteventFields := schema.QuotaHitEvent{}.Fields()
+	_ = quotahiteventFields
+	// quotahiteventDescCreatedAt is the schema descriptor for created_at field.
+	quotahiteventDescCreatedAt := quotahiteventMixinFields0[1].Descriptor()
+	// quotahitevent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	quotahitevent.DefaultCreatedAt = quotahiteventDescCreatedAt.Default.(func() time.Time)
+	// quotahiteventDescProvider is the schema descriptor for provider field.
+	quotahiteventDescProvider := quotahiteventFields[0].Descriptor()
+	// quotahitevent.ProviderValidator is a validator for the "provider" field. It is called by the builders before save.
+	quotahitevent.ProviderValidator = quotahiteventDescProvider.Validators[0].(func(string) error)
+	// quotahiteventDescModel is the schema descriptor for model field.
+	quotahiteventDescModel := quotahiteventFields[1].Descriptor()
+	// quotahitevent.ModelValidator is a validator for the "model" field. It is called by the builders before save.
+	quotahitevent.ModelValidator = quotahiteventDescModel.Validators[0].(func(string) error)
+	// quotahiteventDescFeature is the schema descriptor for feature field.
+	quotahiteventDescFeature := quotahiteventFields[2].Descriptor()
+	// quotahitevent.FeatureValidator is a validator for the "feature" field. It is called by the builders before save.
+	quotahitevent.FeatureValidator = quotahiteventDescFeature.Validators[0].(func(string) error)
+	// quotahiteventDescID is the schema descriptor for id field.
+	quotahiteventDescID := quotahiteventMixinFields0[0].Descriptor()
+	// quotahitevent.DefaultID holds the default value on creation for the id field.
+	quotahitevent.DefaultID = quotahiteventDescID.Default.(func() uuid.UUID)
 	systemconfigMixin := schema.SystemConfig{}.Mixin()
 	systemconfigMixinFields0 := systemconfigMixin[0].Fields()
 	_ = systemconfigMixinFields0

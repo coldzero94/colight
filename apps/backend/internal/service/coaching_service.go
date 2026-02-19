@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 	"strings"
 
 	"github.com/coby/colight/apps/backend/ent"
@@ -200,9 +201,23 @@ func (s *CoachingService) GenerateDraftStream(
 		return ai.LLMResponse{}, err
 	}
 
-	resp, err := s.aiProvider.StreamByModelName(ctx, modelName, llmReq, onChunk)
-	if err != nil {
-		return ai.LLMResponse{}, fmt.Errorf("AI call failed: %w", err)
+	start := time.Now()
+	resp, callErr := s.aiProvider.StreamByModelName(ctx, modelName, llmReq, onChunk)
+	latencyMs := int(time.Since(start).Milliseconds())
+
+	// Log AI call to usage_logs (best-effort: don't fail the request on log error)
+	_ = LogAICall(ctx, s.entClient, AICallParams{
+		UserID:       userID,
+		Feature:      "draft",
+		Model:        modelName,
+		InputTokens:  resp.InputTokens,
+		OutputTokens: resp.OutputTokens,
+		LatencyMs:    latencyMs,
+		Err:          callErr,
+	})
+
+	if callErr != nil {
+		return ai.LLMResponse{}, fmt.Errorf("AI call failed: %w", callErr)
 	}
 
 	return resp, nil

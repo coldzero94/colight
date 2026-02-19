@@ -12,6 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// AICallError is the client for interacting with the AICallError builders.
+	AICallError *AICallErrorClient
 	// AdminAuditLog is the client for interacting with the AdminAuditLog builders.
 	AdminAuditLog *AdminAuditLogClient
 	// Application is the client for interacting with the Application builders.
@@ -42,6 +44,8 @@ type Tx struct {
 	PromptTemplate *PromptTemplateClient
 	// QuestionPattern is the client for interacting with the QuestionPattern builders.
 	QuestionPattern *QuestionPatternClient
+	// QuotaHitEvent is the client for interacting with the QuotaHitEvent builders.
+	QuotaHitEvent *QuotaHitEventClient
 	// SystemConfig is the client for interacting with the SystemConfig builders.
 	SystemConfig *SystemConfigClient
 	// TalentProfile is the client for interacting with the TalentProfile builders.
@@ -183,6 +187,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.AICallError = NewAICallErrorClient(tx.config)
 	tx.AdminAuditLog = NewAdminAuditLogClient(tx.config)
 	tx.Application = NewApplicationClient(tx.config)
 	tx.CoachingSession = NewCoachingSessionClient(tx.config)
@@ -198,6 +203,7 @@ func (tx *Tx) init() {
 	tx.Feedback = NewFeedbackClient(tx.config)
 	tx.PromptTemplate = NewPromptTemplateClient(tx.config)
 	tx.QuestionPattern = NewQuestionPatternClient(tx.config)
+	tx.QuotaHitEvent = NewQuotaHitEventClient(tx.config)
 	tx.SystemConfig = NewSystemConfigClient(tx.config)
 	tx.TalentProfile = NewTalentProfileClient(tx.config)
 	tx.UsageLog = NewUsageLogClient(tx.config)
@@ -212,7 +218,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: AdminAuditLog.QueryXXX(), the query will be executed
+// applies a query, for example: AICallError.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

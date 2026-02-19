@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -15,58 +14,56 @@ import (
 	"github.com/coby/colight/apps/backend/ent/aicallerror"
 	"github.com/coby/colight/apps/backend/ent/predicate"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
-	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/google/uuid"
 )
 
-// UsageLogQuery is the builder for querying UsageLog entities.
-type UsageLogQuery struct {
+// AICallErrorQuery is the builder for querying AICallError entities.
+type AICallErrorQuery struct {
 	config
-	ctx             *QueryContext
-	order           []usagelog.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.UsageLog
-	withUser        *UserProfileQuery
-	withErrorDetail *AICallErrorQuery
+	ctx          *QueryContext
+	order        []aicallerror.OrderOption
+	inters       []Interceptor
+	predicates   []predicate.AICallError
+	withUsageLog *UsageLogQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the UsageLogQuery builder.
-func (_q *UsageLogQuery) Where(ps ...predicate.UsageLog) *UsageLogQuery {
+// Where adds a new predicate for the AICallErrorQuery builder.
+func (_q *AICallErrorQuery) Where(ps ...predicate.AICallError) *AICallErrorQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *UsageLogQuery) Limit(limit int) *UsageLogQuery {
+func (_q *AICallErrorQuery) Limit(limit int) *AICallErrorQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *UsageLogQuery) Offset(offset int) *UsageLogQuery {
+func (_q *AICallErrorQuery) Offset(offset int) *AICallErrorQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *UsageLogQuery) Unique(unique bool) *UsageLogQuery {
+func (_q *AICallErrorQuery) Unique(unique bool) *AICallErrorQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *UsageLogQuery) Order(o ...usagelog.OrderOption) *UsageLogQuery {
+func (_q *AICallErrorQuery) Order(o ...aicallerror.OrderOption) *AICallErrorQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
-// QueryUser chains the current query on the "user" edge.
-func (_q *UsageLogQuery) QueryUser() *UserProfileQuery {
-	query := (&UserProfileClient{config: _q.config}).Query()
+// QueryUsageLog chains the current query on the "usage_log" edge.
+func (_q *AICallErrorQuery) QueryUsageLog() *UsageLogQuery {
+	query := (&UsageLogClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -76,9 +73,9 @@ func (_q *UsageLogQuery) QueryUser() *UserProfileQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(usagelog.Table, usagelog.FieldID, selector),
-			sqlgraph.To(userprofile.Table, userprofile.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, usagelog.UserTable, usagelog.UserColumn),
+			sqlgraph.From(aicallerror.Table, aicallerror.FieldID, selector),
+			sqlgraph.To(usagelog.Table, usagelog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, aicallerror.UsageLogTable, aicallerror.UsageLogColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -86,43 +83,21 @@ func (_q *UsageLogQuery) QueryUser() *UserProfileQuery {
 	return query
 }
 
-// QueryErrorDetail chains the current query on the "error_detail" edge.
-func (_q *UsageLogQuery) QueryErrorDetail() *AICallErrorQuery {
-	query := (&AICallErrorClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(usagelog.Table, usagelog.FieldID, selector),
-			sqlgraph.To(aicallerror.Table, aicallerror.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, usagelog.ErrorDetailTable, usagelog.ErrorDetailColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// First returns the first UsageLog entity from the query.
-// Returns a *NotFoundError when no UsageLog was found.
-func (_q *UsageLogQuery) First(ctx context.Context) (*UsageLog, error) {
+// First returns the first AICallError entity from the query.
+// Returns a *NotFoundError when no AICallError was found.
+func (_q *AICallErrorQuery) First(ctx context.Context) (*AICallError, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{usagelog.Label}
+		return nil, &NotFoundError{aicallerror.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *UsageLogQuery) FirstX(ctx context.Context) *UsageLog {
+func (_q *AICallErrorQuery) FirstX(ctx context.Context) *AICallError {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -130,22 +105,22 @@ func (_q *UsageLogQuery) FirstX(ctx context.Context) *UsageLog {
 	return node
 }
 
-// FirstID returns the first UsageLog ID from the query.
-// Returns a *NotFoundError when no UsageLog ID was found.
-func (_q *UsageLogQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+// FirstID returns the first AICallError ID from the query.
+// Returns a *NotFoundError when no AICallError ID was found.
+func (_q *AICallErrorQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{usagelog.Label}
+		err = &NotFoundError{aicallerror.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *UsageLogQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (_q *AICallErrorQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -153,10 +128,10 @@ func (_q *UsageLogQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// Only returns a single UsageLog entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one UsageLog entity is found.
-// Returns a *NotFoundError when no UsageLog entities are found.
-func (_q *UsageLogQuery) Only(ctx context.Context) (*UsageLog, error) {
+// Only returns a single AICallError entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one AICallError entity is found.
+// Returns a *NotFoundError when no AICallError entities are found.
+func (_q *AICallErrorQuery) Only(ctx context.Context) (*AICallError, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -165,14 +140,14 @@ func (_q *UsageLogQuery) Only(ctx context.Context) (*UsageLog, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{usagelog.Label}
+		return nil, &NotFoundError{aicallerror.Label}
 	default:
-		return nil, &NotSingularError{usagelog.Label}
+		return nil, &NotSingularError{aicallerror.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *UsageLogQuery) OnlyX(ctx context.Context) *UsageLog {
+func (_q *AICallErrorQuery) OnlyX(ctx context.Context) *AICallError {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -180,10 +155,10 @@ func (_q *UsageLogQuery) OnlyX(ctx context.Context) *UsageLog {
 	return node
 }
 
-// OnlyID is like Only, but returns the only UsageLog ID in the query.
-// Returns a *NotSingularError when more than one UsageLog ID is found.
+// OnlyID is like Only, but returns the only AICallError ID in the query.
+// Returns a *NotSingularError when more than one AICallError ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *UsageLogQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+func (_q *AICallErrorQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -192,15 +167,15 @@ func (_q *UsageLogQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{usagelog.Label}
+		err = &NotFoundError{aicallerror.Label}
 	default:
-		err = &NotSingularError{usagelog.Label}
+		err = &NotSingularError{aicallerror.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *UsageLogQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (_q *AICallErrorQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -208,18 +183,18 @@ func (_q *UsageLogQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// All executes the query and returns a list of UsageLogs.
-func (_q *UsageLogQuery) All(ctx context.Context) ([]*UsageLog, error) {
+// All executes the query and returns a list of AICallErrors.
+func (_q *AICallErrorQuery) All(ctx context.Context) ([]*AICallError, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*UsageLog, *UsageLogQuery]()
-	return withInterceptors[[]*UsageLog](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*AICallError, *AICallErrorQuery]()
+	return withInterceptors[[]*AICallError](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *UsageLogQuery) AllX(ctx context.Context) []*UsageLog {
+func (_q *AICallErrorQuery) AllX(ctx context.Context) []*AICallError {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -227,20 +202,20 @@ func (_q *UsageLogQuery) AllX(ctx context.Context) []*UsageLog {
 	return nodes
 }
 
-// IDs executes the query and returns a list of UsageLog IDs.
-func (_q *UsageLogQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+// IDs executes the query and returns a list of AICallError IDs.
+func (_q *AICallErrorQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(usagelog.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(aicallerror.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *UsageLogQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (_q *AICallErrorQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -249,16 +224,16 @@ func (_q *UsageLogQuery) IDsX(ctx context.Context) []uuid.UUID {
 }
 
 // Count returns the count of the given query.
-func (_q *UsageLogQuery) Count(ctx context.Context) (int, error) {
+func (_q *AICallErrorQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*UsageLogQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*AICallErrorQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *UsageLogQuery) CountX(ctx context.Context) int {
+func (_q *AICallErrorQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -267,7 +242,7 @@ func (_q *UsageLogQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *UsageLogQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *AICallErrorQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -280,7 +255,7 @@ func (_q *UsageLogQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *UsageLogQuery) ExistX(ctx context.Context) bool {
+func (_q *AICallErrorQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -288,45 +263,33 @@ func (_q *UsageLogQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the UsageLogQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the AICallErrorQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *UsageLogQuery) Clone() *UsageLogQuery {
+func (_q *AICallErrorQuery) Clone() *AICallErrorQuery {
 	if _q == nil {
 		return nil
 	}
-	return &UsageLogQuery{
-		config:          _q.config,
-		ctx:             _q.ctx.Clone(),
-		order:           append([]usagelog.OrderOption{}, _q.order...),
-		inters:          append([]Interceptor{}, _q.inters...),
-		predicates:      append([]predicate.UsageLog{}, _q.predicates...),
-		withUser:        _q.withUser.Clone(),
-		withErrorDetail: _q.withErrorDetail.Clone(),
+	return &AICallErrorQuery{
+		config:       _q.config,
+		ctx:          _q.ctx.Clone(),
+		order:        append([]aicallerror.OrderOption{}, _q.order...),
+		inters:       append([]Interceptor{}, _q.inters...),
+		predicates:   append([]predicate.AICallError{}, _q.predicates...),
+		withUsageLog: _q.withUsageLog.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
-// WithUser tells the query-builder to eager-load the nodes that are connected to
-// the "user" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UsageLogQuery) WithUser(opts ...func(*UserProfileQuery)) *UsageLogQuery {
-	query := (&UserProfileClient{config: _q.config}).Query()
+// WithUsageLog tells the query-builder to eager-load the nodes that are connected to
+// the "usage_log" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AICallErrorQuery) WithUsageLog(opts ...func(*UsageLogQuery)) *AICallErrorQuery {
+	query := (&UsageLogClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withUser = query
-	return _q
-}
-
-// WithErrorDetail tells the query-builder to eager-load the nodes that are connected to
-// the "error_detail" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UsageLogQuery) WithErrorDetail(opts ...func(*AICallErrorQuery)) *UsageLogQuery {
-	query := (&AICallErrorClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withErrorDetail = query
+	_q.withUsageLog = query
 	return _q
 }
 
@@ -340,15 +303,15 @@ func (_q *UsageLogQuery) WithErrorDetail(opts ...func(*AICallErrorQuery)) *Usage
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.UsageLog.Query().
-//		GroupBy(usagelog.FieldCreatedAt).
+//	client.AICallError.Query().
+//		GroupBy(aicallerror.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *UsageLogQuery) GroupBy(field string, fields ...string) *UsageLogGroupBy {
+func (_q *AICallErrorQuery) GroupBy(field string, fields ...string) *AICallErrorGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &UsageLogGroupBy{build: _q}
+	grbuild := &AICallErrorGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = usagelog.Label
+	grbuild.label = aicallerror.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -362,23 +325,23 @@ func (_q *UsageLogQuery) GroupBy(field string, fields ...string) *UsageLogGroupB
 //		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
-//	client.UsageLog.Query().
-//		Select(usagelog.FieldCreatedAt).
+//	client.AICallError.Query().
+//		Select(aicallerror.FieldCreatedAt).
 //		Scan(ctx, &v)
-func (_q *UsageLogQuery) Select(fields ...string) *UsageLogSelect {
+func (_q *AICallErrorQuery) Select(fields ...string) *AICallErrorSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &UsageLogSelect{UsageLogQuery: _q}
-	sbuild.label = usagelog.Label
+	sbuild := &AICallErrorSelect{AICallErrorQuery: _q}
+	sbuild.label = aicallerror.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a UsageLogSelect configured with the given aggregations.
-func (_q *UsageLogQuery) Aggregate(fns ...AggregateFunc) *UsageLogSelect {
+// Aggregate returns a AICallErrorSelect configured with the given aggregations.
+func (_q *AICallErrorQuery) Aggregate(fns ...AggregateFunc) *AICallErrorSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *UsageLogQuery) prepareQuery(ctx context.Context) error {
+func (_q *AICallErrorQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -390,7 +353,7 @@ func (_q *UsageLogQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !usagelog.ValidColumn(f) {
+		if !aicallerror.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -404,20 +367,19 @@ func (_q *UsageLogQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *UsageLogQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*UsageLog, error) {
+func (_q *AICallErrorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*AICallError, error) {
 	var (
-		nodes       = []*UsageLog{}
+		nodes       = []*AICallError{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
-			_q.withUser != nil,
-			_q.withErrorDetail != nil,
+		loadedTypes = [1]bool{
+			_q.withUsageLog != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*UsageLog).scanValues(nil, columns)
+		return (*AICallError).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &UsageLog{config: _q.config}
+		node := &AICallError{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -431,26 +393,20 @@ func (_q *UsageLogQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Usa
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withUser; query != nil {
-		if err := _q.loadUser(ctx, query, nodes, nil,
-			func(n *UsageLog, e *UserProfile) { n.Edges.User = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withErrorDetail; query != nil {
-		if err := _q.loadErrorDetail(ctx, query, nodes, nil,
-			func(n *UsageLog, e *AICallError) { n.Edges.ErrorDetail = e }); err != nil {
+	if query := _q.withUsageLog; query != nil {
+		if err := _q.loadUsageLog(ctx, query, nodes, nil,
+			func(n *AICallError, e *UsageLog) { n.Edges.UsageLog = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *UsageLogQuery) loadUser(ctx context.Context, query *UserProfileQuery, nodes []*UsageLog, init func(*UsageLog), assign func(*UsageLog, *UserProfile)) error {
+func (_q *AICallErrorQuery) loadUsageLog(ctx context.Context, query *UsageLogQuery, nodes []*AICallError, init func(*AICallError), assign func(*AICallError, *UsageLog)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*UsageLog)
+	nodeids := make(map[uuid.UUID][]*AICallError)
 	for i := range nodes {
-		fk := nodes[i].UserID
+		fk := nodes[i].UsageLogID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -459,7 +415,7 @@ func (_q *UsageLogQuery) loadUser(ctx context.Context, query *UserProfileQuery, 
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(userprofile.IDIn(ids...))
+	query.Where(usagelog.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -467,7 +423,7 @@ func (_q *UsageLogQuery) loadUser(ctx context.Context, query *UserProfileQuery, 
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "usage_log_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -475,35 +431,8 @@ func (_q *UsageLogQuery) loadUser(ctx context.Context, query *UserProfileQuery, 
 	}
 	return nil
 }
-func (_q *UsageLogQuery) loadErrorDetail(ctx context.Context, query *AICallErrorQuery, nodes []*UsageLog, init func(*UsageLog), assign func(*UsageLog, *AICallError)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*UsageLog)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(aicallerror.FieldUsageLogID)
-	}
-	query.Where(predicate.AICallError(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(usagelog.ErrorDetailColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.UsageLogID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "usage_log_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 
-func (_q *UsageLogQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *AICallErrorQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -512,8 +441,8 @@ func (_q *UsageLogQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *UsageLogQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(usagelog.Table, usagelog.Columns, sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeUUID))
+func (_q *AICallErrorQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(aicallerror.Table, aicallerror.Columns, sqlgraph.NewFieldSpec(aicallerror.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -522,14 +451,14 @@ func (_q *UsageLogQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, usagelog.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, aicallerror.FieldID)
 		for i := range fields {
-			if fields[i] != usagelog.FieldID {
+			if fields[i] != aicallerror.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
-		if _q.withUser != nil {
-			_spec.Node.AddColumnOnce(usagelog.FieldUserID)
+		if _q.withUsageLog != nil {
+			_spec.Node.AddColumnOnce(aicallerror.FieldUsageLogID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -555,12 +484,12 @@ func (_q *UsageLogQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *UsageLogQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *AICallErrorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(usagelog.Table)
+	t1 := builder.Table(aicallerror.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = usagelog.Columns
+		columns = aicallerror.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -587,28 +516,28 @@ func (_q *UsageLogQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// UsageLogGroupBy is the group-by builder for UsageLog entities.
-type UsageLogGroupBy struct {
+// AICallErrorGroupBy is the group-by builder for AICallError entities.
+type AICallErrorGroupBy struct {
 	selector
-	build *UsageLogQuery
+	build *AICallErrorQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *UsageLogGroupBy) Aggregate(fns ...AggregateFunc) *UsageLogGroupBy {
+func (_g *AICallErrorGroupBy) Aggregate(fns ...AggregateFunc) *AICallErrorGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *UsageLogGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *AICallErrorGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*UsageLogQuery, *UsageLogGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*AICallErrorQuery, *AICallErrorGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *UsageLogGroupBy) sqlScan(ctx context.Context, root *UsageLogQuery, v any) error {
+func (_g *AICallErrorGroupBy) sqlScan(ctx context.Context, root *AICallErrorQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -635,28 +564,28 @@ func (_g *UsageLogGroupBy) sqlScan(ctx context.Context, root *UsageLogQuery, v a
 	return sql.ScanSlice(rows, v)
 }
 
-// UsageLogSelect is the builder for selecting fields of UsageLog entities.
-type UsageLogSelect struct {
-	*UsageLogQuery
+// AICallErrorSelect is the builder for selecting fields of AICallError entities.
+type AICallErrorSelect struct {
+	*AICallErrorQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *UsageLogSelect) Aggregate(fns ...AggregateFunc) *UsageLogSelect {
+func (_s *AICallErrorSelect) Aggregate(fns ...AggregateFunc) *AICallErrorSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *UsageLogSelect) Scan(ctx context.Context, v any) error {
+func (_s *AICallErrorSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*UsageLogQuery, *UsageLogSelect](ctx, _s.UsageLogQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*AICallErrorQuery, *AICallErrorSelect](ctx, _s.AICallErrorQuery, _s, _s.inters, v)
 }
 
-func (_s *UsageLogSelect) sqlScan(ctx context.Context, root *UsageLogQuery, v any) error {
+func (_s *AICallErrorSelect) sqlScan(ctx context.Context, root *AICallErrorQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

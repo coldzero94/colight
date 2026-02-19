@@ -708,7 +708,6 @@ func TestAdminController_GetUsageSummary(t *testing.T) {
 		SetOutputTokens(0).
 		SetTotalTokens(600).
 		SetStatus("error").
-		SetErrorMessage("rate limit exceeded").
 		SaveX(ctx)
 
 	req := httptest.NewRequest(http.MethodGet, "/v1/admin/usage/summary?days=30", nil)
@@ -1554,7 +1553,6 @@ func TestAdminController_GetModelStats_WithData(t *testing.T) {
 		SetOutputTokens(0).
 		SetTotalTokens(600).
 		SetStatus("error").
-		SetErrorMessage("rate limit").
 		SaveX(ctx)
 
 	req := httptest.NewRequest(http.MethodGet, "/v1/admin/models/stats?days=30", nil)

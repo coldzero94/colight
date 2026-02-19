@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/coby/colight/apps/backend/ent/aicallerror"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/google/uuid"
@@ -29,7 +30,7 @@ type UsageLog struct {
 	Feature string `json:"feature,omitempty"`
 	// Additional context (e.g. cover_letter_id)
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
-	// AI provider: anthropic, gemini, groq
+	// AI provider: gemini, groq
 	Provider *string `json:"provider,omitempty"`
 	// AI model name used
 	Model *string `json:"model,omitempty"`
@@ -45,8 +46,6 @@ type UsageLog struct {
 	LatencyMs *int `json:"latency_ms,omitempty"`
 	// Call status: success, error
 	Status string `json:"status,omitempty"`
-	// Error message if status=error
-	ErrorMessage *string `json:"error_message,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UsageLogQuery when eager-loading is set.
 	Edges        UsageLogEdges `json:"edges"`
@@ -57,9 +56,11 @@ type UsageLog struct {
 type UsageLogEdges struct {
 	// User holds the value of the user edge.
 	User *UserProfile `json:"user,omitempty"`
+	// ErrorDetail holds the value of the error_detail edge.
+	ErrorDetail *AICallError `json:"error_detail,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -73,6 +74,17 @@ func (e UsageLogEdges) UserOrErr() (*UserProfile, error) {
 	return nil, &NotLoadedError{edge: "user"}
 }
 
+// ErrorDetailOrErr returns the ErrorDetail value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UsageLogEdges) ErrorDetailOrErr() (*AICallError, error) {
+	if e.ErrorDetail != nil {
+		return e.ErrorDetail, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: aicallerror.Label}
+	}
+	return nil, &NotLoadedError{edge: "error_detail"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*UsageLog) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -84,7 +96,7 @@ func (*UsageLog) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case usagelog.FieldInputTokens, usagelog.FieldOutputTokens, usagelog.FieldTotalTokens, usagelog.FieldLatencyMs:
 			values[i] = new(sql.NullInt64)
-		case usagelog.FieldFeature, usagelog.FieldProvider, usagelog.FieldModel, usagelog.FieldStatus, usagelog.FieldErrorMessage:
+		case usagelog.FieldFeature, usagelog.FieldProvider, usagelog.FieldModel, usagelog.FieldStatus:
 			values[i] = new(sql.NullString)
 		case usagelog.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -189,13 +201,6 @@ func (_m *UsageLog) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Status = value.String
 			}
-		case usagelog.FieldErrorMessage:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field error_message", values[i])
-			} else if value.Valid {
-				_m.ErrorMessage = new(string)
-				*_m.ErrorMessage = value.String
-			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -212,6 +217,11 @@ func (_m *UsageLog) Value(name string) (ent.Value, error) {
 // QueryUser queries the "user" edge of the UsageLog entity.
 func (_m *UsageLog) QueryUser() *UserProfileQuery {
 	return NewUsageLogClient(_m.config).QueryUser(_m)
+}
+
+// QueryErrorDetail queries the "error_detail" edge of the UsageLog entity.
+func (_m *UsageLog) QueryErrorDetail() *AICallErrorQuery {
+	return NewUsageLogClient(_m.config).QueryErrorDetail(_m)
 }
 
 // Update returns a builder for updating this UsageLog.
@@ -280,11 +290,6 @@ func (_m *UsageLog) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(_m.Status)
-	builder.WriteString(", ")
-	if v := _m.ErrorMessage; v != nil {
-		builder.WriteString("error_message=")
-		builder.WriteString(*v)
-	}
 	builder.WriteByte(')')
 	return builder.String()
 }

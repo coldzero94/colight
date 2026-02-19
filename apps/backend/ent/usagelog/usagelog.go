@@ -39,10 +39,10 @@ const (
 	FieldLatencyMs = "latency_ms"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
-	// FieldErrorMessage holds the string denoting the error_message field in the database.
-	FieldErrorMessage = "error_message"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeErrorDetail holds the string denoting the error_detail edge name in mutations.
+	EdgeErrorDetail = "error_detail"
 	// Table holds the table name of the usagelog in the database.
 	Table = "usage_logs"
 	// UserTable is the table that holds the user relation/edge.
@@ -52,6 +52,13 @@ const (
 	UserInverseTable = "user_profiles"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_id"
+	// ErrorDetailTable is the table that holds the error_detail relation/edge.
+	ErrorDetailTable = "ai_call_errors"
+	// ErrorDetailInverseTable is the table name for the AICallError entity.
+	// It exists in this package in order to avoid circular dependency with the "aicallerror" package.
+	ErrorDetailInverseTable = "ai_call_errors"
+	// ErrorDetailColumn is the table column denoting the error_detail relation/edge.
+	ErrorDetailColumn = "usage_log_id"
 )
 
 // Columns holds all SQL columns for usagelog fields.
@@ -69,7 +76,6 @@ var Columns = []string{
 	FieldEstimatedCostKrw,
 	FieldLatencyMs,
 	FieldStatus,
-	FieldErrorMessage,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -168,15 +174,17 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
-// ByErrorMessage orders the results by the error_message field.
-func ByErrorMessage(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldErrorMessage, opts...).ToFunc()
-}
-
 // ByUserField orders the results by user field.
 func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByErrorDetailField orders the results by error_detail field.
+func ByErrorDetailField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newErrorDetailStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newUserStep() *sqlgraph.Step {
@@ -184,5 +192,12 @@ func newUserStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newErrorDetailStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ErrorDetailInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, ErrorDetailTable, ErrorDetailColumn),
 	)
 }

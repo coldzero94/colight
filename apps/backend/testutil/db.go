@@ -42,6 +42,8 @@ func NewTestClient(t *testing.T) *ent.Client {
 
 // allTables lists all Ent-managed tables.
 var allTables = []string{
+	"quota_hit_events",
+	"ai_call_errors",
 	"deletion_requests",
 	"admin_audit_logs",
 	"system_configs",

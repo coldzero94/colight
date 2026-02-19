@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AICallError is the predicate function for aicallerror builders.
+type AICallError func(*sql.Selector)
+
 // AdminAuditLog is the predicate function for adminauditlog builders.
 type AdminAuditLog func(*sql.Selector)
 
@@ -50,6 +53,9 @@ type PromptTemplate func(*sql.Selector)
 
 // QuestionPattern is the predicate function for questionpattern builders.
 type QuestionPattern func(*sql.Selector)
+
+// QuotaHitEvent is the predicate function for quotahitevent builders.
+type QuotaHitEvent func(*sql.Selector)
 
 // SystemConfig is the predicate function for systemconfig builders.
 type SystemConfig func(*sql.Selector)

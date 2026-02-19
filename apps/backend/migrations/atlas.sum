@@ -1,4 +1,4 @@
-h1:egdXtvWzVbdxG5mJObf3k4eWJHq6XVwnguRMo4h/ekY=
+h1:HM0+7qU53kraCegbfjH9azeTY59ousuk6is4i1io2sQ=
 20260212082137_initial_schema.sql h1:5ARVGDV4eBzd+gepm7cIN06YAojHnjHL6M9sLV8FRm8=
 20260213012819_add_auth_fields.sql h1:G5vDhD62ZXX/6KVUbGR3KAMJFePF8tNzR25qJXeaCwM=
 20260215145153_add_role_hierarchy.sql h1:w1WGiZ9WQZUcHWldXi1ELCez09WggqL7kn3awEBvpJY=
@@ -8,3 +8,4 @@ h1:egdXtvWzVbdxG5mJObf3k4eWJHq6XVwnguRMo4h/ekY=
 20260215151836_add_audit_logs.sql h1:0SNeEnBQZfheG02+1SC0HJauadPM7SCGzsxLLqFy0m0=
 20260216143630_add_force_logout_field.sql h1:qHH1rpQ1wdNDuGCnQ4/lGxftly24pR339shNdovZkag=
 20260217085146_add_app_tags_position_optional.sql h1:nIUmJW7ZZo2vvDqc0Tz0IBPiGQkUCiR2Zsqj40Stjr4=
+20260219000000_phase_1_7_ai_call_errors_quota_hit_events.sql h1:bEF1+UTAB2SFHx2EBwU+RQLCmcWE2v5GCnOqpTslk9Y=

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/coby/colight/apps/backend/ent/adminauditlog"
+	"github.com/coby/colight/apps/backend/ent/aicallerror"
 	"github.com/coby/colight/apps/backend/ent/application"
 	"github.com/coby/colight/apps/backend/ent/coachingsession"
 	"github.com/coby/colight/apps/backend/ent/companyanalysis"
@@ -27,6 +28,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/predicate"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
+	"github.com/coby/colight/apps/backend/ent/quotahitevent"
 	"github.com/coby/colight/apps/backend/ent/systemconfig"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
@@ -44,6 +46,7 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeAICallError          = "AICallError"
 	TypeAdminAuditLog        = "AdminAuditLog"
 	TypeApplication          = "Application"
 	TypeCoachingSession      = "CoachingSession"
@@ -59,12 +62,561 @@ const (
 	TypeFeedback             = "Feedback"
 	TypePromptTemplate       = "PromptTemplate"
 	TypeQuestionPattern      = "QuestionPattern"
+	TypeQuotaHitEvent        = "QuotaHitEvent"
 	TypeSystemConfig         = "SystemConfig"
 	TypeTalentProfile        = "TalentProfile"
 	TypeUsageLog             = "UsageLog"
 	TypeUserProfile          = "UserProfile"
 	TypeWeaponCategory       = "WeaponCategory"
 )
+
+// AICallErrorMutation represents an operation that mutates the AICallError nodes in the graph.
+type AICallErrorMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	created_at       *time.Time
+	error_type       *aicallerror.ErrorType
+	error_message    *string
+	clearedFields    map[string]struct{}
+	usage_log        *uuid.UUID
+	clearedusage_log bool
+	done             bool
+	oldValue         func(context.Context) (*AICallError, error)
+	predicates       []predicate.AICallError
+}
+
+var _ ent.Mutation = (*AICallErrorMutation)(nil)
+
+// aicallerrorOption allows management of the mutation configuration using functional options.
+type aicallerrorOption func(*AICallErrorMutation)
+
+// newAICallErrorMutation creates new mutation for the AICallError entity.
+func newAICallErrorMutation(c config, op Op, opts ...aicallerrorOption) *AICallErrorMutation {
+	m := &AICallErrorMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAICallError,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAICallErrorID sets the ID field of the mutation.
+func withAICallErrorID(id uuid.UUID) aicallerrorOption {
+	return func(m *AICallErrorMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AICallError
+		)
+		m.oldValue = func(ctx context.Context) (*AICallError, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AICallError.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAICallError sets the old AICallError of the mutation.
+func withAICallError(node *AICallError) aicallerrorOption {
+	return func(m *AICallErrorMutation) {
+		m.oldValue = func(context.Context) (*AICallError, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AICallErrorMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AICallErrorMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AICallError entities.
+func (m *AICallErrorMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AICallErrorMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AICallErrorMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AICallError.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AICallErrorMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AICallErrorMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AICallError entity.
+// If the AICallError object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AICallErrorMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AICallErrorMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUsageLogID sets the "usage_log_id" field.
+func (m *AICallErrorMutation) SetUsageLogID(u uuid.UUID) {
+	m.usage_log = &u
+}
+
+// UsageLogID returns the value of the "usage_log_id" field in the mutation.
+func (m *AICallErrorMutation) UsageLogID() (r uuid.UUID, exists bool) {
+	v := m.usage_log
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsageLogID returns the old "usage_log_id" field's value of the AICallError entity.
+// If the AICallError object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AICallErrorMutation) OldUsageLogID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsageLogID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsageLogID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsageLogID: %w", err)
+	}
+	return oldValue.UsageLogID, nil
+}
+
+// ResetUsageLogID resets all changes to the "usage_log_id" field.
+func (m *AICallErrorMutation) ResetUsageLogID() {
+	m.usage_log = nil
+}
+
+// SetErrorType sets the "error_type" field.
+func (m *AICallErrorMutation) SetErrorType(at aicallerror.ErrorType) {
+	m.error_type = &at
+}
+
+// ErrorType returns the value of the "error_type" field in the mutation.
+func (m *AICallErrorMutation) ErrorType() (r aicallerror.ErrorType, exists bool) {
+	v := m.error_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorType returns the old "error_type" field's value of the AICallError entity.
+// If the AICallError object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AICallErrorMutation) OldErrorType(ctx context.Context) (v aicallerror.ErrorType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorType: %w", err)
+	}
+	return oldValue.ErrorType, nil
+}
+
+// ResetErrorType resets all changes to the "error_type" field.
+func (m *AICallErrorMutation) ResetErrorType() {
+	m.error_type = nil
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (m *AICallErrorMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *AICallErrorMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the AICallError entity.
+// If the AICallError object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AICallErrorMutation) OldErrorMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *AICallErrorMutation) ResetErrorMessage() {
+	m.error_message = nil
+}
+
+// ClearUsageLog clears the "usage_log" edge to the UsageLog entity.
+func (m *AICallErrorMutation) ClearUsageLog() {
+	m.clearedusage_log = true
+	m.clearedFields[aicallerror.FieldUsageLogID] = struct{}{}
+}
+
+// UsageLogCleared reports if the "usage_log" edge to the UsageLog entity was cleared.
+func (m *AICallErrorMutation) UsageLogCleared() bool {
+	return m.clearedusage_log
+}
+
+// UsageLogIDs returns the "usage_log" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UsageLogID instead. It exists only for internal usage by the builders.
+func (m *AICallErrorMutation) UsageLogIDs() (ids []uuid.UUID) {
+	if id := m.usage_log; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUsageLog resets all changes to the "usage_log" edge.
+func (m *AICallErrorMutation) ResetUsageLog() {
+	m.usage_log = nil
+	m.clearedusage_log = false
+}
+
+// Where appends a list predicates to the AICallErrorMutation builder.
+func (m *AICallErrorMutation) Where(ps ...predicate.AICallError) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AICallErrorMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AICallErrorMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AICallError, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AICallErrorMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AICallErrorMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AICallError).
+func (m *AICallErrorMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AICallErrorMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, aicallerror.FieldCreatedAt)
+	}
+	if m.usage_log != nil {
+		fields = append(fields, aicallerror.FieldUsageLogID)
+	}
+	if m.error_type != nil {
+		fields = append(fields, aicallerror.FieldErrorType)
+	}
+	if m.error_message != nil {
+		fields = append(fields, aicallerror.FieldErrorMessage)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AICallErrorMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case aicallerror.FieldCreatedAt:
+		return m.CreatedAt()
+	case aicallerror.FieldUsageLogID:
+		return m.UsageLogID()
+	case aicallerror.FieldErrorType:
+		return m.ErrorType()
+	case aicallerror.FieldErrorMessage:
+		return m.ErrorMessage()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AICallErrorMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case aicallerror.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case aicallerror.FieldUsageLogID:
+		return m.OldUsageLogID(ctx)
+	case aicallerror.FieldErrorType:
+		return m.OldErrorType(ctx)
+	case aicallerror.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
+	}
+	return nil, fmt.Errorf("unknown AICallError field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AICallErrorMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case aicallerror.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case aicallerror.FieldUsageLogID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsageLogID(v)
+		return nil
+	case aicallerror.FieldErrorType:
+		v, ok := value.(aicallerror.ErrorType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorType(v)
+		return nil
+	case aicallerror.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AICallError field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AICallErrorMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AICallErrorMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AICallErrorMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AICallError numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AICallErrorMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AICallErrorMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AICallErrorMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown AICallError nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AICallErrorMutation) ResetField(name string) error {
+	switch name {
+	case aicallerror.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case aicallerror.FieldUsageLogID:
+		m.ResetUsageLogID()
+		return nil
+	case aicallerror.FieldErrorType:
+		m.ResetErrorType()
+		return nil
+	case aicallerror.FieldErrorMessage:
+		m.ResetErrorMessage()
+		return nil
+	}
+	return fmt.Errorf("unknown AICallError field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AICallErrorMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.usage_log != nil {
+		edges = append(edges, aicallerror.EdgeUsageLog)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AICallErrorMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case aicallerror.EdgeUsageLog:
+		if id := m.usage_log; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AICallErrorMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AICallErrorMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AICallErrorMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedusage_log {
+		edges = append(edges, aicallerror.EdgeUsageLog)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AICallErrorMutation) EdgeCleared(name string) bool {
+	switch name {
+	case aicallerror.EdgeUsageLog:
+		return m.clearedusage_log
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AICallErrorMutation) ClearEdge(name string) error {
+	switch name {
+	case aicallerror.EdgeUsageLog:
+		m.ClearUsageLog()
+		return nil
+	}
+	return fmt.Errorf("unknown AICallError unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AICallErrorMutation) ResetEdge(name string) error {
+	switch name {
+	case aicallerror.EdgeUsageLog:
+		m.ResetUsageLog()
+		return nil
+	}
+	return fmt.Errorf("unknown AICallError edge %s", name)
+}
 
 // AdminAuditLogMutation represents an operation that mutates the AdminAuditLog nodes in the graph.
 type AdminAuditLogMutation struct {
@@ -15833,6 +16385,703 @@ func (m *QuestionPatternMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown QuestionPattern edge %s", name)
 }
 
+// QuotaHitEventMutation represents an operation that mutates the QuotaHitEvent nodes in the graph.
+type QuotaHitEventMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	created_at       *time.Time
+	provider         *string
+	model            *string
+	feature          *string
+	error_message    *string
+	clearedFields    map[string]struct{}
+	usage_log        *uuid.UUID
+	clearedusage_log bool
+	done             bool
+	oldValue         func(context.Context) (*QuotaHitEvent, error)
+	predicates       []predicate.QuotaHitEvent
+}
+
+var _ ent.Mutation = (*QuotaHitEventMutation)(nil)
+
+// quotahiteventOption allows management of the mutation configuration using functional options.
+type quotahiteventOption func(*QuotaHitEventMutation)
+
+// newQuotaHitEventMutation creates new mutation for the QuotaHitEvent entity.
+func newQuotaHitEventMutation(c config, op Op, opts ...quotahiteventOption) *QuotaHitEventMutation {
+	m := &QuotaHitEventMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeQuotaHitEvent,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withQuotaHitEventID sets the ID field of the mutation.
+func withQuotaHitEventID(id uuid.UUID) quotahiteventOption {
+	return func(m *QuotaHitEventMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *QuotaHitEvent
+		)
+		m.oldValue = func(ctx context.Context) (*QuotaHitEvent, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().QuotaHitEvent.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withQuotaHitEvent sets the old QuotaHitEvent of the mutation.
+func withQuotaHitEvent(node *QuotaHitEvent) quotahiteventOption {
+	return func(m *QuotaHitEventMutation) {
+		m.oldValue = func(context.Context) (*QuotaHitEvent, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m QuotaHitEventMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m QuotaHitEventMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of QuotaHitEvent entities.
+func (m *QuotaHitEventMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *QuotaHitEventMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *QuotaHitEventMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().QuotaHitEvent.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *QuotaHitEventMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *QuotaHitEventMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the QuotaHitEvent entity.
+// If the QuotaHitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuotaHitEventMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *QuotaHitEventMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetProvider sets the "provider" field.
+func (m *QuotaHitEventMutation) SetProvider(s string) {
+	m.provider = &s
+}
+
+// Provider returns the value of the "provider" field in the mutation.
+func (m *QuotaHitEventMutation) Provider() (r string, exists bool) {
+	v := m.provider
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProvider returns the old "provider" field's value of the QuotaHitEvent entity.
+// If the QuotaHitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuotaHitEventMutation) OldProvider(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProvider is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProvider requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProvider: %w", err)
+	}
+	return oldValue.Provider, nil
+}
+
+// ResetProvider resets all changes to the "provider" field.
+func (m *QuotaHitEventMutation) ResetProvider() {
+	m.provider = nil
+}
+
+// SetModel sets the "model" field.
+func (m *QuotaHitEventMutation) SetModel(s string) {
+	m.model = &s
+}
+
+// Model returns the value of the "model" field in the mutation.
+func (m *QuotaHitEventMutation) Model() (r string, exists bool) {
+	v := m.model
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModel returns the old "model" field's value of the QuotaHitEvent entity.
+// If the QuotaHitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuotaHitEventMutation) OldModel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModel: %w", err)
+	}
+	return oldValue.Model, nil
+}
+
+// ResetModel resets all changes to the "model" field.
+func (m *QuotaHitEventMutation) ResetModel() {
+	m.model = nil
+}
+
+// SetFeature sets the "feature" field.
+func (m *QuotaHitEventMutation) SetFeature(s string) {
+	m.feature = &s
+}
+
+// Feature returns the value of the "feature" field in the mutation.
+func (m *QuotaHitEventMutation) Feature() (r string, exists bool) {
+	v := m.feature
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeature returns the old "feature" field's value of the QuotaHitEvent entity.
+// If the QuotaHitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuotaHitEventMutation) OldFeature(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeature is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeature requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeature: %w", err)
+	}
+	return oldValue.Feature, nil
+}
+
+// ClearFeature clears the value of the "feature" field.
+func (m *QuotaHitEventMutation) ClearFeature() {
+	m.feature = nil
+	m.clearedFields[quotahitevent.FieldFeature] = struct{}{}
+}
+
+// FeatureCleared returns if the "feature" field was cleared in this mutation.
+func (m *QuotaHitEventMutation) FeatureCleared() bool {
+	_, ok := m.clearedFields[quotahitevent.FieldFeature]
+	return ok
+}
+
+// ResetFeature resets all changes to the "feature" field.
+func (m *QuotaHitEventMutation) ResetFeature() {
+	m.feature = nil
+	delete(m.clearedFields, quotahitevent.FieldFeature)
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (m *QuotaHitEventMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *QuotaHitEventMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the QuotaHitEvent entity.
+// If the QuotaHitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuotaHitEventMutation) OldErrorMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *QuotaHitEventMutation) ResetErrorMessage() {
+	m.error_message = nil
+}
+
+// SetUsageLogID sets the "usage_log_id" field.
+func (m *QuotaHitEventMutation) SetUsageLogID(u uuid.UUID) {
+	m.usage_log = &u
+}
+
+// UsageLogID returns the value of the "usage_log_id" field in the mutation.
+func (m *QuotaHitEventMutation) UsageLogID() (r uuid.UUID, exists bool) {
+	v := m.usage_log
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsageLogID returns the old "usage_log_id" field's value of the QuotaHitEvent entity.
+// If the QuotaHitEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuotaHitEventMutation) OldUsageLogID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsageLogID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsageLogID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsageLogID: %w", err)
+	}
+	return oldValue.UsageLogID, nil
+}
+
+// ClearUsageLogID clears the value of the "usage_log_id" field.
+func (m *QuotaHitEventMutation) ClearUsageLogID() {
+	m.usage_log = nil
+	m.clearedFields[quotahitevent.FieldUsageLogID] = struct{}{}
+}
+
+// UsageLogIDCleared returns if the "usage_log_id" field was cleared in this mutation.
+func (m *QuotaHitEventMutation) UsageLogIDCleared() bool {
+	_, ok := m.clearedFields[quotahitevent.FieldUsageLogID]
+	return ok
+}
+
+// ResetUsageLogID resets all changes to the "usage_log_id" field.
+func (m *QuotaHitEventMutation) ResetUsageLogID() {
+	m.usage_log = nil
+	delete(m.clearedFields, quotahitevent.FieldUsageLogID)
+}
+
+// ClearUsageLog clears the "usage_log" edge to the UsageLog entity.
+func (m *QuotaHitEventMutation) ClearUsageLog() {
+	m.clearedusage_log = true
+	m.clearedFields[quotahitevent.FieldUsageLogID] = struct{}{}
+}
+
+// UsageLogCleared reports if the "usage_log" edge to the UsageLog entity was cleared.
+func (m *QuotaHitEventMutation) UsageLogCleared() bool {
+	return m.UsageLogIDCleared() || m.clearedusage_log
+}
+
+// UsageLogIDs returns the "usage_log" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UsageLogID instead. It exists only for internal usage by the builders.
+func (m *QuotaHitEventMutation) UsageLogIDs() (ids []uuid.UUID) {
+	if id := m.usage_log; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUsageLog resets all changes to the "usage_log" edge.
+func (m *QuotaHitEventMutation) ResetUsageLog() {
+	m.usage_log = nil
+	m.clearedusage_log = false
+}
+
+// Where appends a list predicates to the QuotaHitEventMutation builder.
+func (m *QuotaHitEventMutation) Where(ps ...predicate.QuotaHitEvent) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the QuotaHitEventMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *QuotaHitEventMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.QuotaHitEvent, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *QuotaHitEventMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *QuotaHitEventMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (QuotaHitEvent).
+func (m *QuotaHitEventMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *QuotaHitEventMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, quotahitevent.FieldCreatedAt)
+	}
+	if m.provider != nil {
+		fields = append(fields, quotahitevent.FieldProvider)
+	}
+	if m.model != nil {
+		fields = append(fields, quotahitevent.FieldModel)
+	}
+	if m.feature != nil {
+		fields = append(fields, quotahitevent.FieldFeature)
+	}
+	if m.error_message != nil {
+		fields = append(fields, quotahitevent.FieldErrorMessage)
+	}
+	if m.usage_log != nil {
+		fields = append(fields, quotahitevent.FieldUsageLogID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *QuotaHitEventMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case quotahitevent.FieldCreatedAt:
+		return m.CreatedAt()
+	case quotahitevent.FieldProvider:
+		return m.Provider()
+	case quotahitevent.FieldModel:
+		return m.Model()
+	case quotahitevent.FieldFeature:
+		return m.Feature()
+	case quotahitevent.FieldErrorMessage:
+		return m.ErrorMessage()
+	case quotahitevent.FieldUsageLogID:
+		return m.UsageLogID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *QuotaHitEventMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case quotahitevent.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case quotahitevent.FieldProvider:
+		return m.OldProvider(ctx)
+	case quotahitevent.FieldModel:
+		return m.OldModel(ctx)
+	case quotahitevent.FieldFeature:
+		return m.OldFeature(ctx)
+	case quotahitevent.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
+	case quotahitevent.FieldUsageLogID:
+		return m.OldUsageLogID(ctx)
+	}
+	return nil, fmt.Errorf("unknown QuotaHitEvent field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *QuotaHitEventMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case quotahitevent.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case quotahitevent.FieldProvider:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProvider(v)
+		return nil
+	case quotahitevent.FieldModel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModel(v)
+		return nil
+	case quotahitevent.FieldFeature:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeature(v)
+		return nil
+	case quotahitevent.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
+	case quotahitevent.FieldUsageLogID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsageLogID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown QuotaHitEvent field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *QuotaHitEventMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *QuotaHitEventMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *QuotaHitEventMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown QuotaHitEvent numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *QuotaHitEventMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(quotahitevent.FieldFeature) {
+		fields = append(fields, quotahitevent.FieldFeature)
+	}
+	if m.FieldCleared(quotahitevent.FieldUsageLogID) {
+		fields = append(fields, quotahitevent.FieldUsageLogID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *QuotaHitEventMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *QuotaHitEventMutation) ClearField(name string) error {
+	switch name {
+	case quotahitevent.FieldFeature:
+		m.ClearFeature()
+		return nil
+	case quotahitevent.FieldUsageLogID:
+		m.ClearUsageLogID()
+		return nil
+	}
+	return fmt.Errorf("unknown QuotaHitEvent nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *QuotaHitEventMutation) ResetField(name string) error {
+	switch name {
+	case quotahitevent.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case quotahitevent.FieldProvider:
+		m.ResetProvider()
+		return nil
+	case quotahitevent.FieldModel:
+		m.ResetModel()
+		return nil
+	case quotahitevent.FieldFeature:
+		m.ResetFeature()
+		return nil
+	case quotahitevent.FieldErrorMessage:
+		m.ResetErrorMessage()
+		return nil
+	case quotahitevent.FieldUsageLogID:
+		m.ResetUsageLogID()
+		return nil
+	}
+	return fmt.Errorf("unknown QuotaHitEvent field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *QuotaHitEventMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.usage_log != nil {
+		edges = append(edges, quotahitevent.EdgeUsageLog)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *QuotaHitEventMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case quotahitevent.EdgeUsageLog:
+		if id := m.usage_log; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *QuotaHitEventMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *QuotaHitEventMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *QuotaHitEventMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedusage_log {
+		edges = append(edges, quotahitevent.EdgeUsageLog)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *QuotaHitEventMutation) EdgeCleared(name string) bool {
+	switch name {
+	case quotahitevent.EdgeUsageLog:
+		return m.clearedusage_log
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *QuotaHitEventMutation) ClearEdge(name string) error {
+	switch name {
+	case quotahitevent.EdgeUsageLog:
+		m.ClearUsageLog()
+		return nil
+	}
+	return fmt.Errorf("unknown QuotaHitEvent unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *QuotaHitEventMutation) ResetEdge(name string) error {
+	switch name {
+	case quotahitevent.EdgeUsageLog:
+		m.ResetUsageLog()
+		return nil
+	}
+	return fmt.Errorf("unknown QuotaHitEvent edge %s", name)
+}
+
 // SystemConfigMutation represents an operation that mutates the SystemConfig nodes in the graph.
 type SystemConfigMutation struct {
 	config
@@ -17519,10 +18768,11 @@ type UsageLogMutation struct {
 	latency_ms            *int
 	addlatency_ms         *int
 	status                *string
-	error_message         *string
 	clearedFields         map[string]struct{}
 	user                  *uuid.UUID
 	cleareduser           bool
+	error_detail          *uuid.UUID
+	clearederror_detail   bool
 	done                  bool
 	oldValue              func(context.Context) (*UsageLog, error)
 	predicates            []predicate.UsageLog
@@ -18231,55 +19481,6 @@ func (m *UsageLogMutation) ResetStatus() {
 	m.status = nil
 }
 
-// SetErrorMessage sets the "error_message" field.
-func (m *UsageLogMutation) SetErrorMessage(s string) {
-	m.error_message = &s
-}
-
-// ErrorMessage returns the value of the "error_message" field in the mutation.
-func (m *UsageLogMutation) ErrorMessage() (r string, exists bool) {
-	v := m.error_message
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldErrorMessage returns the old "error_message" field's value of the UsageLog entity.
-// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UsageLogMutation) OldErrorMessage(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
-	}
-	return oldValue.ErrorMessage, nil
-}
-
-// ClearErrorMessage clears the value of the "error_message" field.
-func (m *UsageLogMutation) ClearErrorMessage() {
-	m.error_message = nil
-	m.clearedFields[usagelog.FieldErrorMessage] = struct{}{}
-}
-
-// ErrorMessageCleared returns if the "error_message" field was cleared in this mutation.
-func (m *UsageLogMutation) ErrorMessageCleared() bool {
-	_, ok := m.clearedFields[usagelog.FieldErrorMessage]
-	return ok
-}
-
-// ResetErrorMessage resets all changes to the "error_message" field.
-func (m *UsageLogMutation) ResetErrorMessage() {
-	m.error_message = nil
-	delete(m.clearedFields, usagelog.FieldErrorMessage)
-}
-
 // ClearUser clears the "user" edge to the UserProfile entity.
 func (m *UsageLogMutation) ClearUser() {
 	m.cleareduser = true
@@ -18305,6 +19506,45 @@ func (m *UsageLogMutation) UserIDs() (ids []uuid.UUID) {
 func (m *UsageLogMutation) ResetUser() {
 	m.user = nil
 	m.cleareduser = false
+}
+
+// SetErrorDetailID sets the "error_detail" edge to the AICallError entity by id.
+func (m *UsageLogMutation) SetErrorDetailID(id uuid.UUID) {
+	m.error_detail = &id
+}
+
+// ClearErrorDetail clears the "error_detail" edge to the AICallError entity.
+func (m *UsageLogMutation) ClearErrorDetail() {
+	m.clearederror_detail = true
+}
+
+// ErrorDetailCleared reports if the "error_detail" edge to the AICallError entity was cleared.
+func (m *UsageLogMutation) ErrorDetailCleared() bool {
+	return m.clearederror_detail
+}
+
+// ErrorDetailID returns the "error_detail" edge ID in the mutation.
+func (m *UsageLogMutation) ErrorDetailID() (id uuid.UUID, exists bool) {
+	if m.error_detail != nil {
+		return *m.error_detail, true
+	}
+	return
+}
+
+// ErrorDetailIDs returns the "error_detail" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ErrorDetailID instead. It exists only for internal usage by the builders.
+func (m *UsageLogMutation) ErrorDetailIDs() (ids []uuid.UUID) {
+	if id := m.error_detail; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetErrorDetail resets all changes to the "error_detail" edge.
+func (m *UsageLogMutation) ResetErrorDetail() {
+	m.error_detail = nil
+	m.clearederror_detail = false
 }
 
 // Where appends a list predicates to the UsageLogMutation builder.
@@ -18341,7 +19581,7 @@ func (m *UsageLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UsageLogMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, usagelog.FieldCreatedAt)
 	}
@@ -18378,9 +19618,6 @@ func (m *UsageLogMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, usagelog.FieldStatus)
 	}
-	if m.error_message != nil {
-		fields = append(fields, usagelog.FieldErrorMessage)
-	}
 	return fields
 }
 
@@ -18413,8 +19650,6 @@ func (m *UsageLogMutation) Field(name string) (ent.Value, bool) {
 		return m.LatencyMs()
 	case usagelog.FieldStatus:
 		return m.Status()
-	case usagelog.FieldErrorMessage:
-		return m.ErrorMessage()
 	}
 	return nil, false
 }
@@ -18448,8 +19683,6 @@ func (m *UsageLogMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldLatencyMs(ctx)
 	case usagelog.FieldStatus:
 		return m.OldStatus(ctx)
-	case usagelog.FieldErrorMessage:
-		return m.OldErrorMessage(ctx)
 	}
 	return nil, fmt.Errorf("unknown UsageLog field %s", name)
 }
@@ -18542,13 +19775,6 @@ func (m *UsageLogMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
-		return nil
-	case usagelog.FieldErrorMessage:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetErrorMessage(v)
 		return nil
 	}
 	return fmt.Errorf("unknown UsageLog field %s", name)
@@ -18658,9 +19884,6 @@ func (m *UsageLogMutation) ClearedFields() []string {
 	if m.FieldCleared(usagelog.FieldLatencyMs) {
 		fields = append(fields, usagelog.FieldLatencyMs)
 	}
-	if m.FieldCleared(usagelog.FieldErrorMessage) {
-		fields = append(fields, usagelog.FieldErrorMessage)
-	}
 	return fields
 }
 
@@ -18689,9 +19912,6 @@ func (m *UsageLogMutation) ClearField(name string) error {
 		return nil
 	case usagelog.FieldLatencyMs:
 		m.ClearLatencyMs()
-		return nil
-	case usagelog.FieldErrorMessage:
-		m.ClearErrorMessage()
 		return nil
 	}
 	return fmt.Errorf("unknown UsageLog nullable field %s", name)
@@ -18737,18 +19957,18 @@ func (m *UsageLogMutation) ResetField(name string) error {
 	case usagelog.FieldStatus:
 		m.ResetStatus()
 		return nil
-	case usagelog.FieldErrorMessage:
-		m.ResetErrorMessage()
-		return nil
 	}
 	return fmt.Errorf("unknown UsageLog field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UsageLogMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.user != nil {
 		edges = append(edges, usagelog.EdgeUser)
+	}
+	if m.error_detail != nil {
+		edges = append(edges, usagelog.EdgeErrorDetail)
 	}
 	return edges
 }
@@ -18761,13 +19981,17 @@ func (m *UsageLogMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case usagelog.EdgeErrorDetail:
+		if id := m.error_detail; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UsageLogMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -18779,9 +20003,12 @@ func (m *UsageLogMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UsageLogMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareduser {
 		edges = append(edges, usagelog.EdgeUser)
+	}
+	if m.clearederror_detail {
+		edges = append(edges, usagelog.EdgeErrorDetail)
 	}
 	return edges
 }
@@ -18792,6 +20019,8 @@ func (m *UsageLogMutation) EdgeCleared(name string) bool {
 	switch name {
 	case usagelog.EdgeUser:
 		return m.cleareduser
+	case usagelog.EdgeErrorDetail:
+		return m.clearederror_detail
 	}
 	return false
 }
@@ -18803,6 +20032,9 @@ func (m *UsageLogMutation) ClearEdge(name string) error {
 	case usagelog.EdgeUser:
 		m.ClearUser()
 		return nil
+	case usagelog.EdgeErrorDetail:
+		m.ClearErrorDetail()
+		return nil
 	}
 	return fmt.Errorf("unknown UsageLog unique edge %s", name)
 }
@@ -18813,6 +20045,9 @@ func (m *UsageLogMutation) ResetEdge(name string) error {
 	switch name {
 	case usagelog.EdgeUser:
 		m.ResetUser()
+		return nil
+	case usagelog.EdgeErrorDetail:
+		m.ResetErrorDetail()
 		return nil
 	}
 	return fmt.Errorf("unknown UsageLog edge %s", name)

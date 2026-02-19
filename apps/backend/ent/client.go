@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/coby/colight/apps/backend/ent/adminauditlog"
+	"github.com/coby/colight/apps/backend/ent/aicallerror"
 	"github.com/coby/colight/apps/backend/ent/application"
 	"github.com/coby/colight/apps/backend/ent/coachingsession"
 	"github.com/coby/colight/apps/backend/ent/companyanalysis"
@@ -31,6 +32,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/feedback"
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/questionpattern"
+	"github.com/coby/colight/apps/backend/ent/quotahitevent"
 	"github.com/coby/colight/apps/backend/ent/systemconfig"
 	"github.com/coby/colight/apps/backend/ent/talentprofile"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
@@ -43,6 +45,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// AICallError is the client for interacting with the AICallError builders.
+	AICallError *AICallErrorClient
 	// AdminAuditLog is the client for interacting with the AdminAuditLog builders.
 	AdminAuditLog *AdminAuditLogClient
 	// Application is the client for interacting with the Application builders.
@@ -73,6 +77,8 @@ type Client struct {
 	PromptTemplate *PromptTemplateClient
 	// QuestionPattern is the client for interacting with the QuestionPattern builders.
 	QuestionPattern *QuestionPatternClient
+	// QuotaHitEvent is the client for interacting with the QuotaHitEvent builders.
+	QuotaHitEvent *QuotaHitEventClient
 	// SystemConfig is the client for interacting with the SystemConfig builders.
 	SystemConfig *SystemConfigClient
 	// TalentProfile is the client for interacting with the TalentProfile builders.
@@ -94,6 +100,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.AICallError = NewAICallErrorClient(c.config)
 	c.AdminAuditLog = NewAdminAuditLogClient(c.config)
 	c.Application = NewApplicationClient(c.config)
 	c.CoachingSession = NewCoachingSessionClient(c.config)
@@ -109,6 +116,7 @@ func (c *Client) init() {
 	c.Feedback = NewFeedbackClient(c.config)
 	c.PromptTemplate = NewPromptTemplateClient(c.config)
 	c.QuestionPattern = NewQuestionPatternClient(c.config)
+	c.QuotaHitEvent = NewQuotaHitEventClient(c.config)
 	c.SystemConfig = NewSystemConfigClient(c.config)
 	c.TalentProfile = NewTalentProfileClient(c.config)
 	c.UsageLog = NewUsageLogClient(c.config)
@@ -206,6 +214,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                  ctx,
 		config:               cfg,
+		AICallError:          NewAICallErrorClient(cfg),
 		AdminAuditLog:        NewAdminAuditLogClient(cfg),
 		Application:          NewApplicationClient(cfg),
 		CoachingSession:      NewCoachingSessionClient(cfg),
@@ -221,6 +230,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Feedback:             NewFeedbackClient(cfg),
 		PromptTemplate:       NewPromptTemplateClient(cfg),
 		QuestionPattern:      NewQuestionPatternClient(cfg),
+		QuotaHitEvent:        NewQuotaHitEventClient(cfg),
 		SystemConfig:         NewSystemConfigClient(cfg),
 		TalentProfile:        NewTalentProfileClient(cfg),
 		UsageLog:             NewUsageLogClient(cfg),
@@ -245,6 +255,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                  ctx,
 		config:               cfg,
+		AICallError:          NewAICallErrorClient(cfg),
 		AdminAuditLog:        NewAdminAuditLogClient(cfg),
 		Application:          NewApplicationClient(cfg),
 		CoachingSession:      NewCoachingSessionClient(cfg),
@@ -260,6 +271,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Feedback:             NewFeedbackClient(cfg),
 		PromptTemplate:       NewPromptTemplateClient(cfg),
 		QuestionPattern:      NewQuestionPatternClient(cfg),
+		QuotaHitEvent:        NewQuotaHitEventClient(cfg),
 		SystemConfig:         NewSystemConfigClient(cfg),
 		TalentProfile:        NewTalentProfileClient(cfg),
 		UsageLog:             NewUsageLogClient(cfg),
@@ -271,7 +283,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		AdminAuditLog.
+//		AICallError.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -294,11 +306,12 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AdminAuditLog, c.Application, c.CoachingSession, c.CompanyAnalysis,
-		c.CompanyAnalysisCache, c.CoverLetter, c.CoverLetterVersion, c.DeletionRequest,
-		c.Experience, c.ExperienceTag, c.ExperienceUsage, c.ExperienceWeapon,
-		c.Feedback, c.PromptTemplate, c.QuestionPattern, c.SystemConfig,
-		c.TalentProfile, c.UsageLog, c.UserProfile, c.WeaponCategory,
+		c.AICallError, c.AdminAuditLog, c.Application, c.CoachingSession,
+		c.CompanyAnalysis, c.CompanyAnalysisCache, c.CoverLetter, c.CoverLetterVersion,
+		c.DeletionRequest, c.Experience, c.ExperienceTag, c.ExperienceUsage,
+		c.ExperienceWeapon, c.Feedback, c.PromptTemplate, c.QuestionPattern,
+		c.QuotaHitEvent, c.SystemConfig, c.TalentProfile, c.UsageLog, c.UserProfile,
+		c.WeaponCategory,
 	} {
 		n.Use(hooks...)
 	}
@@ -308,11 +321,12 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AdminAuditLog, c.Application, c.CoachingSession, c.CompanyAnalysis,
-		c.CompanyAnalysisCache, c.CoverLetter, c.CoverLetterVersion, c.DeletionRequest,
-		c.Experience, c.ExperienceTag, c.ExperienceUsage, c.ExperienceWeapon,
-		c.Feedback, c.PromptTemplate, c.QuestionPattern, c.SystemConfig,
-		c.TalentProfile, c.UsageLog, c.UserProfile, c.WeaponCategory,
+		c.AICallError, c.AdminAuditLog, c.Application, c.CoachingSession,
+		c.CompanyAnalysis, c.CompanyAnalysisCache, c.CoverLetter, c.CoverLetterVersion,
+		c.DeletionRequest, c.Experience, c.ExperienceTag, c.ExperienceUsage,
+		c.ExperienceWeapon, c.Feedback, c.PromptTemplate, c.QuestionPattern,
+		c.QuotaHitEvent, c.SystemConfig, c.TalentProfile, c.UsageLog, c.UserProfile,
+		c.WeaponCategory,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -321,6 +335,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AICallErrorMutation:
+		return c.AICallError.mutate(ctx, m)
 	case *AdminAuditLogMutation:
 		return c.AdminAuditLog.mutate(ctx, m)
 	case *ApplicationMutation:
@@ -351,6 +367,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PromptTemplate.mutate(ctx, m)
 	case *QuestionPatternMutation:
 		return c.QuestionPattern.mutate(ctx, m)
+	case *QuotaHitEventMutation:
+		return c.QuotaHitEvent.mutate(ctx, m)
 	case *SystemConfigMutation:
 		return c.SystemConfig.mutate(ctx, m)
 	case *TalentProfileMutation:
@@ -363,6 +381,155 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.WeaponCategory.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// AICallErrorClient is a client for the AICallError schema.
+type AICallErrorClient struct {
+	config
+}
+
+// NewAICallErrorClient returns a client for the AICallError from the given config.
+func NewAICallErrorClient(c config) *AICallErrorClient {
+	return &AICallErrorClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `aicallerror.Hooks(f(g(h())))`.
+func (c *AICallErrorClient) Use(hooks ...Hook) {
+	c.hooks.AICallError = append(c.hooks.AICallError, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `aicallerror.Intercept(f(g(h())))`.
+func (c *AICallErrorClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AICallError = append(c.inters.AICallError, interceptors...)
+}
+
+// Create returns a builder for creating a AICallError entity.
+func (c *AICallErrorClient) Create() *AICallErrorCreate {
+	mutation := newAICallErrorMutation(c.config, OpCreate)
+	return &AICallErrorCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AICallError entities.
+func (c *AICallErrorClient) CreateBulk(builders ...*AICallErrorCreate) *AICallErrorCreateBulk {
+	return &AICallErrorCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AICallErrorClient) MapCreateBulk(slice any, setFunc func(*AICallErrorCreate, int)) *AICallErrorCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AICallErrorCreateBulk{err: fmt.Errorf("calling to AICallErrorClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AICallErrorCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AICallErrorCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AICallError.
+func (c *AICallErrorClient) Update() *AICallErrorUpdate {
+	mutation := newAICallErrorMutation(c.config, OpUpdate)
+	return &AICallErrorUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AICallErrorClient) UpdateOne(_m *AICallError) *AICallErrorUpdateOne {
+	mutation := newAICallErrorMutation(c.config, OpUpdateOne, withAICallError(_m))
+	return &AICallErrorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AICallErrorClient) UpdateOneID(id uuid.UUID) *AICallErrorUpdateOne {
+	mutation := newAICallErrorMutation(c.config, OpUpdateOne, withAICallErrorID(id))
+	return &AICallErrorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AICallError.
+func (c *AICallErrorClient) Delete() *AICallErrorDelete {
+	mutation := newAICallErrorMutation(c.config, OpDelete)
+	return &AICallErrorDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AICallErrorClient) DeleteOne(_m *AICallError) *AICallErrorDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AICallErrorClient) DeleteOneID(id uuid.UUID) *AICallErrorDeleteOne {
+	builder := c.Delete().Where(aicallerror.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AICallErrorDeleteOne{builder}
+}
+
+// Query returns a query builder for AICallError.
+func (c *AICallErrorClient) Query() *AICallErrorQuery {
+	return &AICallErrorQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAICallError},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AICallError entity by its id.
+func (c *AICallErrorClient) Get(ctx context.Context, id uuid.UUID) (*AICallError, error) {
+	return c.Query().Where(aicallerror.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AICallErrorClient) GetX(ctx context.Context, id uuid.UUID) *AICallError {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUsageLog queries the usage_log edge of a AICallError.
+func (c *AICallErrorClient) QueryUsageLog(_m *AICallError) *UsageLogQuery {
+	query := (&UsageLogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(aicallerror.Table, aicallerror.FieldID, id),
+			sqlgraph.To(usagelog.Table, usagelog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, aicallerror.UsageLogTable, aicallerror.UsageLogColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AICallErrorClient) Hooks() []Hook {
+	return c.hooks.AICallError
+}
+
+// Interceptors returns the client interceptors.
+func (c *AICallErrorClient) Interceptors() []Interceptor {
+	return c.inters.AICallError
+}
+
+func (c *AICallErrorClient) mutate(ctx context.Context, m *AICallErrorMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AICallErrorCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AICallErrorUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AICallErrorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AICallErrorDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AICallError mutation op: %q", m.Op())
 	}
 }
 
@@ -2873,6 +3040,155 @@ func (c *QuestionPatternClient) mutate(ctx context.Context, m *QuestionPatternMu
 	}
 }
 
+// QuotaHitEventClient is a client for the QuotaHitEvent schema.
+type QuotaHitEventClient struct {
+	config
+}
+
+// NewQuotaHitEventClient returns a client for the QuotaHitEvent from the given config.
+func NewQuotaHitEventClient(c config) *QuotaHitEventClient {
+	return &QuotaHitEventClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `quotahitevent.Hooks(f(g(h())))`.
+func (c *QuotaHitEventClient) Use(hooks ...Hook) {
+	c.hooks.QuotaHitEvent = append(c.hooks.QuotaHitEvent, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `quotahitevent.Intercept(f(g(h())))`.
+func (c *QuotaHitEventClient) Intercept(interceptors ...Interceptor) {
+	c.inters.QuotaHitEvent = append(c.inters.QuotaHitEvent, interceptors...)
+}
+
+// Create returns a builder for creating a QuotaHitEvent entity.
+func (c *QuotaHitEventClient) Create() *QuotaHitEventCreate {
+	mutation := newQuotaHitEventMutation(c.config, OpCreate)
+	return &QuotaHitEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of QuotaHitEvent entities.
+func (c *QuotaHitEventClient) CreateBulk(builders ...*QuotaHitEventCreate) *QuotaHitEventCreateBulk {
+	return &QuotaHitEventCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *QuotaHitEventClient) MapCreateBulk(slice any, setFunc func(*QuotaHitEventCreate, int)) *QuotaHitEventCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &QuotaHitEventCreateBulk{err: fmt.Errorf("calling to QuotaHitEventClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*QuotaHitEventCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &QuotaHitEventCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for QuotaHitEvent.
+func (c *QuotaHitEventClient) Update() *QuotaHitEventUpdate {
+	mutation := newQuotaHitEventMutation(c.config, OpUpdate)
+	return &QuotaHitEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *QuotaHitEventClient) UpdateOne(_m *QuotaHitEvent) *QuotaHitEventUpdateOne {
+	mutation := newQuotaHitEventMutation(c.config, OpUpdateOne, withQuotaHitEvent(_m))
+	return &QuotaHitEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *QuotaHitEventClient) UpdateOneID(id uuid.UUID) *QuotaHitEventUpdateOne {
+	mutation := newQuotaHitEventMutation(c.config, OpUpdateOne, withQuotaHitEventID(id))
+	return &QuotaHitEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for QuotaHitEvent.
+func (c *QuotaHitEventClient) Delete() *QuotaHitEventDelete {
+	mutation := newQuotaHitEventMutation(c.config, OpDelete)
+	return &QuotaHitEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *QuotaHitEventClient) DeleteOne(_m *QuotaHitEvent) *QuotaHitEventDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *QuotaHitEventClient) DeleteOneID(id uuid.UUID) *QuotaHitEventDeleteOne {
+	builder := c.Delete().Where(quotahitevent.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &QuotaHitEventDeleteOne{builder}
+}
+
+// Query returns a query builder for QuotaHitEvent.
+func (c *QuotaHitEventClient) Query() *QuotaHitEventQuery {
+	return &QuotaHitEventQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeQuotaHitEvent},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a QuotaHitEvent entity by its id.
+func (c *QuotaHitEventClient) Get(ctx context.Context, id uuid.UUID) (*QuotaHitEvent, error) {
+	return c.Query().Where(quotahitevent.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *QuotaHitEventClient) GetX(ctx context.Context, id uuid.UUID) *QuotaHitEvent {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUsageLog queries the usage_log edge of a QuotaHitEvent.
+func (c *QuotaHitEventClient) QueryUsageLog(_m *QuotaHitEvent) *UsageLogQuery {
+	query := (&UsageLogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(quotahitevent.Table, quotahitevent.FieldID, id),
+			sqlgraph.To(usagelog.Table, usagelog.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, quotahitevent.UsageLogTable, quotahitevent.UsageLogColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *QuotaHitEventClient) Hooks() []Hook {
+	return c.hooks.QuotaHitEvent
+}
+
+// Interceptors returns the client interceptors.
+func (c *QuotaHitEventClient) Interceptors() []Interceptor {
+	return c.inters.QuotaHitEvent
+}
+
+func (c *QuotaHitEventClient) mutate(ctx context.Context, m *QuotaHitEventMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&QuotaHitEventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&QuotaHitEventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&QuotaHitEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&QuotaHitEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown QuotaHitEvent mutation op: %q", m.Op())
+	}
+}
+
 // SystemConfigClient is a client for the SystemConfig schema.
 type SystemConfigClient struct {
 	config
@@ -3256,6 +3572,22 @@ func (c *UsageLogClient) QueryUser(_m *UsageLog) *UserProfileQuery {
 			sqlgraph.From(usagelog.Table, usagelog.FieldID, id),
 			sqlgraph.To(userprofile.Table, userprofile.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, usagelog.UserTable, usagelog.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryErrorDetail queries the error_detail edge of a UsageLog.
+func (c *UsageLogClient) QueryErrorDetail(_m *UsageLog) *AICallErrorQuery {
+	query := (&AICallErrorClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usagelog.Table, usagelog.FieldID, id),
+			sqlgraph.To(aicallerror.Table, aicallerror.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, usagelog.ErrorDetailTable, usagelog.ErrorDetailColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -3717,17 +4049,17 @@ func (c *WeaponCategoryClient) mutate(ctx context.Context, m *WeaponCategoryMuta
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AdminAuditLog, Application, CoachingSession, CompanyAnalysis,
+		AICallError, AdminAuditLog, Application, CoachingSession, CompanyAnalysis,
 		CompanyAnalysisCache, CoverLetter, CoverLetterVersion, DeletionRequest,
 		Experience, ExperienceTag, ExperienceUsage, ExperienceWeapon, Feedback,
-		PromptTemplate, QuestionPattern, SystemConfig, TalentProfile, UsageLog,
-		UserProfile, WeaponCategory []ent.Hook
+		PromptTemplate, QuestionPattern, QuotaHitEvent, SystemConfig, TalentProfile,
+		UsageLog, UserProfile, WeaponCategory []ent.Hook
 	}
 	inters struct {
-		AdminAuditLog, Application, CoachingSession, CompanyAnalysis,
+		AICallError, AdminAuditLog, Application, CoachingSession, CompanyAnalysis,
 		CompanyAnalysisCache, CoverLetter, CoverLetterVersion, DeletionRequest,
 		Experience, ExperienceTag, ExperienceUsage, ExperienceWeapon, Feedback,
-		PromptTemplate, QuestionPattern, SystemConfig, TalentProfile, UsageLog,
-		UserProfile, WeaponCategory []ent.Interceptor
+		PromptTemplate, QuestionPattern, QuotaHitEvent, SystemConfig, TalentProfile,
+		UsageLog, UserProfile, WeaponCategory []ent.Interceptor
 	}
 )

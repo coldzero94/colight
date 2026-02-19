@@ -9,6 +9,18 @@ import (
 	"github.com/coby/colight/apps/backend/ent"
 )
 
+// The AICallErrorFunc type is an adapter to allow the use of ordinary
+// function as AICallError mutator.
+type AICallErrorFunc func(context.Context, *ent.AICallErrorMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AICallErrorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AICallErrorMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AICallErrorMutation", m)
+}
+
 // The AdminAuditLogFunc type is an adapter to allow the use of ordinary
 // function as AdminAuditLog mutator.
 type AdminAuditLogFunc func(context.Context, *ent.AdminAuditLogMutation) (ent.Value, error)
@@ -187,6 +199,18 @@ func (f QuestionPatternFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuestionPatternMutation", m)
+}
+
+// The QuotaHitEventFunc type is an adapter to allow the use of ordinary
+// function as QuotaHitEvent mutator.
+type QuotaHitEventFunc func(context.Context, *ent.QuotaHitEventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuotaHitEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuotaHitEventMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuotaHitEventMutation", m)
 }
 
 // The SystemConfigFunc type is an adapter to allow the use of ordinary

@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/coby/colight/apps/backend/ent/aicallerror"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/google/uuid"
@@ -166,20 +167,6 @@ func (_c *UsageLogCreate) SetNillableStatus(v *string) *UsageLogCreate {
 	return _c
 }
 
-// SetErrorMessage sets the "error_message" field.
-func (_c *UsageLogCreate) SetErrorMessage(v string) *UsageLogCreate {
-	_c.mutation.SetErrorMessage(v)
-	return _c
-}
-
-// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
-func (_c *UsageLogCreate) SetNillableErrorMessage(v *string) *UsageLogCreate {
-	if v != nil {
-		_c.SetErrorMessage(*v)
-	}
-	return _c
-}
-
 // SetID sets the "id" field.
 func (_c *UsageLogCreate) SetID(v uuid.UUID) *UsageLogCreate {
 	_c.mutation.SetID(v)
@@ -197,6 +184,25 @@ func (_c *UsageLogCreate) SetNillableID(v *uuid.UUID) *UsageLogCreate {
 // SetUser sets the "user" edge to the UserProfile entity.
 func (_c *UsageLogCreate) SetUser(v *UserProfile) *UsageLogCreate {
 	return _c.SetUserID(v.ID)
+}
+
+// SetErrorDetailID sets the "error_detail" edge to the AICallError entity by ID.
+func (_c *UsageLogCreate) SetErrorDetailID(id uuid.UUID) *UsageLogCreate {
+	_c.mutation.SetErrorDetailID(id)
+	return _c
+}
+
+// SetNillableErrorDetailID sets the "error_detail" edge to the AICallError entity by ID if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableErrorDetailID(id *uuid.UUID) *UsageLogCreate {
+	if id != nil {
+		_c = _c.SetErrorDetailID(*id)
+	}
+	return _c
+}
+
+// SetErrorDetail sets the "error_detail" edge to the AICallError entity.
+func (_c *UsageLogCreate) SetErrorDetail(v *AICallError) *UsageLogCreate {
+	return _c.SetErrorDetailID(v.ID)
 }
 
 // Mutation returns the UsageLogMutation object of the builder.
@@ -385,10 +391,6 @@ func (_c *UsageLogCreate) createSpec() (*UsageLog, *sqlgraph.CreateSpec) {
 		_spec.SetField(usagelog.FieldStatus, field.TypeString, value)
 		_node.Status = value
 	}
-	if value, ok := _c.mutation.ErrorMessage(); ok {
-		_spec.SetField(usagelog.FieldErrorMessage, field.TypeString, value)
-		_node.ErrorMessage = &value
-	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -404,6 +406,22 @@ func (_c *UsageLogCreate) createSpec() (*UsageLog, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.UserID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ErrorDetailIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   usagelog.ErrorDetailTable,
+			Columns: []string{usagelog.ErrorDetailColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aicallerror.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -8,6 +8,40 @@ import (
 )
 
 var (
+	// AiCallErrorsColumns holds the columns for the "ai_call_errors" table.
+	AiCallErrorsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "error_type", Type: field.TypeEnum, Enums: []string{"rate_limit", "timeout", "provider_error", "invalid_request", "context_exceeded", "unknown"}},
+		{Name: "error_message", Type: field.TypeString, Size: 2147483647},
+		{Name: "usage_log_id", Type: field.TypeUUID, Unique: true},
+	}
+	// AiCallErrorsTable holds the schema information for the "ai_call_errors" table.
+	AiCallErrorsTable = &schema.Table{
+		Name:       "ai_call_errors",
+		Columns:    AiCallErrorsColumns,
+		PrimaryKey: []*schema.Column{AiCallErrorsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ai_call_errors_usage_logs_error_detail",
+				Columns:    []*schema.Column{AiCallErrorsColumns[4]},
+				RefColumns: []*schema.Column{UsageLogsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "aicallerror_error_type_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AiCallErrorsColumns[2], AiCallErrorsColumns[1]},
+			},
+			{
+				Name:    "aicallerror_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AiCallErrorsColumns[1]},
+			},
+		},
+	}
 	// AdminAuditLogsColumns holds the columns for the "admin_audit_logs" table.
 	AdminAuditLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -651,6 +685,42 @@ var (
 			},
 		},
 	}
+	// QuotaHitEventsColumns holds the columns for the "quota_hit_events" table.
+	QuotaHitEventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "provider", Type: field.TypeString, Size: 20},
+		{Name: "model", Type: field.TypeString, Size: 100},
+		{Name: "feature", Type: field.TypeString, Nullable: true, Size: 30},
+		{Name: "error_message", Type: field.TypeString, Size: 2147483647},
+		{Name: "usage_log_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// QuotaHitEventsTable holds the schema information for the "quota_hit_events" table.
+	QuotaHitEventsTable = &schema.Table{
+		Name:       "quota_hit_events",
+		Columns:    QuotaHitEventsColumns,
+		PrimaryKey: []*schema.Column{QuotaHitEventsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "quota_hit_events_usage_logs_usage_log",
+				Columns:    []*schema.Column{QuotaHitEventsColumns[6]},
+				RefColumns: []*schema.Column{UsageLogsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "quotahitevent_provider_model_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{QuotaHitEventsColumns[2], QuotaHitEventsColumns[3], QuotaHitEventsColumns[1]},
+			},
+			{
+				Name:    "quotahitevent_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{QuotaHitEventsColumns[1]},
+			},
+		},
+	}
 	// SystemConfigsColumns holds the columns for the "system_configs" table.
 	SystemConfigsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -721,7 +791,6 @@ var (
 		{Name: "estimated_cost_krw", Type: field.TypeFloat64, Nullable: true},
 		{Name: "latency_ms", Type: field.TypeInt, Nullable: true},
 		{Name: "status", Type: field.TypeString, Size: 20, Default: "success"},
-		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "user_id", Type: field.TypeUUID},
 	}
 	// UsageLogsTable holds the schema information for the "usage_logs" table.
@@ -732,7 +801,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "usage_logs_user_profiles_usage_logs",
-				Columns:    []*schema.Column{UsageLogsColumns[13]},
+				Columns:    []*schema.Column{UsageLogsColumns[12]},
 				RefColumns: []*schema.Column{UserProfilesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -741,7 +810,7 @@ var (
 			{
 				Name:    "usagelog_user_id_feature_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{UsageLogsColumns[13], UsageLogsColumns[2], UsageLogsColumns[1]},
+				Columns: []*schema.Column{UsageLogsColumns[12], UsageLogsColumns[2], UsageLogsColumns[1]},
 			},
 		},
 	}
@@ -828,6 +897,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AiCallErrorsTable,
 		AdminAuditLogsTable,
 		ApplicationsTable,
 		CoachingSessionsTable,
@@ -843,6 +913,7 @@ var (
 		FeedbacksTable,
 		PromptTemplatesTable,
 		QuestionPatternsTable,
+		QuotaHitEventsTable,
 		SystemConfigsTable,
 		TalentProfilesTable,
 		UsageLogsTable,
@@ -852,6 +923,7 @@ var (
 )
 
 func init() {
+	AiCallErrorsTable.ForeignKeys[0].RefTable = UsageLogsTable
 	ApplicationsTable.ForeignKeys[0].RefTable = CompanyAnalysesTable
 	ApplicationsTable.ForeignKeys[1].RefTable = UserProfilesTable
 	CoachingSessionsTable.ForeignKeys[0].RefTable = CoverLettersTable
@@ -873,5 +945,6 @@ func init() {
 	ExperienceWeaponsTable.ForeignKeys[1].RefTable = WeaponCategoriesTable
 	FeedbacksTable.ForeignKeys[0].RefTable = UserProfilesTable
 	QuestionPatternsTable.ForeignKeys[0].RefTable = PromptTemplatesTable
+	QuotaHitEventsTable.ForeignKeys[0].RefTable = UsageLogsTable
 	UsageLogsTable.ForeignKeys[0].RefTable = UserProfilesTable
 }

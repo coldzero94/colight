@@ -111,11 +111,6 @@ func Status(v string) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldStatus, v))
 }
 
-// ErrorMessage applies equality check predicate on the "error_message" field. It's identical to ErrorMessageEQ.
-func ErrorMessage(v string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldEQ(FieldErrorMessage, v))
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldCreatedAt, v))
@@ -686,81 +681,6 @@ func StatusContainsFold(v string) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldContainsFold(FieldStatus, v))
 }
 
-// ErrorMessageEQ applies the EQ predicate on the "error_message" field.
-func ErrorMessageEQ(v string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldEQ(FieldErrorMessage, v))
-}
-
-// ErrorMessageNEQ applies the NEQ predicate on the "error_message" field.
-func ErrorMessageNEQ(v string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldNEQ(FieldErrorMessage, v))
-}
-
-// ErrorMessageIn applies the In predicate on the "error_message" field.
-func ErrorMessageIn(vs ...string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldIn(FieldErrorMessage, vs...))
-}
-
-// ErrorMessageNotIn applies the NotIn predicate on the "error_message" field.
-func ErrorMessageNotIn(vs ...string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldNotIn(FieldErrorMessage, vs...))
-}
-
-// ErrorMessageGT applies the GT predicate on the "error_message" field.
-func ErrorMessageGT(v string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldGT(FieldErrorMessage, v))
-}
-
-// ErrorMessageGTE applies the GTE predicate on the "error_message" field.
-func ErrorMessageGTE(v string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldGTE(FieldErrorMessage, v))
-}
-
-// ErrorMessageLT applies the LT predicate on the "error_message" field.
-func ErrorMessageLT(v string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldLT(FieldErrorMessage, v))
-}
-
-// ErrorMessageLTE applies the LTE predicate on the "error_message" field.
-func ErrorMessageLTE(v string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldLTE(FieldErrorMessage, v))
-}
-
-// ErrorMessageContains applies the Contains predicate on the "error_message" field.
-func ErrorMessageContains(v string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldContains(FieldErrorMessage, v))
-}
-
-// ErrorMessageHasPrefix applies the HasPrefix predicate on the "error_message" field.
-func ErrorMessageHasPrefix(v string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldHasPrefix(FieldErrorMessage, v))
-}
-
-// ErrorMessageHasSuffix applies the HasSuffix predicate on the "error_message" field.
-func ErrorMessageHasSuffix(v string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldHasSuffix(FieldErrorMessage, v))
-}
-
-// ErrorMessageIsNil applies the IsNil predicate on the "error_message" field.
-func ErrorMessageIsNil() predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldIsNull(FieldErrorMessage))
-}
-
-// ErrorMessageNotNil applies the NotNil predicate on the "error_message" field.
-func ErrorMessageNotNil() predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldNotNull(FieldErrorMessage))
-}
-
-// ErrorMessageEqualFold applies the EqualFold predicate on the "error_message" field.
-func ErrorMessageEqualFold(v string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldEqualFold(FieldErrorMessage, v))
-}
-
-// ErrorMessageContainsFold applies the ContainsFold predicate on the "error_message" field.
-func ErrorMessageContainsFold(v string) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldContainsFold(FieldErrorMessage, v))
-}
-
 // HasUser applies the HasEdge predicate on the "user" edge.
 func HasUser() predicate.UsageLog {
 	return predicate.UsageLog(func(s *sql.Selector) {
@@ -776,6 +696,29 @@ func HasUser() predicate.UsageLog {
 func HasUserWith(preds ...predicate.UserProfile) predicate.UsageLog {
 	return predicate.UsageLog(func(s *sql.Selector) {
 		step := newUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasErrorDetail applies the HasEdge predicate on the "error_detail" edge.
+func HasErrorDetail() predicate.UsageLog {
+	return predicate.UsageLog(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, ErrorDetailTable, ErrorDetailColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasErrorDetailWith applies the HasEdge predicate on the "error_detail" edge with a given conditions (other predicates).
+func HasErrorDetailWith(preds ...predicate.AICallError) predicate.UsageLog {
+	return predicate.UsageLog(func(s *sql.Selector) {
+		step := newErrorDetailStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

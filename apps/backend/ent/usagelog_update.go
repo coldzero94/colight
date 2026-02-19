@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/coby/colight/apps/backend/ent/aicallerror"
 	"github.com/coby/colight/apps/backend/ent/predicate"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
@@ -240,29 +241,28 @@ func (_u *UsageLogUpdate) SetNillableStatus(v *string) *UsageLogUpdate {
 	return _u
 }
 
-// SetErrorMessage sets the "error_message" field.
-func (_u *UsageLogUpdate) SetErrorMessage(v string) *UsageLogUpdate {
-	_u.mutation.SetErrorMessage(v)
+// SetUser sets the "user" edge to the UserProfile entity.
+func (_u *UsageLogUpdate) SetUser(v *UserProfile) *UsageLogUpdate {
+	return _u.SetUserID(v.ID)
+}
+
+// SetErrorDetailID sets the "error_detail" edge to the AICallError entity by ID.
+func (_u *UsageLogUpdate) SetErrorDetailID(id uuid.UUID) *UsageLogUpdate {
+	_u.mutation.SetErrorDetailID(id)
 	return _u
 }
 
-// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
-func (_u *UsageLogUpdate) SetNillableErrorMessage(v *string) *UsageLogUpdate {
-	if v != nil {
-		_u.SetErrorMessage(*v)
+// SetNillableErrorDetailID sets the "error_detail" edge to the AICallError entity by ID if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableErrorDetailID(id *uuid.UUID) *UsageLogUpdate {
+	if id != nil {
+		_u = _u.SetErrorDetailID(*id)
 	}
 	return _u
 }
 
-// ClearErrorMessage clears the value of the "error_message" field.
-func (_u *UsageLogUpdate) ClearErrorMessage() *UsageLogUpdate {
-	_u.mutation.ClearErrorMessage()
-	return _u
-}
-
-// SetUser sets the "user" edge to the UserProfile entity.
-func (_u *UsageLogUpdate) SetUser(v *UserProfile) *UsageLogUpdate {
-	return _u.SetUserID(v.ID)
+// SetErrorDetail sets the "error_detail" edge to the AICallError entity.
+func (_u *UsageLogUpdate) SetErrorDetail(v *AICallError) *UsageLogUpdate {
+	return _u.SetErrorDetailID(v.ID)
 }
 
 // Mutation returns the UsageLogMutation object of the builder.
@@ -273,6 +273,12 @@ func (_u *UsageLogUpdate) Mutation() *UsageLogMutation {
 // ClearUser clears the "user" edge to the UserProfile entity.
 func (_u *UsageLogUpdate) ClearUser() *UsageLogUpdate {
 	_u.mutation.ClearUser()
+	return _u
+}
+
+// ClearErrorDetail clears the "error_detail" edge to the AICallError entity.
+func (_u *UsageLogUpdate) ClearErrorDetail() *UsageLogUpdate {
+	_u.mutation.ClearErrorDetail()
 	return _u
 }
 
@@ -403,12 +409,6 @@ func (_u *UsageLogUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(usagelog.FieldStatus, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.ErrorMessage(); ok {
-		_spec.SetField(usagelog.FieldErrorMessage, field.TypeString, value)
-	}
-	if _u.mutation.ErrorMessageCleared() {
-		_spec.ClearField(usagelog.FieldErrorMessage, field.TypeString)
-	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -431,6 +431,35 @@ func (_u *UsageLogUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(userprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ErrorDetailCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   usagelog.ErrorDetailTable,
+			Columns: []string{usagelog.ErrorDetailColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aicallerror.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ErrorDetailIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   usagelog.ErrorDetailTable,
+			Columns: []string{usagelog.ErrorDetailColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aicallerror.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -669,29 +698,28 @@ func (_u *UsageLogUpdateOne) SetNillableStatus(v *string) *UsageLogUpdateOne {
 	return _u
 }
 
-// SetErrorMessage sets the "error_message" field.
-func (_u *UsageLogUpdateOne) SetErrorMessage(v string) *UsageLogUpdateOne {
-	_u.mutation.SetErrorMessage(v)
+// SetUser sets the "user" edge to the UserProfile entity.
+func (_u *UsageLogUpdateOne) SetUser(v *UserProfile) *UsageLogUpdateOne {
+	return _u.SetUserID(v.ID)
+}
+
+// SetErrorDetailID sets the "error_detail" edge to the AICallError entity by ID.
+func (_u *UsageLogUpdateOne) SetErrorDetailID(id uuid.UUID) *UsageLogUpdateOne {
+	_u.mutation.SetErrorDetailID(id)
 	return _u
 }
 
-// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
-func (_u *UsageLogUpdateOne) SetNillableErrorMessage(v *string) *UsageLogUpdateOne {
-	if v != nil {
-		_u.SetErrorMessage(*v)
+// SetNillableErrorDetailID sets the "error_detail" edge to the AICallError entity by ID if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableErrorDetailID(id *uuid.UUID) *UsageLogUpdateOne {
+	if id != nil {
+		_u = _u.SetErrorDetailID(*id)
 	}
 	return _u
 }
 
-// ClearErrorMessage clears the value of the "error_message" field.
-func (_u *UsageLogUpdateOne) ClearErrorMessage() *UsageLogUpdateOne {
-	_u.mutation.ClearErrorMessage()
-	return _u
-}
-
-// SetUser sets the "user" edge to the UserProfile entity.
-func (_u *UsageLogUpdateOne) SetUser(v *UserProfile) *UsageLogUpdateOne {
-	return _u.SetUserID(v.ID)
+// SetErrorDetail sets the "error_detail" edge to the AICallError entity.
+func (_u *UsageLogUpdateOne) SetErrorDetail(v *AICallError) *UsageLogUpdateOne {
+	return _u.SetErrorDetailID(v.ID)
 }
 
 // Mutation returns the UsageLogMutation object of the builder.
@@ -702,6 +730,12 @@ func (_u *UsageLogUpdateOne) Mutation() *UsageLogMutation {
 // ClearUser clears the "user" edge to the UserProfile entity.
 func (_u *UsageLogUpdateOne) ClearUser() *UsageLogUpdateOne {
 	_u.mutation.ClearUser()
+	return _u
+}
+
+// ClearErrorDetail clears the "error_detail" edge to the AICallError entity.
+func (_u *UsageLogUpdateOne) ClearErrorDetail() *UsageLogUpdateOne {
+	_u.mutation.ClearErrorDetail()
 	return _u
 }
 
@@ -862,12 +896,6 @@ func (_u *UsageLogUpdateOne) sqlSave(ctx context.Context) (_node *UsageLog, err 
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(usagelog.FieldStatus, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.ErrorMessage(); ok {
-		_spec.SetField(usagelog.FieldErrorMessage, field.TypeString, value)
-	}
-	if _u.mutation.ErrorMessageCleared() {
-		_spec.ClearField(usagelog.FieldErrorMessage, field.TypeString)
-	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -890,6 +918,35 @@ func (_u *UsageLogUpdateOne) sqlSave(ctx context.Context) (_node *UsageLog, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(userprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ErrorDetailCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   usagelog.ErrorDetailTable,
+			Columns: []string{usagelog.ErrorDetailColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aicallerror.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ErrorDetailIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   usagelog.ErrorDetailTable,
+			Columns: []string{usagelog.ErrorDetailColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aicallerror.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
