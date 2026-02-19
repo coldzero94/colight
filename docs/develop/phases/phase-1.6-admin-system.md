@@ -367,27 +367,43 @@ CREATE TABLE admin_audit_logs (
 
 | 테스트 | 파일 | 설명 |
 |--------|------|------|
-| `TestExportUserData` | `internal/controller/admin_controller_test.go` | 사용자 데이터 내보내기 (JSON/CSV) |
+| `TestExportUserData` | `internal/controller/admin_controller_test.go` | 사용자 데이터 내보내기 (JSON) |
 | `TestDeleteRequest_Create` | `internal/controller/admin_controller_test.go` | 삭제 요청 생성 (30일 보존) |
 | `TestDeleteRequest_Cancel` | `internal/controller/admin_controller_test.go` | 삭제 요청 취소 |
 | `TestDeletionQueue_List` | `internal/controller/admin_controller_test.go` | 삭제 대기 목록 조회 |
+| `TestDeleteExpiredUsersWorker_ProcessesDueRequests` | `internal/jobs/delete_expired_users_test.go` | 만료된 삭제 요청 처리 |
+| `TestDeleteExpiredUsersWorker_SkipsNotDueRequests` | `internal/jobs/delete_expired_users_test.go` | 미만료 요청 스킵 |
+| `TestDeleteExpiredUsersWorker_SkipsCancelledRequests` | `internal/jobs/delete_expired_users_test.go` | 취소된 요청 스킵 |
+| `TestDeleteExpiredUsersWorker_ProcessesMultiple` | `internal/jobs/delete_expired_users_test.go` | 복수 처리 |
+| `TestDeleteExpiredUsersWorker_EmptyQueue` | `internal/jobs/delete_expired_users_test.go` | 빈 큐 no-op |
 
 **구현 체크리스트**:
-- [ ] 테스트 작성 (RED)
-- [ ] 구현 (GREEN)
-  - [ ] **DB**: `deletion_requests` 테이블 (user_id, reason, scheduled_at, status)
-  - [ ] **Backend**: `POST /v1/admin/users/:id/export` — 데이터 내보내기 (비동기, River job)
-  - [ ] **Backend**: `POST /v1/admin/users/:id/delete-request` — 삭제 요청
-  - [ ] **Backend**: `DELETE /v1/admin/users/:id/delete-request` — 삭제 취소
-  - [ ] **Backend**: `GET /v1/admin/deletion-queue` — 삭제 대기 목록
-  - [ ] **Backend**: River 주기 작업 — 보존 기간 만료 계정 영구 삭제
-  - [ ] **Frontend**: 사용자 상세 모달에 내보내기/삭제 버튼 추가
-  - [ ] **Frontend**: 삭제 대기 목록 (대시보드 또는 별도)
-- [ ] 테스트 통과 확인
+- [x] 테스트 작성 (RED)
+- [x] 구현 (GREEN)
+  - [x] **DB**: `deletion_requests` 테이블 (`ent/schema/deletionrequest.go`)
+  - [x] **Backend**: `POST /v1/admin/users/:id/export` — 데이터 내보내기 (동기, JSON 다운로드)
+  - [x] **Backend**: `POST /v1/admin/users/:id/delete-request` — 삭제 요청 생성
+  - [x] **Backend**: `DELETE /v1/admin/users/:id/delete-request` — 삭제 요청 취소
+  - [x] **Backend**: `GET /v1/admin/deletion-queue` — 삭제 대기 목록
+  - [x] **Backend**: River 주기 작업 (`internal/jobs/delete_expired_users.go`) — 24시간마다 만료 계정 영구 삭제
+  - [x] **인프라**: River v0.30.2 설치, `pgxpool` 연결, `internal/infrastructure/scheduler/river.go` 신설
+  - [x] **Frontend**: 사용자 상세 모달에 내보내기(JSON) + 삭제 요청 생성 버튼
+  - [x] **Frontend**: 삭제 요청 취소 버튼 추가
+  - [ ] **Frontend**: 삭제 대기 목록 별도 페이지 (Phase 1.7 대시보드에서 통합 예정)
+- [x] 테스트 통과 확인
+
+**구현 노트**:
+- 내보내기는 비동기 River job 대신 동기 JSON 응답으로 구현 (사용자 수 적을 때 충분)
+- River 삭제 job은 `deletion_requests` 먼저 삭제 후 `user_profiles` 삭제 (FK CASCADE가 test DB에서 미적용 상태였기 때문)
+- 삭제 대기 목록 UI는 Phase 1.7 대시보드 위젯으로 통합 예정
 
 **산출물**:
-- `ent/schema/deletionrequest.go`
-- 수정: admin_controller, users page
+- `ent/schema/deletionrequest.go` (기존)
+- `internal/jobs/delete_expired_users.go` (신설)
+- `internal/infrastructure/scheduler/river.go` (신설)
+- `internal/infrastructure/database/database.go` (pgxpool 추가)
+- `cmd/api/main.go` (River 초기화)
+- `apps/web/.../admin/users/page.tsx` (취소 버튼 추가)
 
 ---
 
