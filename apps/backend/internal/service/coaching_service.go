@@ -200,13 +200,10 @@ func (s *CoachingService) GenerateDraftStream(
 		return ai.LLMResponse{}, err
 	}
 
-	resp, err := s.aiProvider.CallByModelName(ctx, modelName, llmReq)
+	resp, err := s.aiProvider.StreamByModelName(ctx, modelName, llmReq, onChunk)
 	if err != nil {
 		return ai.LLMResponse{}, fmt.Errorf("AI call failed: %w", err)
 	}
-
-	// Send full response as a single chunk for SSE compatibility
-	onChunk(resp.Content)
 
 	return resp, nil
 }

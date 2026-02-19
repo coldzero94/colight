@@ -110,6 +110,75 @@ func (p *AIProvider) CallByModelName(ctx context.Context, modelName string, req 
 	}
 }
 
+// StreamByModelName routes to the correct provider's Stream() method when
+// supported, falling back to Call() + single onChunk invocation otherwise.
+// This allows tests to inject a StreamingLLMProvider mock and receive
+// individual chunks, while production providers (Gemini/Groq) that don't
+// yet implement streaming still work via the Call() fallback.
+func (p *AIProvider) StreamByModelName(ctx context.Context, modelName string, req LLMRequest, onChunk StreamCallback) (LLMResponse, error) {
+	if p.throttler != nil {
+		if err := p.throttler.Wait(ctx, modelName); err != nil {
+			return LLMResponse{}, fmt.Errorf("throttle wait failed: %w", err)
+		}
+	}
+
+	// streamOrCall checks if provider implements StreamingLLMProvider and calls
+	// Stream(); otherwise falls back to Call() with a single onChunk invocation.
+	streamOrCall := func(provider LLMProvider) (LLMResponse, error) {
+		if sp, ok := provider.(StreamingLLMProvider); ok {
+			return sp.Stream(ctx, req, onChunk)
+		}
+		resp, err := provider.Call(ctx, req)
+		if err != nil {
+			return LLMResponse{}, err
+		}
+		onChunk(resp.Content)
+		return resp, nil
+	}
+
+	switch modelName {
+	case "gemini-3-pro", "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite",
+		"gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-flash", "gemini":
+		if p.gemini == nil {
+			return LLMResponse{}, fmt.Errorf("Gemini not available (missing GEMINI_API_KEY)")
+		}
+		return streamOrCall(p.gemini)
+
+	case "groq", "llama":
+		provider := p.groqLLM
+		if provider == nil {
+			if p.groq == nil {
+				return LLMResponse{}, fmt.Errorf("Groq not available (missing GROQ_API_KEY)")
+			}
+			provider = p.groq
+		}
+		return p.callGroqSerialized(ctx, func() (LLMResponse, error) {
+			return streamOrCall(provider)
+		})
+
+	default:
+		if _, ok := GroqModelAliases[modelName]; ok {
+			provider := p.groqLLM
+			if provider == nil {
+				if p.groq == nil {
+					return LLMResponse{}, fmt.Errorf("Groq not available for model %s (missing GROQ_API_KEY)", modelName)
+				}
+				provider = p.groq
+			}
+			return p.callGroqSerialized(ctx, func() (LLMResponse, error) {
+				return streamOrCall(provider)
+			})
+		}
+		if _, ok := GeminiModelAliases[modelName]; ok {
+			if p.gemini == nil {
+				return LLMResponse{}, fmt.Errorf("Gemini not available for model %s (missing GEMINI_API_KEY)", modelName)
+			}
+			return streamOrCall(p.gemini)
+		}
+		return LLMResponse{}, fmt.Errorf("unknown model: %s", modelName)
+	}
+}
+
 // callGroqSerialized acquires the Groq semaphore before calling, ensuring
 // only one Groq API call runs at a time to avoid rate limit on free tier.
 func (p *AIProvider) callGroqSerialized(ctx context.Context, fn func() (LLMResponse, error)) (LLMResponse, error) {

@@ -359,8 +359,11 @@ func ensureAdvicePromptCtrl(t *testing.T, client *ent.Client) {
 }
 
 func TestPostDraft_DoneEventIncludesAdvice(t *testing.T) {
-	// Single mock handles both draft generation and advice
+	// Single mock handles both draft generation (Stream) and advice (Call).
+	// Chunks are required so Stream() produces text events; response is the
+	// JSON returned by both the streaming final response and the advice Call.
 	mockAI := &mockLLMForCoaching{
+		chunks: []string{"초안 내용 1", "초안 내용 2"},
 		response: ai.LLMResponse{
 			Content:      `[{"category":"metric","content":"수치를 추가하세요.","priority":1},{"category":"structure","content":"결과를 보강하세요.","priority":2}]`,
 			InputTokens:  50,
