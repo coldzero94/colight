@@ -587,21 +587,30 @@ Fair Use Policy의 플랜별 한도를 어드민에서 조정할 수 있다.
 ### 5.3 데이터 모델
 
 ```sql
--- usage_logs 테이블 (확장)
--- 기존 usage_tracking에 비용 추적 필드 추가
+-- usage_logs 테이블 (Phase 1.7 완료 기준)
+-- 에러 상세는 ai_call_errors 테이블로 분리 (Phase 1.7)
 CREATE TABLE usage_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES user_profiles(id),
-    feature VARCHAR(50) NOT NULL,           -- "analysis", "coaching", "interview", "tagging"
-    provider VARCHAR(20) NOT NULL,          -- "anthropic", "gemini", "groq", "openai"
-    model VARCHAR(100) NOT NULL,            -- "claude-sonnet-4-5-20250929"
+    feature VARCHAR(30) NOT NULL,           -- "experience", "analysis", "draft", "review"
+    provider VARCHAR(20),                   -- "gemini", "groq"
+    model VARCHAR(100),
     input_tokens INTEGER DEFAULT 0,
     output_tokens INTEGER DEFAULT 0,
     total_tokens INTEGER DEFAULT 0,
     estimated_cost_krw DECIMAL(10,2),       -- 추정 비용 (원화)
     latency_ms INTEGER,                     -- 응답 시간
-    status VARCHAR(20) DEFAULT 'success',   -- "success", "error", "timeout"
-    error_message TEXT,
+    status VARCHAR(20) DEFAULT 'success',   -- "success" | "error"
+    metadata JSONB,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 에러 상세 (Phase 1.7 신설 — 02-data-structure.md §3.21 참고)
+CREATE TABLE ai_call_errors (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    usage_log_id UUID NOT NULL UNIQUE REFERENCES usage_logs(id) ON DELETE CASCADE,
+    error_type VARCHAR(30) NOT NULL,        -- rate_limit | timeout | provider_error | invalid_request | context_exceeded
+    error_message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -609,6 +618,7 @@ CREATE TABLE usage_logs (
 CREATE INDEX idx_usage_logs_created_at ON usage_logs(created_at);
 CREATE INDEX idx_usage_logs_user_id ON usage_logs(user_id);
 CREATE INDEX idx_usage_logs_feature ON usage_logs(feature);
+CREATE INDEX idx_ai_call_errors_type ON ai_call_errors(error_type, created_at DESC);
 ```
 
 ### 5.4 UI 와이어프레임

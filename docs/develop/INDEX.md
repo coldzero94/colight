@@ -70,6 +70,7 @@ moon run :dev
 | [Phase 7](./phases/phase-7-ai-interview.md) | AI 인터뷰 | Sprint 7 | 2일 | ✅ |
 | [Phase 7.1](./phases/phase-7.1-experience-recommend.md) | 경험 추천 | Sprint 7 | 1일 | ⬜ |
 | [Phase 1.6](./phases/phase-1.6-admin-system.md) | 어드민 시스템 확장 | Sprint 8-9 | 5일 | ⬜ |
+| [Phase 1.7](./phases/phase-1.7-admin-dashboard.md) | 어드민 관찰성 대시보드 | Sprint 9-10 | 6일 | ⬜ |
 | [Phase 8](./phases/phase-8-dashboard-kanban.md) | 대시보드 칸반 | Sprint 7-8 | 1.5일 | ⬜ |
 | [Phase 8.1](./phases/phase-8.1-version-management.md) | 버전 관리 | Sprint 8 | 1일 | ⬜ |
 | [Phase 9](./phases/phase-9-payment.md) | 결제 연동 | Sprint 9 | 2일 | ⬜ |

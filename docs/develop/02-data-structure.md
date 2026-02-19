@@ -1,6 +1,6 @@
 # 데이터 구조
 
-> 작성일: 2026-02-11 (2026-02-13 인증 아키텍처 변경 반영)
+> 작성일: 2026-02-11 (2026-02-13 인증 아키텍처 변경, 2026-02-19 Phase 1.6/1.7 테이블 반영)
 > PostgreSQL + pgvector + Ent ORM
 
 ---
@@ -9,7 +9,7 @@
 
 **Ent 스키마 정의가 단일 진실 공급원(Single Source of Truth)**이다.
 
-```
+```text
 apps/backend/ent/schema/
 ├── mixin.go              # 공통 필드 (BaseMixin, TimestampMixin)
 ├── userprofile.go        # 사용자 프로필
@@ -26,7 +26,18 @@ apps/backend/ent/schema/
 ├── companyanalysis.go    # 기업 분석 결과
 ├── coverletter.go        # 자소서
 ├── coverletterversion.go # 자소서 버전
-└── coachingsession.go    # 코칭 세션
+├── coachingsession.go    # 코칭 세션
+│
+│   ── Phase 1.6 어드민 ──
+├── usagelog.go           # AI 호출 사용량 로그
+├── systemconfig.go       # 시스템 설정
+├── adminauditlog.go      # 어드민 감사 로그
+├── feedback.go           # 사용자 피드백
+├── deletionrequest.go    # 계정 삭제 요청 (PIPA)
+│
+│   ── Phase 1.7 어드민 관찰성 (구현 예정) ──
+├── aicallerror.go        # AI 호출 에러 상세 (usage_logs 1:1 확장)
+└── quotahitevent.go      # Rate limit 이벤트 영속화
 ```
 
 - SQL 마이그레이션은 Ent 스키마에서 **Atlas**가 자동 생성
@@ -66,7 +77,9 @@ Annotations(entsql.OnDelete(entsql.SetNull))
 
 ---
 
-## 3. Ent 스키마 정의 (15 테이블)
+## 3. Ent 스키마 정의 (22 테이블)
+
+> 3.1–3.15: 코어 도메인 | 3.16–3.20: Phase 1.6 어드민 | 3.21–3.22: Phase 1.7 어드민 관찰성 (구현 예정)
 
 ### 3.0 Mixin (공통 필드)
 
@@ -1338,6 +1351,275 @@ func (CoachingSession) Indexes() []ent.Index {
 
 ---
 
+### 3.16 UsageLog (AI 호출 사용량 로그)
+
+> **Phase 1.6 신설, Phase 1.7 완료 기준** — 에러 상세는 `ai_call_errors` (3.21)로 분리
+
+```go
+// apps/backend/ent/schema/usagelog.go
+type UsageLog struct{ ent.Schema }
+
+func (UsageLog) Mixin() []ent.Mixin { return []ent.Mixin{TimestampMixin{}} }
+
+func (UsageLog) Fields() []ent.Field {
+    return []ent.Field{
+        field.UUID("user_id", uuid.UUID{}).
+            Comment("References user_profiles(id)"),
+        field.String("feature").MaxLen(30).
+            Comment("Feature: experience, analysis, question_analysis, draft, review"),
+        field.JSON("metadata", map[string]interface{}{}).Optional(),
+        field.String("provider").MaxLen(20).Optional().Nillable().
+            Comment("AI provider: gemini, groq"),
+        field.String("model").MaxLen(100).Optional().Nillable(),
+        field.Int("input_tokens").Default(0),
+        field.Int("output_tokens").Default(0),
+        field.Int("total_tokens").Default(0),
+        field.Float("estimated_cost_krw").Optional().Nillable(),
+        field.Int("latency_ms").Optional().Nillable(),
+        field.String("status").MaxLen(20).Default("success").
+            Comment("success | error"),
+    }
+}
+
+func (UsageLog) Edges() []ent.Edge {
+    return []ent.Edge{
+        edge.From("user", UserProfile.Type).
+            Ref("usage_logs").Unique().Required().Field("user_id").
+            Annotations(entsql.OnDelete(entsql.Cascade)),
+        edge.To("error_detail", AICallError.Type).Unique(),
+    }
+}
+
+func (UsageLog) Indexes() []ent.Index {
+    return []ent.Index{
+        index.Fields("user_id", "feature", "created_at"),
+    }
+}
+```
+
+---
+
+### 3.17 SystemConfig (시스템 설정)
+
+> **Phase 1.6.2 신설** — API 키, 모델 설정, 사용량 한도 관리 (super_admin 전용)
+
+```go
+// apps/backend/ent/schema/systemconfig.go
+type SystemConfig struct{ ent.Schema }
+
+func (SystemConfig) Fields() []ent.Field {
+    return []ent.Field{
+        field.String("config_key").Unique().MaxLen(100).
+            Comment("Config key (e.g. GEMINI_API_KEY, max_drafts_per_day)"),
+        field.Text("config_value").
+            Comment("Config value (encrypted if is_secret=true)"),
+        field.String("description").Optional().MaxLen(500),
+        field.String("category").MaxLen(50).
+            Comment("api_key | model | limit | cost"),
+        field.Bool("is_secret").Default(false).
+            Comment("Whether to mask value in UI"),
+        field.UUID("updated_by", uuid.UUID{}).Optional().Nillable().
+            Comment("Admin who last updated"),
+    }
+}
+```
+
+---
+
+### 3.18 AdminAuditLog (어드민 감사 로그)
+
+> **Phase 1.6.5 신설** — 어드민 액션 추적 (역할 변경, 설정 수정, 계정 정지 등)
+
+```go
+// apps/backend/ent/schema/adminauditlog.go
+type AdminAuditLog struct{ ent.Schema }
+
+func (AdminAuditLog) Fields() []ent.Field {
+    return []ent.Field{
+        field.UUID("admin_id", uuid.UUID{}).
+            Comment("Admin who performed the action"),
+        field.String("action").MaxLen(50).
+            Comment("role_change | config_update | suspend | unsuspend | prompt_update"),
+        field.String("target_type").MaxLen(50).
+            Comment("user | config | prompt"),
+        field.String("target_id").Optional().MaxLen(255),
+        field.Text("old_value").Optional().Nillable().Comment("JSON"),
+        field.Text("new_value").Optional().Nillable().Comment("JSON"),
+        field.String("ip_address").Optional().MaxLen(45),
+    }
+}
+
+func (AdminAuditLog) Indexes() []ent.Index {
+    return []ent.Index{
+        index.Fields("admin_id"),
+        index.Fields("action"),
+        index.Fields("created_at"),
+    }
+}
+```
+
+---
+
+### 3.19 Feedback (사용자 피드백)
+
+> **Phase 1.6.7 신설**
+
+```go
+// apps/backend/ent/schema/feedback.go
+type Feedback struct{ ent.Schema }
+
+func (Feedback) Fields() []ent.Field {
+    return []ent.Field{
+        field.UUID("user_id", uuid.UUID{}),
+        field.Enum("category").Values("bug", "improvement", "other"),
+        field.Text("content").NotEmpty(),
+        field.String("page_url").Optional().MaxLen(500),
+        field.String("user_agent").Optional().MaxLen(500),
+        field.Enum("admin_status").
+            Values("pending", "reviewed", "resolved", "dismissed").
+            Default("pending"),
+        field.Text("admin_note").Optional(),
+        field.UUID("reviewed_by", uuid.UUID{}).Optional().Nillable(),
+        field.Time("reviewed_at").Optional().Nillable(),
+    }
+}
+
+func (Feedback) Edges() []ent.Edge {
+    return []ent.Edge{
+        edge.From("user", UserProfile.Type).
+            Ref("feedbacks").Unique().Required().Field("user_id").
+            Annotations(entsql.OnDelete(entsql.Cascade)),
+    }
+}
+
+func (Feedback) Indexes() []ent.Index {
+    return []ent.Index{index.Fields("user_id", "created_at")}
+}
+```
+
+---
+
+### 3.20 DeletionRequest (계정 삭제 요청)
+
+> **Phase 1.6.8 신설** — PIPA 개인정보 처리방침 준수, 30일 유예 후 삭제
+
+```go
+// apps/backend/ent/schema/deletionrequest.go
+type DeletionRequest struct{ ent.Schema }
+
+func (DeletionRequest) Fields() []ent.Field {
+    return []ent.Field{
+        field.UUID("user_id", uuid.UUID{}),
+        field.Enum("status").Values("pending", "completed", "cancelled").Default("pending"),
+        field.Text("reason").Optional(),
+        field.Time("scheduled_at").Comment("30 days after request"),
+        field.Time("cancelled_at").Optional().Nillable(),
+        field.UUID("requested_by", uuid.UUID{}).Optional().Nillable().
+            Comment("Admin who requested (nil if self-requested)"),
+    }
+}
+
+func (DeletionRequest) Edges() []ent.Edge {
+    return []ent.Edge{
+        edge.From("user", UserProfile.Type).
+            Ref("deletion_requests").Unique().Required().Field("user_id").
+            Annotations(entsql.OnDelete(entsql.Cascade)),
+    }
+}
+```
+
+---
+
+### 3.21 AICallError (AI 호출 에러 상세)
+
+> **⚠️ Phase 1.7 신설 (구현 예정)** — `usage_logs`의 에러 관련 컬럼을 분리한 1:0..1 확장 테이블
+
+```go
+// apps/backend/ent/schema/aicallerror.go
+type AICallError struct{ ent.Schema }
+
+func (AICallError) Mixin() []ent.Mixin { return []ent.Mixin{TimestampMixin{}} }
+
+func (AICallError) Fields() []ent.Field {
+    return []ent.Field{
+        field.UUID("usage_log_id", uuid.UUID{}).Unique().
+            Comment("1:1 FK to usage_logs — CASCADE on delete"),
+        field.Enum("error_type").
+            Values("rate_limit", "timeout", "provider_error",
+                "invalid_request", "context_exceeded", "unknown").
+            Comment("Classified AI error category"),
+        field.Text("error_message").
+            Comment("Raw error message from provider"),
+    }
+}
+
+func (AICallError) Edges() []ent.Edge {
+    return []ent.Edge{
+        edge.From("usage_log", UsageLog.Type).
+            Ref("error_detail").Field("usage_log_id").
+            Unique().Required().
+            Annotations(entsql.OnDelete(entsql.Cascade)),
+    }
+}
+
+func (AICallError) Indexes() []ent.Index {
+    return []ent.Index{
+        index.Fields("error_type", "created_at"),
+        index.Fields("created_at"),
+    }
+}
+```
+
+**error_type 정의**:
+
+| 값 | 설명 |
+| -- | ---- |
+| `rate_limit` | HTTP 429, 분당/일당 요청 한도 초과 |
+| `timeout` | 응답 시간 초과 (context.DeadlineExceeded) |
+| `provider_error` | HTTP 5xx, 프로바이더 내부 오류 |
+| `invalid_request` | HTTP 4xx (non-429), 잘못된 요청 |
+| `context_exceeded` | 입력 토큰이 모델 컨텍스트 한도 초과 |
+| `unknown` | 마이그레이션 시 기존 에러 일괄 초기화값 |
+
+---
+
+### 3.22 QuotaHitEvent (Rate Limit 이벤트)
+
+> **⚠️ Phase 1.7 신설 (구현 예정)** — 현재 인메모리 링버퍼(200개)를 DB로 영속화
+
+```go
+// apps/backend/ent/schema/quotahitevent.go
+type QuotaHitEvent struct{ ent.Schema }
+
+func (QuotaHitEvent) Mixin() []ent.Mixin { return []ent.Mixin{TimestampMixin{}} }
+
+func (QuotaHitEvent) Fields() []ent.Field {
+    return []ent.Field{
+        field.String("provider").MaxLen(20).Comment("gemini | groq"),
+        field.String("model").MaxLen(100),
+        field.String("feature").MaxLen(30).Optional().Nillable(),
+        field.Text("error_message"),
+        field.UUID("usage_log_id", uuid.UUID{}).Optional().Nillable().
+            Comment("FK to usage_logs, nullable for pre-throttle events"),
+    }
+}
+
+func (QuotaHitEvent) Edges() []ent.Edge {
+    return []ent.Edge{
+        edge.To("usage_log", UsageLog.Type).Field("usage_log_id").Unique().Optional(),
+    }
+}
+
+func (QuotaHitEvent) Indexes() []ent.Index {
+    return []ent.Index{
+        index.Fields("provider", "model", "created_at"),
+        index.Fields("created_at"),
+    }
+}
+```
+
+---
+
 ## 4. 인증 아키텍처
 
 > **변경 (2026-02-13)**: Supabase Auth를 제거하고 Go 백엔드에서 직접 인증을 처리합니다.
@@ -1553,6 +1835,9 @@ erDiagram
     UserProfile ||--o{ CoverLetter : "has many"
     UserProfile ||--o{ CoachingSession : "has many"
     UserProfile ||--o{ ExperienceUsage : "has many"
+    UserProfile ||--o{ UsageLog : "has many"
+    UserProfile ||--o{ Feedback : "has many"
+    UserProfile ||--o{ DeletionRequest : "has many"
 
     Experience ||--o{ ExperienceTag : "has many"
     Experience ||--o{ ExperienceWeapon : "has many"
@@ -1573,4 +1858,7 @@ erDiagram
 
     PromptTemplate ||--o{ CoachingSession : "has many"
     PromptTemplate ||--o{ QuestionPattern : "has many"
+
+    UsageLog ||--o| AICallError : "0..1 (Phase 1.7)"
+    UsageLog ||--o| QuotaHitEvent : "0..1 (Phase 1.7)"
 ```
