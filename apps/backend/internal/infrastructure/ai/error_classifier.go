@@ -45,6 +45,13 @@ func ClassifyError(err error) string {
 		return "provider_error"
 	}
 
-	// Default: bad request / unknown
-	return "invalid_request"
+	// HTTP 4xx keywords → invalid request
+	if strings.Contains(msg, "400") ||
+		strings.Contains(msg, "bad request") ||
+		strings.Contains(msg, "invalid") {
+		return "invalid_request"
+	}
+
+	// Unclassifiable
+	return "unknown"
 }

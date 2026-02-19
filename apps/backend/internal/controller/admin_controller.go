@@ -15,6 +15,7 @@ import (
 	"github.com/coby/colight/apps/backend/ent/prompttemplate"
 	"github.com/coby/colight/apps/backend/ent/systemconfig"
 	"github.com/coby/colight/apps/backend/ent/aicallerror"
+	"github.com/coby/colight/apps/backend/ent/predicate"
 	"github.com/coby/colight/apps/backend/ent/usagelog"
 	"github.com/coby/colight/apps/backend/ent/userprofile"
 	"github.com/coby/colight/apps/backend/internal/infrastructure/ai"
@@ -1750,12 +1751,17 @@ func (ctrl *AdminController) GetDashboard(c *gin.Context) {
 	}
 
 	// ── Quota alerts (models > 80% RPD) ──
-	quotaAlerts := []map[string]any{}
-	// Quota alerts use model stats from the throttler — populated when models
-	// approach 80% of their daily request quota (RPD).
-	if ctrl.aiProvider != nil && ctrl.aiProvider.Throttler() != nil {
-		for _, qs := range ctrl.aiProvider.Throttler().GetQuotaHitSummary(24 * time.Hour) {
-			_ = qs // future: compute percentage from hit_count / RPD limit
+	allQuotas := estimateModelQuotas(allLogs7)
+	quotaAlerts := make([]map[string]any, 0)
+	for _, q := range allQuotas {
+		pct, _ := q["percentage"].(float64)
+		if pct >= 80 {
+			quotaAlerts = append(quotaAlerts, map[string]any{
+				"model":    q["model"],
+				"provider": q["provider"],
+				"used_pct": pct,
+				"remaining": q["remaining"],
+			})
 		}
 	}
 
@@ -1861,6 +1867,18 @@ func (ctrl *AdminController) ListErrors(c *gin.Context) {
 		q = q.Where(aicallerror.ErrorTypeEQ(aicallerror.ErrorType(et)))
 	}
 
+	// Filter by provider/feature via usage_log edge (DB-level, not post-query)
+	var usageLogPreds []predicate.UsageLog
+	if prov := c.Query("provider"); prov != "" {
+		usageLogPreds = append(usageLogPreds, usagelog.ProviderEQ(prov))
+	}
+	if feat := c.Query("feature"); feat != "" {
+		usageLogPreds = append(usageLogPreds, usagelog.FeatureEQ(feat))
+	}
+	if len(usageLogPreds) > 0 {
+		q = q.Where(aicallerror.HasUsageLogWith(usageLogPreds...))
+	}
+
 	total, _ := q.Count(ctx)
 
 	records, err := q.Limit(limit).Offset(offset).All(ctx)
@@ -1891,17 +1909,6 @@ func (ctrl *AdminController) ListErrors(c *gin.Context) {
 			}
 			if ul.Provider != nil {
 				item["provider"] = *ul.Provider
-			}
-		}
-		// Filter by provider/feature after join (simpler than SQL join predicate in Ent)
-		if prov := c.Query("provider"); prov != "" {
-			if item["provider"] != prov {
-				continue
-			}
-		}
-		if feat := c.Query("feature"); feat != "" {
-			if item["feature"] != feat {
-				continue
 			}
 		}
 		items = append(items, item)

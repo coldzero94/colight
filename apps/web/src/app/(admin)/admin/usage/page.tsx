@@ -127,27 +127,31 @@ function OverviewTab({ dashboard }: { dashboard: DashboardData | null }) {
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
             일별 호출 추이 (7일)
           </h2>
-          <div className="flex items-end gap-1 h-32">
-            {daily_metrics.map((d) => {
-              const max = Math.max(...daily_metrics.map((m) => m.calls), 1);
-              const height = (d.calls / max) * 100;
-              return (
-                <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
-                  <span className="text-[10px] text-muted-foreground">{d.calls}</span>
-                  <div className="w-full relative" style={{ height: `${height}%`, minHeight: "2px" }}>
-                    <div className="absolute inset-0 bg-primary/70 rounded-t" />
-                    {d.error_count > 0 && (
-                      <div
-                        className="absolute bottom-0 inset-x-0 bg-red-500/80 rounded-t"
-                        style={{ height: `${(d.error_count / d.calls) * 100}%` }}
-                      />
-                    )}
-                  </div>
-                  <span className="text-[9px] text-muted-foreground/60">{d.date.slice(5)}</span>
-                </div>
-              );
-            })}
-          </div>
+          {(() => {
+            const max = Math.max(...daily_metrics.map((m) => m.calls), 1);
+            return (
+              <div className="flex items-end gap-1 h-32">
+                {daily_metrics.map((d) => {
+                  const height = (d.calls / max) * 100;
+                  return (
+                    <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
+                      <span className="text-[10px] text-muted-foreground">{d.calls}</span>
+                      <div className="w-full relative" style={{ height: `${height}%`, minHeight: "2px" }}>
+                        <div className="absolute inset-0 bg-primary/70 rounded-t" />
+                        {d.error_count > 0 && d.calls > 0 && (
+                          <div
+                            className="absolute bottom-0 inset-x-0 bg-red-500/80 rounded-t"
+                            style={{ height: `${(d.error_count / d.calls) * 100}%` }}
+                          />
+                        )}
+                      </div>
+                      <span className="text-[9px] text-muted-foreground/60">{d.date.slice(5)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
           <div className="flex gap-4 mt-3 text-[10px] text-muted-foreground/60">
             <span className="flex items-center gap-1"><span className="w-2 h-2 bg-primary/70 rounded" /> 호출</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-500/80 rounded" /> 에러</span>
@@ -547,7 +551,7 @@ function ModelsTab() {
                           : s.error_rate < 20 ? "text-yellow-400"
                           : "text-red-400"
                       }>
-                        {((s.success_count / s.call_count) * 100).toFixed(1)}%
+                        {s.call_count > 0 ? ((s.success_count / s.call_count) * 100).toFixed(1) : "0.0"}%
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right text-muted-foreground">{s.total_tokens.toLocaleString()}</td>

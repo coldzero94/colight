@@ -53,14 +53,24 @@ func TestClassifyAIError_ContextExceeded(t *testing.T) {
 	}
 }
 
-func TestClassifyAIError_Fallback(t *testing.T) {
+func TestClassifyAIError_InvalidRequest(t *testing.T) {
 	cases := []error{
 		errors.New("HTTP 400: invalid request"),
-		errors.New("model not found"),
-		errors.New("unknown error occurred"),
+		errors.New("HTTP 400: Bad Request"),
+		errors.New("invalid argument: model not supported"),
 	}
 	for _, err := range cases {
 		assert.Equal(t, "invalid_request", ai.ClassifyError(err), "err: %v", err)
+	}
+}
+
+func TestClassifyAIError_Unknown(t *testing.T) {
+	cases := []error{
+		errors.New("unknown error occurred"),
+		errors.New("something completely unexpected"),
+	}
+	for _, err := range cases {
+		assert.Equal(t, "unknown", ai.ClassifyError(err), "err: %v", err)
 	}
 }
 
