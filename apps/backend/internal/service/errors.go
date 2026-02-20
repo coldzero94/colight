@@ -35,4 +35,18 @@ var (
 	// Interview errors
 	ErrInvalidInterviewStage = errors.New("invalid interview stage")
 	ErrEmptySTARField        = errors.New("STAR extraction returned empty field")
+
+	// Admin errors
+	ErrAdminUserNotFound         = errors.New("admin: user not found")
+	ErrAdminSelfRoleChange       = errors.New("admin: cannot change own role")
+	ErrAdminInsufficientLevel    = errors.New("admin: insufficient role level for target role")
+	ErrAdminTargetTooHigh        = errors.New("admin: target user role is at or above caller level")
+	ErrAdminLastSuperAdmin       = errors.New("admin: cannot demote the last super_admin")
+	ErrAdminUserAlreadySuspended = errors.New("admin: user is already suspended")
+	ErrAdminEmailExists          = errors.New("admin: email already exists")
+	ErrAdminDeletionNotFound     = errors.New("admin: no pending deletion request found")
+	ErrAdminConfigNotFound       = errors.New("admin: config not found")
+	ErrAdminPromptNotFound       = errors.New("admin: prompt template not found")
+	ErrAdminUnsupportedModel     = errors.New("admin: unsupported model name")
+	ErrAdminFeedbackNotFound     = errors.New("admin: feedback not found")
 )
